@@ -104,14 +104,14 @@ Also, `flexbox` is really a marketing term, not a descriptive term.  What does i
 > 
 > the flex properties are captured in a new `Layout` record, which looks like the following:
 >
->      ```
->      layout = 
->           { go = Right
->           , wrap = True
->           , spacing = 10
->           , align = center
->           }
->      ```
+> ```elm
+> layout = 
+>   { go = Right
+>   , wrap = True
+>   , spacing = 10
+>   , align = center
+>   }
+> ```
 >
 >  This may be insanity, but we're only going to only allow margin to be set by the parent.  And we're going to call it "spacing" on the parent's `layout` attribute.  This means we have to have a mechanism of specifying styles in children...but lets hold off on that for the moment.
 
