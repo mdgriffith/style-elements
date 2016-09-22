@@ -63,7 +63,7 @@ It's possible `display:inline` can be eliminated completely.  Let's move on with
 
 
 
-## Layout
+## Padding and Margin
 
 `padding` and `margin` are interesting when you have a parent and a child element.  You now have two ways of specifying the spacing of the child element within the parent.  Either the `margin` on the child or the `padding` on the parent.  This causes anxiety in the developer.
 
@@ -76,6 +76,7 @@ It's possible `display:inline` can be eliminated completely.  Let's move on with
 
 And we're going to move on and see if this works.
 
+## Layout
 
 `flexbox` is an incredibly useful property.  We can specify if we want to orient the children horizontally in rows or vertically in columns.  I believe the default should be to wrap these elements as well (the general browser default is to not wrap).
 
@@ -244,7 +245,7 @@ default =
 
 So, that's kinda big...It would suck to have to write that entire thing for every style.
 
-Except we don't have to specify everything all at once for each style.  Take a look at your site through the lens of these `style block`s.  You might see that there are only so many `color blocks` or `layout blocks` or `text blocks`.  Interestingly you may only have 3-4 color blocks, 2-3 layout blocks, and 2-3 text blocks.  Our styles are just interesting combinations of those blocks.
+Except we don't have to specify everything all at once for each style.  Take a look at your site through the lens of these `style block`s.  You might see that there are only so many different `color blocks` or `layout blocks` or `text blocks`.  Interestingly you may only have 3-4 color blocks, 2-3 layout blocks, and 2-3 text blocks.  Our styles are just interesting combinations of those blocks.
 
 We can simplify this a great deal by crafting one default style and modifying things based on that.  Essentially we're creating an explicit inheritance model.
 
@@ -262,10 +263,10 @@ selectionColors =
 
 largeBorders : Border
 largeBorders =
-        { style = Solid
-        , width = all (px 5)
-        , rounding = all (px 5)
-        }
+    { style = Solid
+    , width = all (px 5)
+    , rounding = all (px 5)
+    }
 
 newStyle : Style
 newStyle = 
@@ -277,7 +278,13 @@ newStyle =
 ```
 
 
-So what do we have.  We have these blocks which are incredibly portable and easy to compose together into a style.  We have mobile styles which will be true no matter where an element lives in the DOM.  Awesome.
+So what do we have.  
+
+ 1. We have these blocks which are incredibly *portable* and easy to compose together into a style.  
+    - Actually I believe these blocks are an amazing way for a designer to set a *style vocabulary* for your site.
+ 2. We have mobile styles which will be true no matter where an element lives in the DOM.  
+
+Awesome.
 
 Except we need to go even farther.
 
@@ -287,7 +294,7 @@ We're going to bind the html node type and the style.
 
 Wait, what?
 
-Yeah, bear with me.  Ok so we have a limited number of html elements at our disposal, leading us to use a lot of `div` tags.  However it can be really useful to define our own tag types so that our view is more semantically constructed.
+Yeah, bear with me.  Ok, so we have a limited number of html elements at our disposal, leading us to use a lot of `div` tags.  However it can be really useful to define our own tag types so that our view is more semantically meaningful.
 
 So, this library provides a function called `Style.element` which takes an html node, our recently created style model, a list of attributes and a list of children html nodes.
 
@@ -316,7 +323,24 @@ nav []
 So, our styling file turns into a library that we use to create our composable elements that we want to use on our site.  This makes our views super clean.  
 
 
-Also, I mentioned earlier that we need a way to send style modifications to children in order to make out flex layout idea work easily.  By creating our own nodes, there's a way to propagate values to the child in the background.  I realize this is sorta bizarre, I'm open to different approaches.
+Also, I mentioned earlier that we need a way to send style modifications to children in order to make out flex layout idea work easily.  By creating our own nodes, there's a way to propagate values to the child in the background. 
+
+
+
+# Let's look at a full example
+
+I've converted the styles for [my blog to use this library](link_to_file), so you can see what this looks like on a small/medium site.
+
+Here are my thoughts after doing the conversion.
+
+   1. There tends to be more initial work, but once you get blocks defined things move way faster than normal styling.
+      - This could be addressed by shipping a package that's essentially a bootstrap.  Something that provides everything already set up and is extensible.
+   2. You have to adjust your thinking to focus on `style blocks`.  Once you do, things are great.
+   2. Easier to make a modification to my styles.
+   3. In being forced to use this constricted model for styling, a lot of the existing complications I had in my css have been resolved into something much simpler.
+
+It feels like an elmish solution.  The tradeoff is some initial boilerplate for something thats much more maintainable.
+
 
 
 
