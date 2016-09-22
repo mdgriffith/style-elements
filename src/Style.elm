@@ -15,15 +15,25 @@ type alias Model =
     , spacing : Spacing
     , text : Text
     , border : Border
-    , float : Maybe Float
+    , cursor : String
+    , float : Maybe Floating
     , shadow : List Shadow
     , textShadow : List Shadow
     , insetShadow : List Shadow
     , transforms : List Transform
+    , filters : List Filter
     }
 
 
-type Float
+type Filter
+    = Blur Int
+    | Greyscale
+
+
+{-| This type is only valid if the parent has its layout set to `TextLayout`
+
+-}
+type Floating
     = FloatLeft
     | FloatRight
 
@@ -32,6 +42,7 @@ type alias Colors =
     { background : Color
     , text : Color
     , textDecoration : Color
+    , textHighlight : Color
     , border : Color
     }
 
@@ -75,8 +86,19 @@ type alias Size =
 
 
 type Layout
-    = Flex Flexible
-    | Standard
+    = FlowLayout Flexible
+    | TextLayout Textual
+    | TableLayout Table
+
+
+type alias Table =
+    { spacing : Int
+    }
+
+
+type alias Textual =
+    { spacing : Int
+    }
 
 
 type alias Flexible =
@@ -159,6 +181,7 @@ type alias Text =
     { font : String
     , size : Float
     , lineHeight : Float
+    , characterOffset : Float
     , style : FontStyle
     , align : FontAlignment
     , decoration : Maybe TextDecoration

@@ -117,8 +117,26 @@ Also, `flexbox` is really a marketing term, not a descriptive term.  What does i
 >  This may be insanity, but we're only going to only allow margin to be set by the parent.  And we're going to call it "spacing" on the parent's `layout` attribute.  This means we have to have a mechanism of specifying styles in children...but lets hold off on that for the moment.
 
 
+## List Items
 
-## Organizing Properties
+Does it really make sense that you can have a <ul> element with any other children besides <li>?  Also, frequently developers use this to tag things that are not semantic textual lists.  Such as the elements in a <nav> menu.
+
+Here are also all the properties you have to set to control how a lsit works:
+
+on the ul or ol element, not the <li> element.
+ - list-style-type -> what marker to use.  circle?  square?
+ - list-style-position -> position that marker inside or outside of the flow.
+ - list-style-image -> use an image instead of a marker
+
+So, we have all this special machinery to do something common and basic...put an icon to the left of an element.  Except this should only be for lists?  I think they were too focused on trying to get auto numbering of elements in a list.  However for me that's not the biggest priority.
+
+So, the problem to solve is "how do I easily put an icon before something".  And we don't want the parent to set the icon, we want an element to set its own icon.
+
+Let's table this for a moment and come back to it once we talk about some other stuff.
+
+
+
+# Organizing Properties
 
 Here's a question I've been thinking about: "what other properties does a property care about?".  As in, when you modify a property, what other properties do you need to know in order to make a good design decision.
 
@@ -322,25 +340,208 @@ nav []
 
 So, our styling file turns into a library that we use to create our composable elements that we want to use on our site.  This makes our views super clean.  
 
-
 Also, I mentioned earlier that we need a way to send style modifications to children in order to make out flex layout idea work easily.  By creating our own nodes, there's a way to propagate values to the child in the background. 
 
 
+## Style variations?
 
-# Let's look at a full example
+We could just make a new element for each variation.
+
+```elm
+[ buttonRed [] []
+, buttonBlue [] []
+]
+```
+
+However we want to switch between style variations depending on state.  With the above approach, you could accidently change the node type.
+
+
+Instead we can create a new type of style element called `Style.options`.
+
+
+```elm
+
+type ButtonStyle =
+    | RedButton
+    | BlueButton
+
+
+buttonStyleVariations : ButtonStyle -> Style.Model
+buttonStyleVariations button = 
+    case button of 
+        RedButton ->
+            { default | color = redBackground}
+        BlueButton ->
+            { default | color = blueBackground}
+
+
+
+button : Style.Element msg
+button =
+    Style.options
+        Html.button
+        buttonStyleVariations
+
+-- Then we can render the element like so.
+
+[ button RedButton [] []
+, button BlueButton [] []
+]
+
+-- And we can switch between the two easily.
+
+button (if model.buttonRed then RedButton else BlueButton) 
+    [] 
+    []
+
+
+```
+
+We kinda lose the ability to have things like a "class list", but I'm curious what happens if we really try out the above pattern.  I think we gain explicitness.
+
+
+## Style Animation
+How do we do animation using this approach?
+
+Lets try and animate between button color changes.
+
+We start by having another element type called `Style.animated`.
+
+
+```elm
+-- Similar set up to our Style.options approach
+type ButtonStyle =
+    | RedButton
+    | BlueButton
+
+
+buttonStyleVariations : ButtonStyle -> Style.Model
+buttonStyleVariations button = 
+    case button of 
+        RedButton ->
+            { default | color = redBackground}
+        BlueButton ->
+            { default | color = blueBackground}
+
+
+button : Style.Element msg
+button =
+    Style.animated
+        Html.button
+        buttonStyleVariations
+
+
+
+
+-- For Animations we have to store the style in our model.
+
+model = 
+    { buttonStyle = 
+        Style.init (buttonStyleVariations RedButton)
+    }
+
+-- We render in our view as the following
+button 
+    model.buttonStyle 
+    [] 
+    []
+
+-- And we animate in the update function.
+
+update msg model = 
+    case msg of 
+        MakeButtonBlue ->
+            { model 
+                | buttonStyle = 
+                    Style.animateTo (buttonStyleVariations BlueButton)
+            }
+
+-- Behind the scenes everything is using elm-style-animation.  We just use style-blocks to specify the target style.
+
+
+
+```
+
+## Lists and icons again!
+
+Ok, so we decided that the problem with lists isn't "I have a list, style it", but rather "How do I specify an icon before an element".
+
+Lets explore what the syntax could look like
+
+We could have an `icon` function that takes a name of an icon, and is otherwise rendered normally.
+```elm
+
+[ icon "circle" [] [ text "first thing in list" ]
+, icon "circle" [] [ text "Second thing in list!" ]
+]
+
+```
+
+The crazy part is that you could implement this in your own style block file, it doesn't have to explicitly be a part of the style block library.  Lets make it work with FontAwesome as an example.
+
+
+```elm
+icon : String -> Style.Element msg
+icon iconName =
+    Style.element
+        (\attrs children -> 
+            Html.div attrs
+                ( Html.i (class ("fa-" ++ iconName) :: Style.render iconStyle) []
+                :: children
+                )
+        )
+        defaultStyle
+
+```
+
+This could be easily packaged in the bootstrap type library we were mentioning earlier.
+
+
+
+# Step back and let's look at a full example
 
 I've converted the styles for [my blog to use this library](link_to_file), so you can see what this looks like on a small/medium site.
 
+Some statistics.
+
+ - 1695 lines of css code -> ___ lines of style block elm.  (All ignoring whitespace, but including comments)
+    - Some of this can be attributed to throwing out old css rules that was not used.
+    - Interestingly the style block elm also includes type signatures, which are obviously not present in css.
+    - I believe this new model helps limit the amount of cruft that accumulates.  The compiler can probably detect when a style isn't being used, actually.  They're just functions.
+ - What type of elm block code did we end up writing 
+     - `style blocks` - ____ lines
+     - `composing blocks into styles + associating blocks with elements` - ____ lines
+ - [Old view function]() vs [new view function]()
+ - How much inheritance was actually necessary?  All styles were derived off of one base style.
+
+
 Here are my thoughts after doing the conversion.
 
-   1. There tends to be more initial work, but once you get blocks defined things move way faster than normal styling.
-      - This could be addressed by shipping a package that's essentially a bootstrap.  Something that provides everything already set up and is extensible.
-   2. You have to adjust your thinking to focus on `style blocks`.  Once you do, things are great.
-   2. Easier to make a modification to my styles.
+   1. There tends to feel like theres more initial work.  It _feels_ this way because you start off writing style blocks and your initial style, even though what you really want is to style whatever node you're working on in your view.
+
+   2. Once you get blocks defined things move way faster than normal styling.  At that point you're just composing blocks, which is really easy to think about.
+      - This could even be addressed by shipping a style-block-bootstrap package.  Something that provides an awesome starting point and is extensible.
+   2. You have to adjust your thinking to focus on `style blocks`, not on full styles.  Once you do, things are great.
+   2. Easier to make a modification to my styles.  Things are harder to break.
    3. In being forced to use this constricted model for styling, a lot of the existing complications I had in my css have been resolved into something much simpler.
 
-It feels like an elmish solution.  The tradeoff is some initial boilerplate for something thats much more maintainable.
+To me it feels like an elmish solution.  The tradeoff is some initial boilerplate for something that I beleive is much more maintainable.
 
+
+# Future Utilities/Work
+
+  1. A javascript snippet to look at all styles on a page and generate the style blocks and necessary bindings.
+  2. A bootstrap, as mentioned earlier.
+  3. Detection on if a style is never used via unused function detection in compiler?
+  5. An interactive style reactor that displays 
+    * All _style blocks_ 
+        * What full styles a block is bound to
+        * Allows you to modify a style block
+    * All _full styles__ and what blocks they're composed of.
+        * allows you to change blocks
+    * All elements and what full styles they're bound to
+        *  allows you to change bindings
+    * Detect if there are duplicate style blocks? - allow the programmer to pick one and eliminate/find-replace the other.
 
 
 
