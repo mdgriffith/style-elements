@@ -5,12 +5,13 @@ First off, disclaimer: this is an experiment :)  I present some of these ideas i
 
 I believe there are a few reasons that css is irritating.
 
-   1. There are a lot of invalid styles you can write.  Some properties will break other properties.
-   2. There are secret defaults and complex inheritance.
-        - There are multiple places you to 'combine' styles, which makes it hard to track down what causes what. We have sophisticated tools to do this, like the browser inspector, but this also is a block in being able to think about our styles without tools.
-   3. Most everything is obtusely named :/
-   4. Multiple ways to accomplish things.  Do you want `position:relative;margin:0 auto;` or `position:absolute;margin-left:50%;width:500px;left:-250px;`?
-   5. inheritance means that where the element is in the DOM can modify what it looks like.  This means elements cannot move around the DOM and maintain their style.  I like to think of it in similar terms to the idea of functional purity.  You call a function with the same arguments it always returns the same thing, right?  I believe the same should be the case for styling.  You styled an element, right?  It shouldnt be restyled based on where it is in your DOM, only by what you've declared that it is.  I'm going to refer to this idea as `style mobility`.  There are times where the parent being able to specify a tiny bit of what the child should do is really useful, but having it as a general rule I beleive is harmful.
+   1. *Able to write invalid styles* - There are a lot of invalid styles you can write.  Some properties will break other properties.
+   2. *Secret Defaults* 
+   3. *Most everything is obtusely named* :/
+   4. *Multiple ways to accomplish a goal*  Do you want `position:relative;margin:0 auto;` or `position:absolute;margin-left:50%;width:500px;left:-250px;`?
+   5. *Inheretance* means that where the element is in the DOM can modify what it looks like.  This means elements cannot move around the DOM and maintain their style.  
+        - I like to think of it in similar terms to the idea of functional purity.  You call a function with the same arguments it always returns the same thing, right?  I believe the same should be the case for styling.  You styled an element...it shouldn't be restyled based on where it is in your DOM, or in what order you declared your rules in your css, only by what you've declared that it is.  I'm going to refer to this idea as *style mobility*.  
+        - There are times where the parent being able to specify a tiny bit of what the child should do is really useful, but having it as a general rule I believe is harmful.
 
 So, lets dig in, shall we?
 
@@ -56,7 +57,9 @@ There are also a few other ways to specify position.  `translate` and the `x` an
 
 ## Specifying Size
 
-If you have a `display: inline` property set, then `width` and `height` are ignored.  `display: inline` is generally used for things in text.  Is it equivalent to `display: inline-block; width: 0; height:0;`?  It's possible `display:inline` can be eliminated completely.  Let's move on without addressing this directly yet.
+If you have a `display: inline` property set, then `width` and `height` are ignored.  `display: inline` is generally used for things in text.  I'd actaully like to know if its equivalent to `display: inline-block; width: 0; height:0;`.
+
+It's possible `display:inline` can be eliminated completely.  Let's move on without addressing this directly yet.
 
 
 
@@ -69,6 +72,9 @@ If you have a `display: inline` property set, then `width` and `height` are igno
 > -----------------------
 > 
 > We're going to do a crazy thing and only allow `padding` to be set manually.
+
+
+And we're going to move on and see if this works.
 
 
 `flexbox` is an incredibly useful property.  We can specify if we want to orient the children horizontally in rows or vertically in columns.  I believe the default should be to wrap these elements as well (the general browser default is to not wrap).
@@ -97,6 +103,7 @@ Also, `flexbox` is really a marketing term, not a descriptive term.  What does i
 > -----------------------
 > 
 > the flex properties are captured in a new `Layout` record, which looks like the following:
+>
 >      ```
 >      layout = 
 >           { go = Right
