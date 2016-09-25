@@ -4,6 +4,7 @@ import Html
 import Html.Attributes
 import Animation
 import Color exposing (Color)
+import String
 
 
 type alias Model =
@@ -12,22 +13,30 @@ type alias Model =
     , position : Position
     , size : Size
     , colors : Colors
-    , spacing : Spacing
+    , padding : ( Float, Float, Float, Float )
     , text : Text
     , border : Border
     , cursor : String
     , float : Maybe Floating
-    , shadow : List Shadow
-    , textShadow : List Shadow
-    , insetShadow : List Shadow
+    , shadows : List Shadow
+    , textShadows : List Shadow
+    , insetShadows : List Shadow
     , transforms : List Transform
     , filters : List Filter
     }
 
 
 type Filter
-    = Blur Int
-    | Greyscale
+    = FilterUrl String
+    | Blur Float
+    | Brightness Float
+    | Contrast Float
+    | Grayscale Float
+    | HueRotate Float
+    | Invert Float
+    | Opacity Float
+    | Saturate Float
+    | Sepia Float
 
 
 {-| This type is only valid if the parent has its layout set to `TextLayout`
@@ -42,13 +51,7 @@ type alias Colors =
     { background : Color
     , text : Color
     , textDecoration : Color
-    , textHighlight : Color
     , border : Color
-    }
-
-
-type alias Spacing =
-    { padding : ( Float, Float, Float, Float )
     }
 
 
@@ -79,14 +82,32 @@ type alias Position =
     }
 
 
+type Length
+    = Px Float
+    | Percent Float
+    | Auto
+
+
+px x =
+    Px x
+
+
+percent x =
+    Percent x
+
+
+auto =
+    Auto
+
+
 type alias Size =
-    { width : Float
-    , height : Float
+    { width : Length
+    , height : Length
     }
 
 
 type Layout
-    = FlowLayout Flexible
+    = FlexLayout Flexible
     | TextLayout Textual
     | TableLayout Table
 
@@ -111,7 +132,7 @@ type alias Flexible =
 
 horizontal : Layout
 horizontal =
-    Flex
+    FlexLayout
         { go = Right
         , wrap = True
         , spacing = 10
@@ -121,7 +142,7 @@ horizontal =
 
 vertical : Layout
 vertical =
-    Flex
+    FlexLayout
         { go = Down
         , wrap = True
         , spacing = 10
@@ -155,18 +176,6 @@ type VerticalJustification
     | VStretch
 
 
-type alias FontStyle =
-    { italic : Bool
-    , boldness : Boldness
-    }
-
-
-type Boldness
-    = Normal
-    | Bold
-    | Light
-
-
 type FontAlignment
     = AlignLeft
     | AlignRight
@@ -175,14 +184,15 @@ type FontAlignment
     | JustifyAll
 
 
-{-| All values are given in 'rem' units
+{-| All values are given in 'px' units
 -}
 type alias Text =
     { font : String
     , size : Float
     , lineHeight : Float
-    , characterOffset : Float
-    , style : FontStyle
+    , characterOffset : Maybe Float
+    , italic : Bool
+    , boldness : Maybe Float
     , align : FontAlignment
     , decoration : Maybe TextDecoration
     }
@@ -195,11 +205,11 @@ type alias TextDecoration =
 
 
 type TextDecorationStyle
-    = Solid TextDecorationPosition
-    | DashedDecoration TextDecorationPosition
-    | Double TextDecorationPosition
-    | Dotted TextDecorationPosition
-    | Wavy TextDecorationPosition
+    = Straight
+    | Dashed
+    | Double
+    | Dotted
+    | Wavy
 
 
 type TextDecorationPosition
@@ -225,9 +235,9 @@ type alias Border =
 
 
 type BorderStyle
-    = Solid
-    | Dashed
-    | Dotted
+    = SolidBorder
+    | DashedBorder
+    | DottedBorder
 
 
 type Visibility
@@ -256,19 +266,22 @@ default =
     , position = defaultPosition
     , size = defaultSize
     , colors = defaultColors
-    , spacing = defaultSpacing
+    , cursor = "auto"
+    , padding = ( 0, 0, 0, 0 )
     , text = defaultText
     , border = defaultBorder
-    , textShadow = []
-    , shadow = []
-    , insetShadow = []
+    , float = Nothing
+    , textShadows = []
+    , shadows = []
+    , insetShadows = []
     , transforms = []
+    , filters = []
     }
 
 
 defaultLayout : Layout
 defaultLayout =
-    Standard
+    TextLayout { spacing = 15 }
 
 
 defaultVisibility : Visibility
@@ -276,16 +289,10 @@ defaultVisibility =
     Transparent 0
 
 
-defaultSpacing : Spacing
-defaultSpacing =
-    { padding = ( 0, 0, 0, 0 )
-    }
-
-
 defaultSize : Size
 defaultSize =
-    { width = 100
-    , height = 100
+    { width = auto
+    , height = auto
     }
 
 
@@ -293,8 +300,9 @@ defaultText : Text
 defaultText =
     { font = "georgia"
     , size = 16
+    , characterOffset = Nothing
     , lineHeight = 16
-    , italics = False
+    , italic = False
     , boldness = Nothing
     , align = AlignLeft
     , decoration = Nothing
@@ -303,7 +311,7 @@ defaultText =
 
 defaultBorder : Border
 defaultBorder =
-    { style = Solid
+    { style = SolidBorder
     , width = ( 0, 0, 0, 0 )
     , corners = ( 0, 0, 0, 0 )
     }
@@ -314,6 +322,7 @@ defaultColors =
     { background = Color.white
     , text = Color.black
     , border = Color.grey
+    , textDecoration = Color.black
     }
 
 
@@ -329,73 +338,452 @@ defaultPosition =
     (,)
 
 
+
+--type alias Model =
+--    { layout : Layout
+--    , visibility : Visibility
+--    , position : Position
+--    , size : Size
+--    , colors : Colors
+--    , spacing : Spacing
+--    , text : Text
+--    , border : Border
+--    , cursor : String
+--    , float : Maybe Floating
+--    , shadow : List Shadow
+--    , textShadow : List Shadow
+--    , insetShadow : List Shadow
+--    , transforms : List Transform
+--    , filters : List Filter
+--    }
+
+
 render : Model -> ( List (Html.Attribute msg), List (Html.Attribute msg) )
 render style =
-    [ Html.Attributes.style
-        (List.concat
+    [ Html.Attributes.style <|
+        List.concat
             [ renderLayout style.layout
+            , renderPosition style.position
+            , renderVisibility style.visibility
+            , renderSize style.size
+            , renderColors style.colors
+            , renderText style.text
+            , [ "cursor" => style.cursor
+              , "padding" => render4tuplePx style.padding
+              ]
+            , renderBorder style.border
+            , case style.float of
+                Nothing ->
+                    []
+
+                Just floating ->
+                    case floating of
+                        FloatLeft ->
+                            [ "float" => "left" ]
+
+                        FloatRight ->
+                            [ "float" => "right" ]
+            , renderShadow "box-shadow" False style.shadows
+            , renderShadow "box-shadow" True style.insetShadows
+            , renderShadow "text-shadow" False style.textShadows
+            , renderFilters style.filters
             ]
-        )
     ]
         => []
+
+
+renderFilters : List Filter -> List ( String, String )
+renderFilters filters =
+    [ "filter"
+        => (String.join " " <| List.map filterToString filters)
+    ]
+
+
+filterToString : Filter -> String
+filterToString filter =
+    case filter of
+        FilterUrl url ->
+            "url(" ++ url ++ ")"
+
+        Blur x ->
+            "blur(" ++ toString x ++ "px)"
+
+        Brightness x ->
+            "brightness(" ++ toString x ++ "%)"
+
+        Contrast x ->
+            "contrast(" ++ toString x ++ "%)"
+
+        Grayscale x ->
+            "grayscale(" ++ toString x ++ "%)"
+
+        HueRotate x ->
+            "hueRotate(" ++ toString x ++ "deg)"
+
+        Invert x ->
+            "invert(" ++ toString x ++ "%)"
+
+        Opacity x ->
+            "opacity(" ++ toString x ++ "%)"
+
+        Saturate x ->
+            "saturate(" ++ toString x ++ "%)"
+
+        Sepia x ->
+            "sepia(" ++ toString x ++ "%)"
+
+
+renderShadow : String -> Bool -> List Shadow -> List ( String, String )
+renderShadow shadowName inset shadows =
+    [ shadowName
+        => String.join ", " (List.map (shadowValue inset) shadows)
+    ]
+
+
+shadowValue : Bool -> Shadow -> String
+shadowValue inset { offset, size, blur, color } =
+    String.join " "
+        [ if inset then
+            "inset"
+          else
+            ""
+        , toString (fst offset) ++ "px"
+        , toString (snd offset) ++ "px"
+        , toString blur ++ "px"
+        , colorToString color
+        ]
+
+
+render4tuplePx : ( Float, Float, Float, Float ) -> String
+render4tuplePx ( a, b, c, d ) =
+    toString a ++ "px " ++ toString b ++ "px " ++ toString c ++ "px " ++ toString d ++ "px"
+
+
+renderBorder : Border -> List ( String, String )
+renderBorder { style, width, corners } =
+    [ "border-style"
+        => case style of
+            SolidBorder ->
+                "solid"
+
+            DashedBorder ->
+                "dashed"
+
+            DottedBorder ->
+                "dotted"
+    , "border-width"
+        => render4tuplePx width
+    , "border-radius"
+        => render4tuplePx corners
+    ]
+
+
+renderText : Text -> List ( String, String )
+renderText text =
+    [ "font-family" => text.font
+    , "font-size" => (toString text.size ++ "px")
+    , "line-height" => (toString text.lineHeight ++ "px")
+    , case text.characterOffset of
+        Nothing ->
+            ( "", "" )
+
+        Just offset ->
+            "letter-spacing" => (toString offset ++ "px")
+    , if text.italic then
+        "font-style" => "italic"
+      else
+        "font-style" => "normal"
+    , case text.boldness of
+        Nothing ->
+            "" => ""
+
+        Just bold ->
+            "font-weight" => (toString bold)
+    , case text.align of
+        AlignLeft ->
+            "text-align" => "left"
+
+        AlignRight ->
+            "text-align" => "right"
+
+        AlignCenter ->
+            "text-align" => "center"
+
+        Justify ->
+            "text-align" => "justify"
+
+        JustifyAll ->
+            "text-align" => "justify-all"
+    , case text.decoration of
+        Nothing ->
+            "" => ""
+
+        Just { style } ->
+            case style of
+                Straight ->
+                    "text-decoration-style" => "solid"
+
+                Dashed ->
+                    "text-decoration-style" => "dashed"
+
+                Double ->
+                    "text-decoration-style" => "double"
+
+                Dotted ->
+                    "text-decoration-style" => "dotted"
+
+                Wavy ->
+                    "text-decoration-style" => "wavy"
+    , case text.decoration of
+        Nothing ->
+            "" => ""
+
+        Just { position } ->
+            case position of
+                Underline ->
+                    "text-decoration-line" => "underline"
+
+                Overline ->
+                    "text-decoration-line" => "overline"
+
+                LineThrough ->
+                    "text-decoration-line" => "line-through"
+    ]
+
+
+colorToString : Color -> String
+colorToString color =
+    let
+        { red, green, blue, alpha } =
+            Color.toRgb color
+    in
+        "rgba("
+            ++ toString red
+            ++ ","
+            ++ toString green
+            ++ ","
+            ++ toString blue
+            ++ ","
+            ++ toString alpha
+            ++ ")"
+
+
+renderColors : Colors -> List ( String, String )
+renderColors { text, background, textDecoration, border } =
+    [ "border-color" => colorToString border
+    , "color" => colorToString text
+    , "background-color" => colorToString background
+    , "text-decoration-color" => colorToString textDecoration
+    ]
+
+
+renderLength : Length -> String
+renderLength l =
+    case l of
+        Px x ->
+            toString x ++ "px"
+
+        Percent x ->
+            toString x ++ "%"
+
+        Auto ->
+            "auto"
+
+
+renderSize : Size -> List ( String, String )
+renderSize { width, height } =
+    [ "width" => (renderLength width)
+    , "height" => (renderLength height)
+    ]
+
+
+renderPosition : Position -> List ( String, String )
+renderPosition { relativeTo, anchor, position } =
+    let
+        ( x, y ) =
+            position
+    in
+        (case relativeTo of
+            Screen ->
+                "position" => "fixed"
+
+            FlowPosition ->
+                "position" => "relative"
+
+            Parent ->
+                "position" => "absolute"
+        )
+            :: case anchor of
+                ( AnchorTop, AnchorLeft ) ->
+                    [ "top" => toString (-1 * y)
+                    , "left" => toString (-1 * x)
+                    ]
+
+                ( AnchorTop, AnchorRight ) ->
+                    [ "top" => toString (-1 * y)
+                    , "right" => toString x
+                    ]
+
+                ( AnchorBottom, AnchorLeft ) ->
+                    [ "bottom" => toString y
+                    , "left" => toString (-1 * x)
+                    ]
+
+                ( AnchorBottom, AnchorRight ) ->
+                    [ "bottom" => toString y
+                    , "right" => toString x
+                    ]
+
+
+renderVisibility : Visibility -> List ( String, String )
+renderVisibility vis =
+    case vis of
+        Transparent t ->
+            [ "opacity" => toString (100 - t) ]
+
+        Hidden ->
+            [ "display" => "none" ]
 
 
 renderLayout : Layout -> List ( String, String )
 renderLayout layout =
     case layout of
-        NoLayout ->
+        TextLayout { spacing } ->
             [ "display" => "block" ]
 
-        Flex flex ->
+        TableLayout { spacing } ->
+            [ "display" => "block" ]
+
+        FlexLayout flex ->
             [ "display" => "flex"
-            , case ( flex.orientation, flex.direction ) of
-                ( Horizontal, Forward ) ->
+            , case flex.go of
+                Right ->
                     "flex-direction" => "row"
 
-                ( Horizontal, Reverse ) ->
+                Left ->
                     "flex-direction" => "row-reverse"
 
-                ( Vertical, Forward ) ->
+                Down ->
                     "flex-direction" => "column"
 
-                ( Vertical, Reverse ) ->
+                Up ->
                     "flex-direction" => "column-reverse"
-            , case flex.wrap of
-                NoWrap ->
-                    "flex-wrap" => "nowrap"
+            , if flex.wrap then
+                "flex-wrap" => "wrap"
+              else
+                "flex-wrap" => "nowrap"
+            , case flex.go of
+                Right ->
+                    case fst flex.align of
+                        HLeft ->
+                            "justify-content" => "flex-start"
 
-                Wrap ->
-                    "flex-wrap" => "wrap"
-            , case flex.justification of
-                FlexStart ->
-                    "justify-content" => "flex-start"
+                        HRight ->
+                            "justify-content" => "flex-end"
 
-                FlexEnd ->
-                    "justify-content" => "flex-end"
+                        HCenter ->
+                            "justify-content" => "center"
 
-                FlexCenter ->
-                    "justify-content" => "center"
+                        HStretch ->
+                            "justify-content" => "stretch"
 
-                SpaceBetween ->
-                    "justify-content" => "space-between"
+                Left ->
+                    case fst flex.align of
+                        HLeft ->
+                            "justify-content" => "flex-end"
 
-                SpaceAround ->
-                    "justify-content" => "space-around"
-            , case flex.alignment.items of
-                FlexAlignStart ->
-                    "align-items" => "flex-start"
+                        HRight ->
+                            "justify-content" => "flex-start"
 
-                FlexAlignEnd ->
-                    "align-items" => "flex-end"
+                        HCenter ->
+                            "justify-content" => "center"
 
-                FlexAlignCenter ->
-                    "align-items" => "center"
+                        HStretch ->
+                            "justify-content" => "stretch"
 
-                FlexAlignBaseline ->
-                    "align-items" => "baseline"
+                Down ->
+                    case fst flex.align of
+                        HLeft ->
+                            "align-items" => "flex-start"
 
-                FlexAlignStretch ->
-                    "align-items" => "stretch"
+                        HRight ->
+                            "align-items" => "flex-end"
+
+                        HCenter ->
+                            "align-items" => "center"
+
+                        HStretch ->
+                            "align-items" => "stretch"
+
+                Up ->
+                    case fst flex.align of
+                        HLeft ->
+                            "align-items" => "flex-start"
+
+                        HRight ->
+                            "align-items" => "flex-end"
+
+                        HCenter ->
+                            "align-items" => "center"
+
+                        HStretch ->
+                            "align-items" => "stretch"
+            , case flex.go of
+                Right ->
+                    case snd flex.align of
+                        VTop ->
+                            "align-items" => "flex-start"
+
+                        VBottom ->
+                            "align-items" => "flex-end"
+
+                        VCenter ->
+                            "align-items" => "center"
+
+                        VStretch ->
+                            "align-items" => "stretch"
+
+                Left ->
+                    case snd flex.align of
+                        VTop ->
+                            "align-items" => "flex-start"
+
+                        VBottom ->
+                            "align-items" => "flex-end"
+
+                        VCenter ->
+                            "align-items" => "center"
+
+                        VStretch ->
+                            "align-items" => "stretch"
+
+                Down ->
+                    case snd flex.align of
+                        VTop ->
+                            "align-items" => "flex-start"
+
+                        VBottom ->
+                            "align-items" => "flex-end"
+
+                        VCenter ->
+                            "align-items" => "center"
+
+                        VStretch ->
+                            "align-items" => "stretch"
+
+                Up ->
+                    case snd flex.align of
+                        VTop ->
+                            "align-items" => "flex-end"
+
+                        VBottom ->
+                            "align-items" => "flex-start"
+
+                        VCenter ->
+                            "align-items" => "center"
+
+                        VStretch ->
+                            "align-items" => "stretch"
             ]
 
 
