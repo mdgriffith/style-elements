@@ -387,9 +387,49 @@ render style =
             , renderShadow "box-shadow" True style.insetShadows
             , renderShadow "text-shadow" False style.textShadows
             , renderFilters style.filters
+            , renderTransforms style.transforms
             ]
     ]
         => []
+
+
+renderTransforms : List Transform -> List ( String, String )
+renderTransforms transforms =
+    [ "transform"
+        => String.join " "
+            (List.map transformToString transforms)
+    ]
+
+
+transformToString : Transform -> String
+transformToString transform =
+    case transform of
+        Translate x y z ->
+            "transform3d("
+                ++ toString x
+                ++ ", "
+                ++ toString y
+                ++ ", "
+                ++ toString z
+                ++ ")"
+
+        Rotate x y z ->
+            "rotateX("
+                ++ toString x
+                ++ ")  rotateY("
+                ++ toString y
+                ++ ") rotateZ("
+                ++ toString z
+                ++ ")"
+
+        Scale x y z ->
+            "scale3d("
+                ++ toString x
+                ++ ", "
+                ++ toString y
+                ++ ", "
+                ++ toString z
+                ++ ")"
 
 
 renderFilters : List Filter -> List ( String, String )
