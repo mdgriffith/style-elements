@@ -477,8 +477,17 @@ render style permissions =
     let
         ( layout, childLayout, childrenPermissions ) =
             renderLayout style.layout
+
+        transitionClass =
+            case style.transitions of
+                Nothing ->
+                    ""
+
+                Just { id } ->
+                    id
     in
-        ( [ Html.Attributes.style <|
+        ( [ Html.Attributes.class transitionClass
+          , Html.Attributes.style <|
                 List.concat
                     [ layout
                     , renderPosition style.position
