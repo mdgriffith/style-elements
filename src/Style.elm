@@ -1128,6 +1128,13 @@ focus id targetModel baseModel =
         }
 
 
+cssTransitions =
+    """
+    transition-property: opacity, padding, left, top, right, bottom, height, width, color, background-color, border-color, border-width, box-shadow, text-shadow, filter, transform, font-size, line-height;
+    transition-duration: 300ms
+"""
+
+
 renderTransitionStyle : Model msg -> String
 renderTransitionStyle style =
     let
@@ -1166,6 +1173,7 @@ renderCssTransitions (Transitions { id, onHover, onFocus }) =
                     "."
                         ++ id
                         ++ ":hover {\n"
+                        ++ cssTransitions
                         ++ renderTransitionStyle hoverStyle
                         ++ "\n}\n"
 
@@ -1178,6 +1186,7 @@ renderCssTransitions (Transitions { id, onHover, onFocus }) =
                     "."
                         ++ id
                         ++ ":focus {\n"
+                        ++ cssTransitions
                         ++ renderTransitionStyle focusStyle
                         ++ "\n}\n"
     in
