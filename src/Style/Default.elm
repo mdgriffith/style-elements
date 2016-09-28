@@ -3,14 +3,12 @@ module Style.Default exposing (..)
 import Style exposing (..)
 import Color
 import Html
+import Dict
 
 
 style : Model msg
 style =
-    { element = Html.div
-    , attributes = []
-    , children = Children []
-    , layout = textLayout
+    { layout = textLayout
     , visibility = visibility
     , position = position
     , colors = colors
@@ -27,13 +25,14 @@ style =
     , insetShadows = []
     , transforms = []
     , filters = []
+    , transitions = Nothing
     }
 
 
 textLayout : Layout
 textLayout =
     TextLayout
-        { spacing = Style.all 15
+        { spacing = Style.all 0
         }
 
 

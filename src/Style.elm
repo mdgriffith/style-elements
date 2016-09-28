@@ -7,11 +7,22 @@ import Color exposing (Color)
 import String
 
 
+type alias HtmlNode msg =
+    List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
+
+
+type Element msg
+    = Element
+        { style : Model msg
+        , node : HtmlNode msg
+        , attributes : List (Html.Attribute msg)
+        , children : List (Element msg)
+        }
+    | Html (Html.Html msg)
+
+
 type alias Model msg =
-    { element : List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
-    , attributes : List (Html.Attribute msg)
-    , children : Children msg
-    , layout : Layout
+    { layout : Layout
     , visibility : Visibility
     , position : Position
     , cursor : String
@@ -28,16 +39,16 @@ type alias Model msg =
     , insetShadows : List Shadow
     , transforms : List Transform
     , filters : List Filter
+    , transitions : Maybe (Transitions msg)
     }
 
 
-type Children msg
-    = Children (List (Element msg))
-
-
-getChildren : Children msg -> List (Element msg)
-getChildren (Children models) =
-    models
+type Transitions msg
+    = Transitions
+        { id : String
+        , onHover : Maybe (Model msg)
+        , onFocus : Maybe (Model msg)
+        }
 
 
 type Filter
@@ -438,11 +449,14 @@ rotate x y z =
     Rotate x y z
 
 
+{-| Units always always as pixels
+-}
 translate : Float -> Float -> Float -> Transform
 translate x y z =
     Translate x y z
 
 
+{-| -}
 scale : Float -> Float -> Float -> Transform
 scale x y z =
     Scale x y z
@@ -452,10 +466,16 @@ scale x y z =
     (,)
 
 
-render : Model msg -> Maybe ( Int, Int ) -> Bool -> ( List (Html.Attribute msg), List (Html.Attribute msg), Bool )
-render style window floatsAllowed =
+type alias Permissions =
+    { floats : Bool
+    , inline : Bool
+    }
+
+
+render : Model msg -> Permissions -> ( List (Html.Attribute msg), List (Html.Attribute msg), Permissions )
+render style permissions =
     let
-        ( layout, childLayout, childrenFloatsAllowed ) =
+        ( layout, childLayout, childrenPermissions ) =
             renderLayout style.layout
     in
         ( [ Html.Attributes.style <|
@@ -463,25 +483,31 @@ render style window floatsAllowed =
                     [ layout
                     , renderPosition style.position
                     , if style.inline then
-                        [ "display" => "inline-block" ]
+                        if permissions.inline then
+                            [ "display" => "inline-block" ]
+                        else
+                            let
+                                _ =
+                                    Debug.log "style-blocks" "Elements can only be inline if they are in a text layout."
+                            in
+                                []
                       else
                         []
                     , renderVisibility style.visibility
                     , [ "width" => (renderLength style.width)
                       , "height" => (renderLength style.height)
+                      , "cursor" => style.cursor
+                      , "padding" => render4tuplePx style.padding
                       ]
                     , renderColors style.colors
                     , renderText style.text
-                    , [ "cursor" => style.cursor
-                      , "padding" => render4tuplePx style.padding
-                      ]
                     , renderBorder style.border
                     , case style.float of
                         Nothing ->
                             []
 
                         Just floating ->
-                            if floatsAllowed then
+                            if permissions.floats then
                                 case floating of
                                     FloatLeft ->
                                         [ "float" => "left" ]
@@ -502,7 +528,7 @@ render style window floatsAllowed =
                     ]
           ]
         , [ Html.Attributes.style childLayout ]
-        , childrenFloatsAllowed
+        , childrenPermissions
         )
 
 
@@ -723,13 +749,6 @@ renderLength l =
             "auto"
 
 
-renderSize : Size -> List ( String, String )
-renderSize { width, height } =
-    [ "width" => renderLength width
-    , "height" => renderLength height
-    ]
-
-
 renderPosition : Position -> List ( String, String )
 renderPosition { relativeTo, anchor, position } =
     let
@@ -778,19 +797,23 @@ renderVisibility vis =
             [ "display" => "none" ]
 
 
-renderLayout : Layout -> ( List ( String, String ), List ( String, String ), Bool )
+renderLayout : Layout -> ( List ( String, String ), List ( String, String ), Permissions )
 renderLayout layout =
     case layout of
         TextLayout { spacing } ->
             ( [ "display" => "block" ]
             , [ "margin" => render4tuplePx spacing ]
-            , True
+            , { floats = True
+              , inline = True
+              }
             )
 
         TableLayout { spacing } ->
             ( [ "display" => "block" ]
             , [ "margin" => render4tuplePx spacing ]
-            , False
+            , { floats = False
+              , inline = False
+              }
             )
 
         FlexLayout flex ->
@@ -925,75 +948,247 @@ renderLayout layout =
                                 "align-items" => "stretch"
               ]
             , [ "margin" => render4tuplePx flex.spacing ]
-            , False
+            , { floats = False
+              , inline = False
+              }
             )
 
 
-build : Maybe ( Int, Int ) -> Element msg -> Html.Html msg
-build window element =
+buildWithTransitions : Element msg -> Html.Html msg
+buildWithTransitions element =
     case element of
         Html html ->
             html
 
         Element model ->
             let
-                ( parent, childStyle, floatsAllowed ) =
-                    render model window True
+                ( parent, childStyle, childPermissions ) =
+                    render model.style { floats = False, inline = False }
+
+                ( children, childTransitions ) =
+                    List.foldl
+                        (\child ( children, transitions ) ->
+                            let
+                                ( builtChild, builtTransitions ) =
+                                    buildChildWithTransitions childPermissions childStyle child
+                            in
+                                ( children ++ [ builtChild ]
+                                , transitions ++ builtTransitions
+                                )
+                        )
+                        ( [], "" )
+                        model.children
+
+                transitionStyleSheet =
+                    Html.node "style"
+                        []
+                        [ Html.text <|
+                            case model.style.transitions of
+                                Nothing ->
+                                    childTransitions
+
+                                Just trans ->
+                                    renderCssTransitions trans ++ childTransitions
+                        ]
             in
-                model.element
+                model.node
                     (parent ++ model.attributes)
-                    (List.map (buildChild window floatsAllowed childStyle) (getChildren model.children))
+                    (transitionStyleSheet :: children)
 
 
-buildChild : Maybe ( Int, Int ) -> Bool -> List (Html.Attribute msg) -> Element msg -> Html.Html msg
-buildChild window floatsAllowed inherited element =
+buildChildWithTransitions : Permissions -> List (Html.Attribute msg) -> Element msg -> ( Html.Html msg, String )
+buildChildWithTransitions permissions inherited element =
+    case element of
+        Html html ->
+            ( html, "" )
+
+        Element model ->
+            let
+                ( parent, childStyle, childPermissions ) =
+                    render model.style permissions
+
+                ( children, childTransitions ) =
+                    List.foldl
+                        (\child ( children, transitions ) ->
+                            let
+                                ( builtChild, builtTransitions ) =
+                                    buildChildWithTransitions childPermissions childStyle child
+                            in
+                                ( children ++ [ builtChild ]
+                                , transitions ++ builtTransitions
+                                )
+                        )
+                        ( [], "" )
+                        model.children
+            in
+                ( model.node
+                    (parent ++ model.attributes)
+                    children
+                , case model.style.transitions of
+                    Nothing ->
+                        childTransitions
+
+                    Just trans ->
+                        renderCssTransitions trans ++ childTransitions
+                )
+
+
+build : Element msg -> Html.Html msg
+build element =
     case element of
         Html html ->
             html
 
         Element model ->
             let
-                ( parent, childStyle, childrenFloatsAllowed ) =
-                    render model window floatsAllowed
+                ( parent, childStyle, childPermissions ) =
+                    render model.style { floats = False, inline = False }
             in
-                model.element
+                model.node
+                    (parent ++ model.attributes)
+                    (List.map
+                        (buildChild childPermissions childStyle)
+                        model.children
+                    )
+
+
+buildChild : Permissions -> List (Html.Attribute msg) -> Element msg -> Html.Html msg
+buildChild permissions inherited element =
+    case element of
+        Html html ->
+            html
+
+        Element model ->
+            let
+                ( parent, childStyle, childrenPermissions ) =
+                    render model.style permissions
+            in
+                model.node
                     (parent ++ inherited ++ model.attributes)
-                    (List.map (buildChild window childrenFloatsAllowed childStyle) (getChildren model.children))
+                    (List.map
+                        (buildChild childrenPermissions childStyle)
+                        model.children
+                    )
 
 
-type Element msg
-    = Element (Model msg)
-    | Html (Html.Html msg)
+html : Html.Html msg -> Element msg
+html node =
+    Html node
 
 
-raw : Html.Html msg -> Element msg
-raw html =
-    Html html
-
-
-element : Model msg -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
-element el attrs content =
+element : HtmlNode msg -> Model msg -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+element node styleModel attrs content =
     Element
-        { el
-            | attributes = el.attributes ++ attrs
-            , children = Children (getChildren el.children ++ content)
+        { style = styleModel
+        , node = node
+        , attributes = attrs
+        , children = content
         }
 
 
-options : (a -> Model msg) -> a -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
-options almostElement id attrs content =
+hover : String -> Model msg -> Model msg -> Model msg
+hover id targetModel baseModel =
     let
-        el =
-            almostElement id
+        newTransitions =
+            case baseModel.transitions of
+                Nothing ->
+                    Just <|
+                        Transitions
+                            { id = id
+                            , onFocus = Nothing
+                            , onHover = Just targetModel
+                            }
+
+                Just (Transitions transitions) ->
+                    Just <| Transitions { transitions | onHover = Just targetModel }
     in
-        Element
-            { el
-                | attributes = el.attributes ++ attrs
-                , children = Children (getChildren el.children ++ content)
-            }
+        { baseModel
+            | transitions = newTransitions
+        }
+
+
+focus : String -> Model msg -> Model msg -> Model msg
+focus id targetModel baseModel =
+    let
+        newTransitions =
+            case baseModel.transitions of
+                Nothing ->
+                    Just <|
+                        Transitions
+                            { id = id
+                            , onFocus = Nothing
+                            , onHover = Just targetModel
+                            }
+
+                Just (Transitions transitions) ->
+                    Just <| Transitions { transitions | onHover = Just targetModel }
+    in
+        { baseModel
+            | transitions = newTransitions
+        }
+
+
+renderTransitionStyle : Model msg -> String
+renderTransitionStyle style =
+    let
+        stylePairs =
+            List.concat
+                [ renderVisibility style.visibility
+                , [ "width" => (renderLength style.width)
+                  , "height" => (renderLength style.height)
+                  , "padding" => render4tuplePx style.padding
+                  ]
+                , renderColors style.colors
+                , renderText style.text
+                , renderBorder style.border
+                , renderShadow "box-shadow" False style.shadows
+                , renderShadow "box-shadow" True style.insetShadows
+                , renderShadow "text-shadow" False style.textShadows
+                , renderFilters style.filters
+                , renderTransforms style.transforms
+                ]
+    in
+        List.map (\( name, val ) -> "    " ++ name ++ ": " ++ val ++ ";\n") stylePairs
+            |> String.concat
+
+
+{-| Produces valid css code.
+-}
+renderCssTransitions : Transitions msg -> String
+renderCssTransitions (Transitions { id, onHover, onFocus }) =
+    let
+        hover =
+            case onHover of
+                Nothing ->
+                    ""
+
+                Just hoverStyle ->
+                    "."
+                        ++ id
+                        ++ ":hover {\n"
+                        ++ renderTransitionStyle hoverStyle
+                        ++ "\n}\n"
+
+        focus =
+            case onFocus of
+                Nothing ->
+                    ""
+
+                Just focusStyle ->
+                    "."
+                        ++ id
+                        ++ ":focus {\n"
+                        ++ renderTransitionStyle focusStyle
+                        ++ "\n}\n"
+    in
+        hover ++ focus
 
 
 
+--= Transitions
+--        { onHover : Model msg
+--        , onFocus : Model msg
+--        }
 --init : Model msg -> Animation.State
 --init style =
 --toAnimProps style =
