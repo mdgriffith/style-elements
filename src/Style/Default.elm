@@ -25,7 +25,8 @@ style =
     , insetShadows = []
     , transforms = []
     , filters = []
-    , transitions = Nothing
+    , onHover = Nothing
+    , onFocus = Nothing
     }
 
 

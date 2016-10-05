@@ -39,16 +39,18 @@ type alias Model msg =
     , insetShadows : List Shadow
     , transforms : List Transform
     , filters : List Filter
-    , transitions : Maybe (Transitions msg)
+    , onHover : Maybe (Transition msg)
+    , onFocus : Maybe (Transition msg)
     }
 
 
-type Transitions msg
-    = Transitions
-        { id : String
-        , onHover : Maybe (Model msg)
-        , onFocus : Maybe (Model msg)
-        }
+type Transition msg
+    = Transition (Model msg)
+
+
+transitionTo : Model msg -> Maybe (Transition msg)
+transitionTo model =
+    Just (Transition model)
 
 
 type Filter
@@ -472,70 +474,62 @@ type alias Permissions =
     }
 
 
-render : Model msg -> Permissions -> ( List (Html.Attribute msg), List (Html.Attribute msg), Permissions )
+render : Model msg -> Permissions -> ( List ( String, String ), List (Html.Attribute msg), Permissions )
 render style permissions =
     let
         ( layout, childLayout, childrenPermissions ) =
             renderLayout style.layout
 
-        transitionClass =
-            case style.transitions of
-                Nothing ->
-                    ""
+        renderedStyle =
+            List.concat
+                [ layout
+                , renderPosition style.position
+                , if style.inline then
+                    if permissions.inline then
+                        [ "display" => "inline-block" ]
+                    else
+                        let
+                            _ =
+                                Debug.log "style-blocks" "Elements can only be inline if they are in a text layout."
+                        in
+                            []
+                  else
+                    []
+                , renderVisibility style.visibility
+                , [ "width" => (renderLength style.width)
+                  , "height" => (renderLength style.height)
+                  , "cursor" => style.cursor
+                  , "padding" => render4tuplePx style.padding
+                  ]
+                , renderColors style.colors
+                , renderText style.text
+                , renderBorder style.border
+                , case style.float of
+                    Nothing ->
+                        []
 
-                Just { id } ->
-                    id
-    in
-        ( [ Html.Attributes.class transitionClass
-          , Html.Attributes.style <|
-                List.concat
-                    [ layout
-                    , renderPosition style.position
-                    , if style.inline then
-                        if permissions.inline then
-                            [ "display" => "inline-block" ]
+                    Just floating ->
+                        if permissions.floats then
+                            case floating of
+                                FloatLeft ->
+                                    [ "float" => "left" ]
+
+                                FloatRight ->
+                                    [ "float" => "right" ]
                         else
                             let
                                 _ =
-                                    Debug.log "style-blocks" "Elements can only be inline if they are in a text layout."
+                                    Debug.log "style-blocks" "Elements can only use float if they are in a text layout."
                             in
                                 []
-                      else
-                        []
-                    , renderVisibility style.visibility
-                    , [ "width" => (renderLength style.width)
-                      , "height" => (renderLength style.height)
-                      , "cursor" => style.cursor
-                      , "padding" => render4tuplePx style.padding
-                      ]
-                    , renderColors style.colors
-                    , renderText style.text
-                    , renderBorder style.border
-                    , case style.float of
-                        Nothing ->
-                            []
-
-                        Just floating ->
-                            if permissions.floats then
-                                case floating of
-                                    FloatLeft ->
-                                        [ "float" => "left" ]
-
-                                    FloatRight ->
-                                        [ "float" => "right" ]
-                            else
-                                let
-                                    _ =
-                                        Debug.log "style-blocks" "Elements can only use float if they are in a text layout."
-                                in
-                                    []
-                    , renderShadow "box-shadow" False style.shadows
-                    , renderShadow "box-shadow" True style.insetShadows
-                    , renderShadow "text-shadow" False style.textShadows
-                    , renderFilters style.filters
-                    , renderTransforms style.transforms
-                    ]
-          ]
+                , renderShadow "box-shadow" False style.shadows
+                , renderShadow "box-shadow" True style.insetShadows
+                , renderShadow "text-shadow" False style.textShadows
+                , renderFilters style.filters
+                , renderTransforms style.transforms
+                ]
+    in
+        ( renderedStyle
         , [ Html.Attributes.style childLayout ]
         , childrenPermissions
         )
@@ -543,10 +537,16 @@ render style permissions =
 
 renderTransforms : List Transform -> List ( String, String )
 renderTransforms transforms =
-    [ "transform"
-        => String.join " "
-            (List.map transformToString transforms)
-    ]
+    let
+        rendered =
+            String.join " " (List.map transformToString transforms)
+    in
+        if rendered == "" then
+            []
+        else
+            [ "transform"
+                => rendered
+            ]
 
 
 transformToString : Transform -> String
@@ -582,9 +582,16 @@ transformToString transform =
 
 renderFilters : List Filter -> List ( String, String )
 renderFilters filters =
-    [ "filter"
-        => (String.join " " <| List.map filterToString filters)
-    ]
+    let
+        rendered =
+            String.join " " <| List.map filterToString filters
+    in
+        if rendered == "" then
+            []
+        else
+            [ "filter"
+                => rendered
+            ]
 
 
 filterToString : Filter -> String
@@ -623,9 +630,16 @@ filterToString filter =
 
 renderShadow : String -> Bool -> List Shadow -> List ( String, String )
 renderShadow shadowName inset shadows =
-    [ shadowName
-        => String.join ", " (List.map (shadowValue inset) shadows)
-    ]
+    let
+        rendered =
+            String.join ", " (List.map (shadowValue inset) shadows)
+    in
+        if rendered == "" then
+            []
+        else
+            [ shadowName
+                => rendered
+            ]
 
 
 shadowValue : Bool -> Shadow -> String
@@ -668,56 +682,58 @@ renderBorder { style, width, corners } =
 
 renderText : Text -> List ( String, String )
 renderText text =
-    [ "font-family" => text.font
-    , "font-size" => (toString text.size ++ "px")
-    , "line-height" => (toString (text.size * text.lineHeight) ++ "px")
-    , case text.characterOffset of
-        Nothing ->
-            ( "", "" )
+    List.filterMap identity
+        [ Just ("font-family" => text.font)
+        , Just ("font-size" => (toString text.size ++ "px"))
+        , Just ("line-height" => (toString (text.size * text.lineHeight) ++ "px"))
+        , Maybe.map
+            (\offset ->
+                "letter-spacing" => (toString offset ++ "px")
+            )
+            text.characterOffset
+        , Just <|
+            if text.italic then
+                "font-style" => "italic"
+            else
+                "font-style" => "normal"
+        , Maybe.map
+            (\bold ->
+                "font-weight" => (toString bold)
+            )
+            text.boldness
+        , Just <|
+            case text.align of
+                AlignLeft ->
+                    "text-align" => "left"
 
-        Just offset ->
-            "letter-spacing" => (toString offset ++ "px")
-    , if text.italic then
-        "font-style" => "italic"
-      else
-        "font-style" => "normal"
-    , case text.boldness of
-        Nothing ->
-            "" => ""
+                AlignRight ->
+                    "text-align" => "right"
 
-        Just bold ->
-            "font-weight" => (toString bold)
-    , case text.align of
-        AlignLeft ->
-            "text-align" => "left"
+                AlignCenter ->
+                    "text-align" => "center"
 
-        AlignRight ->
-            "text-align" => "right"
+                Justify ->
+                    "text-align" => "justify"
 
-        AlignCenter ->
-            "text-align" => "center"
+                JustifyAll ->
+                    "text-align" => "justify-all"
+        , Just <|
+            "text-decoration"
+                => case text.decoration of
+                    Nothing ->
+                        "none"
 
-        Justify ->
-            "text-align" => "justify"
+                    Just position ->
+                        case position of
+                            Underline ->
+                                "underline"
 
-        JustifyAll ->
-            "text-align" => "justify-all"
-    , "text-decoration"
-        => case text.decoration of
-            Nothing ->
-                "none"
+                            Overline ->
+                                "overline"
 
-            Just position ->
-                case position of
-                    Underline ->
-                        "underline"
-
-                    Overline ->
-                        "overline"
-
-                    Strike ->
-                        "line-through"
-    ]
+                            Strike ->
+                                "line-through"
+        ]
 
 
 colorToString : Color -> String
@@ -988,20 +1004,19 @@ buildWithTransitions element =
                         ( [], "" )
                         model.children
 
+                className =
+                    generateId parent
+
                 transitionStyleSheet =
                     Html.node "style"
                         []
                         [ Html.text <|
-                            case model.style.transitions of
-                                Nothing ->
-                                    childTransitions
-
-                                Just trans ->
-                                    renderCssTransitions trans ++ childTransitions
+                            renderCssTransitions className model.style
+                                ++ childTransitions
                         ]
             in
                 model.node
-                    (parent ++ model.attributes)
+                    (Html.Attributes.class className :: Html.Attributes.style parent :: model.attributes)
                     (transitionStyleSheet :: children)
 
 
@@ -1029,16 +1044,14 @@ buildChildWithTransitions permissions inherited element =
                         )
                         ( [], "" )
                         model.children
+
+                className =
+                    generateId parent
             in
                 ( model.node
-                    (parent ++ model.attributes)
+                    (Html.Attributes.class className :: Html.Attributes.style parent :: inherited ++ model.attributes)
                     children
-                , case model.style.transitions of
-                    Nothing ->
-                        childTransitions
-
-                    Just trans ->
-                        renderCssTransitions trans ++ childTransitions
+                , renderCssTransitions className model.style ++ childTransitions
                 )
 
 
@@ -1054,7 +1067,7 @@ build element =
                     render model.style { floats = False, inline = False }
             in
                 model.node
-                    (parent ++ model.attributes)
+                    (Html.Attributes.style parent :: model.attributes)
                     (List.map
                         (buildChild childPermissions childStyle)
                         model.children
@@ -1073,7 +1086,7 @@ buildChild permissions inherited element =
                     render model.style permissions
             in
                 model.node
-                    (parent ++ inherited ++ model.attributes)
+                    (Html.Attributes.style parent :: inherited ++ model.attributes)
                     (List.map
                         (buildChild childrenPermissions childStyle)
                         model.children
@@ -1085,8 +1098,18 @@ html node =
     Html node
 
 
-element : HtmlNode msg -> Model msg -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
-element node styleModel attrs content =
+element : Model msg -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+element styleModel attrs content =
+    Element
+        { style = styleModel
+        , node = Html.div
+        , attributes = attrs
+        , children = content
+        }
+
+
+elementAs : HtmlNode msg -> Model msg -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+elementAs node styleModel attrs content =
     Element
         { style = styleModel
         , node = node
@@ -1095,52 +1118,12 @@ element node styleModel attrs content =
         }
 
 
-hover : String -> Model msg -> Model msg -> Model msg
-hover id targetModel baseModel =
-    let
-        newTransitions =
-            case baseModel.transitions of
-                Nothing ->
-                    Just <|
-                        Transitions
-                            { id = id
-                            , onFocus = Nothing
-                            , onHover = Just targetModel
-                            }
-
-                Just (Transitions transitions) ->
-                    Just <| Transitions { transitions | onHover = Just targetModel }
-    in
-        { baseModel
-            | transitions = newTransitions
-        }
-
-
-focus : String -> Model msg -> Model msg -> Model msg
-focus id targetModel baseModel =
-    let
-        newTransitions =
-            case baseModel.transitions of
-                Nothing ->
-                    Just <|
-                        Transitions
-                            { id = id
-                            , onFocus = Nothing
-                            , onHover = Just targetModel
-                            }
-
-                Just (Transitions transitions) ->
-                    Just <| Transitions { transitions | onHover = Just targetModel }
-    in
-        { baseModel
-            | transitions = newTransitions
-        }
-
-
 cssTransitions =
     """
     transition-property: opacity, padding, left, top, right, bottom, height, width, color, background-color, border-color, border-width, box-shadow, text-shadow, filter, transform, font-size, line-height;
-    transition-duration: 300ms
+    transition-duration: 500ms;
+    -webkit-transition-timing-function: ease-out;
+    transition-timing-function: ease-out;
 """
 
 
@@ -1164,53 +1147,113 @@ renderTransitionStyle style =
                 , renderTransforms style.transforms
                 ]
     in
-        List.map (\( name, val ) -> "    " ++ name ++ ": " ++ val ++ ";\n") stylePairs
+        List.map (\( name, val ) -> "    " ++ name ++ ": " ++ val ++ " !important;\n") stylePairs
             |> String.concat
 
 
 {-| Produces valid css code.
 -}
-renderCssTransitions : Transitions msg -> String
-renderCssTransitions (Transitions { id, onHover, onFocus }) =
+renderCssTransitions : String -> Model msg -> String
+renderCssTransitions id model =
     let
         hover =
-            case onHover of
+            case model.onHover of
                 Nothing ->
                     ""
 
-                Just hoverStyle ->
+                Just (Transition hoverStyle) ->
                     "."
                         ++ id
-                        ++ ":hover {\n"
+                        ++ "{\n"
                         ++ cssTransitions
+                        ++ "\n}\n"
+                        ++ "."
+                        ++ id
+                        ++ ":hover {\n"
                         ++ renderTransitionStyle hoverStyle
                         ++ "\n}\n"
 
         focus =
-            case onFocus of
+            case model.onFocus of
                 Nothing ->
                     ""
 
-                Just focusStyle ->
+                Just (Transition focusStyle) ->
                     "."
                         ++ id
-                        ++ ":focus {\n"
+                        ++ "{\n"
                         ++ cssTransitions
+                        ++ "\n}\n"
+                        ++ "."
+                        ++ id
+                        ++ ":focus {\n"
                         ++ renderTransitionStyle focusStyle
                         ++ "\n}\n"
     in
         hover ++ focus
 
 
+generateId : List ( String, String ) -> String
+generateId style =
+    "definitelyUnique"
 
---= Transitions
---        { onHover : Model msg
---        , onFocus : Model msg
---        }
---init : Model msg -> Animation.State
---init style =
---toAnimProps style =
---    []
+
+
+--{-| http://package.elm-lang.org/packages/Skinney/murmur3/2.0.2/Murmur3
+---}
+--hash : String -> String
+--hash value =
+--    Murmor3.hashString 8675309 value
+--        |> toString
+--        |> String.toList
+--        |> List.map (Char.fromCode << ((+) 65) << Result.withDefault 0 << String.toInt << String.fromChar)
+--        |> String.fromList
+--toAnim : Model msg -> Animation.State
+--toAnim style =
+--    [ layout
+--    , renderPosition style.position
+--    , if style.inline then
+--        if permissions.inline then
+--            [ "display" => "inline-block" ]
+--        else
+--            let
+--                _ =
+--                    Debug.log "style-blocks" "Elements can only be inline if they are in a text layout."
+--            in
+--                []
+--      else
+--        []
+--    , renderVisibility style.visibility
+--    , [ "width" => (renderLength style.width)
+--      , "height" => (renderLength style.height)
+--      , "cursor" => style.cursor
+--      , "padding" => render4tuplePx style.padding
+--      ]
+--    , renderColors style.colors
+--    , renderText style.text
+--    , renderBorder style.border
+--    , case style.float of
+--        Nothing ->
+--            []
+--        Just floating ->
+--            if permissions.floats then
+--                case floating of
+--                    FloatLeft ->
+--                        [ "float" => "left" ]
+--                    FloatRight ->
+--                        [ "float" => "right" ]
+--            else
+--                let
+--                    _ =
+--                        Debug.log "style-blocks" "Elements can only use float if they are in a text layout."
+--                in
+--                    []
+--    , renderShadow "box-shadow" False style.shadows
+--    , renderShadow "box-shadow" True style.insetShadows
+--    , renderShadow "text-shadow" False style.textShadows
+--    , renderFilters style.filters
+--    , renderTransforms style.transforms
+--    ]
 --animated : Model msg -> Animation.State -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 --animated el animStyle attrs content =
 --    Element
