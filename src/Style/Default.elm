@@ -6,7 +6,7 @@ import Html
 import Dict
 
 
-style : Model msg
+style : Model
 style =
     { layout = textLayout
     , visibility = visibility
