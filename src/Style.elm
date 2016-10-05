@@ -5,6 +5,8 @@ import Html.Attributes
 import Animation
 import Color exposing (Color)
 import String
+import Murmur3
+import Char
 
 
 type alias HtmlNode msg =
@@ -1014,9 +1016,15 @@ buildWithTransitions element =
                             renderCssTransitions className model.style
                                 ++ childTransitions
                         ]
+
+                attributes =
+                    if model.style.onHover /= Nothing || model.style.onFocus /= Nothing then
+                        Html.Attributes.class className :: Html.Attributes.style parent :: model.attributes
+                    else
+                        Html.Attributes.style parent :: model.attributes
             in
                 model.node
-                    (Html.Attributes.class className :: Html.Attributes.style parent :: model.attributes)
+                    attributes
                     (transitionStyleSheet :: children)
 
 
@@ -1047,9 +1055,15 @@ buildChildWithTransitions permissions inherited element =
 
                 className =
                     generateId parent
+
+                attributes =
+                    if model.style.onHover /= Nothing || model.style.onFocus /= Nothing then
+                        Html.Attributes.class className :: Html.Attributes.style parent :: inherited ++ model.attributes
+                    else
+                        Html.Attributes.style parent :: inherited ++ model.attributes
             in
                 ( model.node
-                    (Html.Attributes.class className :: Html.Attributes.style parent :: inherited ++ model.attributes)
+                    attributes
                     children
                 , renderCssTransitions className model.style ++ childTransitions
                 )
@@ -1195,19 +1209,22 @@ renderCssTransitions id model =
 
 generateId : List ( String, String ) -> String
 generateId style =
-    "definitelyUnique"
+    hash <| String.concat <| List.map (\( name, value ) -> name ++ value) style
+
+
+{-| http://package.elm-lang.org/packages/Skinney/murmur3/2.0.2/Murmur3
+-}
+hash : String -> String
+hash value =
+    Murmur3.hashString 8675309 value
+        |> toString
+        |> String.toList
+        |> List.map (Char.fromCode << ((+) 65) << Result.withDefault 0 << String.toInt << String.fromChar)
+        |> String.fromList
+        |> String.toLower
 
 
 
---{-| http://package.elm-lang.org/packages/Skinney/murmur3/2.0.2/Murmur3
----}
---hash : String -> String
---hash value =
---    Murmor3.hashString 8675309 value
---        |> toString
---        |> String.toList
---        |> List.map (Char.fromCode << ((+) 65) << Result.withDefault 0 << String.toInt << String.fromChar)
---        |> String.fromList
 --toAnim : Model msg -> Animation.State
 --toAnim style =
 --    [ layout
