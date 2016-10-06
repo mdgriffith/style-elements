@@ -1,4 +1,101 @@
-module Style exposing (..)
+module Style
+    exposing
+        ( Model
+        , Element
+        , Colors
+        , Position
+        , Shadow
+        , Transition
+        , Visibility
+        , TextDecoration
+        , TextAlignment
+        , VerticalJustification
+        , HorizontalJustification
+        , Transform
+        , Filter
+        , Border
+        , BorderStyle
+        , Table
+        , Flow
+        , Layout
+        , Textual
+        , Text
+        , Anchor
+        , RelativeTo
+        , Repeat
+        , flowUp
+        , flowDown
+        , flowRight
+        , flowLeft
+        , textLayout
+        , tableLayout
+        , top
+        , bottom
+        , left
+        , right
+        , all
+        , topBottom
+        , leftRight
+        , allButTop
+        , allButLeft
+        , allButRight
+        , allButBottom
+        , alignLeft
+        , alignRight
+        , justify
+        , justifyAll
+        , alignCenter
+        , topLeft
+        , bottomRight
+        , topRight
+        , bottomLeft
+        , currentPosition
+        , parent
+        , screen
+        , hidden
+        , opacity
+        , transparency
+        , center
+        , auto
+        , px
+        , percent
+        , solid
+        , dotted
+        , dashed
+        , floatLeft
+        , floatRight
+        , verticalCenter
+        , verticalStretch
+        , horizontalCenter
+        , horizontalStretch
+        , toRight
+        , toLeft
+        , toTop
+        , toBottom
+        , transitionTo
+        , scale
+        , translate
+        , rotate
+        , repeat
+        , repeatX
+        , repeatY
+        , space
+        , round
+        , noRepeat
+        , underline
+        , overline
+        , strike
+        , filterUrl
+        , blur
+        , brightness
+        , contrast
+        , grayscale
+        , hueRotate
+        , invert
+        , opacityFilter
+        , saturate
+        , sepia
+        )
 
 {-|
 
@@ -106,6 +203,10 @@ type alias Border =
 
 type alias Text =
     Style.Model.Text
+
+
+type alias Filter =
+    Style.Model.Filter
 
 
 (=>) =
@@ -544,3 +645,59 @@ translate x y z =
 scale : Float -> Float -> Float -> Transform
 scale x y z =
     Style.Model.Scale x y z
+
+
+{-| -}
+filterUrl : String -> Filter
+filterUrl s =
+    Style.Model.FilterUrl s
+
+
+{-| -}
+blur : Float -> Filter
+blur x =
+    Style.Model.Blur x
+
+
+{-| -}
+brightness : Float -> Filter
+brightness x =
+    Style.Model.Brightness x
+
+
+{-| -}
+contrast : Float -> Filter
+contrast x =
+    Style.Model.Contrast x
+
+
+{-| -}
+grayscale : Float -> Filter
+grayscale x =
+    Style.Model.Grayscale x
+
+
+{-| -}
+hueRotate : Float -> Filter
+hueRotate x =
+    Style.Model.HueRotate x
+
+
+invert : Float -> Filter
+invert x =
+    Style.Model.Invert x
+
+
+opacityFilter : Float -> Filter
+opacityFilter x =
+    Style.Model.Opacity x
+
+
+saturate : Float -> Filter
+saturate x =
+    Style.Model.Saturate x
+
+
+sepia : Float -> Filter
+sepia x =
+    Style.Model.Sepia x

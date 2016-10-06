@@ -1,4 +1,4 @@
-module Style.Elements exposing (..)
+module Style.Elements exposing (map, html, element, elementAs, build, buildWithTransitions)
 
 import String
 import Char
