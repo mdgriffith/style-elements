@@ -309,6 +309,24 @@ strike =
 
 
 {-| -}
+bold : Maybe Float
+bold =
+    Just 700
+
+
+{-| -}
+light : Maybe Float
+light =
+    Just 300
+
+
+{-| -}
+bolder : Maybe Float
+bolder =
+    Just 900
+
+
+{-| -}
 all : a -> ( a, a, a, a )
 all x =
     ( x, x, x, x )

@@ -13,6 +13,16 @@ type alias HtmlNode msg =
     List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
 
 
+map : (Model -> Model) -> Element msg -> Element msg
+map fn el =
+    case el of
+        Html node ->
+            Html node
+
+        Element props ->
+            Element { props | style = fn props.style }
+
+
 html : Html.Html msg -> Element msg
 html node =
     Html node
