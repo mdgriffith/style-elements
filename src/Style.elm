@@ -95,6 +95,9 @@ module Style
         , opacityFilter
         , saturate
         , sepia
+        , bold
+        , light
+        , bolder
         )
 
 {-|

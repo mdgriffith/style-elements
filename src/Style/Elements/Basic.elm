@@ -1,9 +1,9 @@
-module Style.Elements.Basic exposing (..)
+module Basic exposing (..)
 
 import Html
 import Html.Attributes
 import Style exposing (..)
-import Style.Elements
+import Style.Elements exposing (..)
 import Style.Default
 
 
@@ -12,139 +12,107 @@ base =
     Style.Default.style
 
 
-textLayout : Style.Model
-textLayout =
-    base
+defaultText : Style.Model
+defaultText =
+    Style.Default.text
 
 
-centered : Style.Model
-centered =
-    { base
-        | layout =
-            flowRight
-                { wrap = True
-                , spacing = all 10
-                , align = center
-                }
-    }
-
-
-h1 : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+h1 : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 h1 =
-    Style.Elements.elementAs Html.h1
+    elementAs Html.h1
         { base
             | text =
-                let
-                    default =
-                        Style.Default.text
-                in
-                    { default | size = 32 }
+                { defaultText | size = 32 }
         }
 
 
-h2 : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+h2 : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 h2 =
-    Style.Elements.elementAs Html.h2
+    elementAs Html.h2
         { base
             | text =
-                let
-                    default =
-                        Style.Default.text
-                in
-                    { default | size = 24 }
+                { defaultText | size = 24 }
         }
 
 
-h3 : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+h3 : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 h3 =
-    Style.Elements.elementAs Html.h3
+    elementAs Html.h3
         { base
             | text =
-                let
-                    default =
-                        Style.Default.text
-                in
-                    { default | size = 18 }
+                { defaultText | size = 18 }
         }
 
 
-indent : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+indent : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 indent =
-    Style.Elements.element
+    element
         { base | padding = left 30 }
 
 
-link : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+link : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 link =
-    Style.Elements.elementAs Html.a
+    elementAs Html.a
         { base
             | cursor = "pointer"
         }
 
 
-break : Style.Element msg
+break : Element msg
 break =
-    Style.Elements.elementAs Html.br
+    elementAs Html.br
         base
         []
         []
 
 
-rule : Style.Element msg
+rule : Element msg
 rule =
-    Style.Elements.elementAs Html.hr
+    elementAs Html.hr
         base
         []
         []
 
 
-text : String -> Style.Element msg
+text : String -> Element msg
 text str =
-    Style.Elements.elementAs (\_ _ -> Html.text str)
+    elementAs (\_ _ -> Html.text str)
         base
         []
         []
 
 
-image : String -> List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+image : String -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 image src attrs children =
-    Style.Elements.elementAs Html.img
+    elementAs Html.img
         base
         (Html.Attributes.src src :: attrs)
         children
 
 
-icon : String -> List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+icon : String -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 icon str attrs children =
-    Style.Elements.element
+    element
         base
         attrs
         (text str :: children)
 
 
-i : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+i : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 i =
-    Style.Elements.elementAs Html.i
+    elementAs Html.i
         { base
             | text =
-                let
-                    default =
-                        Style.Default.text
-                in
-                    { default | italic = True }
+                { defaultText | italic = True }
         }
 
 
-b : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+b : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 b =
-    Style.Elements.elementAs Html.i
+    elementAs Html.i
         { base
             | text =
-                let
-                    default =
-                        Style.Default.text
-                in
-                    { default | boldness = Just 700 }
+                { defaultText | boldness = bold }
         }
 
 
@@ -154,25 +122,27 @@ b =
 -------------------
 
 
-table : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+table : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 table =
-    Style.Elements.elementAs Html.table
-        { base | layout = Style.tableLayout { spacing = all 0 } }
+    elementAs Html.table
+        { base
+            | layout = Style.tableLayout { spacing = all 0 }
+        }
 
 
-tableHeader : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+tableHeader : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 tableHeader =
-    Style.Elements.elementAs Html.th base
+    elementAs Html.th base
 
 
-row : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+row : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 row =
-    Style.Elements.elementAs Html.tr base
+    elementAs Html.tr base
 
 
-column : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+column : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 column =
-    Style.Elements.elementAs Html.td base
+    elementAs Html.td base
 
 
 
@@ -181,33 +151,24 @@ column =
 --------------------
 
 
-button : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+button : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 button =
-    Style.Elements.elementAs Html.button base
+    elementAs Html.button base
 
 
-checkbox : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+checkbox : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 checkbox attrs children =
-    Style.Elements.elementAs Html.input
+    elementAs Html.input
         base
         (Html.Attributes.type' "checkbox" :: attrs)
         children
 
 
-input : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+input : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 input =
-    Style.Elements.elementAs Html.input base
+    elementAs Html.input base
 
 
-textarea : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
+textarea : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 textarea =
-    Style.Elements.elementAs Html.textarea base
-
-
-
--- Integration with existing html
-
-
-html : Html.Html msg -> Style.Element msg
-html =
-    Style.Elements.html
+    elementAs Html.textarea base
