@@ -1,5 +1,11 @@
 module Style exposing (..)
 
+{-|
+
+
+
+-}
+
 import Html
 import Html.Attributes
 import Animation
@@ -14,6 +20,7 @@ type alias HtmlNode msg =
     List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
 
 
+{-| -}
 type Element msg
     = Element
         { style : Model
@@ -24,6 +31,7 @@ type Element msg
     | Html (Html.Html msg)
 
 
+{-| -}
 type alias Model =
     { layout : Layout
     , visibility : Visibility
@@ -35,6 +43,7 @@ type alias Model =
     , padding : ( Float, Float, Float, Float )
     , text : Text
     , border : Border
+    , backgroundImage : Maybe BackgroundImage
     , float : Maybe Floating
     , inline : Bool
     , shadows : List Shadow
@@ -47,15 +56,72 @@ type alias Model =
     }
 
 
+{-| -}
+type alias BackgroundImage =
+    { src : String
+    , position : ( Float, Float )
+    , repeat : Repeat
+    }
+
+
+{-| -}
+type Repeat
+    = RepeatX
+    | RepeatY
+    | Repeat
+    | Space
+    | Round
+    | NoRepeat
+
+
+{-| -}
+repeatX : Repeat
+repeatX =
+    RepeatX
+
+
+{-| -}
+repeatY : Repeat
+repeatY =
+    RepeatY
+
+
+{-| -}
+repeat : Repeat
+repeat =
+    Repeat
+
+
+{-| -}
+space : Repeat
+space =
+    Space
+
+
+{-| -}
+round : Repeat
+round =
+    Round
+
+
+{-| -}
+noRepeat : Repeat
+noRepeat =
+    NoRepeat
+
+
+{-| -}
 type Transition
     = Transition Model
 
 
+{-| -}
 transitionTo : Model -> Maybe Transition
 transitionTo model =
     Just (Transition model)
 
 
+{-| -}
 type Filter
     = FilterUrl String
     | Blur Float
@@ -95,6 +161,7 @@ floatRight =
     FloatRight
 
 
+{-| -}
 type alias Colors =
     { background : Color
     , text : Color
@@ -102,6 +169,7 @@ type alias Colors =
     }
 
 
+{-| -}
 type alias Position =
     { relativeTo : RelativeTo
     , anchor : ( AnchorVertical, AnchorHorizontal )
@@ -117,30 +185,36 @@ type RelativeTo
     | Parent
 
 
+{-| -}
 screen : RelativeTo
 screen =
     Screen
 
 
+{-| -}
 parent : RelativeTo
 parent =
     Parent
 
 
+{-| -}
 currentPosition : RelativeTo
 currentPosition =
     CurrentPosition
 
 
+{-| -}
 type alias Anchor =
     ( AnchorVertical, AnchorHorizontal )
 
 
+{-| -}
 type AnchorVertical
     = AnchorTop
     | AnchorBottom
 
 
+{-| -}
 type AnchorHorizontal
     = AnchorLeft
     | AnchorRight
@@ -170,6 +244,7 @@ bottomRight =
     AnchorBottom => AnchorRight
 
 
+{-| -}
 type Length
     = Px Float
     | Percent Float
@@ -194,37 +269,44 @@ auto =
     Auto
 
 
+{-| -}
 type Layout
     = FlexLayout Flexible
     | TextLayout Textual
     | TableLayout Table
 
 
+{-| -}
 textLayout : Textual -> Layout
 textLayout t =
     TextLayout t
 
 
+{-| -}
 tableLayout : Table -> Layout
 tableLayout t =
     TableLayout t
 
 
+{-| -}
 flexLayout : Flexible -> Layout
 flexLayout t =
     FlexLayout t
 
 
+{-| -}
 type alias Table =
     { spacing : ( Float, Float, Float, Float )
     }
 
 
+{-| -}
 type alias Textual =
     { spacing : ( Float, Float, Float, Float )
     }
 
 
+{-| -}
 type alias Flexible =
     { go : Direction
     , wrap : Bool
@@ -233,6 +315,7 @@ type alias Flexible =
     }
 
 
+{-| -}
 type Direction
     = Up
     | Right
@@ -246,6 +329,7 @@ center =
     ( HCenter, VCenter )
 
 
+{-| -}
 type HorizontalJustification
     = HLeft
     | HRight
@@ -253,26 +337,31 @@ type HorizontalJustification
     | HStretch
 
 
+{-| -}
 toLeft : HorizontalJustification
 toLeft =
     HLeft
 
 
+{-| -}
 toRight : HorizontalJustification
 toRight =
     HRight
 
 
+{-| -}
 horizontalCenter : HorizontalJustification
 horizontalCenter =
     HCenter
 
 
+{-| -}
 horizontalStretch : HorizontalJustification
 horizontalStretch =
     HStretch
 
 
+{-| -}
 type VerticalJustification
     = VTop
     | VBottom
@@ -280,26 +369,31 @@ type VerticalJustification
     | VStretch
 
 
+{-| -}
 verticalCenter : VerticalJustification
 verticalCenter =
     VCenter
 
 
+{-| -}
 toTop : VerticalJustification
 toTop =
     VTop
 
 
+{-| -}
 toBottom : VerticalJustification
 toBottom =
     VBottom
 
 
+{-| -}
 verticalStretch : VerticalJustification
 verticalStretch =
     VStretch
 
 
+{-| -}
 type TextAlignment
     = AlignLeft
     | AlignRight
@@ -352,6 +446,7 @@ type alias Text =
     }
 
 
+{-| -}
 type TextDecoration
     = Underline
     | Overline
@@ -520,6 +615,7 @@ opacity x =
     Transparent (1.0 - x)
 
 
+{-| -}
 type alias Shadow =
     { offset : ( Float, Float )
     , size : Float
@@ -528,6 +624,7 @@ type alias Shadow =
     }
 
 
+{-| -}
 type Transform
     = Translate Float Float Float
     | Rotate Float Float Float

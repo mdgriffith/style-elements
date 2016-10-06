@@ -222,6 +222,33 @@ render style permissions =
                         , renderColors style.colors
                         , renderText style.text
                         , renderBorder style.border
+                        , case style.backgroundImage of
+                            Nothing ->
+                                []
+
+                            Just image ->
+                                [ "background-image" => image.src
+                                , "background-repeat"
+                                    => case image.repeat of
+                                        RepeatX ->
+                                            "repeat-x"
+
+                                        RepeatY ->
+                                            "repeat-y"
+
+                                        Repeat ->
+                                            "repeat"
+
+                                        Space ->
+                                            "space"
+
+                                        Round ->
+                                            "round"
+
+                                        NoRepeat ->
+                                            "no-repeat"
+                                , "background-position" => ((toString (fst image.position)) ++ "px " ++ (toString (snd image.position)) ++ "px")
+                                ]
                         , case style.float of
                             Nothing ->
                                 []

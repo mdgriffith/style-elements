@@ -20,6 +20,7 @@ style =
     , padding = all 0
     , float = Nothing
     , inline = False
+    , backgroundImage = Nothing
     , textShadows = []
     , shadows = []
     , insetShadows = []
