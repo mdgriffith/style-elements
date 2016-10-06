@@ -102,14 +102,38 @@ type alias Colors =
     }
 
 
-{-| can be renamed to better names
-      Normally:  Static | Fixed | Relative | Absolute
-      We're going to try:
+type alias Position =
+    { relativeTo : RelativeTo
+    , anchor : ( AnchorVertical, AnchorHorizontal )
+    , position : ( Float, Float )
+    }
+
+
+{-|
 -}
 type RelativeTo
     = Screen
     | CurrentPosition
     | Parent
+
+
+screen : RelativeTo
+screen =
+    Screen
+
+
+parent : RelativeTo
+parent =
+    Parent
+
+
+currentPosition : RelativeTo
+currentPosition =
+    CurrentPosition
+
+
+type alias Anchor =
+    ( AnchorVertical, AnchorHorizontal )
 
 
 type AnchorVertical
@@ -120,17 +144,6 @@ type AnchorVertical
 type AnchorHorizontal
     = AnchorLeft
     | AnchorRight
-
-
-type alias Position =
-    { relativeTo : RelativeTo
-    , anchor : ( AnchorVertical, AnchorHorizontal )
-    , position : ( Float, Float )
-    }
-
-
-type alias Anchor =
-    ( AnchorVertical, AnchorHorizontal )
 
 
 {-| -}
@@ -187,6 +200,21 @@ type Layout
     | TableLayout Table
 
 
+textLayout : Textual -> Layout
+textLayout t =
+    TextLayout t
+
+
+tableLayout : Table -> Layout
+tableLayout t =
+    TableLayout t
+
+
+flexLayout : Flexible -> Layout
+flexLayout t =
+    FlexLayout t
+
+
 type alias Table =
     { spacing : ( Float, Float, Float, Float )
     }
@@ -198,14 +226,14 @@ type alias Textual =
 
 
 type alias Flexible =
-    { go : FlexOrientation
+    { go : Direction
     , wrap : Bool
     , spacing : ( Float, Float, Float, Float )
     , align : ( HorizontalJustification, VerticalJustification )
     }
 
 
-type FlexOrientation
+type Direction
     = Up
     | Right
     | Down
@@ -225,11 +253,51 @@ type HorizontalJustification
     | HStretch
 
 
+toLeft : HorizontalJustification
+toLeft =
+    HLeft
+
+
+toRight : HorizontalJustification
+toRight =
+    HRight
+
+
+horizontalCenter : HorizontalJustification
+horizontalCenter =
+    HCenter
+
+
+horizontalStretch : HorizontalJustification
+horizontalStretch =
+    HStretch
+
+
 type VerticalJustification
     = VTop
     | VBottom
     | VCenter
     | VStretch
+
+
+verticalCenter : VerticalJustification
+verticalCenter =
+    VCenter
+
+
+toTop : VerticalJustification
+toTop =
+    VTop
+
+
+toBottom : VerticalJustification
+toBottom =
+    VBottom
+
+
+verticalStretch : VerticalJustification
+verticalStretch =
+    VStretch
 
 
 type TextAlignment
@@ -401,6 +469,7 @@ type alias Border =
     }
 
 
+{-| -}
 type BorderStyle
     = Solid
     | Dashed
