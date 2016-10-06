@@ -17,67 +17,14 @@ textLayout =
     base
 
 
-flowRight : Style.Model
-flowRight =
+centered : Style.Model
+centered =
     { base
         | layout =
-            Style.FlexLayout
-                { go = Right
-                , wrap = True
+            flowRight
+                { wrap = True
                 , spacing = all 10
-                , align = ( HLeft, VCenter )
-                }
-    }
-
-
-flowLeft : Style.Model
-flowLeft =
-    { base
-        | layout =
-            Style.FlexLayout
-                { go = Left
-                , wrap = True
-                , spacing = all 10
-                , align = ( HRight, VCenter )
-                }
-    }
-
-
-flowDown : Style.Model
-flowDown =
-    { base
-        | layout =
-            Style.FlexLayout
-                { go = Down
-                , wrap = True
-                , spacing = all 10
-                , align = ( HRight, VCenter )
-                }
-    }
-
-
-flowUp : Style.Model
-flowUp =
-    { base
-        | layout =
-            Style.FlexLayout
-                { go = Up
-                , wrap = True
-                , spacing = all 10
-                , align = ( HRight, VCenter )
-                }
-    }
-
-
-center : Style.Model
-center =
-    { base
-        | layout =
-            Style.FlexLayout
-                { go = Right
-                , wrap = True
-                , spacing = all 10
-                , align = ( HCenter, VCenter )
+                , align = center
                 }
     }
 
@@ -210,7 +157,7 @@ b =
 table : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg
 table =
     Style.Elements.elementAs Html.table
-        { base | layout = Style.TableLayout { spacing = all 0 } }
+        { base | layout = Style.tableLayout { spacing = all 0 } }
 
 
 tableHeader : List (Html.Attribute msg) -> List (Style.Element msg) -> Style.Element msg

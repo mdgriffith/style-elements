@@ -8,7 +8,7 @@ import Dict
 
 style : Model
 style =
-    { layout = textLayout
+    { layout = textLayout { spacing = all 10 }
     , visibility = visibility
     , position = position
     , colors = colors
@@ -31,30 +31,21 @@ style =
     }
 
 
-textLayout : Layout
-textLayout =
-    TextLayout
-        { spacing = Style.all 0
-        }
-
-
 horizontal : Layout
 horizontal =
-    FlexLayout
-        { go = Style.Right
-        , wrap = True
-        , spacing = Style.all 10
+    flowRight
+        { wrap = True
+        , spacing = all 10
         , align = center
         }
 
 
 vertical : Layout
 vertical =
-    FlexLayout
-        { go = Style.Down
-        , wrap = True
-        , spacing = Style.all 10
-        , align = Style.center
+    flowDown
+        { wrap = True
+        , spacing = all 10
+        , align = center
         }
 
 
@@ -71,16 +62,16 @@ text =
     , lineHeight = 1.0
     , italic = False
     , boldness = Nothing
-    , align = Style.AlignLeft
+    , align = Style.alignLeft
     , decoration = Nothing
     }
 
 
 border : Border
 border =
-    { style = Style.solid
-    , width = Style.all 0
-    , corners = Style.all 0
+    { style = solid
+    , width = all 0
+    , corners = all 0
     }
 
 
@@ -94,7 +85,7 @@ colors =
 
 position : Position
 position =
-    { relativeTo = Style.CurrentPosition
-    , anchor = Style.topLeft
+    { relativeTo = currentPosition
+    , anchor = topLeft
     , position = ( 0, 0 )
     }

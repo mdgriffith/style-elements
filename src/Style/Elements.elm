@@ -6,7 +6,11 @@ import Murmur3
 import Color exposing (Color)
 import Html
 import Html.Attributes
-import Style exposing (..)
+
+
+--import Style exposing (..)
+
+import Style.Model exposing (..)
 
 
 type alias HtmlNode msg =

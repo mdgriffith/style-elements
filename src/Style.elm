@@ -9,7 +9,103 @@ module Style exposing (..)
 import Html
 import Html.Attributes
 import Animation
-import Color exposing (Color)
+import Style.Model
+
+
+type alias Model =
+    Style.Model.Model
+
+
+type alias Element msg =
+    Style.Model.Element msg
+
+
+type alias Colors =
+    Style.Model.Colors
+
+
+type alias Shadow =
+    Style.Model.Shadow
+
+
+type alias Position =
+    Style.Model.Position
+
+
+type alias Transition =
+    Style.Model.Transition
+
+
+type alias Visibility =
+    Style.Model.Visibility
+
+
+type alias TextDecoration =
+    Style.Model.TextDecoration
+
+
+type alias TextAlignment =
+    Style.Model.TextAlignment
+
+
+type alias VerticalJustification =
+    Style.Model.VerticalJustification
+
+
+type alias HorizontalJustification =
+    Style.Model.HorizontalJustification
+
+
+type alias Transform =
+    Style.Model.Transform
+
+
+type alias BorderStyle =
+    Style.Model.BorderStyle
+
+
+type alias Table =
+    Style.Model.Table
+
+
+type alias Flexible =
+    Style.Model.Flexible
+
+
+type alias Layout =
+    Style.Model.Layout
+
+
+type alias Textual =
+    Style.Model.Textual
+
+
+type alias Length =
+    Style.Model.Length
+
+
+type alias Anchor =
+    Style.Model.Anchor
+
+
+type alias RelativeTo =
+    Style.Model.RelativeTo
+
+
+type alias Floating =
+    Style.Model.Floating
+
+
+type alias Repeat =
+    Style.Model.Repeat
+
+
+type alias Border =
+    Style.Model.Border
+
+
+type alias Text =
+    Style.Model.Text
 
 
 (=>) =
@@ -21,128 +117,45 @@ type alias HtmlNode msg =
 
 
 {-| -}
-type Element msg
-    = Element
-        { style : Model
-        , node : HtmlNode msg
-        , attributes : List (Html.Attribute msg)
-        , children : List (Element msg)
-        }
-    | Html (Html.Html msg)
-
-
-{-| -}
-type alias Model =
-    { layout : Layout
-    , visibility : Visibility
-    , position : Position
-    , cursor : String
-    , width : Length
-    , height : Length
-    , colors : Colors
-    , padding : ( Float, Float, Float, Float )
-    , text : Text
-    , border : Border
-    , backgroundImage : Maybe BackgroundImage
-    , float : Maybe Floating
-    , inline : Bool
-    , shadows : List Shadow
-    , textShadows : List Shadow
-    , insetShadows : List Shadow
-    , transforms : List Transform
-    , filters : List Filter
-    , onHover : Maybe Transition
-    , onFocus : Maybe Transition
-    }
-
-
-{-| -}
-type alias BackgroundImage =
-    { src : String
-    , position : ( Float, Float )
-    , repeat : Repeat
-    }
-
-
-{-| -}
-type Repeat
-    = RepeatX
-    | RepeatY
-    | Repeat
-    | Space
-    | Round
-    | NoRepeat
-
-
-{-| -}
 repeatX : Repeat
 repeatX =
-    RepeatX
+    Style.Model.RepeatX
 
 
 {-| -}
 repeatY : Repeat
 repeatY =
-    RepeatY
+    Style.Model.RepeatY
 
 
 {-| -}
 repeat : Repeat
 repeat =
-    Repeat
+    Style.Model.Repeat
 
 
 {-| -}
 space : Repeat
 space =
-    Space
+    Style.Model.Space
 
 
 {-| -}
 round : Repeat
 round =
-    Round
+    Style.Model.Round
 
 
 {-| -}
 noRepeat : Repeat
 noRepeat =
-    NoRepeat
-
-
-{-| -}
-type Transition
-    = Transition Model
+    Style.Model.NoRepeat
 
 
 {-| -}
 transitionTo : Model -> Maybe Transition
 transitionTo model =
-    Just (Transition model)
-
-
-{-| -}
-type Filter
-    = FilterUrl String
-    | Blur Float
-    | Brightness Float
-    | Contrast Float
-    | Grayscale Float
-    | HueRotate Float
-    | Invert Float
-    | Opacity Float
-    | Saturate Float
-    | Sepia Float
-
-
-{-| Floats only work if the parent has its layout set to `TextLayout`.
-
-Otherwise a warning will be logged and the float property won't be applied.
-
--}
-type Floating
-    = FloatLeft
-    | FloatRight
+    Just (Style.Model.Transition model)
 
 
 {-|
@@ -150,7 +163,7 @@ type Floating
 -}
 floatLeft : Floating
 floatLeft =
-    FloatLeft
+    Style.Model.FloatLeft
 
 
 {-|
@@ -158,317 +171,234 @@ floatLeft =
 -}
 floatRight : Floating
 floatRight =
-    FloatRight
-
-
-{-| -}
-type alias Colors =
-    { background : Color
-    , text : Color
-    , border : Color
-    }
-
-
-{-| -}
-type alias Position =
-    { relativeTo : RelativeTo
-    , anchor : ( AnchorVertical, AnchorHorizontal )
-    , position : ( Float, Float )
-    }
-
-
-{-|
--}
-type RelativeTo
-    = Screen
-    | CurrentPosition
-    | Parent
+    Style.Model.FloatRight
 
 
 {-| -}
 screen : RelativeTo
 screen =
-    Screen
+    Style.Model.Screen
 
 
 {-| -}
 parent : RelativeTo
 parent =
-    Parent
+    Style.Model.Parent
 
 
 {-| -}
 currentPosition : RelativeTo
 currentPosition =
-    CurrentPosition
-
-
-{-| -}
-type alias Anchor =
-    ( AnchorVertical, AnchorHorizontal )
-
-
-{-| -}
-type AnchorVertical
-    = AnchorTop
-    | AnchorBottom
-
-
-{-| -}
-type AnchorHorizontal
-    = AnchorLeft
-    | AnchorRight
+    Style.Model.CurrentPosition
 
 
 {-| -}
 topLeft : Anchor
 topLeft =
-    AnchorTop => AnchorLeft
+    Style.Model.AnchorTop => Style.Model.AnchorLeft
 
 
 {-| -}
 topRight : Anchor
 topRight =
-    AnchorTop => AnchorRight
+    Style.Model.AnchorTop => Style.Model.AnchorRight
 
 
 {-| -}
 bottomLeft : Anchor
 bottomLeft =
-    AnchorBottom => AnchorLeft
+    Style.Model.AnchorBottom => Style.Model.AnchorLeft
 
 
 {-| -}
 bottomRight : Anchor
 bottomRight =
-    AnchorBottom => AnchorRight
-
-
-{-| -}
-type Length
-    = Px Float
-    | Percent Float
-    | Auto
+    Style.Model.AnchorBottom => Style.Model.AnchorRight
 
 
 {-| -}
 px : Float -> Length
 px x =
-    Px x
+    Style.Model.Px x
 
 
 {-| -}
 percent : Float -> Length
 percent x =
-    Percent x
+    Style.Model.Percent x
 
 
 {-| -}
 auto : Length
 auto =
-    Auto
-
-
-{-| -}
-type Layout
-    = FlexLayout Flexible
-    | TextLayout Textual
-    | TableLayout Table
+    Style.Model.Auto
 
 
 {-| -}
 textLayout : Textual -> Layout
 textLayout t =
-    TextLayout t
+    Style.Model.TextLayout t
 
 
 {-| -}
 tableLayout : Table -> Layout
 tableLayout t =
-    TableLayout t
+    Style.Model.TableLayout t
 
 
-{-| -}
-flexLayout : Flexible -> Layout
-flexLayout t =
-    FlexLayout t
-
-
-{-| -}
-type alias Table =
-    { spacing : ( Float, Float, Float, Float )
-    }
-
-
-{-| -}
-type alias Textual =
-    { spacing : ( Float, Float, Float, Float )
-    }
-
-
-{-| -}
-type alias Flexible =
-    { go : Direction
-    , wrap : Bool
+type alias Flow =
+    { wrap : Bool
     , spacing : ( Float, Float, Float, Float )
     , align : ( HorizontalJustification, VerticalJustification )
     }
 
 
 {-| -}
-type Direction
-    = Up
-    | Right
-    | Down
-    | Left
+flowDown : Flow -> Layout
+flowDown { wrap, spacing, align } =
+    Style.Model.FlexLayout
+        { go = Style.Model.Down
+        , wrap = wrap
+        , spacing = spacing
+        , align = align
+        }
+
+
+{-| -}
+flowUp : Flow -> Layout
+flowUp { wrap, spacing, align } =
+    Style.Model.FlexLayout
+        { go = Style.Model.Up
+        , wrap = wrap
+        , spacing = spacing
+        , align = align
+        }
+
+
+{-| -}
+flowRight : Flow -> Layout
+flowRight { wrap, spacing, align } =
+    Style.Model.FlexLayout
+        { go = Style.Model.Right
+        , wrap = wrap
+        , spacing = spacing
+        , align = align
+        }
+
+
+{-| -}
+flowLeft : Flow -> Layout
+flowLeft { wrap, spacing, align } =
+    Style.Model.FlexLayout
+        { go = Style.Model.Left
+        , wrap = wrap
+        , spacing = spacing
+        , align = align
+        }
 
 
 {-| -}
 center : ( HorizontalJustification, VerticalJustification )
 center =
-    ( HCenter, VCenter )
-
-
-{-| -}
-type HorizontalJustification
-    = HLeft
-    | HRight
-    | HCenter
-    | HStretch
+    ( Style.Model.HCenter
+    , Style.Model.VCenter
+    )
 
 
 {-| -}
 toLeft : HorizontalJustification
 toLeft =
-    HLeft
+    Style.Model.HLeft
 
 
 {-| -}
 toRight : HorizontalJustification
 toRight =
-    HRight
+    Style.Model.HRight
 
 
 {-| -}
 horizontalCenter : HorizontalJustification
 horizontalCenter =
-    HCenter
+    Style.Model.HCenter
 
 
 {-| -}
 horizontalStretch : HorizontalJustification
 horizontalStretch =
-    HStretch
-
-
-{-| -}
-type VerticalJustification
-    = VTop
-    | VBottom
-    | VCenter
-    | VStretch
+    Style.Model.HStretch
 
 
 {-| -}
 verticalCenter : VerticalJustification
 verticalCenter =
-    VCenter
+    Style.Model.VCenter
 
 
 {-| -}
 toTop : VerticalJustification
 toTop =
-    VTop
+    Style.Model.VTop
 
 
 {-| -}
 toBottom : VerticalJustification
 toBottom =
-    VBottom
+    Style.Model.VBottom
 
 
 {-| -}
 verticalStretch : VerticalJustification
 verticalStretch =
-    VStretch
-
-
-{-| -}
-type TextAlignment
-    = AlignLeft
-    | AlignRight
-    | AlignCenter
-    | Justify
-    | JustifyAll
+    Style.Model.VStretch
 
 
 {-| -}
 justify : TextAlignment
 justify =
-    Justify
+    Style.Model.Justify
 
 
 {-| -}
 justifyAll : TextAlignment
 justifyAll =
-    JustifyAll
+    Style.Model.JustifyAll
 
 
 {-| -}
 alignLeft : TextAlignment
 alignLeft =
-    AlignLeft
+    Style.Model.AlignLeft
 
 
 {-| -}
 alignRight : TextAlignment
 alignRight =
-    AlignRight
+    Style.Model.AlignRight
 
 
 {-| -}
 alignCenter : TextAlignment
 alignCenter =
-    AlignCenter
-
-
-{-| All values are given in 'px' units
--}
-type alias Text =
-    { font : String
-    , size : Float
-    , lineHeight : Float
-    , characterOffset : Maybe Float
-    , italic : Bool
-    , boldness : Maybe Float
-    , align : TextAlignment
-    , decoration : Maybe TextDecoration
-    }
-
-
-{-| -}
-type TextDecoration
-    = Underline
-    | Overline
-    | Strike
+    Style.Model.AlignCenter
 
 
 {-| -}
 underline : TextDecoration
 underline =
-    Underline
+    Style.Model.Underline
 
 
 {-| -}
 overline : TextDecoration
 overline =
-    Overline
+    Style.Model.Overline
 
 
 {-| -}
 strike : TextDecoration
 strike =
-    Strike
+    Style.Model.Strike
 
 
 {-| -}
@@ -555,80 +485,43 @@ allButBottom x =
     ( x, x, 0, x )
 
 
-{-| Border width and corners are always given in px
--}
-type alias Border =
-    { style : BorderStyle
-    , width : ( Float, Float, Float, Float )
-    , corners : ( Float, Float, Float, Float )
-    }
-
-
-{-| -}
-type BorderStyle
-    = Solid
-    | Dashed
-    | Dotted
-
-
 {-| -}
 solid : BorderStyle
 solid =
-    Solid
+    Style.Model.Solid
 
 
 {-| -}
 dashed : BorderStyle
 dashed =
-    Dashed
+    Style.Model.Dashed
 
 
 {-| -}
 dotted : BorderStyle
 dotted =
-    Dotted
-
-
-type Visibility
-    = Transparent Float
-    | Hidden
+    Style.Model.Dotted
 
 
 {-|
 -}
 hidden : Visibility
 hidden =
-    Hidden
+    Style.Model.Hidden
 
 
 {-| A Value between 0 and 1
 -}
 transparency : Float -> Visibility
 transparency x =
-    Transparent x
+    Style.Model.Transparent x
 
 
 {-| A Value between 0 and 1
 -}
 opacity : Float -> Visibility
 opacity x =
-    Transparent (1.0 - x)
-
-
-{-| -}
-type alias Shadow =
-    { offset : ( Float, Float )
-    , size : Float
-    , blur : Float
-    , color : Color
-    }
-
-
-{-| -}
-type Transform
-    = Translate Float Float Float
-    | Rotate Float Float Float
-    | Scale Float Float Float
+    Style.Model.Transparent (1.0 - x)
 
 
 {-| Units always given as radians.
@@ -637,17 +530,17 @@ Use `x * deg` if you want to use a different set of units.
 -}
 rotate : Float -> Float -> Float -> Transform
 rotate x y z =
-    Rotate x y z
+    Style.Model.Rotate x y z
 
 
 {-| Units always always as pixels
 -}
 translate : Float -> Float -> Float -> Transform
 translate x y z =
-    Translate x y z
+    Style.Model.Translate x y z
 
 
 {-| -}
 scale : Float -> Float -> Float -> Transform
 scale x y z =
-    Scale x y z
+    Style.Model.Scale x y z
