@@ -17,6 +17,12 @@ type Element msg
         , attributes : List (Html.Attribute msg)
         , children : List (Element msg)
         }
+    | WeakElement
+        { style : Weak
+        , node : HtmlNode msg
+        , attributes : List (Html.Attribute msg)
+        , children : List (Element msg)
+        }
     | Html (Html.Html msg)
 
 
@@ -32,6 +38,31 @@ type alias Model =
     , padding : ( Float, Float, Float, Float )
     , text : Text
     , border : Border
+    , backgroundImage : Maybe BackgroundImage
+    , float : Maybe Floating
+    , inline : Bool
+    , shadows : List Shadow
+    , textShadows : List Shadow
+    , insetShadows : List Shadow
+    , transforms : List Transform
+    , filters : List Filter
+    , onHover : Maybe Transition
+    , onFocus : Maybe Transition
+    }
+
+
+{-| -}
+type alias Weak =
+    { layout : Maybe Layout
+    , visibility : Maybe Visibility
+    , position : Maybe Position
+    , cursor : Maybe String
+    , width : Maybe Length
+    , height : Maybe Length
+    , colors : Maybe Colors
+    , padding : Maybe ( Float, Float, Float, Float )
+    , text : Maybe Text
+    , border : Maybe Border
     , backgroundImage : Maybe BackgroundImage
     , float : Maybe Floating
     , inline : Bool

@@ -1,4 +1,4 @@
-module Style.Elements exposing (map, html, element, elementAs, build, buildWithTransitions)
+module Style.Elements exposing (map, html, element, elementAs, build)
 
 import String
 import Char
@@ -6,10 +6,6 @@ import Murmur3
 import Color exposing (Color)
 import Html
 import Html.Attributes
-
-
---import Style exposing (..)
-
 import Style.Model exposing (..)
 
 
@@ -20,11 +16,11 @@ type alias HtmlNode msg =
 map : (Model -> Model) -> Element msg -> Element msg
 map fn el =
     case el of
-        Html node ->
-            Html node
-
         Element props ->
             Element { props | style = fn props.style }
+
+        _ ->
+            el
 
 
 html : Html.Html msg -> Element msg
@@ -52,6 +48,26 @@ elementAs node styleModel attrs content =
         }
 
 
+weak : Weak -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+weak styleModel attrs content =
+    WeakElement
+        { style = styleModel
+        , node = Html.div
+        , attributes = attrs
+        , children = content
+        }
+
+
+weakAs : HtmlNode msg -> Weak -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+weakAs node styleModel attrs content =
+    WeakElement
+        { style = styleModel
+        , node = node
+        , attributes = attrs
+        , children = content
+        }
+
+
 build : Element msg -> Html.Html msg
 build element =
     case element of
@@ -60,45 +76,7 @@ build element =
 
         Element model ->
             let
-                ( parent, childStyle, childPermissions ) =
-                    render model.style { floats = False, inline = False }
-            in
-                model.node
-                    (Html.Attributes.style parent :: model.attributes)
-                    (List.map
-                        (buildChild childPermissions childStyle)
-                        model.children
-                    )
-
-
-buildChild : Permissions -> Html.Attribute msg -> Element msg -> Html.Html msg
-buildChild permissions inherited element =
-    case element of
-        Html html ->
-            html
-
-        Element model ->
-            let
-                ( parent, childStyle, childrenPermissions ) =
-                    render model.style permissions
-            in
-                model.node
-                    (Html.Attributes.style parent :: inherited :: model.attributes)
-                    (List.map
-                        (buildChild childrenPermissions childStyle)
-                        model.children
-                    )
-
-
-buildWithTransitions : Element msg -> Html.Html msg
-buildWithTransitions element =
-    case element of
-        Html html ->
-            html
-
-        Element model ->
-            let
-                ( parent, childMargin, childPermissions ) =
+                ( parentStyle, childMargin, childPermissions ) =
                     render model.style { floats = False, inline = False }
 
                 ( children, childTransitions ) =
@@ -106,7 +84,7 @@ buildWithTransitions element =
                         (\child ( children, transitions ) ->
                             let
                                 ( builtChild, builtTransitions ) =
-                                    buildChildWithTransitions childPermissions childMargin child
+                                    buildChild childPermissions childMargin child
                             in
                                 ( children ++ [ builtChild ]
                                 , transitions ++ builtTransitions
@@ -116,7 +94,7 @@ buildWithTransitions element =
                         model.children
 
                 className =
-                    generateId parent
+                    generateId parentStyle
 
                 transitionStyleSheet =
                     Html.node "style"
@@ -128,17 +106,57 @@ buildWithTransitions element =
 
                 attributes =
                     if model.style.onHover /= Nothing || model.style.onFocus /= Nothing then
-                        Html.Attributes.class className :: Html.Attributes.style parent :: model.attributes
+                        Html.Attributes.class className :: Html.Attributes.style parentStyle :: model.attributes
                     else
-                        Html.Attributes.style parent :: model.attributes
+                        Html.Attributes.style parentStyle :: model.attributes
+            in
+                model.node
+                    attributes
+                    (transitionStyleSheet :: children)
+
+        WeakElement model ->
+            let
+                ( parentStyle, childMargin, childPermissions ) =
+                    renderWeak model.style { floats = False, inline = False }
+
+                ( children, childTransitions ) =
+                    List.foldl
+                        (\child ( children, transitions ) ->
+                            let
+                                ( builtChild, builtTransitions ) =
+                                    buildChild childPermissions childMargin child
+                            in
+                                ( children ++ [ builtChild ]
+                                , transitions ++ builtTransitions
+                                )
+                        )
+                        ( [], "" )
+                        model.children
+
+                className =
+                    generateId parentStyle
+
+                transitionStyleSheet =
+                    Html.node "style"
+                        []
+                        [ Html.text <|
+                            renderCssTransitionsWeak className model.style
+                                ++ childTransitions
+                        ]
+
+                attributes =
+                    if model.style.onHover /= Nothing || model.style.onFocus /= Nothing then
+                        Html.Attributes.class className :: Html.Attributes.style parentStyle :: model.attributes
+                    else
+                        Html.Attributes.style parentStyle :: model.attributes
             in
                 model.node
                     attributes
                     (transitionStyleSheet :: children)
 
 
-buildChildWithTransitions : Permissions -> Html.Attribute msg -> Element msg -> ( Html.Html msg, String )
-buildChildWithTransitions permissions inherited element =
+buildChild : Permissions -> Html.Attribute msg -> Element msg -> ( Html.Html msg, String )
+buildChild permissions inherited element =
     case element of
         Html html ->
             ( html, "" )
@@ -153,7 +171,7 @@ buildChildWithTransitions permissions inherited element =
                         (\child ( children, transitions ) ->
                             let
                                 ( builtChild, builtTransitions ) =
-                                    buildChildWithTransitions childPermissions childStyle child
+                                    buildChild childPermissions childStyle child
                             in
                                 ( children ++ [ builtChild ]
                                 , transitions ++ builtTransitions
@@ -177,6 +195,40 @@ buildChildWithTransitions permissions inherited element =
                 , renderCssTransitions className model.style ++ childTransitions
                 )
 
+        WeakElement model ->
+            let
+                ( parent, childStyle, childPermissions ) =
+                    renderWeak model.style permissions
+
+                ( children, childTransitions ) =
+                    List.foldl
+                        (\child ( children, transitions ) ->
+                            let
+                                ( builtChild, builtTransitions ) =
+                                    buildChild childPermissions childStyle child
+                            in
+                                ( children ++ [ builtChild ]
+                                , transitions ++ builtTransitions
+                                )
+                        )
+                        ( [], "" )
+                        model.children
+
+                className =
+                    generateId parent
+
+                attributes =
+                    if model.style.onHover /= Nothing || model.style.onFocus /= Nothing then
+                        Html.Attributes.class className :: Html.Attributes.style parent :: inherited :: model.attributes
+                    else
+                        Html.Attributes.style parent :: inherited :: model.attributes
+            in
+                ( model.node
+                    attributes
+                    children
+                , renderCssTransitionsWeak className model.style ++ childTransitions
+                )
+
 
 (=>) =
     (,)
@@ -186,93 +238,6 @@ type alias Permissions =
     { floats : Bool
     , inline : Bool
     }
-
-
-
---renderWeak : Model -> Permissions -> ( List ( String, String ), List (Html.Attribute msg), Permissions )
---renderWeak style permissions =
---     case style.visibility of
---        Hidden ->
---            ( [ "display" => "none" ]
---            , []
---            , { floats = False, inline = False }
---            )
---        Transparent transparency ->
---            let
---                ( layout, childLayout, childrenPermissions ) =
---                    renderLayout style.layout
---                renderedStyle =
---                    List.concat
---                        [ layout
---                        , renderPosition style.position
---                        , if style.inline then
---                            if permissions.inline then
---                                [ "display" => "inline-block" ]
---                            else
---                                let
---                                    _ =
---                                        Debug.log "style-blocks" "Elements can only be inline if they are in a text layout."
---                                in
---                                    []
---                          else
---                            []
---                        , [ "opacity" => toString (1.0 - transparency)
---                          , "width" => (renderLength style.width)
---                          , "height" => (renderLength style.height)
---                          , "cursor" => style.cursor
---                          , "padding" => render4tuplePx style.padding
---                          ]
---                        , renderColors style.colors
---                        , renderText style.text
---                        , renderBorder style.border
---                        , case style.backgroundImage of
---                            Nothing ->
---                                []
---                            Just image ->
---                                [ "background-image" => image.src
---                                , "background-repeat"
---                                    => case image.repeat of
---                                        RepeatX ->
---                                            "repeat-x"
---                                        RepeatY ->
---                                            "repeat-y"
---                                        Repeat ->
---                                            "repeat"
---                                        Space ->
---                                            "space"
---                                        Round ->
---                                            "round"
---                                        NoRepeat ->
---                                            "no-repeat"
---                                , "background-position" => ((toString (fst image.position)) ++ "px " ++ (toString (snd image.position)) ++ "px")
---                                ]
---                        , case style.float of
---                            Nothing ->
---                                []
---                            Just floating ->
---                                if permissions.floats then
---                                    case floating of
---                                        FloatLeft ->
---                                            [ "float" => "left" ]
---                                        FloatRight ->
---                                            [ "float" => "right" ]
---                                else
---                                    let
---                                        _ =
---                                            Debug.log "style-blocks" "Elements can only use float if they are in a text layout."
---                                    in
---                                        []
---                        , renderShadow "box-shadow" False style.shadows
---                        , renderShadow "box-shadow" True style.insetShadows
---                        , renderShadow "text-shadow" False style.textShadows
---                        , renderFilters style.filters
---                        , renderTransforms style.transforms
---                        ]
---            in
---                ( renderedStyle
---                , [ Html.Attributes.style childLayout ]
---                , childrenPermissions
---                )
 
 
 render : Model -> Permissions -> ( List ( String, String ), Html.Attribute msg, Permissions )
@@ -294,17 +259,7 @@ render style permissions =
                         List.filterMap identity
                             [ Just <| layout
                             , Just <| renderPosition style.position
-                            , if style.inline then
-                                if permissions.inline then
-                                    Just [ "display" => "inline-block" ]
-                                else
-                                    let
-                                        _ =
-                                            Debug.log "style-blocks" "Elements can only be inline if they are in a text layout."
-                                    in
-                                        Nothing
-                              else
-                                Nothing
+                            , renderInline permissions.inline style.inline
                             , Just
                                 [ "opacity" => toString (1.0 - transparency)
                                 , "width" => (renderLength style.width)
@@ -317,17 +272,91 @@ render style permissions =
                             , Just <| renderBorder style.border
                             , Maybe.map renderBackgroundImage style.backgroundImage
                             , Maybe.map (renderFloating permissions.floats) style.float
-                            , renderShadow "box-shadow" False style.shadows
-                            , renderShadow "box-shadow" True style.insetShadows
-                            , renderShadow "text-shadow" False style.textShadows
-                            , renderFilters style.filters
-                            , renderTransforms style.transforms
+                            , listMaybeMap (renderShadow "box-shadow" False) style.shadows
+                            , listMaybeMap (renderShadow "box-shadow" True) style.insetShadows
+                            , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
+                            , listMaybeMap renderFilters style.filters
+                            , listMaybeMap renderTransforms style.transforms
                             ]
             in
                 ( renderedStyle
                 , Html.Attributes.style [ "margin" => childMargin ]
                 , childrenPermissions
                 )
+
+
+renderWeak : Weak -> Permissions -> ( List ( String, String ), Html.Attribute msg, Permissions )
+renderWeak style permissions =
+    let
+        ( layout, childMargin, childrenPermissions ) =
+            Maybe.map renderLayout style.layout
+                |> Maybe.withDefault ( [], "0px", { floats = False, inline = False } )
+
+        renderedStyle =
+            List.concat <|
+                List.filterMap identity
+                    [ Just layout
+                    , Maybe.map renderPosition style.position
+                    , renderInline permissions.inline style.inline
+                    , Just <|
+                        List.filterMap identity
+                            [ Maybe.map (\w -> "width" => (renderLength w)) style.width
+                            , Maybe.map (\h -> "height" => (renderLength h)) style.height
+                            , Maybe.map (\c -> "cursor" => c) style.cursor
+                            , Maybe.map (\p -> "padding" => (render4tuplePx p)) style.padding
+                            ]
+                    , Maybe.map renderColors style.colors
+                    , Maybe.map renderText style.text
+                    , Maybe.map renderBorder style.border
+                    , Maybe.map renderBackgroundImage style.backgroundImage
+                    , Maybe.map (renderFloating permissions.floats) style.float
+                    , listMaybeMap (renderShadow "box-shadow" False) style.shadows
+                    , listMaybeMap (renderShadow "box-shadow" True) style.insetShadows
+                    , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
+                    , listMaybeMap renderFilters style.filters
+                    , listMaybeMap renderTransforms style.transforms
+                    , Maybe.map renderVisibility style.visibility
+                    ]
+    in
+        ( renderedStyle
+        , Html.Attributes.style [ "margin" => childMargin ]
+        , childrenPermissions
+        )
+
+
+listMaybeMap : (List a -> b) -> List a -> Maybe b
+listMaybeMap fn ls =
+    case ls of
+        [] ->
+            Nothing
+
+        nonEmptyList ->
+            Just <| fn nonEmptyList
+
+
+renderVisibility : Visibility -> List ( String, String )
+renderVisibility vis =
+    case vis of
+        Hidden ->
+            [ "display" => "none" ]
+
+        Transparent transparency ->
+            [ "opacity" => toString (1.0 - transparency) ]
+
+
+renderInline : Bool -> Bool -> Maybe (List ( String, String ))
+renderInline permission inline =
+    if inline then
+        if permission then
+            Just [ "display" => "inline-block" ]
+        else
+            let
+                _ =
+                    Debug.log "style-blocks" "Elements can only be inline if they are in a text layout."
+            in
+                Nothing
+    else
+        Nothing
 
 
 renderFloating : Bool -> Floating -> List ( String, String )
@@ -373,17 +402,11 @@ renderBackgroundImage image =
     ]
 
 
-renderTransforms : List Transform -> Maybe (List ( String, String ))
+renderTransforms : List Transform -> List ( String, String )
 renderTransforms transforms =
-    case transforms of
-        [] ->
-            Nothing
-
-        ts ->
-            Just
-                [ "transform"
-                    => (String.join " " (List.map transformToString ts))
-                ]
+    [ "transform"
+        => (String.join " " (List.map transformToString transforms))
+    ]
 
 
 transformToString : Transform -> String
@@ -417,17 +440,11 @@ transformToString transform =
                 ++ ")"
 
 
-renderFilters : List Filter -> Maybe (List ( String, String ))
+renderFilters : List Filter -> List ( String, String )
 renderFilters filters =
-    case filters of
-        [] ->
-            Nothing
-
-        fs ->
-            Just
-                [ "filter"
-                    => (String.join " " <| List.map filterToString filters)
-                ]
+    [ "filter"
+        => (String.join " " <| List.map filterToString filters)
+    ]
 
 
 filterToString : Filter -> String
@@ -464,16 +481,9 @@ filterToString filter =
             "sepia(" ++ toString x ++ "%)"
 
 
-renderShadow : String -> Bool -> List Shadow -> Maybe (List ( String, String ))
+renderShadow : String -> Bool -> List Shadow -> List ( String, String )
 renderShadow shadowName inset shadows =
-    let
-        rendered =
-            String.join ", " (List.map (shadowValue inset) shadows)
-    in
-        if rendered == "" then
-            Nothing
-        else
-            Just [ shadowName => rendered ]
+    [ shadowName => (String.join ", " (List.map (shadowValue inset) shadows)) ]
 
 
 shadowValue : Bool -> Shadow -> String
@@ -837,11 +847,11 @@ renderTransitionStyle style =
                             , Just <| renderColors style.colors
                             , Just <| renderText style.text
                             , Just <| renderBorder style.border
-                            , renderShadow "box-shadow" False style.shadows
-                            , renderShadow "box-shadow" True style.insetShadows
-                            , renderShadow "text-shadow" False style.textShadows
-                            , renderFilters style.filters
-                            , renderTransforms style.transforms
+                            , listMaybeMap (renderShadow "box-shadow" False) style.shadows
+                            , listMaybeMap (renderShadow "box-shadow" True) style.insetShadows
+                            , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
+                            , listMaybeMap renderFilters style.filters
+                            , listMaybeMap renderTransforms style.transforms
                             ]
     in
         List.map (\( name, val ) -> "    " ++ name ++ ": " ++ val ++ " !important;\n") stylePairs
@@ -852,6 +862,46 @@ renderTransitionStyle style =
 -}
 renderCssTransitions : String -> Model -> String
 renderCssTransitions id model =
+    let
+        hover =
+            case model.onHover of
+                Nothing ->
+                    ""
+
+                Just (Transition hoverStyle) ->
+                    "."
+                        ++ id
+                        ++ "{\n"
+                        ++ cssTransitions
+                        ++ "\n}\n"
+                        ++ "."
+                        ++ id
+                        ++ ":hover {\n"
+                        ++ renderTransitionStyle hoverStyle
+                        ++ "\n}\n"
+
+        focus =
+            case model.onFocus of
+                Nothing ->
+                    ""
+
+                Just (Transition focusStyle) ->
+                    "."
+                        ++ id
+                        ++ "{\n"
+                        ++ cssTransitions
+                        ++ "\n}\n"
+                        ++ "."
+                        ++ id
+                        ++ ":focus {\n"
+                        ++ renderTransitionStyle focusStyle
+                        ++ "\n}\n"
+    in
+        hover ++ focus
+
+
+renderCssTransitionsWeak : String -> Weak -> String
+renderCssTransitionsWeak id model =
     let
         hover =
             case model.onHover of
