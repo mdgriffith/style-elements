@@ -5,6 +5,7 @@ import Char
 import Murmur3
 import Color exposing (Color)
 import Html
+import Set exposing (Set)
 import Html.Attributes
 import Style.Model exposing (..)
 
@@ -68,18 +69,21 @@ weakAs node styleModel attrs content =
         }
 
 
+type StyleDefinition
+    = StyleDef
+        { name : String
+        , style : List ( String, String )
+        , modes :
+            List StyleDefinition
+        }
+
+
 build : Element msg -> Html.Html msg
 build element =
-    case element of
-        Html html ->
-            html
-
-        Element model ->
+    let
+        construct node attributes children ( parentStyle, childMargin, childPermissions ) =
             let
-                ( parentStyle, childMargin, childPermissions ) =
-                    render model.style { floats = False, inline = False }
-
-                ( children, childTransitions ) =
+                ( builtChildren, childStyles ) =
                     List.foldl
                         (\child ( children, transitions ) ->
                             let
@@ -90,144 +94,147 @@ build element =
                                 , transitions ++ builtTransitions
                                 )
                         )
-                        ( [], "" )
-                        model.children
+                        ( [], [] )
+                        children
 
-                className =
-                    generateId parentStyle
-
-                transitionStyleSheet =
+                styleSheet =
                     Html.node "style"
                         []
                         [ Html.text <|
-                            renderCssTransitions className model.style
-                                ++ childTransitions
+                            convertToCSS (parentStyle :: childStyles)
                         ]
-
-                attributes =
-                    if model.style.onHover /= Nothing || model.style.onFocus /= Nothing then
-                        Html.Attributes.class className :: Html.Attributes.style parentStyle :: model.attributes
-                    else
-                        Html.Attributes.style parentStyle :: model.attributes
-            in
-                model.node
-                    attributes
-                    (transitionStyleSheet :: children)
-
-        WeakElement model ->
-            let
-                ( parentStyle, childMargin, childPermissions ) =
-                    renderWeak model.style { floats = False, inline = False }
-
-                ( children, childTransitions ) =
-                    List.foldl
-                        (\child ( children, transitions ) ->
-                            let
-                                ( builtChild, builtTransitions ) =
-                                    buildChild childPermissions childMargin child
-                            in
-                                ( children ++ [ builtChild ]
-                                , transitions ++ builtTransitions
-                                )
-                        )
-                        ( [], "" )
-                        model.children
 
                 className =
-                    generateId parentStyle
-
-                transitionStyleSheet =
-                    Html.node "style"
-                        []
-                        [ Html.text <|
-                            renderCssTransitionsWeak className model.style
-                                ++ childTransitions
-                        ]
-
-                attributes =
-                    if model.style.onHover /= Nothing || model.style.onFocus /= Nothing then
-                        Html.Attributes.class className :: Html.Attributes.style parentStyle :: model.attributes
-                    else
-                        Html.Attributes.style parentStyle :: model.attributes
+                    case parentStyle of
+                        StyleDef { name } ->
+                            name
             in
-                model.node
-                    attributes
-                    (transitionStyleSheet :: children)
+                node
+                    (Html.Attributes.class className :: attributes)
+                    (styleSheet :: builtChildren)
+    in
+        case element of
+            Html html ->
+                html
+
+            Element model ->
+                render model.style { floats = False, inline = False }
+                    |> construct model.node model.attributes model.children
+
+            WeakElement model ->
+                renderWeak model.style { floats = False, inline = False }
+                    |> construct model.node model.attributes model.children
 
 
-buildChild : Permissions -> Html.Attribute msg -> Element msg -> ( Html.Html msg, String )
+buildChild : Permissions -> List ( String, String ) -> Element msg -> ( Html.Html msg, List StyleDefinition )
 buildChild permissions inherited element =
-    case element of
-        Html html ->
-            ( html, "" )
-
-        Element model ->
+    let
+        construct node attributes children ( parentStyle, childMargin, childPermissions ) =
             let
-                ( parent, childStyle, childPermissions ) =
-                    render model.style permissions
-
-                ( children, childTransitions ) =
+                ( builtChildren, childStyle ) =
                     List.foldl
                         (\child ( children, transitions ) ->
                             let
-                                ( builtChild, builtTransitions ) =
-                                    buildChild childPermissions childStyle child
+                                ( builtChild, builtStyle ) =
+                                    buildChild childPermissions childMargin child
                             in
                                 ( children ++ [ builtChild ]
-                                , transitions ++ builtTransitions
+                                , transitions ++ builtStyle
                                 )
                         )
-                        ( [], "" )
-                        model.children
+                        ( [], [] )
+                        children
 
-                className =
-                    generateId parent
-
-                attributes =
-                    if model.style.onHover /= Nothing || model.style.onFocus /= Nothing then
-                        Html.Attributes.class className :: Html.Attributes.style parent :: inherited :: model.attributes
-                    else
-                        Html.Attributes.style parent :: inherited :: model.attributes
+                ( className, parentAndInherited ) =
+                    case parentStyle of
+                        StyleDef { name, style, modes } ->
+                            ( name
+                            , StyleDef
+                                { name = name
+                                , style = (style ++ inherited)
+                                , modes = modes
+                                }
+                            )
             in
-                ( model.node
-                    attributes
-                    children
-                , renderCssTransitions className model.style ++ childTransitions
+                ( node
+                    (Html.Attributes.class className :: attributes)
+                    builtChildren
+                , parentAndInherited :: childStyle
                 )
+    in
+        case element of
+            Html html ->
+                ( html, [] )
 
-        WeakElement model ->
+            Element model ->
+                render model.style permissions
+                    |> construct model.node model.attributes model.children
+
+            WeakElement model ->
+                renderWeak model.style permissions
+                    |> construct model.node model.attributes model.children
+
+
+convertToCSS : List StyleDefinition -> String
+convertToCSS styles =
+    uniqueBy (\(StyleDef { name }) -> name) styles
+        |> List.map
+            (\(StyleDef { name, style, modes }) ->
+                "."
+                    ++ name
+                    ++ " {\n"
+                    ++ (String.concat <|
+                            List.map
+                                (\( propName, propValue ) ->
+                                    "  " ++ propName ++ ": " ++ propValue ++ ";\n"
+                                )
+                                style
+                       )
+                    ++ "}"
+                    ++ (String.join "\n" <|
+                            List.map
+                                (\(StyleDef mode) ->
+                                    "."
+                                        ++ name
+                                        ++ mode.name
+                                        ++ "{"
+                                        ++ (String.concat <|
+                                                List.map
+                                                    (\( propName, propValue ) ->
+                                                        "  " ++ propName ++ ": " ++ propValue ++ ";\n"
+                                                    )
+                                                    mode.style
+                                           )
+                                        ++ "}"
+                                )
+                                modes
+                       )
+            )
+        |> String.join "\n"
+
+
+{-| Drop duplicates where what is considered to be a duplicate is the result of first applying the supplied function to the elements of the list.
+-}
+uniqueBy : (a -> comparable) -> List a -> List a
+uniqueBy f list =
+    uniqueHelp f Set.empty list
+
+
+uniqueHelp : (a -> comparable) -> Set comparable -> List a -> List a
+uniqueHelp f existing remaining =
+    case remaining of
+        [] ->
+            []
+
+        first :: rest ->
             let
-                ( parent, childStyle, childPermissions ) =
-                    renderWeak model.style permissions
-
-                ( children, childTransitions ) =
-                    List.foldl
-                        (\child ( children, transitions ) ->
-                            let
-                                ( builtChild, builtTransitions ) =
-                                    buildChild childPermissions childStyle child
-                            in
-                                ( children ++ [ builtChild ]
-                                , transitions ++ builtTransitions
-                                )
-                        )
-                        ( [], "" )
-                        model.children
-
-                className =
-                    generateId parent
-
-                attributes =
-                    if model.style.onHover /= Nothing || model.style.onFocus /= Nothing then
-                        Html.Attributes.class className :: Html.Attributes.style parent :: inherited :: model.attributes
-                    else
-                        Html.Attributes.style parent :: inherited :: model.attributes
+                computedFirst =
+                    f first
             in
-                ( model.node
-                    attributes
-                    children
-                , renderCssTransitionsWeak className model.style ++ childTransitions
-                )
+                if Set.member computedFirst existing then
+                    uniqueHelp f existing rest
+                else
+                    first :: uniqueHelp f (Set.insert computedFirst existing) rest
 
 
 (=>) =
@@ -240,14 +247,25 @@ type alias Permissions =
     }
 
 
-render : Model -> Permissions -> ( List ( String, String ), Html.Attribute msg, Permissions )
+render : Model -> Permissions -> ( StyleDefinition, List ( String, String ), Permissions )
 render style permissions =
     case style.visibility of
         Hidden ->
-            ( [ "display" => "none" ]
-            , Html.Attributes.style []
-            , { floats = False, inline = False }
-            )
+            let
+                renderedStyle =
+                    [ "display" => "none" ]
+
+                className =
+                    generateId renderedStyle
+            in
+                ( StyleDef
+                    { name = className
+                    , style = renderedStyle
+                    , modes = []
+                    }
+                , []
+                , { floats = False, inline = False }
+                )
 
         Transparent transparency ->
             let
@@ -277,15 +295,29 @@ render style permissions =
                             , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
                             , listMaybeMap renderFilters style.filters
                             , listMaybeMap renderTransforms style.transforms
+                            , if style.onHover /= Nothing || style.onFocus /= Nothing then
+                                Just cssTransitions
+                              else
+                                Nothing
                             ]
+
+                className =
+                    generateId renderedStyle
+
+                transitions =
+                    renderCssTransitions className style
             in
-                ( renderedStyle
-                , Html.Attributes.style [ "margin" => childMargin ]
+                ( StyleDef
+                    { name = className
+                    , style = renderedStyle
+                    , modes = transitions
+                    }
+                , [ "margin" => childMargin ]
                 , childrenPermissions
                 )
 
 
-renderWeak : Weak -> Permissions -> ( List ( String, String ), Html.Attribute msg, Permissions )
+renderWeak : Weak -> Permissions -> ( StyleDefinition, List ( String, String ), Permissions )
 renderWeak style permissions =
     let
         ( layout, childMargin, childrenPermissions ) =
@@ -317,9 +349,19 @@ renderWeak style permissions =
                     , listMaybeMap renderTransforms style.transforms
                     , Maybe.map renderVisibility style.visibility
                     ]
+
+        className =
+            generateId renderedStyle
+
+        transitions =
+            renderCssTransitionsWeak className style
     in
-        ( renderedStyle
-        , Html.Attributes.style [ "margin" => childMargin ]
+        ( StyleDef
+            { name = className
+            , style = renderedStyle
+            , modes = transitions
+            }
+        , [ "margin" => childMargin ]
         , childrenPermissions
         )
 
@@ -819,125 +861,111 @@ renderLayout layout =
 
 
 cssTransitions =
-    """
-    transition-property: opacity, padding, left, top, right, bottom, height, width, color, background-color, border-color, border-width, box-shadow, text-shadow, filter, transform, font-size, line-height;
-    transition-duration: 500ms;
-    -webkit-transition-timing-function: ease-out;
-    transition-timing-function: ease-out;
-"""
+    [ "transition-property" => "opacity, padding, left, top, right, bottom, height, width, color, background-color, border-color, border-width, box-shadow, text-shadow, filter, transform, font-size, line-height"
+    , "transition-duration" => "500ms"
+    , "-webkit-transition-timing-function" => "ease-out"
+    , "transition-timing-function" => "ease-out"
+    ]
 
 
-renderTransitionStyle : Model -> String
+renderTransitionStyle : Model -> List ( String, String )
 renderTransitionStyle style =
-    let
-        stylePairs =
-            case style.visibility of
-                Hidden ->
-                    [ "display" => "none" ]
+    --let
+    --stylePairs =
+    case style.visibility of
+        Hidden ->
+            [ "display" => "none" ]
 
-                Transparent transparency ->
-                    List.concat <|
-                        List.filterMap identity
-                            [ Just
-                                [ "opacity" => toString (1.0 - transparency)
-                                , "width" => (renderLength style.width)
-                                , "height" => (renderLength style.height)
-                                , "padding" => render4tuplePx style.padding
-                                ]
-                            , Just <| renderColors style.colors
-                            , Just <| renderText style.text
-                            , Just <| renderBorder style.border
-                            , listMaybeMap (renderShadow "box-shadow" False) style.shadows
-                            , listMaybeMap (renderShadow "box-shadow" True) style.insetShadows
-                            , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
-                            , listMaybeMap renderFilters style.filters
-                            , listMaybeMap renderTransforms style.transforms
-                            ]
-    in
-        List.map (\( name, val ) -> "    " ++ name ++ ": " ++ val ++ " !important;\n") stylePairs
-            |> String.concat
+        Transparent transparency ->
+            List.concat <|
+                List.filterMap identity
+                    [ Just
+                        [ "opacity" => toString (1.0 - transparency)
+                        , "width" => (renderLength style.width)
+                        , "height" => (renderLength style.height)
+                        , "padding" => render4tuplePx style.padding
+                        ]
+                    , Just <| renderColors style.colors
+                    , Just <| renderText style.text
+                    , Just <| renderBorder style.border
+                    , listMaybeMap (renderShadow "box-shadow" False) style.shadows
+                    , listMaybeMap (renderShadow "box-shadow" True) style.insetShadows
+                    , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
+                    , listMaybeMap renderFilters style.filters
+                    , listMaybeMap renderTransforms style.transforms
+                    ]
+
+
+
+--in
+--    List.map (\( name, val ) -> "    " ++ name ++ ": " ++ val ++ " !important;\n") stylePairs
+--        |> String.concat
 
 
 {-| Produces valid css code.
 -}
-renderCssTransitions : String -> Model -> String
+renderCssTransitions : String -> Model -> List StyleDefinition
 renderCssTransitions id model =
     let
         hover =
             case model.onHover of
                 Nothing ->
-                    ""
+                    Nothing
 
                 Just (Transition hoverStyle) ->
-                    "."
-                        ++ id
-                        ++ "{\n"
-                        ++ cssTransitions
-                        ++ "\n}\n"
-                        ++ "."
-                        ++ id
-                        ++ ":hover {\n"
-                        ++ renderTransitionStyle hoverStyle
-                        ++ "\n}\n"
+                    Just <|
+                        StyleDef
+                            { name = ":hover"
+                            , style = renderTransitionStyle hoverStyle
+                            , modes = []
+                            }
 
         focus =
             case model.onFocus of
                 Nothing ->
-                    ""
+                    Nothing
 
                 Just (Transition focusStyle) ->
-                    "."
-                        ++ id
-                        ++ "{\n"
-                        ++ cssTransitions
-                        ++ "\n}\n"
-                        ++ "."
-                        ++ id
-                        ++ ":focus {\n"
-                        ++ renderTransitionStyle focusStyle
-                        ++ "\n}\n"
+                    Just <|
+                        StyleDef
+                            { name = ":focus"
+                            , style = renderTransitionStyle focusStyle
+                            , modes = []
+                            }
     in
-        hover ++ focus
+        List.filterMap identity [ hover, focus ]
 
 
-renderCssTransitionsWeak : String -> Weak -> String
+renderCssTransitionsWeak : String -> Weak -> List StyleDefinition
 renderCssTransitionsWeak id model =
     let
         hover =
             case model.onHover of
                 Nothing ->
-                    ""
+                    Nothing
 
                 Just (Transition hoverStyle) ->
-                    "."
-                        ++ id
-                        ++ "{\n"
-                        ++ cssTransitions
-                        ++ "\n}\n"
-                        ++ "."
-                        ++ id
-                        ++ ":hover {\n"
-                        ++ renderTransitionStyle hoverStyle
-                        ++ "\n}\n"
+                    Just <|
+                        StyleDef
+                            { name = ":hover"
+                            , style = renderTransitionStyle hoverStyle
+                            , modes = []
+                            }
 
         focus =
             case model.onFocus of
                 Nothing ->
-                    ""
+                    Nothing
 
                 Just (Transition focusStyle) ->
-                    "."
-                        ++ id
-                        ++ "{\n"
-                        ++ cssTransitions
-                        ++ "\n}\n"
-                        ++ "."
-                        ++ id
-                        ++ ":focus {\n"
-                        ++ renderTransitionStyle focusStyle
-                        ++ "\n}\n"
+                    Just <|
+                        StyleDef
+                            { name = ":focus"
+                            , style = renderTransitionStyle focusStyle
+                            , modes = []
+                            }
     in
-        hover ++ focus
+        List.filterMap identity [ hover, focus ]
 
 
 generateId : List ( String, String ) -> String
