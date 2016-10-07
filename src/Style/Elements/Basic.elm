@@ -1,4 +1,4 @@
-module Basic exposing (..)
+module Style.Elements.Basic exposing (..)
 
 import Html
 import Html.Attributes
@@ -12,7 +12,7 @@ base =
     Style.Default.style
 
 
-defaultText : Style.Model
+defaultText : Style.Text
 defaultText =
     Style.Default.text
 
