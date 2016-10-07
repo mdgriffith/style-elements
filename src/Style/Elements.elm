@@ -71,7 +71,7 @@ build element =
                     )
 
 
-buildChild : Permissions -> List (Html.Attribute msg) -> Element msg -> Html.Html msg
+buildChild : Permissions -> Html.Attribute msg -> Element msg -> Html.Html msg
 buildChild permissions inherited element =
     case element of
         Html html ->
@@ -83,7 +83,7 @@ buildChild permissions inherited element =
                     render model.style permissions
             in
                 model.node
-                    (Html.Attributes.style parent :: inherited ++ model.attributes)
+                    (Html.Attributes.style parent :: inherited :: model.attributes)
                     (List.map
                         (buildChild childrenPermissions childStyle)
                         model.children
@@ -98,7 +98,7 @@ buildWithTransitions element =
 
         Element model ->
             let
-                ( parent, childStyle, childPermissions ) =
+                ( parent, childMargin, childPermissions ) =
                     render model.style { floats = False, inline = False }
 
                 ( children, childTransitions ) =
@@ -106,7 +106,7 @@ buildWithTransitions element =
                         (\child ( children, transitions ) ->
                             let
                                 ( builtChild, builtTransitions ) =
-                                    buildChildWithTransitions childPermissions childStyle child
+                                    buildChildWithTransitions childPermissions childMargin child
                             in
                                 ( children ++ [ builtChild ]
                                 , transitions ++ builtTransitions
@@ -137,7 +137,7 @@ buildWithTransitions element =
                     (transitionStyleSheet :: children)
 
 
-buildChildWithTransitions : Permissions -> List (Html.Attribute msg) -> Element msg -> ( Html.Html msg, String )
+buildChildWithTransitions : Permissions -> Html.Attribute msg -> Element msg -> ( Html.Html msg, String )
 buildChildWithTransitions permissions inherited element =
     case element of
         Html html ->
@@ -167,9 +167,9 @@ buildChildWithTransitions permissions inherited element =
 
                 attributes =
                     if model.style.onHover /= Nothing || model.style.onFocus /= Nothing then
-                        Html.Attributes.class className :: Html.Attributes.style parent :: inherited ++ model.attributes
+                        Html.Attributes.class className :: Html.Attributes.style parent :: inherited :: model.attributes
                     else
-                        Html.Attributes.style parent :: inherited ++ model.attributes
+                        Html.Attributes.style parent :: inherited :: model.attributes
             in
                 ( model.node
                     attributes
@@ -188,114 +188,202 @@ type alias Permissions =
     }
 
 
-render : Model -> Permissions -> ( List ( String, String ), List (Html.Attribute msg), Permissions )
+
+--renderWeak : Model -> Permissions -> ( List ( String, String ), List (Html.Attribute msg), Permissions )
+--renderWeak style permissions =
+--     case style.visibility of
+--        Hidden ->
+--            ( [ "display" => "none" ]
+--            , []
+--            , { floats = False, inline = False }
+--            )
+--        Transparent transparency ->
+--            let
+--                ( layout, childLayout, childrenPermissions ) =
+--                    renderLayout style.layout
+--                renderedStyle =
+--                    List.concat
+--                        [ layout
+--                        , renderPosition style.position
+--                        , if style.inline then
+--                            if permissions.inline then
+--                                [ "display" => "inline-block" ]
+--                            else
+--                                let
+--                                    _ =
+--                                        Debug.log "style-blocks" "Elements can only be inline if they are in a text layout."
+--                                in
+--                                    []
+--                          else
+--                            []
+--                        , [ "opacity" => toString (1.0 - transparency)
+--                          , "width" => (renderLength style.width)
+--                          , "height" => (renderLength style.height)
+--                          , "cursor" => style.cursor
+--                          , "padding" => render4tuplePx style.padding
+--                          ]
+--                        , renderColors style.colors
+--                        , renderText style.text
+--                        , renderBorder style.border
+--                        , case style.backgroundImage of
+--                            Nothing ->
+--                                []
+--                            Just image ->
+--                                [ "background-image" => image.src
+--                                , "background-repeat"
+--                                    => case image.repeat of
+--                                        RepeatX ->
+--                                            "repeat-x"
+--                                        RepeatY ->
+--                                            "repeat-y"
+--                                        Repeat ->
+--                                            "repeat"
+--                                        Space ->
+--                                            "space"
+--                                        Round ->
+--                                            "round"
+--                                        NoRepeat ->
+--                                            "no-repeat"
+--                                , "background-position" => ((toString (fst image.position)) ++ "px " ++ (toString (snd image.position)) ++ "px")
+--                                ]
+--                        , case style.float of
+--                            Nothing ->
+--                                []
+--                            Just floating ->
+--                                if permissions.floats then
+--                                    case floating of
+--                                        FloatLeft ->
+--                                            [ "float" => "left" ]
+--                                        FloatRight ->
+--                                            [ "float" => "right" ]
+--                                else
+--                                    let
+--                                        _ =
+--                                            Debug.log "style-blocks" "Elements can only use float if they are in a text layout."
+--                                    in
+--                                        []
+--                        , renderShadow "box-shadow" False style.shadows
+--                        , renderShadow "box-shadow" True style.insetShadows
+--                        , renderShadow "text-shadow" False style.textShadows
+--                        , renderFilters style.filters
+--                        , renderTransforms style.transforms
+--                        ]
+--            in
+--                ( renderedStyle
+--                , [ Html.Attributes.style childLayout ]
+--                , childrenPermissions
+--                )
+
+
+render : Model -> Permissions -> ( List ( String, String ), Html.Attribute msg, Permissions )
 render style permissions =
     case style.visibility of
         Hidden ->
             ( [ "display" => "none" ]
-            , []
+            , Html.Attributes.style []
             , { floats = False, inline = False }
             )
 
         Transparent transparency ->
             let
-                ( layout, childLayout, childrenPermissions ) =
+                ( layout, childMargin, childrenPermissions ) =
                     renderLayout style.layout
 
                 renderedStyle =
-                    List.concat
-                        [ layout
-                        , renderPosition style.position
-                        , if style.inline then
-                            if permissions.inline then
-                                [ "display" => "inline-block" ]
-                            else
-                                let
-                                    _ =
-                                        Debug.log "style-blocks" "Elements can only be inline if they are in a text layout."
-                                in
-                                    []
-                          else
-                            []
-                        , [ "opacity" => toString (1.0 - transparency)
-                          , "width" => (renderLength style.width)
-                          , "height" => (renderLength style.height)
-                          , "cursor" => style.cursor
-                          , "padding" => render4tuplePx style.padding
-                          ]
-                        , renderColors style.colors
-                        , renderText style.text
-                        , renderBorder style.border
-                        , case style.backgroundImage of
-                            Nothing ->
-                                []
-
-                            Just image ->
-                                [ "background-image" => image.src
-                                , "background-repeat"
-                                    => case image.repeat of
-                                        RepeatX ->
-                                            "repeat-x"
-
-                                        RepeatY ->
-                                            "repeat-y"
-
-                                        Repeat ->
-                                            "repeat"
-
-                                        Space ->
-                                            "space"
-
-                                        Round ->
-                                            "round"
-
-                                        NoRepeat ->
-                                            "no-repeat"
-                                , "background-position" => ((toString (fst image.position)) ++ "px " ++ (toString (snd image.position)) ++ "px")
-                                ]
-                        , case style.float of
-                            Nothing ->
-                                []
-
-                            Just floating ->
-                                if permissions.floats then
-                                    case floating of
-                                        FloatLeft ->
-                                            [ "float" => "left" ]
-
-                                        FloatRight ->
-                                            [ "float" => "right" ]
+                    List.concat <|
+                        List.filterMap identity
+                            [ Just <| layout
+                            , Just <| renderPosition style.position
+                            , if style.inline then
+                                if permissions.inline then
+                                    Just [ "display" => "inline-block" ]
                                 else
                                     let
                                         _ =
-                                            Debug.log "style-blocks" "Elements can only use float if they are in a text layout."
+                                            Debug.log "style-blocks" "Elements can only be inline if they are in a text layout."
                                     in
-                                        []
-                        , renderShadow "box-shadow" False style.shadows
-                        , renderShadow "box-shadow" True style.insetShadows
-                        , renderShadow "text-shadow" False style.textShadows
-                        , renderFilters style.filters
-                        , renderTransforms style.transforms
-                        ]
+                                        Nothing
+                              else
+                                Nothing
+                            , Just
+                                [ "opacity" => toString (1.0 - transparency)
+                                , "width" => (renderLength style.width)
+                                , "height" => (renderLength style.height)
+                                , "cursor" => style.cursor
+                                , "padding" => render4tuplePx style.padding
+                                ]
+                            , Just <| renderColors style.colors
+                            , Just <| renderText style.text
+                            , Just <| renderBorder style.border
+                            , Maybe.map renderBackgroundImage style.backgroundImage
+                            , Maybe.map (renderFloating permissions.floats) style.float
+                            , renderShadow "box-shadow" False style.shadows
+                            , renderShadow "box-shadow" True style.insetShadows
+                            , renderShadow "text-shadow" False style.textShadows
+                            , renderFilters style.filters
+                            , renderTransforms style.transforms
+                            ]
             in
                 ( renderedStyle
-                , [ Html.Attributes.style childLayout ]
+                , Html.Attributes.style [ "margin" => childMargin ]
                 , childrenPermissions
                 )
 
 
-renderTransforms : List Transform -> List ( String, String )
-renderTransforms transforms =
-    let
-        rendered =
-            String.join " " (List.map transformToString transforms)
-    in
-        if rendered == "" then
+renderFloating : Bool -> Floating -> List ( String, String )
+renderFloating permission floating =
+    if permission then
+        case floating of
+            FloatLeft ->
+                [ "float" => "left" ]
+
+            FloatRight ->
+                [ "float" => "right" ]
+    else
+        let
+            _ =
+                Debug.log "style-blocks" "Elements can only use float if they are in a text layout."
+        in
             []
-        else
-            [ "transform"
-                => rendered
-            ]
+
+
+renderBackgroundImage : BackgroundImage -> List ( String, String )
+renderBackgroundImage image =
+    [ "background-image" => image.src
+    , "background-repeat"
+        => case image.repeat of
+            RepeatX ->
+                "repeat-x"
+
+            RepeatY ->
+                "repeat-y"
+
+            Repeat ->
+                "repeat"
+
+            Space ->
+                "space"
+
+            Round ->
+                "round"
+
+            NoRepeat ->
+                "no-repeat"
+    , "background-position" => ((toString (fst image.position)) ++ "px " ++ (toString (snd image.position)) ++ "px")
+    ]
+
+
+renderTransforms : List Transform -> Maybe (List ( String, String ))
+renderTransforms transforms =
+    case transforms of
+        [] ->
+            Nothing
+
+        ts ->
+            Just
+                [ "transform"
+                    => (String.join " " (List.map transformToString ts))
+                ]
 
 
 transformToString : Transform -> String
@@ -329,18 +417,17 @@ transformToString transform =
                 ++ ")"
 
 
-renderFilters : List Filter -> List ( String, String )
+renderFilters : List Filter -> Maybe (List ( String, String ))
 renderFilters filters =
-    let
-        rendered =
-            String.join " " <| List.map filterToString filters
-    in
-        if rendered == "" then
-            []
-        else
-            [ "filter"
-                => rendered
-            ]
+    case filters of
+        [] ->
+            Nothing
+
+        fs ->
+            Just
+                [ "filter"
+                    => (String.join " " <| List.map filterToString filters)
+                ]
 
 
 filterToString : Filter -> String
@@ -377,18 +464,16 @@ filterToString filter =
             "sepia(" ++ toString x ++ "%)"
 
 
-renderShadow : String -> Bool -> List Shadow -> List ( String, String )
+renderShadow : String -> Bool -> List Shadow -> Maybe (List ( String, String ))
 renderShadow shadowName inset shadows =
     let
         rendered =
             String.join ", " (List.map (shadowValue inset) shadows)
     in
         if rendered == "" then
-            []
+            Nothing
         else
-            [ shadowName
-                => rendered
-            ]
+            Just [ shadowName => rendered ]
 
 
 shadowValue : Bool -> Shadow -> String
@@ -528,45 +613,50 @@ renderPosition { relativeTo, anchor, position } =
     let
         ( x, y ) =
             position
+
+        relative =
+            case relativeTo of
+                Screen ->
+                    "position" => "fixed"
+
+                CurrentPosition ->
+                    "position" => "relative"
+
+                Parent ->
+                    "position" => "absolute"
     in
-        (case relativeTo of
-            Screen ->
-                "position" => "fixed"
+        case anchor of
+            ( AnchorTop, AnchorLeft ) ->
+                [ relative
+                , "top" => (toString (-1 * y) ++ "px")
+                , "left" => (toString x ++ "px")
+                ]
 
-            CurrentPosition ->
-                "position" => "relative"
+            ( AnchorTop, AnchorRight ) ->
+                [ relative
+                , "top" => (toString (-1 * y) ++ "px")
+                , "right" => (toString (-1 * x) ++ "px")
+                ]
 
-            Parent ->
-                "position" => "absolute"
-        )
-            :: case anchor of
-                ( AnchorTop, AnchorLeft ) ->
-                    [ "top" => (toString (-1 * y) ++ "px")
-                    , "left" => (toString x ++ "px")
-                    ]
+            ( AnchorBottom, AnchorLeft ) ->
+                [ relative
+                , "bottom" => (toString y ++ "px")
+                , "left" => (toString x ++ "px")
+                ]
 
-                ( AnchorTop, AnchorRight ) ->
-                    [ "top" => (toString (-1 * y) ++ "px")
-                    , "right" => (toString (-1 * x) ++ "px")
-                    ]
-
-                ( AnchorBottom, AnchorLeft ) ->
-                    [ "bottom" => (toString y ++ "px")
-                    , "left" => (toString x ++ "px")
-                    ]
-
-                ( AnchorBottom, AnchorRight ) ->
-                    [ "bottom" => (toString y ++ "px")
-                    , "right" => (toString (-1 * x) ++ "px")
-                    ]
+            ( AnchorBottom, AnchorRight ) ->
+                [ relative
+                , "bottom" => (toString y ++ "px")
+                , "right" => (toString (-1 * x) ++ "px")
+                ]
 
 
-renderLayout : Layout -> ( List ( String, String ), List ( String, String ), Permissions )
+renderLayout : Layout -> ( List ( String, String ), String, Permissions )
 renderLayout layout =
     case layout of
         TextLayout { spacing } ->
             ( [ "display" => "block" ]
-            , [ "margin" => render4tuplePx spacing ]
+            , render4tuplePx spacing
             , { floats = True
               , inline = True
               }
@@ -574,7 +664,7 @@ renderLayout layout =
 
         TableLayout { spacing } ->
             ( [ "display" => "block" ]
-            , [ "margin" => render4tuplePx spacing ]
+            , render4tuplePx spacing
             , { floats = False
               , inline = False
               }
@@ -711,7 +801,7 @@ renderLayout layout =
                             VStretch ->
                                 "align-items" => "stretch"
               ]
-            , [ "margin" => render4tuplePx flex.spacing ]
+            , render4tuplePx flex.spacing
             , { floats = False
               , inline = False
               }
@@ -736,21 +826,23 @@ renderTransitionStyle style =
                     [ "display" => "none" ]
 
                 Transparent transparency ->
-                    List.concat
-                        [ [ "opacity" => toString (1.0 - transparency)
-                          , "width" => (renderLength style.width)
-                          , "height" => (renderLength style.height)
-                          , "padding" => render4tuplePx style.padding
-                          ]
-                        , renderColors style.colors
-                        , renderText style.text
-                        , renderBorder style.border
-                        , renderShadow "box-shadow" False style.shadows
-                        , renderShadow "box-shadow" True style.insetShadows
-                        , renderShadow "text-shadow" False style.textShadows
-                        , renderFilters style.filters
-                        , renderTransforms style.transforms
-                        ]
+                    List.concat <|
+                        List.filterMap identity
+                            [ Just
+                                [ "opacity" => toString (1.0 - transparency)
+                                , "width" => (renderLength style.width)
+                                , "height" => (renderLength style.height)
+                                , "padding" => render4tuplePx style.padding
+                                ]
+                            , Just <| renderColors style.colors
+                            , Just <| renderText style.text
+                            , Just <| renderBorder style.border
+                            , renderShadow "box-shadow" False style.shadows
+                            , renderShadow "box-shadow" True style.insetShadows
+                            , renderShadow "text-shadow" False style.textShadows
+                            , renderFilters style.filters
+                            , renderTransforms style.transforms
+                            ]
     in
         List.map (\( name, val ) -> "    " ++ name ++ ": " ++ val ++ " !important;\n") stylePairs
             |> String.concat
