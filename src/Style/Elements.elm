@@ -75,7 +75,16 @@ type StyleDefinition
         , style : List ( String, String )
         , modes :
             List StyleDefinition
+        , keyframes :
+            Maybe (List ( Float, List ( String, String ) ))
         }
+
+
+className : StyleDefinition -> String
+className def =
+    case def of
+        StyleDef { name } ->
+            name
 
 
 buildInline : Element msg -> Html.Html msg
@@ -99,13 +108,14 @@ buildInline element =
 
                 ( className, renderedStyle, parentAndInherited ) =
                     case parentStyle of
-                        StyleDef { name, style, modes } ->
+                        StyleDef { name, style, modes, keyframes } ->
                             ( name
                             , style
                             , StyleDef
                                 { name = name
                                 , style = []
                                 , modes = modes
+                                , keyframes = keyframes
                                 }
                             )
 
@@ -154,13 +164,14 @@ buildInlineChild permissions inherited element =
 
                 ( className, renderedStyle, parentAndInherited ) =
                     case parentStyle of
-                        StyleDef { name, style, modes } ->
+                        StyleDef { name, style, modes, keyframes } ->
                             ( name
                             , style ++ inherited
                             , StyleDef
                                 { name = name
                                 , style = []
                                 , modes = modes
+                                , keyframes = keyframes
                                 }
                             )
             in
@@ -208,14 +219,9 @@ build element =
                         [ Html.text <|
                             convertToCSS (parentStyle :: childStyles)
                         ]
-
-                className =
-                    case parentStyle of
-                        StyleDef { name } ->
-                            name
             in
                 node
-                    (Html.Attributes.class className :: attributes)
+                    (Html.Attributes.class (className parentStyle) :: attributes)
                     (styleSheet :: builtChildren)
     in
         case element of
@@ -252,12 +258,13 @@ buildChild permissions inherited element =
 
                 ( className, parentAndInherited ) =
                     case parentStyle of
-                        StyleDef { name, style, modes } ->
+                        StyleDef { name, style, modes, keyframes } ->
                             ( name
                             , StyleDef
                                 { name = name
                                 , style = (style ++ inherited)
                                 , modes = modes
+                                , keyframes = keyframes
                                 }
                             )
             in
@@ -282,45 +289,81 @@ buildChild permissions inherited element =
 
 convertToCSS : List StyleDefinition -> String
 convertToCSS styles =
-    uniqueBy (\(StyleDef { name }) -> name) styles
-        |> List.map
-            (\(StyleDef { name, style, modes }) ->
-                (if List.length style == 0 then
-                    ""
-                 else
-                    "."
-                        ++ name
-                        ++ " {\n"
-                        ++ (String.concat <|
+    let
+        convert style =
+            case style of
+                StyleDef { name, style, modes, keyframes } ->
+                    (if List.length style == 0 then
+                        ""
+                     else
+                        "."
+                            ++ name
+                            ++ " {\n"
+                            ++ (String.concat <|
+                                    List.map
+                                        (\( propName, propValue ) ->
+                                            "  " ++ propName ++ ": " ++ propValue ++ ";\n"
+                                        )
+                                        style
+                               )
+                            ++ "}"
+                    )
+                        ++ (String.join "\n" <|
                                 List.map
-                                    (\( propName, propValue ) ->
-                                        "  " ++ propName ++ ": " ++ propValue ++ ";\n"
+                                    (\st ->
+                                        case st of
+                                            StyleDef mode ->
+                                                "."
+                                                    ++ name
+                                                    ++ mode.name
+                                                    ++ " {\n"
+                                                    ++ (String.concat <|
+                                                            List.map
+                                                                (\( propName, propValue ) ->
+                                                                    "  " ++ propName ++ ": " ++ propValue ++ " !important;\n"
+                                                                )
+                                                                mode.style
+                                                       )
+                                                    ++ "}"
                                     )
-                                    style
+                                    modes
                            )
-                        ++ "}"
-                )
-                    ++ (String.join "\n" <|
-                            List.map
-                                (\(StyleDef mode) ->
-                                    "."
+                        ++ (case keyframes of
+                                Nothing ->
+                                    ""
+
+                                Just frames ->
+                                    "@keyframes animation-"
                                         ++ name
-                                        ++ mode.name
                                         ++ " {\n"
-                                        ++ (String.concat <|
+                                        ++ (String.join "\n" <|
                                                 List.map
-                                                    (\( propName, propValue ) ->
-                                                        "  " ++ propName ++ ": " ++ propValue ++ " !important;\n"
+                                                    (\( marker, frame ) ->
+                                                        "  "
+                                                            ++ toString marker
+                                                            ++ "% {\n"
+                                                            ++ (String.concat <|
+                                                                    List.map
+                                                                        (\( propName, propValue ) ->
+                                                                            "    " ++ propName ++ ": " ++ propValue ++ ";\n"
+                                                                        )
+                                                                        frame
+                                                               )
+                                                            ++ "  }\n"
                                                     )
-                                                    mode.style
+                                                    frames
                                            )
                                         ++ "}"
-                                )
-                                modes
-                       )
-            )
-        |> String.join "\n"
-        |> String.trim
+                           )
+    in
+        uniqueBy className styles
+            |> List.map convert
+            |> String.join "\n"
+            |> String.trim
+
+
+
+--Maybe (List ( Float, List ( String, String ) ))
 
 
 {-| Drop duplicates where what is considered to be a duplicate is the result of first applying the supplied function to the elements of the list.
@@ -372,6 +415,7 @@ render style permissions =
                     { name = className
                     , style = renderedStyle
                     , modes = []
+                    , keyframes = Nothing
                     }
                 , []
                 , { floats = False, inline = False }
@@ -416,11 +460,15 @@ render style permissions =
 
                 transitions =
                     renderCssTransitions className style
+
+                keyframes =
+                    Maybe.map renderAnimationKeyframes style.animation
             in
                 ( StyleDef
                     { name = className
                     , style = renderedStyle
                     , modes = transitions
+                    , keyframes = keyframes
                     }
                 , [ "margin" => childMargin ]
                 , childrenPermissions
@@ -458,6 +506,10 @@ renderWeak style permissions =
                     , listMaybeMap renderFilters style.filters
                     , listMaybeMap renderTransforms style.transforms
                     , Maybe.map renderVisibility style.visibility
+                    , if style.onHover /= Nothing || style.onFocus /= Nothing then
+                        Just cssTransitions
+                      else
+                        Nothing
                     ]
 
         className =
@@ -465,11 +517,15 @@ renderWeak style permissions =
 
         transitions =
             renderCssTransitionsWeak className style
+
+        keyframes =
+            Maybe.map renderAnimationKeyframes style.animation
     in
         ( StyleDef
             { name = className
             , style = renderedStyle
             , modes = transitions
+            , keyframes = keyframes
             }
         , [ "margin" => childMargin ]
         , childrenPermissions
@@ -484,6 +540,40 @@ listMaybeMap fn ls =
 
         nonEmptyList ->
             Just <| fn nonEmptyList
+
+
+renderAnimationKeyframes : Animation -> List ( Float, List ( String, String ) )
+renderAnimationKeyframes (Animation anim) =
+    let
+        renderAnimStep ( marker, styleDef ) =
+            let
+                ( rendered, _, _ ) =
+                    renderWeak styleDef { floats = False, inline = False }
+            in
+                case rendered of
+                    StyleDef { style } ->
+                        ( marker, style )
+    in
+        List.map renderAnimStep anim.steps
+
+
+renderAnimation : String -> Animation -> List ( String, String )
+renderAnimation class (Animation anim) =
+    let
+        animName =
+            "animation-" ++ class
+
+        duration =
+            toString anim.duration ++ "ms"
+
+        iterations =
+            if isInfinite anim.repeat then
+                "inifinite"
+            else
+                toString anim.repeat
+    in
+        [ "animation" => (animName ++ " " ++ duration ++ " " ++ anim.easing ++ " " ++ iterations)
+        ]
 
 
 renderVisibility : Visibility -> List ( String, String )
@@ -1006,12 +1096,6 @@ renderTransitionStyle style =
                     ]
 
 
-
---in
---    List.map (\( name, val ) -> "    " ++ name ++ ": " ++ val ++ " !important;\n") stylePairs
---        |> String.concat
-
-
 {-| Produces valid css code.
 -}
 renderCssTransitions : String -> Model -> List StyleDefinition
@@ -1028,6 +1112,7 @@ renderCssTransitions id model =
                             { name = ":hover"
                             , style = renderTransitionStyle hoverStyle
                             , modes = []
+                            , keyframes = Nothing
                             }
 
         focus =
@@ -1041,6 +1126,7 @@ renderCssTransitions id model =
                             { name = ":focus"
                             , style = renderTransitionStyle focusStyle
                             , modes = []
+                            , keyframes = Nothing
                             }
     in
         List.filterMap identity [ hover, focus ]
@@ -1060,6 +1146,7 @@ renderCssTransitionsWeak id model =
                             { name = ":hover"
                             , style = renderTransitionStyle hoverStyle
                             , modes = []
+                            , keyframes = Nothing
                             }
 
         focus =
@@ -1073,6 +1160,7 @@ renderCssTransitionsWeak id model =
                             { name = ":focus"
                             , style = renderTransitionStyle focusStyle
                             , modes = []
+                            , keyframes = Nothing
                             }
     in
         List.filterMap identity [ hover, focus ]

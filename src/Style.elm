@@ -1,6 +1,7 @@
 module Style
     exposing
         ( Model
+        , Weak
         , Element
         , Colors
         , Position
@@ -100,7 +101,7 @@ module Style
         , bolder
         )
 
-{-|
+{-| A different take on styling.
 
 
 
@@ -110,114 +111,173 @@ import Html
 import Html.Attributes
 import Animation
 import Style.Model
+import Time exposing (Time)
 
 
+{-|
+-}
 type alias Model =
     Style.Model.Model
 
 
+{-|
+-}
+type alias Weak =
+    Style.Model.Weak
+
+
+{-|
+-}
 type alias Element msg =
     Style.Model.Element msg
 
 
+{-|
+-}
 type alias Colors =
     Style.Model.Colors
 
 
+{-|
+-}
 type alias Shadow =
     Style.Model.Shadow
 
 
+{-|
+-}
 type alias Position =
     Style.Model.Position
 
 
+{-|
+-}
 type alias Transition =
     Style.Model.Transition
 
 
+{-|
+-}
 type alias Visibility =
     Style.Model.Visibility
 
 
+{-|
+-}
 type alias TextDecoration =
     Style.Model.TextDecoration
 
 
+{-|
+-}
 type alias TextAlignment =
     Style.Model.TextAlignment
 
 
+{-|
+-}
 type alias VerticalJustification =
     Style.Model.VerticalJustification
 
 
+{-|
+-}
 type alias HorizontalJustification =
     Style.Model.HorizontalJustification
 
 
+{-|
+-}
 type alias Transform =
     Style.Model.Transform
 
 
+{-|
+-}
 type alias BorderStyle =
     Style.Model.BorderStyle
 
 
+{-|
+-}
 type alias Table =
     Style.Model.Table
 
 
+{-|
+-}
 type alias Flexible =
     Style.Model.Flexible
 
 
+{-|
+-}
 type alias Layout =
     Style.Model.Layout
 
 
+{-|
+-}
 type alias Textual =
     Style.Model.Textual
 
 
+{-|
+-}
 type alias Length =
     Style.Model.Length
 
 
+{-|
+-}
 type alias Anchor =
     Style.Model.Anchor
 
 
+{-|
+-}
 type alias RelativeTo =
     Style.Model.RelativeTo
 
 
+{-|
+-}
 type alias Floating =
     Style.Model.Floating
 
 
+{-|
+-}
 type alias Repeat =
     Style.Model.Repeat
 
 
+{-|
+-}
 type alias Border =
     Style.Model.Border
 
 
+{-|
+-}
 type alias Text =
     Style.Model.Text
 
 
+{-|
+-}
 type alias Filter =
     Style.Model.Filter
 
 
+{-|
+-}
+type alias Animation =
+    Style.Model.Animation
+
+
 (=>) =
     (,)
-
-
-type alias HtmlNode msg =
-    List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
 
 
 {-| -}
@@ -686,21 +746,40 @@ hueRotate x =
     Style.Model.HueRotate x
 
 
+{-| -}
 invert : Float -> Filter
 invert x =
     Style.Model.Invert x
 
 
+{-| -}
 opacityFilter : Float -> Filter
 opacityFilter x =
     Style.Model.Opacity x
 
 
+{-| -}
 saturate : Float -> Filter
 saturate x =
     Style.Model.Saturate x
 
 
+{-| -}
 sepia : Float -> Filter
 sepia x =
     Style.Model.Sepia x
+
+
+
+-- CSS Animations
+
+
+animation :
+    { duration : Time
+    , easing : String
+    , repeat : Float
+    , steps : List ( Float, Weak )
+    }
+    -> Maybe Animation
+animation anim =
+    Just <| Style.Model.Animation anim

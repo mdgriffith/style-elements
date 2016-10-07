@@ -4,6 +4,7 @@ module Style.Model exposing (..)
 
 import Html
 import Color exposing (Color)
+import Time exposing (Time)
 
 
 type alias HtmlNode msg =
@@ -48,6 +49,7 @@ type alias Model =
     , filters : List Filter
     , onHover : Maybe Transition
     , onFocus : Maybe Transition
+    , animation : Maybe Animation
     }
 
 
@@ -73,7 +75,18 @@ type alias Weak =
     , filters : List Filter
     , onHover : Maybe Transition
     , onFocus : Maybe Transition
+    , animation : Maybe Animation
     }
+
+
+{-| -}
+type Animation
+    = Animation
+        { duration : Time
+        , easing : String
+        , repeat : Float
+        , steps : List ( Float, Weak )
+        }
 
 
 {-| -}

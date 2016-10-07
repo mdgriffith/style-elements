@@ -28,6 +28,33 @@ style =
     , filters = []
     , onHover = Nothing
     , onFocus = Nothing
+    , animation = Nothing
+    }
+
+
+weak : Weak
+weak =
+    { layout = Nothing
+    , visibility = Nothing
+    , position = Nothing
+    , colors = Nothing
+    , text = Nothing
+    , border = Nothing
+    , cursor = Nothing
+    , width = Nothing
+    , height = Nothing
+    , padding = Nothing
+    , float = Nothing
+    , inline = False
+    , backgroundImage = Nothing
+    , textShadows = []
+    , shadows = []
+    , insetShadows = []
+    , transforms = []
+    , filters = []
+    , onHover = Nothing
+    , onFocus = Nothing
+    , animation = Nothing
     }
 
 
@@ -89,3 +116,14 @@ position =
     , anchor = topLeft
     , position = ( 0, 0 )
     }
+
+
+(=>) =
+    (,)
+
+
+rotating : List ( Float, Weak )
+rotating =
+    [ 0 => { weak | transforms = [ rotate 0 0 0 ] }
+    , 100 => { weak | transforms = [ rotate 360 0 0 ] }
+    ]
