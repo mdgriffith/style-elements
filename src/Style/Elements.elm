@@ -1,4 +1,4 @@
-module Style.Elements exposing (map, html, element, elementAs, build)
+module Style.Elements exposing (map, html, element, elementAs, build, buildInline)
 
 import String
 import Char
@@ -76,6 +76,111 @@ type StyleDefinition
         , modes :
             List StyleDefinition
         }
+
+
+buildInline : Element msg -> Html.Html msg
+buildInline element =
+    let
+        construct node attributes children ( parentStyle, childMargin, childPermissions ) =
+            let
+                ( builtChildren, childStyles ) =
+                    List.foldl
+                        (\child ( children, transitions ) ->
+                            let
+                                ( builtChild, builtTransitions ) =
+                                    buildInlineChild childPermissions childMargin child
+                            in
+                                ( children ++ [ builtChild ]
+                                , transitions ++ builtTransitions
+                                )
+                        )
+                        ( [], [] )
+                        children
+
+                ( className, renderedStyle, parentAndInherited ) =
+                    case parentStyle of
+                        StyleDef { name, style, modes } ->
+                            ( name
+                            , style
+                            , StyleDef
+                                { name = name
+                                , style = []
+                                , modes = modes
+                                }
+                            )
+
+                styleSheet =
+                    Html.node "style"
+                        []
+                        [ Html.text <|
+                            convertToCSS (parentAndInherited :: childStyles)
+                        ]
+            in
+                node
+                    (Html.Attributes.class className :: Html.Attributes.style renderedStyle :: attributes)
+                    (styleSheet :: builtChildren)
+    in
+        case element of
+            Html html ->
+                html
+
+            Element model ->
+                render model.style { floats = False, inline = False }
+                    |> construct model.node model.attributes model.children
+
+            WeakElement model ->
+                renderWeak model.style { floats = False, inline = False }
+                    |> construct model.node model.attributes model.children
+
+
+buildInlineChild : Permissions -> List ( String, String ) -> Element msg -> ( Html.Html msg, List StyleDefinition )
+buildInlineChild permissions inherited element =
+    let
+        construct node attributes children ( parentStyle, childMargin, childPermissions ) =
+            let
+                ( builtChildren, childStyle ) =
+                    List.foldl
+                        (\child ( children, transitions ) ->
+                            let
+                                ( builtChild, builtStyle ) =
+                                    buildInlineChild childPermissions childMargin child
+                            in
+                                ( children ++ [ builtChild ]
+                                , transitions ++ builtStyle
+                                )
+                        )
+                        ( [], [] )
+                        children
+
+                ( className, renderedStyle, parentAndInherited ) =
+                    case parentStyle of
+                        StyleDef { name, style, modes } ->
+                            ( name
+                            , style ++ inherited
+                            , StyleDef
+                                { name = name
+                                , style = []
+                                , modes = modes
+                                }
+                            )
+            in
+                ( node
+                    (Html.Attributes.class className :: Html.Attributes.style renderedStyle :: attributes)
+                    builtChildren
+                , parentAndInherited :: childStyle
+                )
+    in
+        case element of
+            Html html ->
+                ( html, [] )
+
+            Element model ->
+                render model.style permissions
+                    |> construct model.node model.attributes model.children
+
+            WeakElement model ->
+                renderWeak model.style permissions
+                    |> construct model.node model.attributes model.children
 
 
 build : Element msg -> Html.Html msg
@@ -180,28 +285,32 @@ convertToCSS styles =
     uniqueBy (\(StyleDef { name }) -> name) styles
         |> List.map
             (\(StyleDef { name, style, modes }) ->
-                "."
-                    ++ name
-                    ++ " {\n"
-                    ++ (String.concat <|
-                            List.map
-                                (\( propName, propValue ) ->
-                                    "  " ++ propName ++ ": " ++ propValue ++ ";\n"
-                                )
-                                style
-                       )
-                    ++ "}"
+                (if List.length style == 0 then
+                    ""
+                 else
+                    "."
+                        ++ name
+                        ++ " {\n"
+                        ++ (String.concat <|
+                                List.map
+                                    (\( propName, propValue ) ->
+                                        "  " ++ propName ++ ": " ++ propValue ++ ";\n"
+                                    )
+                                    style
+                           )
+                        ++ "}"
+                )
                     ++ (String.join "\n" <|
                             List.map
                                 (\(StyleDef mode) ->
                                     "."
                                         ++ name
                                         ++ mode.name
-                                        ++ "{"
+                                        ++ " {\n"
                                         ++ (String.concat <|
                                                 List.map
                                                     (\( propName, propValue ) ->
-                                                        "  " ++ propName ++ ": " ++ propValue ++ ";\n"
+                                                        "  " ++ propName ++ ": " ++ propValue ++ " !important;\n"
                                                     )
                                                     mode.style
                                            )
@@ -211,6 +320,7 @@ convertToCSS styles =
                        )
             )
         |> String.join "\n"
+        |> String.trim
 
 
 {-| Drop duplicates where what is considered to be a duplicate is the result of first applying the supplied function to the elements of the list.
