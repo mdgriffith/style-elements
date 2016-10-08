@@ -790,6 +790,21 @@ renderText text =
         [ Just ("font-family" => text.font)
         , Just ("font-size" => (toString text.size ++ "px"))
         , Just ("line-height" => (toString (text.size * text.lineHeight) ++ "px"))
+        , case text.whitespace of
+            Normal ->
+                Just ("white-space" => "normal")
+
+            Pre ->
+                Just ("white-space" => "pre")
+
+            PreWrap ->
+                Just ("white-space" => "pre-wrap")
+
+            PreLine ->
+                Just ("white-space" => "pre-line")
+
+            NoWrap ->
+                Just ("white-space" => "no-wrap")
         , Maybe.map
             (\offset ->
                 "letter-spacing" => (toString offset ++ "px")

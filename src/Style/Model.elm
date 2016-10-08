@@ -275,7 +275,16 @@ type alias Text =
     , boldness : Maybe Float
     , align : Alignment
     , decoration : Maybe TextDecoration
+    , whitespace : Whitespace
     }
+
+
+type Whitespace
+    = Normal
+    | Pre
+    | PreWrap
+    | PreLine
+    | NoWrap
 
 
 {-| -}

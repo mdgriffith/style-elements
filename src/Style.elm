@@ -40,6 +40,11 @@ module Style
         , allButLeft
         , allButRight
         , allButBottom
+        , normal
+        , pre
+        , preWrap
+        , preLine
+        , noWrap
         , alignLeft
         , alignRight
         , justify
@@ -253,6 +258,11 @@ type alias Text =
     Style.Model.Text
 
 
+{-| -}
+type alias Whitespace =
+    Style.Model.Whitespace
+
+
 {-|
 -}
 type alias Filter =
@@ -453,6 +463,36 @@ flowLeft { wrap, spacing, horizontal, vertical } =
         , horizontal = horizontal
         , vertical = vertical
         }
+
+
+{-| -}
+normal : Whitespace
+normal =
+    Style.Model.Normal
+
+
+{-| -}
+pre : Whitespace
+pre =
+    Style.Model.Pre
+
+
+{-| -}
+preWrap : Whitespace
+preWrap =
+    Style.Model.PreWrap
+
+
+{-| -}
+preLine : Whitespace
+preLine =
+    Style.Model.PreLine
+
+
+{-| -}
+noWrap : Whitespace
+noWrap =
+    Style.Model.NoWrap
 
 
 {-| -}

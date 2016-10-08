@@ -93,6 +93,7 @@ text =
     , boldness = Nothing
     , align = alignLeft
     , decoration = Nothing
+    , whitespace = normal
     }
 
 
