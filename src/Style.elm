@@ -62,6 +62,7 @@ module Style
         , parent
         , screen
         , hidden
+        , visible
         , opacity
         , transparency
         , auto
@@ -674,6 +675,13 @@ dotted =
 hidden : Visibility
 hidden =
     Style.Model.Hidden
+
+
+{-|
+-}
+visible : Visibility
+visible =
+    Style.Model.Transparent 0
 
 
 {-| A Value between 0 and 1

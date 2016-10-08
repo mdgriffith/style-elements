@@ -9,7 +9,7 @@ import Dict
 style : Model
 style =
     { layout = textLayout { spacing = all 0 }
-    , visibility = visibility
+    , visibility = visible
     , position = position
     , colors = colors
     , text = text
@@ -76,11 +76,6 @@ vertical =
         , horizontal = alignCenter
         , vertical = verticalCenter
         }
-
-
-visibility : Visibility
-visibility =
-    transparency 0
 
 
 text : Text
