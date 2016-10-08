@@ -1,4 +1,4 @@
-module Style.Elements exposing (map, html, element, elementAs, build, buildInline)
+module Style.Elements exposing (map, html, element, elementAs, weak, weakAs, build, buildInline)
 
 import String
 import Char
@@ -50,7 +50,7 @@ elementAs node styleModel attrs content =
         }
 
 
-weak : Weak -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+weak : List ( String, String ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 weak styleModel attrs content =
     WeakElement
         { style = styleModel
@@ -60,7 +60,7 @@ weak styleModel attrs content =
         }
 
 
-weakAs : HtmlNode msg -> Weak -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+weakAs : HtmlNode msg -> List ( String, String ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 weakAs node styleModel attrs content =
     WeakElement
         { style = styleModel
@@ -140,7 +140,7 @@ buildInline element =
                     |> construct model.node model.attributes model.children
 
             WeakElement model ->
-                renderWeak model.style { floats = False, inline = False } Nothing
+                renderWithStyle model.style Nothing
                     |> construct model.node model.attributes model.children
 
 
@@ -190,7 +190,7 @@ buildInlineChild permissions inherited element =
                     |> construct model.node model.attributes model.children
 
             WeakElement model ->
-                renderWeak model.style permissions (Just inherited)
+                renderWithStyle model.style (Just inherited)
                     |> construct model.node model.attributes model.children
 
 
@@ -233,7 +233,7 @@ build element =
                     |> construct model.node model.attributes model.children
 
             WeakElement model ->
-                renderWeak model.style { floats = False, inline = False } Nothing
+                renderWithStyle model.style Nothing
                     |> construct model.node model.attributes model.children
 
 
@@ -271,7 +271,7 @@ buildChild permissions inherited element =
                     |> construct model.node model.attributes model.children
 
             WeakElement model ->
-                renderWeak model.style permissions (Just inherited)
+                renderWithStyle model.style (Just inherited)
                     |> construct model.node model.attributes model.children
 
 
@@ -443,7 +443,7 @@ render style permissions inherited =
                             , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
                             , listMaybeMap renderFilters style.filters
                             , listMaybeMap renderTransforms style.transforms
-                            , if style.onHover /= Nothing || style.onFocus /= Nothing then
+                            , if not <| List.isEmpty style.transitions then
                                 Just cssTransitions
                               else
                                 Nothing
@@ -453,7 +453,7 @@ render style permissions inherited =
             in
                 ( addClassName
                     { style = renderedStyle
-                    , modes = renderCssTransitions style
+                    , modes = List.map renderCssTransitions style.transitions
                     , keyframes = Maybe.map renderAnimationKeyframes style.animation
                     }
                 , [ "margin" => childMargin ]
@@ -504,6 +504,27 @@ hash value =
         |> String.toLower
 
 
+renderWithStyle : List ( String, String ) -> Maybe (List ( String, String )) -> ( StyleDefinition, List ( String, String ), Permissions )
+renderWithStyle style inherited =
+    let
+        newStyle =
+            case inherited of
+                Nothing ->
+                    style
+
+                Just inherit ->
+                    inherit ++ style
+    in
+        ( addClassName
+            { style = newStyle
+            , modes = []
+            , keyframes = Nothing
+            }
+        , []
+        , { floats = True, inline = True }
+        )
+
+
 renderWeak : Weak -> Permissions -> Maybe (List ( String, String )) -> ( StyleDefinition, List ( String, String ), Permissions )
 renderWeak style permissions inherited =
     let
@@ -535,7 +556,7 @@ renderWeak style permissions inherited =
                     , listMaybeMap renderFilters style.filters
                     , listMaybeMap renderTransforms style.transforms
                     , Maybe.map renderVisibility style.visibility
-                    , if style.onHover /= Nothing || style.onFocus /= Nothing then
+                    , if not <| List.isEmpty style.transitions then
                         Just cssTransitions
                       else
                         Nothing
@@ -545,7 +566,7 @@ renderWeak style permissions inherited =
     in
         ( addClassName
             { style = renderedStyle
-            , modes = renderCssTransitionsWeak style
+            , modes = List.map renderCssTransitions style.transitions
             , keyframes = Maybe.map renderAnimationKeyframes style.animation
             }
         , [ "margin" => childMargin ]
@@ -1143,69 +1164,11 @@ renderTransitionStyle style =
 
 {-| Produces valid css code.
 -}
-renderCssTransitions : Model -> List StyleDefinition
-renderCssTransitions model =
-    let
-        hover =
-            case model.onHover of
-                Nothing ->
-                    Nothing
-
-                Just (Transition hoverStyle) ->
-                    Just <|
-                        StyleDef
-                            { name = ":hover"
-                            , style = renderTransitionStyle hoverStyle
-                            , modes = []
-                            , keyframes = Nothing
-                            }
-
-        focus =
-            case model.onFocus of
-                Nothing ->
-                    Nothing
-
-                Just (Transition focusStyle) ->
-                    Just <|
-                        StyleDef
-                            { name = ":focus"
-                            , style = renderTransitionStyle focusStyle
-                            , modes = []
-                            , keyframes = Nothing
-                            }
-    in
-        List.filterMap identity [ hover, focus ]
-
-
-renderCssTransitionsWeak : Weak -> List StyleDefinition
-renderCssTransitionsWeak model =
-    let
-        hover =
-            case model.onHover of
-                Nothing ->
-                    Nothing
-
-                Just (Transition hoverStyle) ->
-                    Just <|
-                        StyleDef
-                            { name = ":hover"
-                            , style = renderTransitionStyle hoverStyle
-                            , modes = []
-                            , keyframes = Nothing
-                            }
-
-        focus =
-            case model.onFocus of
-                Nothing ->
-                    Nothing
-
-                Just (Transition focusStyle) ->
-                    Just <|
-                        StyleDef
-                            { name = ":focus"
-                            , style = renderTransitionStyle focusStyle
-                            , modes = []
-                            , keyframes = Nothing
-                            }
-    in
-        List.filterMap identity [ hover, focus ]
+renderCssTransitions : Transition -> StyleDefinition
+renderCssTransitions (Transition name targetStyle) =
+    StyleDef
+        { name = ":" ++ name
+        , style = renderTransitionStyle targetStyle
+        , modes = []
+        , keyframes = Nothing
+        }

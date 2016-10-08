@@ -19,7 +19,7 @@ type Element msg
         , children : List (Element msg)
         }
     | WeakElement
-        { style : Weak
+        { style : List ( String, String )
         , node : HtmlNode msg
         , attributes : List (Html.Attribute msg)
         , children : List (Element msg)
@@ -47,8 +47,7 @@ type alias Model =
     , insetShadows : List Shadow
     , transforms : List Transform
     , filters : List Filter
-    , onHover : Maybe Transition
-    , onFocus : Maybe Transition
+    , transitions : List Transition
     , animation : Maybe Animation
     }
 
@@ -73,8 +72,7 @@ type alias Weak =
     , insetShadows : List Shadow
     , transforms : List Transform
     , filters : List Filter
-    , onHover : Maybe Transition
-    , onFocus : Maybe Transition
+    , transitions : List Transition
     , animation : Maybe Animation
     }
 
@@ -91,7 +89,7 @@ type Animation
 
 {-| -}
 type Transition
-    = Transition Model
+    = Transition String Model
 
 
 {-| -}

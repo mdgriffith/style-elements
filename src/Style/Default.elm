@@ -26,8 +26,7 @@ style =
     , insetShadows = []
     , transforms = []
     , filters = []
-    , onHover = Nothing
-    , onFocus = Nothing
+    , transitions = []
     , animation = Nothing
     }
 
@@ -52,8 +51,7 @@ weak =
     , insetShadows = []
     , transforms = []
     , filters = []
-    , onHover = Nothing
-    , onFocus = Nothing
+    , transitions = []
     , animation = Nothing
     }
 

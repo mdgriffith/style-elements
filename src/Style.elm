@@ -73,7 +73,7 @@ module Style
         , dashed
         , floatLeft
         , floatRight
-        , transitionTo
+        , on
         , scale
         , translate
         , rotate
@@ -316,10 +316,9 @@ noRepeat =
     Style.Model.NoRepeat
 
 
-{-| -}
-transitionTo : Model -> Maybe Transition
-transitionTo model =
-    Just (Style.Model.Transition model)
+on : String -> Model -> Transition
+on name model =
+    Style.Model.Transition name model
 
 
 {-|

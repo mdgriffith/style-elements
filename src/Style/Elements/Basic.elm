@@ -12,6 +12,11 @@ base =
     Style.Default.style
 
 
+weakStyle : Style.Weak
+weakStyle =
+    Style.Default.weak
+
+
 defaultText : Style.Text
 defaultText =
     Style.Default.text
@@ -100,19 +105,24 @@ icon str attrs children =
 
 i : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 i =
-    elementAs Html.i
-        { base
-            | text =
-                { defaultText | italic = True }
-        }
+    weakAs Html.i
+        [ ( "font-style", "italic" )
+        ]
 
 
 b : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 b =
-    elementAs Html.i
+    weakAs Html.b
+        [ ( "font-weight", "bold" )
+        ]
+
+
+code : List (Html.Attribute msg) -> List (Element msg) -> Element msg
+code =
+    elementAs Html.code
         { base
             | text =
-                { defaultText | boldness = bold }
+                { defaultText | whitespace = pre }
         }
 
 
