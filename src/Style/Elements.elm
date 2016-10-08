@@ -307,53 +307,8 @@ convertToCSS styles =
                                )
                             ++ "}\n"
                     )
-                        ++ (String.join "\n" <|
-                                List.map
-                                    (\st ->
-                                        case st of
-                                            StyleDef mode ->
-                                                "."
-                                                    ++ name
-                                                    ++ mode.name
-                                                    ++ " {\n"
-                                                    ++ (String.concat <|
-                                                            List.map
-                                                                (\( propName, propValue ) ->
-                                                                    "  " ++ propName ++ ": " ++ propValue ++ " !important;\n"
-                                                                )
-                                                                mode.style
-                                                       )
-                                                    ++ "}\n"
-                                    )
-                                    modes
-                           )
-                        ++ (case keyframes of
-                                Nothing ->
-                                    ""
-
-                                Just frames ->
-                                    "@keyframes animation-"
-                                        ++ name
-                                        ++ " {\n"
-                                        ++ (String.join "\n" <|
-                                                List.map
-                                                    (\( marker, frame ) ->
-                                                        "  "
-                                                            ++ toString marker
-                                                            ++ "% {\n"
-                                                            ++ (String.concat <|
-                                                                    List.map
-                                                                        (\( propName, propValue ) ->
-                                                                            "    " ++ propName ++ ": " ++ propValue ++ ";\n"
-                                                                        )
-                                                                        frame
-                                                               )
-                                                            ++ "  }\n"
-                                                    )
-                                                    frames
-                                           )
-                                        ++ "}\n"
-                           )
+                        ++ convertModesToCSS name modes
+                        ++ convertKeyframesToCSS name keyframes
     in
         uniqueBy className styles
             |> List.map convert
@@ -362,7 +317,62 @@ convertToCSS styles =
 
 
 
---Maybe (List ( Float, List ( String, String ) ))
+--convertKeyframesToCSS
+
+
+convertKeyframesToCSS name keyframes =
+    case keyframes of
+        Nothing ->
+            ""
+
+        Just frames ->
+            "@keyframes animation-"
+                ++ name
+                ++ " {\n"
+                ++ (String.join "\n" <|
+                        List.map
+                            (\( marker, frame ) ->
+                                "  "
+                                    ++ toString marker
+                                    ++ "% {\n"
+                                    ++ (String.concat <|
+                                            List.map
+                                                (\( propName, propValue ) ->
+                                                    "    " ++ propName ++ ": " ++ propValue ++ ";\n"
+                                                )
+                                                frame
+                                       )
+                                    ++ "  }\n"
+                            )
+                            frames
+                   )
+                ++ "}\n"
+
+
+
+--convertModesToCSS :
+
+
+convertModesToCSS name modes =
+    String.join "\n" <|
+        List.map
+            (\st ->
+                case st of
+                    StyleDef mode ->
+                        "."
+                            ++ name
+                            ++ mode.name
+                            ++ " {\n"
+                            ++ (String.concat <|
+                                    List.map
+                                        (\( propName, propValue ) ->
+                                            "  " ++ propName ++ ": " ++ propValue ++ " !important;\n"
+                                        )
+                                        mode.style
+                               )
+                            ++ "}\n"
+            )
+            modes
 
 
 {-| Drop duplicates where what is considered to be a duplicate is the result of first applying the supplied function to the elements of the list.
@@ -406,13 +416,9 @@ render style permissions inherited =
             let
                 renderedStyle =
                     [ "display" => "none" ]
-
-                className =
-                    generateId renderedStyle
             in
-                ( StyleDef
-                    { name = className
-                    , style = renderedStyle
+                ( addClassName
+                    { style = renderedStyle
                     , modes = []
                     , keyframes = Nothing
                     }
@@ -453,34 +459,60 @@ render style permissions inherited =
                               else
                                 Nothing
                             , inherited
+                            , Maybe.map renderAnimation style.animation
                             ]
-
-                class =
-                    generateId renderedStyle
-
-                withAnimation =
-                    case Maybe.map (renderAnimation class) style.animation of
-                        Nothing ->
-                            renderedStyle
-
-                        Just anim ->
-                            renderedStyle ++ anim
-
-                transitions =
-                    renderCssTransitions style
-
-                keyframes =
-                    Maybe.map renderAnimationKeyframes style.animation
             in
-                ( StyleDef
-                    { name = class
-                    , style = withAnimation
-                    , modes = transitions
-                    , keyframes = keyframes
+                ( addClassName
+                    { style = renderedStyle
+                    , modes = renderCssTransitions style
+                    , keyframes = Maybe.map renderAnimationKeyframes style.animation
                     }
                 , [ "margin" => childMargin ]
                 , childrenPermissions
                 )
+
+
+addClassName { style, modes, keyframes } =
+    let
+        styleString =
+            List.map (\( name, value ) -> name ++ value) style
+                |> String.concat
+
+        keyframeString =
+            convertKeyframesToCSS "" keyframes
+
+        modesString =
+            convertModesToCSS "" modes
+
+        name =
+            hash (styleString ++ keyframeString ++ modesString)
+    in
+        StyleDef
+            { name = name
+            , style =
+                List.map
+                    (\( pName, pValue ) ->
+                        if pName == "animation" then
+                            ( pName, "animation-" ++ name ++ " " ++ pValue )
+                        else
+                            ( pName, pValue )
+                    )
+                    style
+            , modes = modes
+            , keyframes = keyframes
+            }
+
+
+{-| http://package.elm-lang.org/packages/Skinney/murmur3/2.0.2/Murmur3
+-}
+hash : String -> String
+hash value =
+    Murmur3.hashString 8675309 value
+        |> toString
+        |> String.toList
+        |> List.map (Char.fromCode << ((+) 65) << Result.withDefault 0 << String.toInt << String.fromChar)
+        |> String.fromList
+        |> String.toLower
 
 
 renderWeak : Weak -> Permissions -> Maybe (List ( String, String )) -> ( StyleDefinition, List ( String, String ), Permissions )
@@ -519,30 +551,13 @@ renderWeak style permissions inherited =
                       else
                         Nothing
                     , inherited
+                    , Maybe.map renderAnimation style.animation
                     ]
-
-        class =
-            generateId renderedStyle
-
-        withAnimation =
-            case Maybe.map (renderAnimation class) style.animation of
-                Nothing ->
-                    renderedStyle
-
-                Just anim ->
-                    renderedStyle ++ anim
-
-        transitions =
-            renderCssTransitionsWeak style
-
-        keyframes =
-            Maybe.map renderAnimationKeyframes style.animation
     in
-        ( StyleDef
-            { name = class
-            , style = withAnimation
-            , modes = transitions
-            , keyframes = keyframes
+        ( addClassName
+            { style = renderedStyle
+            , modes = renderCssTransitionsWeak style
+            , keyframes = Maybe.map renderAnimationKeyframes style.animation
             }
         , [ "margin" => childMargin ]
         , childrenPermissions
@@ -574,12 +589,9 @@ renderAnimationKeyframes (Animation anim) =
         List.map renderAnimStep anim.steps
 
 
-renderAnimation : String -> Animation -> List ( String, String )
-renderAnimation class (Animation anim) =
+renderAnimation : Animation -> List ( String, String )
+renderAnimation (Animation anim) =
     let
-        animName =
-            "animation-" ++ class
-
         duration =
             toString anim.duration ++ "ms"
 
@@ -589,7 +601,7 @@ renderAnimation class (Animation anim) =
             else
                 toString anim.repeat
     in
-        [ "animation" => (animName ++ " " ++ duration ++ " " ++ anim.easing ++ " " ++ iterations)
+        [ "animation" => (duration ++ " " ++ anim.easing ++ " " ++ iterations)
         ]
 
 
@@ -859,8 +871,10 @@ colorToString color =
 renderColors : Colors -> List ( String, String )
 renderColors { text, background, border } =
     [ "border-color" => colorToString border
+    , "stroke" => colorToString border
     , "color" => colorToString text
     , "background-color" => colorToString background
+    , "fill" => colorToString background
     ]
 
 
@@ -1087,8 +1101,6 @@ cssTransitions =
 
 renderTransitionStyle : Model -> List ( String, String )
 renderTransitionStyle style =
-    --let
-    --stylePairs =
     case style.visibility of
         Hidden ->
             [ "display" => "none" ]
@@ -1181,22 +1193,3 @@ renderCssTransitionsWeak model =
                             }
     in
         List.filterMap identity [ hover, focus ]
-
-
-generateId : List ( String, String ) -> String
-generateId style =
-    List.map (\( name, value ) -> name ++ value) style
-        |> String.concat
-        |> hash
-
-
-{-| http://package.elm-lang.org/packages/Skinney/murmur3/2.0.2/Murmur3
--}
-hash : String -> String
-hash value =
-    Murmur3.hashString 8675309 value
-        |> toString
-        |> String.toList
-        |> List.map (Char.fromCode << ((+) 65) << Result.withDefault 0 << String.toInt << String.fromChar)
-        |> String.fromList
-        |> String.toLower

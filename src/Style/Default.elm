@@ -129,5 +129,12 @@ rotating =
     ]
 
 
+reverseRotating : List ( Float, Weak )
+reverseRotating =
+    [ 0 => { weak | transforms = [ rotate 0 0 360 ] }
+    , 100 => { weak | transforms = [ rotate 0 0 0 ] }
+    ]
+
+
 forever =
     1.0 / 0
