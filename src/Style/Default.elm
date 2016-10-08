@@ -125,5 +125,9 @@ position =
 rotating : List ( Float, Weak )
 rotating =
     [ 0 => { weak | transforms = [ rotate 0 0 0 ] }
-    , 100 => { weak | transforms = [ rotate 360 0 0 ] }
+    , 100 => { weak | transforms = [ rotate 0 0 360 ] }
     ]
+
+
+forever =
+    1.0 / 0

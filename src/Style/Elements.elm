@@ -306,7 +306,7 @@ convertToCSS styles =
                                         )
                                         style
                                )
-                            ++ "}"
+                            ++ "}\n"
                     )
                         ++ (String.join "\n" <|
                                 List.map
@@ -324,7 +324,7 @@ convertToCSS styles =
                                                                 )
                                                                 mode.style
                                                        )
-                                                    ++ "}"
+                                                    ++ "}\n"
                                     )
                                     modes
                            )
@@ -353,7 +353,7 @@ convertToCSS styles =
                                                     )
                                                     frames
                                            )
-                                        ++ "}"
+                                        ++ "}\n"
                            )
     in
         uniqueBy className styles
@@ -455,18 +455,26 @@ render style permissions =
                                 Nothing
                             ]
 
-                className =
+                class =
                     generateId renderedStyle
 
+                withAnimation =
+                    case Maybe.map (renderAnimation class) style.animation of
+                        Nothing ->
+                            renderedStyle
+
+                        Just anim ->
+                            renderedStyle ++ anim
+
                 transitions =
-                    renderCssTransitions className style
+                    renderCssTransitions class style
 
                 keyframes =
                     Maybe.map renderAnimationKeyframes style.animation
             in
                 ( StyleDef
-                    { name = className
-                    , style = renderedStyle
+                    { name = class
+                    , style = withAnimation
                     , modes = transitions
                     , keyframes = keyframes
                     }
@@ -512,18 +520,26 @@ renderWeak style permissions =
                         Nothing
                     ]
 
-        className =
+        class =
             generateId renderedStyle
 
+        withAnimation =
+            case Maybe.map (renderAnimation class) style.animation of
+                Nothing ->
+                    renderedStyle
+
+                Just anim ->
+                    renderedStyle ++ anim
+
         transitions =
-            renderCssTransitionsWeak className style
+            renderCssTransitionsWeak class style
 
         keyframes =
             Maybe.map renderAnimationKeyframes style.animation
     in
         ( StyleDef
-            { name = className
-            , style = renderedStyle
+            { name = class
+            , style = withAnimation
             , modes = transitions
             , keyframes = keyframes
             }
@@ -568,7 +584,7 @@ renderAnimation class (Animation anim) =
 
         iterations =
             if isInfinite anim.repeat then
-                "inifinite"
+                "infinite"
             else
                 toString anim.repeat
     in
@@ -657,20 +673,20 @@ transformToString transform =
         Translate x y z ->
             "transform3d("
                 ++ toString x
-                ++ ", "
+                ++ "px, "
                 ++ toString y
-                ++ ", "
+                ++ "px, "
                 ++ toString z
-                ++ ")"
+                ++ "px)"
 
         Rotate x y z ->
             "rotateX("
                 ++ toString x
-                ++ ")  rotateY("
+                ++ "deg) rotateY("
                 ++ toString y
-                ++ ") rotateZ("
+                ++ "deg) rotateZ("
                 ++ toString z
-                ++ ")"
+                ++ "deg)"
 
         Scale x y z ->
             "scale3d("

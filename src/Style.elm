@@ -99,6 +99,7 @@ module Style
         , bold
         , light
         , bolder
+        , animation
         )
 
 {-| A different take on styling.
