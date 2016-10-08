@@ -50,17 +50,6 @@ elementAs node styleModel attrs content =
         }
 
 
-
---svgElement : HtmlNode msg -> Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
---svgElement node styleModel attrs content =
---    Element
---        { style = styleModel
---        , node = node
---        , attributes = attrs
---        , children = content
---        }
-
-
 weak : Weak -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 weak styleModel attrs content =
     WeakElement
@@ -973,67 +962,79 @@ renderLayout layout =
                     "flex-wrap" => "nowrap"
               , case flex.go of
                     Right ->
-                        case fst flex.align of
-                            HLeft ->
+                        case flex.horizontal of
+                            AlignLeft ->
                                 "justify-content" => "flex-start"
 
-                            HRight ->
+                            AlignRight ->
                                 "justify-content" => "flex-end"
 
-                            HCenter ->
+                            AlignCenter ->
                                 "justify-content" => "center"
 
-                            HStretch ->
+                            Justify ->
+                                "justify-content" => "stretch"
+
+                            JustifyAll ->
                                 "justify-content" => "stretch"
 
                     Left ->
-                        case fst flex.align of
-                            HLeft ->
+                        case flex.horizontal of
+                            AlignLeft ->
                                 "justify-content" => "flex-end"
 
-                            HRight ->
+                            AlignRight ->
                                 "justify-content" => "flex-start"
 
-                            HCenter ->
+                            AlignCenter ->
                                 "justify-content" => "center"
 
-                            HStretch ->
+                            Justify ->
+                                "justify-content" => "stretch"
+
+                            JustifyAll ->
                                 "justify-content" => "stretch"
 
                     Down ->
-                        case fst flex.align of
-                            HLeft ->
+                        case flex.horizontal of
+                            AlignLeft ->
                                 "align-items" => "flex-start"
 
-                            HRight ->
+                            AlignRight ->
                                 "align-items" => "flex-end"
 
-                            HCenter ->
+                            AlignCenter ->
                                 "align-items" => "center"
 
-                            HStretch ->
+                            Justify ->
+                                "align-items" => "stretch"
+
+                            JustifyAll ->
                                 "align-items" => "stretch"
 
                     Up ->
-                        case fst flex.align of
-                            HLeft ->
+                        case flex.horizontal of
+                            AlignLeft ->
                                 "align-items" => "flex-start"
 
-                            HRight ->
+                            AlignRight ->
                                 "align-items" => "flex-end"
 
-                            HCenter ->
+                            AlignCenter ->
                                 "align-items" => "center"
 
-                            HStretch ->
+                            Justify ->
+                                "align-items" => "stretch"
+
+                            JustifyAll ->
                                 "align-items" => "stretch"
               , case flex.go of
                     Right ->
-                        case snd flex.align of
-                            VTop ->
+                        case flex.vertical of
+                            AlignTop ->
                                 "align-items" => "flex-start"
 
-                            VBottom ->
+                            AlignBottom ->
                                 "align-items" => "flex-end"
 
                             VCenter ->
@@ -1043,11 +1044,11 @@ renderLayout layout =
                                 "align-items" => "stretch"
 
                     Left ->
-                        case snd flex.align of
-                            VTop ->
+                        case flex.vertical of
+                            AlignTop ->
                                 "align-items" => "flex-start"
 
-                            VBottom ->
+                            AlignBottom ->
                                 "align-items" => "flex-end"
 
                             VCenter ->
@@ -1057,11 +1058,11 @@ renderLayout layout =
                                 "align-items" => "stretch"
 
                     Down ->
-                        case snd flex.align of
-                            VTop ->
+                        case flex.vertical of
+                            AlignTop ->
                                 "align-items" => "flex-start"
 
-                            VBottom ->
+                            AlignBottom ->
                                 "align-items" => "flex-end"
 
                             VCenter ->
@@ -1071,11 +1072,11 @@ renderLayout layout =
                                 "align-items" => "stretch"
 
                     Up ->
-                        case snd flex.align of
-                            VTop ->
+                        case flex.vertical of
+                            AlignTop ->
                                 "align-items" => "flex-end"
 
-                            VBottom ->
+                            AlignBottom ->
                                 "align-items" => "flex-start"
 
                             VCenter ->

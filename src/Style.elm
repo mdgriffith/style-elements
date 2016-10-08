@@ -9,9 +9,8 @@ module Style
         , Transition
         , Visibility
         , TextDecoration
-        , TextAlignment
-        , VerticalJustification
-        , HorizontalJustification
+        , Alignment
+        , VerticalAlignment
         , Transform
         , Filter
         , Border
@@ -46,6 +45,10 @@ module Style
         , justify
         , justifyAll
         , alignCenter
+        , verticalCenter
+        , verticalStretch
+        , alignTop
+        , alignBottom
         , topLeft
         , bottomRight
         , topRight
@@ -56,7 +59,6 @@ module Style
         , hidden
         , opacity
         , transparency
-        , center
         , auto
         , px
         , percent
@@ -65,14 +67,6 @@ module Style
         , dashed
         , floatLeft
         , floatRight
-        , verticalCenter
-        , verticalStretch
-        , horizontalCenter
-        , horizontalStretch
-        , toRight
-        , toLeft
-        , toTop
-        , toBottom
         , transitionTo
         , scale
         , translate
@@ -171,20 +165,14 @@ type alias TextDecoration =
 
 {-|
 -}
-type alias TextAlignment =
-    Style.Model.TextAlignment
+type alias Alignment =
+    Style.Model.Alignment
 
 
 {-|
 -}
-type alias VerticalJustification =
-    Style.Model.VerticalJustification
-
-
-{-|
--}
-type alias HorizontalJustification =
-    Style.Model.HorizontalJustification
+type alias VerticalAlignment =
+    Style.Model.VerticalAlignment
 
 
 {-|
@@ -414,136 +402,109 @@ tableLayout t =
 type alias Flow =
     { wrap : Bool
     , spacing : ( Float, Float, Float, Float )
-    , align : ( HorizontalJustification, VerticalJustification )
+    , horizontal : Alignment
+    , vertical : VerticalAlignment
     }
 
 
 {-| -}
 flowDown : Flow -> Layout
-flowDown { wrap, spacing, align } =
+flowDown { wrap, spacing, horizontal, vertical } =
     Style.Model.FlexLayout
         { go = Style.Model.Down
         , wrap = wrap
         , spacing = spacing
-        , align = align
+        , horizontal = horizontal
+        , vertical = vertical
         }
 
 
 {-| -}
 flowUp : Flow -> Layout
-flowUp { wrap, spacing, align } =
+flowUp { wrap, spacing, horizontal, vertical } =
     Style.Model.FlexLayout
         { go = Style.Model.Up
         , wrap = wrap
         , spacing = spacing
-        , align = align
+        , horizontal = horizontal
+        , vertical = vertical
         }
 
 
 {-| -}
 flowRight : Flow -> Layout
-flowRight { wrap, spacing, align } =
+flowRight { wrap, spacing, horizontal, vertical } =
     Style.Model.FlexLayout
         { go = Style.Model.Right
         , wrap = wrap
         , spacing = spacing
-        , align = align
+        , horizontal = horizontal
+        , vertical = vertical
         }
 
 
 {-| -}
 flowLeft : Flow -> Layout
-flowLeft { wrap, spacing, align } =
+flowLeft { wrap, spacing, horizontal, vertical } =
     Style.Model.FlexLayout
         { go = Style.Model.Left
         , wrap = wrap
         , spacing = spacing
-        , align = align
+        , horizontal = horizontal
+        , vertical = vertical
         }
 
 
 {-| -}
-center : ( HorizontalJustification, VerticalJustification )
-center =
-    ( Style.Model.HCenter
-    , Style.Model.VCenter
-    )
+alignTop : VerticalAlignment
+alignTop =
+    Style.Model.AlignTop
 
 
 {-| -}
-toLeft : HorizontalJustification
-toLeft =
-    Style.Model.HLeft
+alignBottom : VerticalAlignment
+alignBottom =
+    Style.Model.AlignBottom
 
 
 {-| -}
-toRight : HorizontalJustification
-toRight =
-    Style.Model.HRight
-
-
-{-| -}
-horizontalCenter : HorizontalJustification
-horizontalCenter =
-    Style.Model.HCenter
-
-
-{-| -}
-horizontalStretch : HorizontalJustification
-horizontalStretch =
-    Style.Model.HStretch
-
-
-{-| -}
-verticalCenter : VerticalJustification
-verticalCenter =
-    Style.Model.VCenter
-
-
-{-| -}
-toTop : VerticalJustification
-toTop =
-    Style.Model.VTop
-
-
-{-| -}
-toBottom : VerticalJustification
-toBottom =
-    Style.Model.VBottom
-
-
-{-| -}
-verticalStretch : VerticalJustification
+verticalStretch : VerticalAlignment
 verticalStretch =
     Style.Model.VStretch
 
 
 {-| -}
-justify : TextAlignment
+verticalCenter : VerticalAlignment
+verticalCenter =
+    Style.Model.VCenter
+
+
+{-| -}
+justify : Alignment
 justify =
     Style.Model.Justify
 
 
 {-| -}
-justifyAll : TextAlignment
+justifyAll : Alignment
 justifyAll =
     Style.Model.JustifyAll
 
 
 {-| -}
-alignLeft : TextAlignment
+alignLeft : Alignment
 alignLeft =
     Style.Model.AlignLeft
 
 
 {-| -}
-alignRight : TextAlignment
+alignRight : Alignment
 alignRight =
     Style.Model.AlignRight
 
 
 {-| -}
-alignCenter : TextAlignment
+alignCenter : Alignment
 alignCenter =
     Style.Model.AlignCenter
 

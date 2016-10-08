@@ -63,7 +63,8 @@ horizontal =
     flowRight
         { wrap = True
         , spacing = all 10
-        , align = center
+        , horizontal = alignCenter
+        , vertical = verticalCenter
         }
 
 
@@ -72,7 +73,8 @@ vertical =
     flowDown
         { wrap = True
         , spacing = all 10
-        , align = center
+        , horizontal = alignCenter
+        , vertical = verticalCenter
         }
 
 
@@ -89,7 +91,7 @@ text =
     , lineHeight = 1.0
     , italic = False
     , boldness = Nothing
-    , align = Style.alignLeft
+    , align = alignLeft
     , decoration = Nothing
     }
 

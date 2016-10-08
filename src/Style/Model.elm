@@ -208,7 +208,8 @@ type alias Flexible =
     { go : Direction
     , wrap : Bool
     , spacing : ( Float, Float, Float, Float )
-    , align : ( HorizontalJustification, VerticalJustification )
+    , horizontal : Alignment
+    , vertical : VerticalAlignment
     }
 
 
@@ -221,23 +222,15 @@ type Direction
 
 
 {-| -}
-type HorizontalJustification
-    = HLeft
-    | HRight
-    | HCenter
-    | HStretch
-
-
-{-| -}
-type VerticalJustification
-    = VTop
-    | VBottom
+type VerticalAlignment
+    = AlignTop
+    | AlignBottom
     | VCenter
     | VStretch
 
 
 {-| -}
-type TextAlignment
+type Alignment
     = AlignLeft
     | AlignRight
     | AlignCenter
@@ -280,7 +273,7 @@ type alias Text =
     , characterOffset : Maybe Float
     , italic : Bool
     , boldness : Maybe Float
-    , align : TextAlignment
+    , align : Alignment
     , decoration : Maybe TextDecoration
     }
 
