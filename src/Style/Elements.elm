@@ -6,6 +6,7 @@ import Murmur3
 import Color exposing (Color)
 import Html
 import Set exposing (Set)
+import Svg.Attributes
 import Html.Attributes
 import Style.Model exposing (..)
 
@@ -47,6 +48,17 @@ elementAs node styleModel attrs content =
         , attributes = attrs
         , children = content
         }
+
+
+
+--svgElement : HtmlNode msg -> Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+--svgElement node styleModel attrs content =
+--    Element
+--        { style = styleModel
+--        , node = node
+--        , attributes = attrs
+--        , children = content
+--        }
 
 
 weak : Weak -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
@@ -106,7 +118,7 @@ buildInline element =
                         ( [], [] )
                         children
 
-                ( className, renderedStyle, parentAndInherited ) =
+                ( className, renderedStyle, onlyTransitionsAndAnimations ) =
                     case parentStyle of
                         StyleDef { name, style, modes, keyframes } ->
                             ( name
@@ -123,11 +135,11 @@ buildInline element =
                     Html.node "style"
                         []
                         [ Html.text <|
-                            convertToCSS (parentAndInherited :: childStyles)
+                            convertToCSS (onlyTransitionsAndAnimations :: childStyles)
                         ]
             in
                 node
-                    (Html.Attributes.class className :: Html.Attributes.style renderedStyle :: attributes)
+                    (Svg.Attributes.class className :: Html.Attributes.style renderedStyle :: attributes)
                     (styleSheet :: builtChildren)
     in
         case element of
@@ -135,11 +147,11 @@ buildInline element =
                 html
 
             Element model ->
-                render model.style { floats = False, inline = False }
+                render model.style { floats = False, inline = False } Nothing
                     |> construct model.node model.attributes model.children
 
             WeakElement model ->
-                renderWeak model.style { floats = False, inline = False }
+                renderWeak model.style { floats = False, inline = False } Nothing
                     |> construct model.node model.attributes model.children
 
 
@@ -162,11 +174,10 @@ buildInlineChild permissions inherited element =
                         ( [], [] )
                         children
 
-                ( className, renderedStyle, parentAndInherited ) =
+                ( renderedStyle, onlyTransitionsAndAnimations ) =
                     case parentStyle of
                         StyleDef { name, style, modes, keyframes } ->
-                            ( name
-                            , style ++ inherited
+                            ( style
                             , StyleDef
                                 { name = name
                                 , style = []
@@ -176,9 +187,9 @@ buildInlineChild permissions inherited element =
                             )
             in
                 ( node
-                    (Html.Attributes.class className :: Html.Attributes.style renderedStyle :: attributes)
+                    (Svg.Attributes.class (className parentStyle) :: Html.Attributes.style renderedStyle :: attributes)
                     builtChildren
-                , parentAndInherited :: childStyle
+                , onlyTransitionsAndAnimations :: childStyle
                 )
     in
         case element of
@@ -186,11 +197,11 @@ buildInlineChild permissions inherited element =
                 ( html, [] )
 
             Element model ->
-                render model.style permissions
+                render model.style permissions (Just inherited)
                     |> construct model.node model.attributes model.children
 
             WeakElement model ->
-                renderWeak model.style permissions
+                renderWeak model.style permissions (Just inherited)
                     |> construct model.node model.attributes model.children
 
 
@@ -221,7 +232,7 @@ build element =
                         ]
             in
                 node
-                    (Html.Attributes.class (className parentStyle) :: attributes)
+                    (Svg.Attributes.class (className parentStyle) :: attributes)
                     (styleSheet :: builtChildren)
     in
         case element of
@@ -229,11 +240,11 @@ build element =
                 html
 
             Element model ->
-                render model.style { floats = False, inline = False }
+                render model.style { floats = False, inline = False } Nothing
                     |> construct model.node model.attributes model.children
 
             WeakElement model ->
-                renderWeak model.style { floats = False, inline = False }
+                renderWeak model.style { floats = False, inline = False } Nothing
                     |> construct model.node model.attributes model.children
 
 
@@ -255,23 +266,11 @@ buildChild permissions inherited element =
                         )
                         ( [], [] )
                         children
-
-                ( className, parentAndInherited ) =
-                    case parentStyle of
-                        StyleDef { name, style, modes, keyframes } ->
-                            ( name
-                            , StyleDef
-                                { name = name
-                                , style = (style ++ inherited)
-                                , modes = modes
-                                , keyframes = keyframes
-                                }
-                            )
             in
                 ( node
-                    (Html.Attributes.class className :: attributes)
+                    (Svg.Attributes.class (className parentStyle) :: attributes)
                     builtChildren
-                , parentAndInherited :: childStyle
+                , parentStyle :: childStyle
                 )
     in
         case element of
@@ -279,11 +278,11 @@ buildChild permissions inherited element =
                 ( html, [] )
 
             Element model ->
-                render model.style permissions
+                render model.style permissions (Just inherited)
                     |> construct model.node model.attributes model.children
 
             WeakElement model ->
-                renderWeak model.style permissions
+                renderWeak model.style permissions (Just inherited)
                     |> construct model.node model.attributes model.children
 
 
@@ -400,8 +399,8 @@ type alias Permissions =
     }
 
 
-render : Model -> Permissions -> ( StyleDefinition, List ( String, String ), Permissions )
-render style permissions =
+render : Model -> Permissions -> Maybe (List ( String, String )) -> ( StyleDefinition, List ( String, String ), Permissions )
+render style permissions inherited =
     case style.visibility of
         Hidden ->
             let
@@ -453,6 +452,7 @@ render style permissions =
                                 Just cssTransitions
                               else
                                 Nothing
+                            , inherited
                             ]
 
                 class =
@@ -467,7 +467,7 @@ render style permissions =
                             renderedStyle ++ anim
 
                 transitions =
-                    renderCssTransitions class style
+                    renderCssTransitions style
 
                 keyframes =
                     Maybe.map renderAnimationKeyframes style.animation
@@ -483,8 +483,8 @@ render style permissions =
                 )
 
 
-renderWeak : Weak -> Permissions -> ( StyleDefinition, List ( String, String ), Permissions )
-renderWeak style permissions =
+renderWeak : Weak -> Permissions -> Maybe (List ( String, String )) -> ( StyleDefinition, List ( String, String ), Permissions )
+renderWeak style permissions inherited =
     let
         ( layout, childMargin, childrenPermissions ) =
             Maybe.map renderLayout style.layout
@@ -518,6 +518,7 @@ renderWeak style permissions =
                         Just cssTransitions
                       else
                         Nothing
+                    , inherited
                     ]
 
         class =
@@ -532,7 +533,7 @@ renderWeak style permissions =
                     renderedStyle ++ anim
 
         transitions =
-            renderCssTransitionsWeak class style
+            renderCssTransitionsWeak style
 
         keyframes =
             Maybe.map renderAnimationKeyframes style.animation
@@ -564,7 +565,7 @@ renderAnimationKeyframes (Animation anim) =
         renderAnimStep ( marker, styleDef ) =
             let
                 ( rendered, _, _ ) =
-                    renderWeak styleDef { floats = False, inline = False }
+                    renderWeak styleDef { floats = False, inline = False } Nothing
             in
                 case rendered of
                     StyleDef { style } ->
@@ -1114,8 +1115,8 @@ renderTransitionStyle style =
 
 {-| Produces valid css code.
 -}
-renderCssTransitions : String -> Model -> List StyleDefinition
-renderCssTransitions id model =
+renderCssTransitions : Model -> List StyleDefinition
+renderCssTransitions model =
     let
         hover =
             case model.onHover of
@@ -1148,8 +1149,8 @@ renderCssTransitions id model =
         List.filterMap identity [ hover, focus ]
 
 
-renderCssTransitionsWeak : String -> Weak -> List StyleDefinition
-renderCssTransitionsWeak id model =
+renderCssTransitionsWeak : Weak -> List StyleDefinition
+renderCssTransitionsWeak model =
     let
         hover =
             case model.onHover of
