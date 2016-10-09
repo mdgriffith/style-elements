@@ -477,8 +477,8 @@ hash value =
         |> String.toLower
 
 
-renderWeak : Weak -> Permissions -> Maybe (List ( String, String )) -> ( StyleDefinition, List ( String, String ), Permissions )
-renderWeak style permissions inherited =
+renderVariation : Variation -> Permissions -> Maybe (List ( String, String )) -> ( StyleDefinition, List ( String, String ), Permissions )
+renderVariation style permissions inherited =
     let
         ( layout, childMargin, childrenPermissions ) =
             Maybe.map renderLayout style.layout
@@ -542,7 +542,7 @@ renderAnimationKeyframes (Animation anim) =
         renderAnimStep ( marker, styleDef ) =
             let
                 ( rendered, _, _ ) =
-                    renderWeak styleDef { floats = False, inline = False } Nothing
+                    renderVariation styleDef { floats = False, inline = False } Nothing
             in
                 case rendered of
                     StyleDef { style } ->
@@ -1088,30 +1088,27 @@ cssTransitions =
     ]
 
 
-renderTransitionStyle : Model -> List ( String, String )
+renderTransitionStyle : Variation -> List ( String, String )
 renderTransitionStyle style =
-    case style.visibility of
-        Hidden ->
-            [ "display" => "none" ]
-
-        Transparent transparency ->
-            List.concat <|
+    List.concat <|
+        List.filterMap identity
+            [ Just <|
                 List.filterMap identity
-                    [ Just
-                        [ "opacity" => toString (1.0 - transparency)
-                        , "width" => (renderLength style.width)
-                        , "height" => (renderLength style.height)
-                        , "padding" => render4tuplePx style.padding
-                        ]
-                    , Just <| renderColors style.colors
-                    , Just <| renderText style.text
-                    , Just <| renderBorder style.border
-                    , listMaybeMap (renderShadow "box-shadow" False) style.shadows
-                    , listMaybeMap (renderShadow "box-shadow" True) style.insetShadows
-                    , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
-                    , listMaybeMap renderFilters style.filters
-                    , listMaybeMap renderTransforms style.transforms
+                    [ Maybe.map (\w -> "width" => (renderLength w)) style.width
+                    , Maybe.map (\h -> "height" => (renderLength h)) style.height
+                    , Maybe.map (\c -> "cursor" => c) style.cursor
+                    , Maybe.map (\p -> "padding" => (render4tuplePx p)) style.padding
                     ]
+            , Maybe.map renderColors style.colors
+            , Maybe.map renderText style.text
+            , Maybe.map renderBorder style.border
+            , listMaybeMap (renderShadow "box-shadow" False) style.shadows
+            , listMaybeMap (renderShadow "box-shadow" True) style.insetShadows
+            , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
+            , listMaybeMap renderFilters style.filters
+            , listMaybeMap renderTransforms style.transforms
+            , Maybe.map renderVisibility style.visibility
+            ]
 
 
 {-| Produces valid css code.
