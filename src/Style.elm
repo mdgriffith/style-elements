@@ -100,6 +100,10 @@ module Style
         , light
         , bolder
         , animation
+        , rotating
+        , reverseRotating
+        , empty
+        , variation
         )
 
 {-| A different take on styling.
@@ -110,9 +114,9 @@ module Style
 
 import Html
 import Html.Attributes
-import Animation
-import Style.Model
 import Time exposing (Time)
+import Color
+import Style.Model
 
 
 {-|
@@ -792,3 +796,100 @@ animation :
     -> Maybe Animation
 animation anim =
     Just <| Style.Model.Animation anim
+
+
+empty : Model
+empty =
+    { addClass = Nothing
+    , layout = textLayout { spacing = all 0 }
+    , visibility = visible
+    , position =
+        { relativeTo = currentPosition
+        , anchor = topLeft
+        , position = ( 0, 0 )
+        }
+    , colors =
+        { background = Color.rgba 255 255 255 0
+        , text = Color.black
+        , border = Color.grey
+        }
+    , text =
+        { font = "georgia"
+        , size = 16
+        , characterOffset = Nothing
+        , lineHeight = 1.7
+        , italic = False
+        , boldness = Nothing
+        , align = alignLeft
+        , decoration = Nothing
+        , whitespace = normal
+        }
+    , border =
+        { style = solid
+        , width = all 0
+        , corners = all 0
+        }
+    , cursor = "auto"
+    , width = auto
+    , height = auto
+    , padding = all 0
+    , float = Nothing
+    , inline = False
+    , backgroundImage = Nothing
+    , textShadows = []
+    , shadows = []
+    , insetShadows = []
+    , transforms = []
+    , filters = []
+    , transitions = []
+    , animation = Nothing
+    }
+
+
+variation : Variation
+variation =
+    { layout = Nothing
+    , visibility = Nothing
+    , position = Nothing
+    , colors = Nothing
+    , text = Nothing
+    , border = Nothing
+    , cursor = Nothing
+    , width = Nothing
+    , height = Nothing
+    , padding = Nothing
+    , float = Nothing
+    , inline = False
+    , backgroundImage = Nothing
+    , textShadows = []
+    , shadows = []
+    , insetShadows = []
+    , transforms = []
+    , filters = []
+    , transitions = []
+    , animation = Nothing
+    }
+
+
+{-| An animation
+-}
+rotating : List ( Float, Variation )
+rotating =
+    [ 0 => { variation | transforms = [ rotate 0 0 0 ] }
+    , 100 => { variation | transforms = [ rotate 0 0 360 ] }
+    ]
+
+
+{-| An animation
+-}
+reverseRotating : List ( Float, Variation )
+reverseRotating =
+    [ 0 => { variation | transforms = [ rotate 0 0 360 ] }
+    , 100 => { variation | transforms = [ rotate 0 0 0 ] }
+    ]
+
+
+{-| An animation
+-}
+forever =
+    1.0 / 0

@@ -11,20 +11,6 @@ import Html.Attributes
 import Style.Model exposing (..)
 
 
-type alias HtmlNode msg =
-    List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
-
-
-map : (Model -> Model) -> Element msg -> Element msg
-map fn el =
-    case el of
-        Element props ->
-            Element { props | style = fn props.style }
-
-        _ ->
-            el
-
-
 html : Html.Html msg -> Element msg
 html node =
     Html node
@@ -48,6 +34,16 @@ elementAs node styleModel attrs content =
         , attributes = attrs
         , children = content
         }
+
+
+map : (Model -> Model) -> Element msg -> Element msg
+map fn el =
+    case el of
+        Element props ->
+            Element { props | style = fn props.style }
+
+        _ ->
+            el
 
 
 type StyleDefinition
@@ -1080,6 +1076,7 @@ renderLayout layout =
             )
 
 
+cssTransitions : List ( String, String )
 cssTransitions =
     [ "transition-property" => "opacity, padding, left, top, right, bottom, height, width, color, background-color, border-color, border-width, box-shadow, text-shadow, filter, transform, font-size, line-height"
     , "transition-duration" => "500ms"
