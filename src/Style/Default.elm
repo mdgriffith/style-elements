@@ -32,8 +32,8 @@ style =
     }
 
 
-weak : Weak
-weak =
+variation : Variation
+variation =
     { layout = Nothing
     , visibility = Nothing
     , position = Nothing
@@ -119,17 +119,17 @@ position =
     (,)
 
 
-rotating : List ( Float, Weak )
+rotating : List ( Float, Variation )
 rotating =
-    [ 0 => { weak | transforms = [ rotate 0 0 0 ] }
-    , 100 => { weak | transforms = [ rotate 0 0 360 ] }
+    [ 0 => { variation | transforms = [ rotate 0 0 0 ] }
+    , 100 => { variation | transforms = [ rotate 0 0 360 ] }
     ]
 
 
-reverseRotating : List ( Float, Weak )
+reverseRotating : List ( Float, Variation )
 reverseRotating =
-    [ 0 => { weak | transforms = [ rotate 0 0 360 ] }
-    , 100 => { weak | transforms = [ rotate 0 0 0 ] }
+    [ 0 => { variation | transforms = [ rotate 0 0 360 ] }
+    , 100 => { variation | transforms = [ rotate 0 0 0 ] }
     ]
 
 

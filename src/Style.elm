@@ -1,7 +1,7 @@
 module Style
     exposing
         ( Model
-        , Weak
+        , Variation
         , Element
         , Colors
         , Position
@@ -123,8 +123,8 @@ type alias Model =
 
 {-|
 -}
-type alias Weak =
-    Style.Model.Weak
+type alias Variation =
+    Style.Model.Variation
 
 
 {-|
@@ -316,7 +316,7 @@ noRepeat =
     Style.Model.NoRepeat
 
 
-on : String -> Model -> Transition
+on : String -> Variation -> Transition
 on name model =
     Style.Model.Transition name model
 
@@ -787,7 +787,7 @@ animation :
     { duration : Time
     , easing : String
     , repeat : Float
-    , steps : List ( Float, Weak )
+    , steps : List ( Float, Variation )
     }
     -> Maybe Animation
 animation anim =

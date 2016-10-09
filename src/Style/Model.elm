@@ -14,12 +14,6 @@ type Element msg
         , attributes : List (Html.Attribute msg)
         , children : List (Element msg)
         }
-      --| WeakElement
-      --    { style : List ( String, String )
-      --    , node : String
-      --    , attributes : List (Html.Attribute msg)
-      --    , children : List (Element msg)
-      --    }
     | Html (Html.Html msg)
 
 
@@ -49,8 +43,13 @@ type alias Model =
     }
 
 
-{-| -}
-type alias Weak =
+{-| A `Variation` is a style where all the properties are optional.
+
+This is used to construct the target style for animations and transitions.
+
+
+-}
+type alias Variation =
     { layout : Maybe Layout
     , visibility : Maybe Visibility
     , position : Maybe Position
@@ -80,13 +79,13 @@ type Animation
         { duration : Time
         , easing : String
         , repeat : Float
-        , steps : List ( Float, Weak )
+        , steps : List ( Float, Variation )
         }
 
 
 {-| -}
 type Transition
-    = Transition String Model
+    = Transition String Variation
 
 
 {-| -}

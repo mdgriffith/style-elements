@@ -12,11 +12,6 @@ base =
     Style.Default.style
 
 
-weakStyle : Style.Weak
-weakStyle =
-    Style.Default.weak
-
-
 defaultText : Style.Text
 defaultText =
     Style.Default.text
