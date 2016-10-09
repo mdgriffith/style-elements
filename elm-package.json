@@ -1,18 +1,16 @@
 {
     "version": "1.0.0",
     "summary": "helpful summary of your project, less than 80 characters",
-    "repository": "https://github.com/user/project.git",
+    "repository": "https://github.com/mdgriffith/style-elements.git",
     "license": "BSD3",
     "source-directories": [
         "."
-
     ],
     "exposed-modules": [
         "Style",
         "Style.Elements",
         "Style.Elements.Basic"
         "Style.Default"
-
     ],
     "dependencies": {
         "elm-lang/core": "4.0.5 <= v < 5.0.0",
