@@ -89,11 +89,12 @@ break =
 
 
 {-| -}
-rule : Element msg
-rule =
-    html (Html.hr [] [])
+line : Element msg
+line =
+    html (Html.hr [ Html.Attributes.style [ ( "height", "1px" ), ( "border", "none" ), ( "background-color", "#ddd" ) ] ] [])
 
 
+{-| -}
 dottedList : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 dottedList attrs children =
     html <|
@@ -101,6 +102,7 @@ dottedList attrs children =
             (List.map (\child -> Html.li [] [ Style.Elements.build child ]) children)
 
 
+{-| -}
 numberedList : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 numberedList attrs children =
     html <|
