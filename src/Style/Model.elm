@@ -7,20 +7,16 @@ import Color exposing (Color)
 import Time exposing (Time)
 
 
-type alias HtmlNode msg =
-    List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
-
-
 type Element msg
     = Element
         { style : Model
-        , node : HtmlNode msg
+        , node : String
         , attributes : List (Html.Attribute msg)
         , children : List (Element msg)
         }
     | WeakElement
         { style : List ( String, String )
-        , node : HtmlNode msg
+        , node : String
         , attributes : List (Html.Attribute msg)
         , children : List (Element msg)
         }
@@ -29,7 +25,8 @@ type Element msg
 
 {-| -}
 type alias Model =
-    { layout : Layout
+    { addClass : Maybe String
+    , layout : Layout
     , visibility : Visibility
     , position : Position
     , cursor : String

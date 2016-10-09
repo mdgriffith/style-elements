@@ -8,7 +8,8 @@ import Dict
 
 style : Model
 style =
-    { layout = textLayout { spacing = all 0 }
+    { addClass = Nothing
+    , layout = textLayout { spacing = all 0 }
     , visibility = visible
     , position = position
     , colors = colors

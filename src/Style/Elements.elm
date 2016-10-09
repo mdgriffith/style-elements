@@ -1,4 +1,4 @@
-module Style.Elements exposing (map, html, element, elementAs, weak, weakAs, build, buildInline)
+module Style.Elements exposing (map, html, element, elementAs, build, buildInline)
 
 import String
 import Char
@@ -34,13 +34,13 @@ element : Model -> List (Html.Attribute msg) -> List (Element msg) -> Element ms
 element styleModel attrs content =
     Element
         { style = styleModel
-        , node = Html.div
+        , node = "div"
         , attributes = attrs
         , children = content
         }
 
 
-elementAs : HtmlNode msg -> Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+elementAs : String -> Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 elementAs node styleModel attrs content =
     Element
         { style = styleModel
@@ -50,24 +50,23 @@ elementAs node styleModel attrs content =
         }
 
 
-weak : List ( String, String ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
-weak styleModel attrs content =
-    WeakElement
-        { style = styleModel
-        , node = Html.div
-        , attributes = attrs
-        , children = content
-        }
 
-
-weakAs : HtmlNode msg -> List ( String, String ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
-weakAs node styleModel attrs content =
-    WeakElement
-        { style = styleModel
-        , node = node
-        , attributes = attrs
-        , children = content
-        }
+--weak : List ( String, String ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+--weak styleModel attrs content =
+--    WeakElement
+--        { style = styleModel
+--        , node = Html.div
+--        , attributes = attrs
+--        , children = content
+--        }
+--weakAs : HtmlNode msg -> List ( String, String ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+--weakAs node styleModel attrs content =
+--    WeakElement
+--        { style = styleModel
+--        , node = node
+--        , attributes = attrs
+--        , children = content
+--        }
 
 
 type StyleDefinition
@@ -127,7 +126,8 @@ buildInline element =
                             convertToCSS (onlyTransitionsAndAnimations :: childStyles)
                         ]
             in
-                node
+                Html.node
+                    node
                     (Svg.Attributes.class className :: Html.Attributes.style renderedStyle :: attributes)
                     (styleSheet :: builtChildren)
     in
@@ -175,7 +175,8 @@ buildInlineChild permissions inherited element =
                                 }
                             )
             in
-                ( node
+                ( Html.node
+                    node
                     (Svg.Attributes.class (className parentStyle) :: Html.Attributes.style renderedStyle :: attributes)
                     builtChildren
                 , onlyTransitionsAndAnimations :: childStyle
@@ -220,7 +221,8 @@ build element =
                             convertToCSS (parentStyle :: childStyles)
                         ]
             in
-                node
+                Html.node
+                    node
                     (Svg.Attributes.class (className parentStyle) :: attributes)
                     (styleSheet :: builtChildren)
     in
@@ -256,7 +258,8 @@ buildChild permissions inherited element =
                         ( [], [] )
                         children
             in
-                ( node
+                ( Html.node
+                    node
                     (Svg.Attributes.class (className parentStyle) :: attributes)
                     builtChildren
                 , parentStyle :: childStyle
@@ -406,7 +409,7 @@ render style permissions inherited =
                 renderedStyle =
                     [ "display" => "none" ]
             in
-                ( addClassName
+                ( addClassName style.addClass
                     { style = renderedStyle
                     , modes = []
                     , keyframes = Nothing
@@ -451,7 +454,7 @@ render style permissions inherited =
                             , Maybe.map renderAnimation style.animation
                             ]
             in
-                ( addClassName
+                ( addClassName style.addClass
                     { style = renderedStyle
                     , modes = List.map renderCssTransitions style.transitions
                     , keyframes = Maybe.map renderAnimationKeyframes style.animation
@@ -461,7 +464,7 @@ render style permissions inherited =
                 )
 
 
-addClassName { style, modes, keyframes } =
+addClassName mAdditionalNames { style, modes, keyframes } =
     let
         styleString =
             List.map (\( name, value ) -> name ++ value) style
@@ -474,7 +477,12 @@ addClassName { style, modes, keyframes } =
             convertModesToCSS "" modes
 
         name =
-            hash (styleString ++ keyframeString ++ modesString)
+            case mAdditionalNames of
+                Nothing ->
+                    hash (styleString ++ keyframeString ++ modesString)
+
+                Just addName ->
+                    hash (styleString ++ keyframeString ++ modesString) ++ "," ++ addName
     in
         StyleDef
             { name = name
@@ -515,7 +523,7 @@ renderWithStyle style inherited =
                 Just inherit ->
                     inherit ++ style
     in
-        ( addClassName
+        ( addClassName Nothing
             { style = newStyle
             , modes = []
             , keyframes = Nothing
@@ -564,7 +572,7 @@ renderWeak style permissions inherited =
                     , Maybe.map renderAnimation style.animation
                     ]
     in
-        ( addClassName
+        ( addClassName Nothing
             { style = renderedStyle
             , modes = List.map renderCssTransitions style.transitions
             , keyframes = Maybe.map renderAnimationKeyframes style.animation

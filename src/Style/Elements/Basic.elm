@@ -24,7 +24,7 @@ defaultText =
 
 h1 : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 h1 =
-    elementAs Html.h1
+    elementAs "h1"
         { base
             | text =
                 { defaultText | size = 32 }
@@ -33,7 +33,7 @@ h1 =
 
 h2 : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 h2 =
-    elementAs Html.h2
+    elementAs "h2"
         { base
             | text =
                 { defaultText | size = 24 }
@@ -42,7 +42,7 @@ h2 =
 
 h3 : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 h3 =
-    elementAs Html.h3
+    elementAs "h3"
         { base
             | text =
                 { defaultText | size = 18 }
@@ -57,7 +57,7 @@ indent =
 
 link : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 link =
-    elementAs Html.a
+    elementAs "a"
         { base
             | cursor = "pointer"
         }
@@ -65,31 +65,22 @@ link =
 
 break : Element msg
 break =
-    elementAs Html.br
-        base
-        []
-        []
+    html (Html.br [] [])
 
 
 rule : Element msg
 rule =
-    elementAs Html.hr
-        base
-        []
-        []
+    html (Html.hr [] [])
 
 
 text : String -> Element msg
 text str =
-    elementAs (\_ _ -> Html.text str)
-        base
-        []
-        []
+    html (Html.text str)
 
 
 image : String -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 image src attrs children =
-    elementAs Html.img
+    elementAs "img"
         base
         (Html.Attributes.src src :: attrs)
         children
@@ -97,29 +88,28 @@ image src attrs children =
 
 icon : String -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 icon str attrs children =
-    element
-        base
-        attrs
-        (text str :: children)
+    element base attrs (text str :: children)
 
 
 i : List (Html.Attribute msg) -> List (Element msg) -> Element msg
-i =
-    weakAs Html.i
-        [ ( "font-style", "italic" )
-        ]
+i attrs children =
+    html <|
+        Html.i
+            (Html.Attributes.style [ ( "font-style", "italic" ) ] :: attrs)
+            (List.map Style.Elements.build children)
 
 
 b : List (Html.Attribute msg) -> List (Element msg) -> Element msg
-b =
-    weakAs Html.b
-        [ ( "font-weight", "bold" )
-        ]
+b attrs children =
+    html <|
+        Html.b
+            (Html.Attributes.style [ ( "font-weight", "bold" ) ] :: attrs)
+            (List.map Style.Elements.build children)
 
 
 code : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 code =
-    elementAs Html.code
+    elementAs "code"
         { base
             | text =
                 { defaultText | whitespace = pre }
@@ -134,7 +124,7 @@ code =
 
 table : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 table =
-    elementAs Html.table
+    elementAs "table"
         { base
             | layout = Style.tableLayout { spacing = all 0 }
         }
@@ -142,17 +132,17 @@ table =
 
 tableHeader : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 tableHeader =
-    elementAs Html.th base
+    elementAs "th" base
 
 
 row : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 row =
-    elementAs Html.tr base
+    elementAs "tr" base
 
 
 column : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 column =
-    elementAs Html.td base
+    elementAs "td" base
 
 
 
@@ -163,12 +153,12 @@ column =
 
 button : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 button =
-    elementAs Html.button base
+    elementAs "button" base
 
 
 checkbox : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 checkbox attrs children =
-    elementAs Html.input
+    elementAs "input"
         base
         (Html.Attributes.type' "checkbox" :: attrs)
         children
@@ -176,9 +166,9 @@ checkbox attrs children =
 
 input : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 input =
-    elementAs Html.input base
+    elementAs "input" base
 
 
 textarea : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 textarea =
-    elementAs Html.textarea base
+    elementAs "textarea" base
