@@ -14,12 +14,12 @@ type Element msg
         , attributes : List (Html.Attribute msg)
         , children : List (Element msg)
         }
-    | WeakElement
-        { style : List ( String, String )
-        , node : String
-        , attributes : List (Html.Attribute msg)
-        , children : List (Element msg)
-        }
+      --| WeakElement
+      --    { style : List ( String, String )
+      --    , node : String
+      --    , attributes : List (Html.Attribute msg)
+      --    , children : List (Element msg)
+      --    }
     | Html (Html.Html msg)
 
 

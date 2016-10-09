@@ -50,25 +50,6 @@ elementAs node styleModel attrs content =
         }
 
 
-
---weak : List ( String, String ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
---weak styleModel attrs content =
---    WeakElement
---        { style = styleModel
---        , node = Html.div
---        , attributes = attrs
---        , children = content
---        }
---weakAs : HtmlNode msg -> List ( String, String ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
---weakAs node styleModel attrs content =
---    WeakElement
---        { style = styleModel
---        , node = node
---        , attributes = attrs
---        , children = content
---        }
-
-
 type StyleDefinition
     = StyleDef
         { name : String
@@ -139,10 +120,6 @@ buildInline element =
                 render model.style { floats = False, inline = False } Nothing
                     |> construct model.node model.attributes model.children
 
-            WeakElement model ->
-                renderWithStyle model.style Nothing
-                    |> construct model.node model.attributes model.children
-
 
 buildInlineChild : Permissions -> List ( String, String ) -> Element msg -> ( Html.Html msg, List StyleDefinition )
 buildInlineChild permissions inherited element =
@@ -190,10 +167,6 @@ buildInlineChild permissions inherited element =
                 render model.style permissions (Just inherited)
                     |> construct model.node model.attributes model.children
 
-            WeakElement model ->
-                renderWithStyle model.style (Just inherited)
-                    |> construct model.node model.attributes model.children
-
 
 build : Element msg -> Html.Html msg
 build element =
@@ -234,10 +207,6 @@ build element =
                 render model.style { floats = False, inline = False } Nothing
                     |> construct model.node model.attributes model.children
 
-            WeakElement model ->
-                renderWithStyle model.style Nothing
-                    |> construct model.node model.attributes model.children
-
 
 buildChild : Permissions -> List ( String, String ) -> Element msg -> ( Html.Html msg, List StyleDefinition )
 buildChild permissions inherited element =
@@ -271,10 +240,6 @@ buildChild permissions inherited element =
 
             Element model ->
                 render model.style permissions (Just inherited)
-                    |> construct model.node model.attributes model.children
-
-            WeakElement model ->
-                renderWithStyle model.style (Just inherited)
                     |> construct model.node model.attributes model.children
 
 
@@ -510,27 +475,6 @@ hash value =
         |> List.map (Char.fromCode << ((+) 65) << Result.withDefault 0 << String.toInt << String.fromChar)
         |> String.fromList
         |> String.toLower
-
-
-renderWithStyle : List ( String, String ) -> Maybe (List ( String, String )) -> ( StyleDefinition, List ( String, String ), Permissions )
-renderWithStyle style inherited =
-    let
-        newStyle =
-            case inherited of
-                Nothing ->
-                    style
-
-                Just inherit ->
-                    inherit ++ style
-    in
-        ( addClassName Nothing
-            { style = newStyle
-            , modes = []
-            , keyframes = Nothing
-            }
-        , []
-        , { floats = True, inline = True }
-        )
 
 
 renderWeak : Weak -> Permissions -> Maybe (List ( String, String )) -> ( StyleDefinition, List ( String, String ), Permissions )
