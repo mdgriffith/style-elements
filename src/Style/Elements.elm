@@ -185,11 +185,11 @@ type alias Permissions =
 renderPermissions : Permissions -> String
 renderPermissions perm =
     if not perm.floats && not perm.inline then
-        " not-floatable not-inlineable"
+        "not-floatable not-inlineable"
     else if not perm.floats then
-        " not-floatable"
+        "not-floatable"
     else if not perm.inline then
-        " not-inlineable"
+        "not-inlineable"
     else
         ""
 
@@ -1179,7 +1179,7 @@ floatError =
     float: none !important;
 }
 .not-floatable > .floating {
-    border: 3px solid red;
+    border: 3px solid red; !important;
 }
 .not-floatable > .floating::after {
     display: block;
