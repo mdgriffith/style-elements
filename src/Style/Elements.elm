@@ -49,12 +49,20 @@ map fn el =
 type StyleDefinition
     = StyleDef
         { name : String
+        , tags : List String
         , style : List ( String, String )
         , modes :
             List StyleDefinition
         , keyframes :
             Maybe (List ( Float, List ( String, String ) ))
         }
+
+
+classNameAndTags : StyleDefinition -> String
+classNameAndTags def =
+    case def of
+        StyleDef { name, tags } ->
+            name ++ " " ++ String.join " " tags
 
 
 className : StyleDefinition -> String
@@ -67,14 +75,14 @@ className def =
 buildInline : Element msg -> Html.Html msg
 buildInline element =
     let
-        construct node attributes children ( parentStyle, childPermissions ) =
+        construct node attributes children parentStyle =
             let
                 ( builtChildren, childStyles ) =
                     List.foldl
                         (\child ( children, transitions ) ->
                             let
                                 ( builtChild, builtTransitions ) =
-                                    buildInlineChild childPermissions child
+                                    buildInlineChild child
                             in
                                 ( children ++ [ builtChild ]
                                 , transitions ++ builtTransitions
@@ -85,11 +93,12 @@ buildInline element =
 
                 ( className, renderedStyle, onlyTransitionsAndAnimations ) =
                     case parentStyle of
-                        StyleDef { name, style, modes, keyframes } ->
+                        StyleDef { name, tags, style, modes, keyframes } ->
                             ( name
                             , style
                             , StyleDef
                                 { name = name
+                                , tags = tags
                                 , style = []
                                 , modes = modes
                                 , keyframes = keyframes
@@ -100,12 +109,14 @@ buildInline element =
                     Html.node "style"
                         []
                         [ Html.text <|
-                            convertToCSS (onlyTransitionsAndAnimations :: childStyles)
+                            floatError
+                                ++ inlineError
+                                ++ convertToCSS (onlyTransitionsAndAnimations :: childStyles)
                         ]
             in
                 Html.node
                     node
-                    (Svg.Attributes.class className :: Html.Attributes.style renderedStyle :: attributes)
+                    (Svg.Attributes.class (classNameAndTags parentStyle) :: Html.Attributes.style renderedStyle :: attributes)
                     (styleSheet :: builtChildren)
     in
         case element of
@@ -113,21 +124,21 @@ buildInline element =
                 html
 
             Element model ->
-                render model.style { floats = False, inline = False }
+                render model.style
                     |> construct model.node model.attributes model.children
 
 
-buildInlineChild : Permissions -> Element msg -> ( Html.Html msg, List StyleDefinition )
-buildInlineChild permissions element =
+buildInlineChild : Element msg -> ( Html.Html msg, List StyleDefinition )
+buildInlineChild element =
     let
-        construct node attributes children ( parentStyle, childPermissions ) =
+        construct node attributes children parentStyle =
             let
                 ( builtChildren, childStyle ) =
                     List.foldl
                         (\child ( children, transitions ) ->
                             let
                                 ( builtChild, builtStyle ) =
-                                    buildInlineChild childPermissions child
+                                    buildInlineChild child
                             in
                                 ( children ++ [ builtChild ]
                                 , transitions ++ builtStyle
@@ -138,10 +149,11 @@ buildInlineChild permissions element =
 
                 ( renderedStyle, onlyTransitionsAndAnimations ) =
                     case parentStyle of
-                        StyleDef { name, style, modes, keyframes } ->
+                        StyleDef { name, style, tags, modes, keyframes } ->
                             ( style
                             , StyleDef
                                 { name = name
+                                , tags = tags
                                 , style = []
                                 , modes = modes
                                 , keyframes = keyframes
@@ -150,7 +162,7 @@ buildInlineChild permissions element =
             in
                 ( Html.node
                     node
-                    (Svg.Attributes.class (className parentStyle) :: Html.Attributes.style renderedStyle :: attributes)
+                    (Svg.Attributes.class (classNameAndTags parentStyle) :: Html.Attributes.style renderedStyle :: attributes)
                     builtChildren
                 , onlyTransitionsAndAnimations :: childStyle
                 )
@@ -160,21 +172,39 @@ buildInlineChild permissions element =
                 ( html, [] )
 
             Element model ->
-                render model.style permissions
+                render model.style
                     |> construct model.node model.attributes model.children
+
+
+type alias Permissions =
+    { floats : Bool
+    , inline : Bool
+    }
+
+
+renderPermissions : Permissions -> String
+renderPermissions perm =
+    if not perm.floats && not perm.inline then
+        " not-floatable not-inlineable"
+    else if not perm.floats then
+        " not-floatable"
+    else if not perm.inline then
+        " not-inlineable"
+    else
+        ""
 
 
 build : Element msg -> Html.Html msg
 build element =
     let
-        construct node attributes children ( parentStyle, childPermissions ) =
+        construct node attributes children parentStyle =
             let
                 ( builtChildren, childStyles ) =
                     List.foldl
                         (\child ( children, transitions ) ->
                             let
                                 ( builtChild, builtTransitions ) =
-                                    buildChild childPermissions child
+                                    buildChild child
                             in
                                 ( children ++ [ builtChild ]
                                 , transitions ++ builtTransitions
@@ -187,12 +217,14 @@ build element =
                     Html.node "style"
                         []
                         [ Html.text <|
-                            convertToCSS (parentStyle :: childStyles)
+                            floatError
+                                ++ inlineError
+                                ++ convertToCSS (parentStyle :: childStyles)
                         ]
             in
                 Html.node
                     node
-                    (Svg.Attributes.class (className parentStyle) :: attributes)
+                    (Svg.Attributes.class (classNameAndTags parentStyle) :: attributes)
                     (styleSheet :: builtChildren)
     in
         case element of
@@ -200,21 +232,21 @@ build element =
                 html
 
             Element model ->
-                render model.style { floats = False, inline = False }
+                render model.style
                     |> construct model.node model.attributes model.children
 
 
-buildChild : Permissions -> Element msg -> ( Html.Html msg, List StyleDefinition )
-buildChild permissions element =
+buildChild : Element msg -> ( Html.Html msg, List StyleDefinition )
+buildChild element =
     let
-        construct node attributes children ( parentStyle, childPermissions ) =
+        construct node attributes children parentStyle =
             let
                 ( builtChildren, childStyle ) =
                     List.foldl
                         (\child ( children, transitions ) ->
                             let
                                 ( builtChild, builtStyle ) =
-                                    buildChild childPermissions child
+                                    buildChild child
                             in
                                 ( children ++ [ builtChild ]
                                 , transitions ++ builtStyle
@@ -225,7 +257,7 @@ buildChild permissions element =
             in
                 ( Html.node
                     node
-                    (Svg.Attributes.class (className parentStyle) :: attributes)
+                    (Svg.Attributes.class (classNameAndTags parentStyle) :: attributes)
                     builtChildren
                 , parentStyle :: childStyle
                 )
@@ -235,7 +267,7 @@ buildChild permissions element =
                 ( html, [] )
 
             Element model ->
-                render model.style permissions
+                render model.style
                     |> construct model.node model.attributes model.children
 
 
@@ -356,27 +388,20 @@ uniqueHelp f existing remaining =
     (,)
 
 
-type alias Permissions =
-    { floats : Bool
-    , inline : Bool
-    }
-
-
-render : Model -> Permissions -> ( StyleDefinition, Permissions )
-render style permissions =
+render : Model -> StyleDefinition
+render style =
     case style.visibility of
         Hidden ->
             let
                 renderedStyle =
                     [ "display" => "none" ]
             in
-                ( addClassName style.addClass
+                addClassName style.addClass
                     { style = renderedStyle
+                    , tags = []
                     , modes = []
                     , keyframes = Nothing
                     }
-                , { floats = False, inline = False }
-                )
 
         Transparent transparency ->
             let
@@ -388,7 +413,7 @@ render style permissions =
                         List.filterMap identity
                             [ Just <| layout
                             , Just <| renderPosition style.position
-                            , renderInline permissions.inline style.inline
+                            , renderInline style.inline
                             , Just
                                 [ "opacity" => toString (1.0 - transparency)
                                 , "width" => (renderLength style.width)
@@ -400,7 +425,7 @@ render style permissions =
                             , Just <| renderText style.text
                             , Just <| renderBorder style.border
                             , Maybe.map renderBackgroundImage style.backgroundImage
-                            , Maybe.map (renderFloating permissions.floats) style.float
+                            , Maybe.map renderFloating style.float
                             , listMaybeMap (renderShadow "box-shadow" False) style.shadows
                             , listMaybeMap (renderShadow "box-shadow" True) style.insetShadows
                             , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
@@ -412,24 +437,41 @@ render style permissions =
                                 Nothing
                             , Maybe.map renderAnimation style.animation
                             ]
+
+                restrictedTags =
+                    let
+                        floating =
+                            Maybe.map (\_ -> "floating") style.float
+
+                        inline =
+                            if style.inline then
+                                Just "inline"
+                            else
+                                Nothing
+
+                        permissions =
+                            Just <|
+                                renderPermissions childrenPermissions
+                    in
+                        List.filterMap identity [ permissions, inline, floating ]
             in
-                ( addClassName style.addClass
+                addClassName style.addClass
                     { style = renderedStyle
+                    , tags = restrictedTags
                     , modes =
                         StyleDef
                             { name = " > *"
                             , style = [ "margin" => childMargin ]
+                            , tags = []
                             , modes = []
                             , keyframes = Nothing
                             }
                             :: List.map renderCssTransitions style.transitions
                     , keyframes = Maybe.map renderAnimationKeyframes style.animation
                     }
-                , childrenPermissions
-                )
 
 
-addClassName mAdditionalNames { style, modes, keyframes } =
+addClassName mAdditionalNames { tags, style, modes, keyframes } =
     let
         styleString =
             List.map (\( name, value ) -> name ++ value) style
@@ -447,10 +489,11 @@ addClassName mAdditionalNames { style, modes, keyframes } =
                     hash (styleString ++ keyframeString ++ modesString)
 
                 Just addName ->
-                    hash (styleString ++ keyframeString ++ modesString) ++ "," ++ addName
+                    hash (styleString ++ keyframeString ++ modesString) ++ " " ++ addName
     in
         StyleDef
             { name = name
+            , tags = tags
             , style =
                 List.map
                     (\( pName, pValue ) ->
@@ -477,8 +520,8 @@ hash value =
         |> String.toLower
 
 
-renderVariation : Variation -> Permissions -> ( StyleDefinition, Permissions )
-renderVariation style permissions =
+renderVariation : Variation -> StyleDefinition
+renderVariation style =
     let
         ( layout, childMargin, childrenPermissions ) =
             Maybe.map renderLayout style.layout
@@ -489,7 +532,7 @@ renderVariation style permissions =
                 List.filterMap identity
                     [ Just layout
                     , Maybe.map renderPosition style.position
-                    , renderInline permissions.inline style.inline
+                    , renderInline style.inline
                     , Just <|
                         List.filterMap identity
                             [ Maybe.map (\w -> "width" => (renderLength w)) style.width
@@ -501,7 +544,7 @@ renderVariation style permissions =
                     , Maybe.map renderText style.text
                     , Maybe.map renderBorder style.border
                     , Maybe.map renderBackgroundImage style.backgroundImage
-                    , Maybe.map (renderFloating permissions.floats) style.float
+                    , Maybe.map renderFloating style.float
                     , listMaybeMap (renderShadow "box-shadow" False) style.shadows
                     , listMaybeMap (renderShadow "box-shadow" True) style.insetShadows
                     , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
@@ -514,12 +557,31 @@ renderVariation style permissions =
                         Nothing
                     , Maybe.map renderAnimation style.animation
                     ]
+
+        restrictedTags =
+            let
+                floating =
+                    Maybe.map (\_ -> "floating") style.float
+
+                inline =
+                    if style.inline then
+                        Just "inline"
+                    else
+                        Nothing
+
+                permissions =
+                    Just <|
+                        renderPermissions childrenPermissions
+            in
+                List.filterMap identity [ permissions, inline, floating ]
     in
-        ( addClassName Nothing
+        addClassName Nothing
             { style = renderedStyle
+            , tags = restrictedTags
             , modes =
                 StyleDef
                     { name = " > *"
+                    , tags = []
                     , style = [ "margin" => childMargin ]
                     , modes = []
                     , keyframes = Nothing
@@ -527,8 +589,6 @@ renderVariation style permissions =
                     :: List.map renderCssTransitions style.transitions
             , keyframes = Maybe.map renderAnimationKeyframes style.animation
             }
-        , childrenPermissions
-        )
 
 
 listMaybeMap : (List a -> b) -> List a -> Maybe b
@@ -545,13 +605,9 @@ renderAnimationKeyframes : Animation -> List ( Float, List ( String, String ) )
 renderAnimationKeyframes (Animation anim) =
     let
         renderAnimStep ( marker, styleDef ) =
-            let
-                ( rendered, _ ) =
-                    renderVariation styleDef { floats = False, inline = False }
-            in
-                case rendered of
-                    StyleDef { style } ->
-                        ( marker, style )
+            case renderVariation styleDef of
+                StyleDef { style } ->
+                    ( marker, style )
     in
         List.map renderAnimStep anim.steps
 
@@ -582,36 +638,22 @@ renderVisibility vis =
             [ "opacity" => toString (1.0 - transparency) ]
 
 
-renderInline : Bool -> Bool -> Maybe (List ( String, String ))
-renderInline permission inline =
+renderInline : Bool -> Maybe (List ( String, String ))
+renderInline inline =
     if inline then
-        if permission then
-            Just [ "display" => "inline-block" ]
-        else
-            let
-                _ =
-                    Debug.log "style-blocks" "Elements can only be inline if they are in a text layout."
-            in
-                Nothing
+        Just [ "display" => "inline-block" ]
     else
         Nothing
 
 
-renderFloating : Bool -> Floating -> List ( String, String )
-renderFloating permission floating =
-    if permission then
-        case floating of
-            FloatLeft ->
-                [ "float" => "left" ]
+renderFloating : Floating -> List ( String, String )
+renderFloating floating =
+    case floating of
+        FloatLeft ->
+            [ "float" => "left" ]
 
-            FloatRight ->
-                [ "float" => "right" ]
-    else
-        let
-            _ =
-                Debug.log "style-blocks" "Elements can only use float if they are in a text layout."
-        in
-            []
+        FloatRight ->
+            [ "float" => "right" ]
 
 
 renderBackgroundImage : BackgroundImage -> List ( String, String )
@@ -1117,13 +1159,50 @@ renderTransitionStyle style =
             ]
 
 
-{-| Produces valid css code.
+{-|
 -}
 renderCssTransitions : Transition -> StyleDefinition
 renderCssTransitions (Transition name targetStyle) =
     StyleDef
         { name = ":" ++ name
+        , tags = []
         , style = renderTransitionStyle targetStyle
         , modes = []
         , keyframes = Nothing
         }
+
+
+floatError : String
+floatError =
+    """
+.not-floatable > * {
+    float: none !important;
+}
+.not-floatable > .floating {
+    border: 3px solid red;
+}
+.not-floatable > .floating::after {
+    display: block;
+    content: 'Floating Elements can only be in Text Layouts';
+    color: black;
+    background-color: red;
+}
+"""
+
+
+inlineError : String
+inlineError =
+    """
+.not-inlineable > * {
+    float: none !important;
+}
+.not-inlineable > .inline {
+    border: 3px solid red;
+}
+.not-inlineable > .inline::after {
+    display: block;
+    content: 'Inline Elements can only be in Text Layouts';
+    color: black;
+    background-color: red;
+}
+"""
