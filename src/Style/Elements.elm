@@ -67,14 +67,14 @@ className def =
 buildInline : Element msg -> Html.Html msg
 buildInline element =
     let
-        construct node attributes children ( parentStyle, childMargin, childPermissions ) =
+        construct node attributes children ( parentStyle, childPermissions ) =
             let
                 ( builtChildren, childStyles ) =
                     List.foldl
                         (\child ( children, transitions ) ->
                             let
                                 ( builtChild, builtTransitions ) =
-                                    buildInlineChild childPermissions childMargin child
+                                    buildInlineChild childPermissions child
                             in
                                 ( children ++ [ builtChild ]
                                 , transitions ++ builtTransitions
@@ -113,21 +113,21 @@ buildInline element =
                 html
 
             Element model ->
-                render model.style { floats = False, inline = False } Nothing
+                render model.style { floats = False, inline = False }
                     |> construct model.node model.attributes model.children
 
 
-buildInlineChild : Permissions -> List ( String, String ) -> Element msg -> ( Html.Html msg, List StyleDefinition )
-buildInlineChild permissions inherited element =
+buildInlineChild : Permissions -> Element msg -> ( Html.Html msg, List StyleDefinition )
+buildInlineChild permissions element =
     let
-        construct node attributes children ( parentStyle, childMargin, childPermissions ) =
+        construct node attributes children ( parentStyle, childPermissions ) =
             let
                 ( builtChildren, childStyle ) =
                     List.foldl
                         (\child ( children, transitions ) ->
                             let
                                 ( builtChild, builtStyle ) =
-                                    buildInlineChild childPermissions childMargin child
+                                    buildInlineChild childPermissions child
                             in
                                 ( children ++ [ builtChild ]
                                 , transitions ++ builtStyle
@@ -160,21 +160,21 @@ buildInlineChild permissions inherited element =
                 ( html, [] )
 
             Element model ->
-                render model.style permissions (Just inherited)
+                render model.style permissions
                     |> construct model.node model.attributes model.children
 
 
 build : Element msg -> Html.Html msg
 build element =
     let
-        construct node attributes children ( parentStyle, childMargin, childPermissions ) =
+        construct node attributes children ( parentStyle, childPermissions ) =
             let
                 ( builtChildren, childStyles ) =
                     List.foldl
                         (\child ( children, transitions ) ->
                             let
                                 ( builtChild, builtTransitions ) =
-                                    buildChild childPermissions childMargin child
+                                    buildChild childPermissions child
                             in
                                 ( children ++ [ builtChild ]
                                 , transitions ++ builtTransitions
@@ -200,21 +200,21 @@ build element =
                 html
 
             Element model ->
-                render model.style { floats = False, inline = False } Nothing
+                render model.style { floats = False, inline = False }
                     |> construct model.node model.attributes model.children
 
 
-buildChild : Permissions -> List ( String, String ) -> Element msg -> ( Html.Html msg, List StyleDefinition )
-buildChild permissions inherited element =
+buildChild : Permissions -> Element msg -> ( Html.Html msg, List StyleDefinition )
+buildChild permissions element =
     let
-        construct node attributes children ( parentStyle, childMargin, childPermissions ) =
+        construct node attributes children ( parentStyle, childPermissions ) =
             let
                 ( builtChildren, childStyle ) =
                     List.foldl
                         (\child ( children, transitions ) ->
                             let
                                 ( builtChild, builtStyle ) =
-                                    buildChild childPermissions childMargin child
+                                    buildChild childPermissions child
                             in
                                 ( children ++ [ builtChild ]
                                 , transitions ++ builtStyle
@@ -235,7 +235,7 @@ buildChild permissions inherited element =
                 ( html, [] )
 
             Element model ->
-                render model.style permissions (Just inherited)
+                render model.style permissions
                     |> construct model.node model.attributes model.children
 
 
@@ -362,8 +362,8 @@ type alias Permissions =
     }
 
 
-render : Model -> Permissions -> Maybe (List ( String, String )) -> ( StyleDefinition, List ( String, String ), Permissions )
-render style permissions inherited =
+render : Model -> Permissions -> ( StyleDefinition, Permissions )
+render style permissions =
     case style.visibility of
         Hidden ->
             let
@@ -375,7 +375,6 @@ render style permissions inherited =
                     , modes = []
                     , keyframes = Nothing
                     }
-                , []
                 , { floats = False, inline = False }
                 )
 
@@ -411,16 +410,21 @@ render style permissions inherited =
                                 Just cssTransitions
                               else
                                 Nothing
-                            , inherited
                             , Maybe.map renderAnimation style.animation
                             ]
             in
                 ( addClassName style.addClass
                     { style = renderedStyle
-                    , modes = List.map renderCssTransitions style.transitions
+                    , modes =
+                        StyleDef
+                            { name = " > *"
+                            , style = [ "margin" => childMargin ]
+                            , modes = []
+                            , keyframes = Nothing
+                            }
+                            :: List.map renderCssTransitions style.transitions
                     , keyframes = Maybe.map renderAnimationKeyframes style.animation
                     }
-                , [ "margin" => childMargin ]
                 , childrenPermissions
                 )
 
@@ -473,8 +477,8 @@ hash value =
         |> String.toLower
 
 
-renderVariation : Variation -> Permissions -> Maybe (List ( String, String )) -> ( StyleDefinition, List ( String, String ), Permissions )
-renderVariation style permissions inherited =
+renderVariation : Variation -> Permissions -> ( StyleDefinition, Permissions )
+renderVariation style permissions =
     let
         ( layout, childMargin, childrenPermissions ) =
             Maybe.map renderLayout style.layout
@@ -508,16 +512,21 @@ renderVariation style permissions inherited =
                         Just cssTransitions
                       else
                         Nothing
-                    , inherited
                     , Maybe.map renderAnimation style.animation
                     ]
     in
         ( addClassName Nothing
             { style = renderedStyle
-            , modes = List.map renderCssTransitions style.transitions
+            , modes =
+                StyleDef
+                    { name = " > *"
+                    , style = [ "margin" => childMargin ]
+                    , modes = []
+                    , keyframes = Nothing
+                    }
+                    :: List.map renderCssTransitions style.transitions
             , keyframes = Maybe.map renderAnimationKeyframes style.animation
             }
-        , [ "margin" => childMargin ]
         , childrenPermissions
         )
 
@@ -537,8 +546,8 @@ renderAnimationKeyframes (Animation anim) =
     let
         renderAnimStep ( marker, styleDef ) =
             let
-                ( rendered, _, _ ) =
-                    renderVariation styleDef { floats = False, inline = False } Nothing
+                ( rendered, _ ) =
+                    renderVariation styleDef { floats = False, inline = False }
             in
                 case rendered of
                     StyleDef { style } ->
