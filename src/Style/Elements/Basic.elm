@@ -8,18 +8,17 @@ import Style.Elements exposing (..)
 
 {-| Flow child elements horizontally and center them.
 -}
-centered : List (Html.Attribute msg) -> List (Element msg) -> Element msg
+centered : Style.Model
 centered =
-    elementAs "centered"
-        { empty
-            | layout =
-                flowRight
-                    { wrap = True
-                    , spacing = all 10
-                    , horizontal = alignCenter
-                    , vertical = verticalCenter
-                    }
-        }
+    { empty
+        | layout =
+            flowRight
+                { wrap = True
+                , spacing = all 10
+                , horizontal = alignCenter
+                , vertical = verticalCenter
+                }
+    }
 
 
 {-| Flow child elements horizontally, but have them keep to the edges.
@@ -61,50 +60,65 @@ fontSizes =
 {-| -}
 text : String -> Element msg
 text str =
-    html (Html.text str)
+    html (\_ _ -> Html.text str) [] []
 
 
 {-| -}
 i : String -> Element msg
 i str =
-    html <|
+    html
         Html.i
-            [ Html.Attributes.style [ ( "font-style", "italic" ) ] ]
-            [ Html.text str ]
+        [ Html.Attributes.style [ ( "font-style", "italic" ) ] ]
+        [ text str ]
 
 
 {-| -}
 b : String -> Element msg
 b str =
-    html <|
+    html
         Html.b
-            [ Html.Attributes.style [ ( "font-weight", "bold" ) ] ]
-            [ Html.text str ]
+        [ Html.Attributes.style [ ( "font-weight", "bold" ) ] ]
+        [ text str ]
 
 
 {-| -}
 break : Element msg
 break =
-    html (Html.br [] [])
+    html Html.br [] []
 
 
 {-| -}
 line : Element msg
 line =
-    html (Html.hr [ Html.Attributes.style [ ( "height", "1px" ), ( "border", "none" ), ( "background-color", "#ddd" ) ] ] [])
+    html
+        Html.hr
+        [ Html.Attributes.style
+            [ ( "height", "1px" )
+            , ( "border", "none" )
+            , ( "background-color", "#ddd" )
+            ]
+        ]
+        []
 
 
 {-| -}
 dottedList : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 dottedList attrs children =
-    html <|
-        Html.ul attrs
-            (List.map (\child -> Html.li [] [ Style.Elements.build child ]) children)
+    html
+        Html.ul
+        attrs
+        (List.map (\child -> html Html.li [] [ child ]) children)
 
 
 {-| -}
 numberedList : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 numberedList attrs children =
-    html <|
-        Html.ol attrs
-            (List.map (\child -> Html.li [] [ Style.Elements.build child ]) children)
+    html
+        Html.ol
+        attrs
+        (List.map
+            (\child ->
+                html Html.li [] [ child ]
+            )
+            children
+        )

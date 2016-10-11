@@ -843,6 +843,7 @@ empty =
     , filters = []
     , transitions = []
     , animation = Nothing
+    , additional = []
     }
 
 
@@ -868,6 +869,7 @@ variation =
     , filters = []
     , transitions = []
     , animation = Nothing
+    , additional = []
     }
 
 

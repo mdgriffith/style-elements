@@ -7,14 +7,20 @@ import Color exposing (Color)
 import Time exposing (Time)
 
 
-type Element msg
-    = Element
-        { style : Model
-        , node : String
-        , attributes : List (Html.Attribute msg)
-        , children : List (Element msg)
+type alias Element msg =
+    ( List StyleDefinition, Html.Html msg )
+
+
+type StyleDefinition
+    = StyleDef
+        { name : String
+        , tags : List String
+        , style : List ( String, String )
+        , modes :
+            List StyleDefinition
+        , keyframes :
+            Maybe (List ( Float, List ( String, String ) ))
         }
-    | Html (Html.Html msg)
 
 
 {-| -}
@@ -38,6 +44,7 @@ type alias Model =
     , insetShadows : List Shadow
     , transforms : List Transform
     , filters : List Filter
+    , additional : List ( String, String )
     , transitions : List Transition
     , animation : Maybe Animation
     }
@@ -68,6 +75,7 @@ type alias Variation =
     , insetShadows : List Shadow
     , transforms : List Transform
     , filters : List Filter
+    , additional : List ( String, String )
     , transitions : List Transition
     , animation : Maybe Animation
     }

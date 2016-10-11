@@ -1,4 +1,4 @@
-module Style.Elements exposing (map, html, element, elementAs, build, buildInline)
+module Style.Elements exposing (html, element, elementAs, build, buildAs)
 
 import String
 import Char
@@ -11,51 +11,37 @@ import Html.Attributes
 import Style.Model exposing (..)
 
 
-html : Html.Html msg -> Element msg
-html node =
-    Html node
+html : (List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+html node attrs elements =
+    let
+        ( styles, children ) =
+            List.unzip elements
+    in
+        ( List.concat styles
+        , node attrs children
+        )
 
 
 element : Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
-element styleModel attrs content =
-    Element
-        { style = styleModel
-        , node = "div"
-        , attributes = attrs
-        , children = content
-        }
+element =
+    elementAs "div"
 
 
 elementAs : String -> Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
-elementAs node styleModel attrs content =
-    Element
-        { style = styleModel
-        , node = node
-        , attributes = attrs
-        , children = content
-        }
+elementAs node styleModel attrs elements =
+    let
+        ( className, styleDef ) =
+            render styleModel
 
+        ( childrenStyles, children ) =
+            List.unzip elements
 
-map : (Model -> Model) -> Element msg -> Element msg
-map fn el =
-    case el of
-        Element props ->
-            Element { props | style = fn props.style }
-
-        _ ->
-            el
-
-
-type StyleDefinition
-    = StyleDef
-        { name : String
-        , tags : List String
-        , style : List ( String, String )
-        , modes :
-            List StyleDefinition
-        , keyframes :
-            Maybe (List ( Float, List ( String, String ) ))
-        }
+        allStyles =
+            styleDef :: List.concat childrenStyles
+    in
+        ( allStyles
+        , Html.node node (Svg.Attributes.class className :: attrs) children
+        )
 
 
 classNameAndTags : StyleDefinition -> String
@@ -70,110 +56,6 @@ className def =
     case def of
         StyleDef { name } ->
             name
-
-
-buildInline : Element msg -> Html.Html msg
-buildInline element =
-    let
-        construct node attributes children parentStyle =
-            let
-                ( builtChildren, childStyles ) =
-                    List.foldl
-                        (\child ( children, transitions ) ->
-                            let
-                                ( builtChild, builtTransitions ) =
-                                    buildInlineChild child
-                            in
-                                ( children ++ [ builtChild ]
-                                , transitions ++ builtTransitions
-                                )
-                        )
-                        ( [], [] )
-                        children
-
-                ( className, renderedStyle, onlyTransitionsAndAnimations ) =
-                    case parentStyle of
-                        StyleDef { name, tags, style, modes, keyframes } ->
-                            ( name
-                            , style
-                            , StyleDef
-                                { name = name
-                                , tags = tags
-                                , style = []
-                                , modes = modes
-                                , keyframes = keyframes
-                                }
-                            )
-
-                styleSheet =
-                    Html.node "style"
-                        []
-                        [ Html.text <|
-                            floatError
-                                ++ inlineError
-                                ++ convertToCSS (onlyTransitionsAndAnimations :: childStyles)
-                        ]
-            in
-                Html.node
-                    node
-                    (Svg.Attributes.class (classNameAndTags parentStyle) :: Html.Attributes.style renderedStyle :: attributes)
-                    (styleSheet :: builtChildren)
-    in
-        case element of
-            Html html ->
-                html
-
-            Element model ->
-                render model.style
-                    |> construct model.node model.attributes model.children
-
-
-buildInlineChild : Element msg -> ( Html.Html msg, List StyleDefinition )
-buildInlineChild element =
-    let
-        construct node attributes children parentStyle =
-            let
-                ( builtChildren, childStyle ) =
-                    List.foldl
-                        (\child ( children, transitions ) ->
-                            let
-                                ( builtChild, builtStyle ) =
-                                    buildInlineChild child
-                            in
-                                ( children ++ [ builtChild ]
-                                , transitions ++ builtStyle
-                                )
-                        )
-                        ( [], [] )
-                        children
-
-                ( renderedStyle, onlyTransitionsAndAnimations ) =
-                    case parentStyle of
-                        StyleDef { name, style, tags, modes, keyframes } ->
-                            ( style
-                            , StyleDef
-                                { name = name
-                                , tags = tags
-                                , style = []
-                                , modes = modes
-                                , keyframes = keyframes
-                                }
-                            )
-            in
-                ( Html.node
-                    node
-                    (Svg.Attributes.class (classNameAndTags parentStyle) :: Html.Attributes.style renderedStyle :: attributes)
-                    builtChildren
-                , onlyTransitionsAndAnimations :: childStyle
-                )
-    in
-        case element of
-            Html html ->
-                ( html, [] )
-
-            Element model ->
-                render model.style
-                    |> construct model.node model.attributes model.children
 
 
 type alias Permissions =
@@ -194,81 +76,135 @@ renderPermissions perm =
         ""
 
 
-build : Element msg -> Html.Html msg
-build element =
-    let
-        construct node attributes children parentStyle =
-            let
-                ( builtChildren, childStyles ) =
-                    List.foldl
-                        (\child ( children, transitions ) ->
-                            let
-                                ( builtChild, builtTransitions ) =
-                                    buildChild child
-                            in
-                                ( children ++ [ builtChild ]
-                                , transitions ++ builtTransitions
-                                )
-                        )
-                        ( [], [] )
-                        children
+build : Model -> List (Html.Attribute msg) -> List ( List StyleDefinition, Html.Html msg ) -> Html.Html msg
+build =
+    buildAs "div"
 
-                styleSheet =
-                    Html.node "style"
-                        []
-                        [ Html.text <|
-                            floatError
-                                ++ inlineError
-                                ++ convertToCSS (parentStyle :: childStyles)
-                        ]
-            in
-                Html.node
-                    node
-                    (Svg.Attributes.class (classNameAndTags parentStyle) :: attributes)
-                    (styleSheet :: builtChildren)
+
+buildAs : String -> Model -> List (Html.Attribute msg) -> List ( List StyleDefinition, Html.Html msg ) -> Html.Html msg
+buildAs node styleModel attrs elements =
+    let
+        ( className, style ) =
+            render styleModel
+
+        ( childStyles, children ) =
+            List.unzip elements
+
+        allStyles =
+            style
+                :: List.concat childStyles
+                |> convertToCSS
+
+        stylesheet =
+            Html.node "style"
+                []
+                [ Html.text <|
+                    floatError
+                        ++ inlineError
+                        ++ allStyles
+                ]
     in
-        case element of
-            Html html ->
-                html
-
-            Element model ->
-                render model.style
-                    |> construct model.node model.attributes model.children
+        Html.node node
+            (Svg.Attributes.class className :: attrs)
+            (stylesheet :: children)
 
 
-buildChild : Element msg -> ( Html.Html msg, List StyleDefinition )
-buildChild element =
-    let
-        construct node attributes children parentStyle =
+(=>) =
+    (,)
+
+
+render : Model -> ( String, StyleDefinition )
+render style =
+    case style.visibility of
+        Hidden ->
             let
-                ( builtChildren, childStyle ) =
-                    List.foldl
-                        (\child ( children, transitions ) ->
-                            let
-                                ( builtChild, builtStyle ) =
-                                    buildChild child
-                            in
-                                ( children ++ [ builtChild ]
-                                , transitions ++ builtStyle
-                                )
-                        )
-                        ( [], [] )
-                        children
+                renderedStyle =
+                    [ "display" => "none" ]
+
+                styleDefinition =
+                    addClassName style.addClass
+                        { style = renderedStyle
+                        , tags = []
+                        , modes = []
+                        , keyframes = Nothing
+                        }
             in
-                ( Html.node
-                    node
-                    (Svg.Attributes.class (classNameAndTags parentStyle) :: attributes)
-                    builtChildren
-                , parentStyle :: childStyle
+                ( classNameAndTags styleDefinition
+                , styleDefinition
                 )
-    in
-        case element of
-            Html html ->
-                ( html, [] )
 
-            Element model ->
-                render model.style
-                    |> construct model.node model.attributes model.children
+        Transparent transparency ->
+            let
+                ( layout, childMargin, childrenPermissions ) =
+                    renderLayout style.layout
+
+                renderedStyle =
+                    List.concat <|
+                        List.filterMap identity
+                            [ Just <| layout
+                            , Just <| renderPosition style.position
+                            , renderInline style.inline
+                            , Just
+                                [ "opacity" => toString (1.0 - transparency)
+                                , "width" => (renderLength style.width)
+                                , "height" => (renderLength style.height)
+                                , "cursor" => style.cursor
+                                , "padding" => render4tuplePx style.padding
+                                ]
+                            , Just <| renderColors style.colors
+                            , Just <| renderText style.text
+                            , Just <| renderBorder style.border
+                            , Maybe.map renderBackgroundImage style.backgroundImage
+                            , Maybe.map renderFloating style.float
+                            , listMaybeMap (renderShadow "box-shadow" False) style.shadows
+                            , listMaybeMap (renderShadow "box-shadow" True) style.insetShadows
+                            , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
+                            , listMaybeMap renderFilters style.filters
+                            , listMaybeMap renderTransforms style.transforms
+                            , listMaybeMap identity style.additional
+                            , if not <| List.isEmpty style.transitions then
+                                Just cssTransitions
+                              else
+                                Nothing
+                            , Maybe.map renderAnimation style.animation
+                            ]
+
+                restrictedTags =
+                    let
+                        floating =
+                            Maybe.map (\_ -> "floating") style.float
+
+                        inline =
+                            if style.inline then
+                                Just "inline"
+                            else
+                                Nothing
+
+                        permissions =
+                            Just <|
+                                renderPermissions childrenPermissions
+                    in
+                        List.filterMap identity [ permissions, inline, floating ]
+
+                styleDefinition =
+                    addClassName style.addClass
+                        { style = renderedStyle
+                        , tags = restrictedTags
+                        , modes =
+                            StyleDef
+                                { name = " > *"
+                                , style = [ "margin" => childMargin ]
+                                , tags = []
+                                , modes = []
+                                , keyframes = Nothing
+                                }
+                                :: List.map renderCssTransitions style.transitions
+                        , keyframes = Maybe.map renderAnimationKeyframes style.animation
+                        }
+            in
+                ( classNameAndTags styleDefinition
+                , styleDefinition
+                )
 
 
 convertToCSS : List StyleDefinition -> String
@@ -301,10 +237,7 @@ convertToCSS styles =
             |> String.trim
 
 
-
---convertKeyframesToCSS
-
-
+convertKeyframesToCSS : String -> Maybe (List ( Float, List ( String, String ) )) -> String
 convertKeyframesToCSS name keyframes =
     case keyframes of
         Nothing ->
@@ -334,10 +267,7 @@ convertKeyframesToCSS name keyframes =
                 ++ "}\n"
 
 
-
---convertModesToCSS :
-
-
+convertModesToCSS : String -> List StyleDefinition -> String
 convertModesToCSS name modes =
     String.join "\n" <|
         List.map
@@ -351,7 +281,7 @@ convertModesToCSS name modes =
                             ++ (String.concat <|
                                     List.map
                                         (\( propName, propValue ) ->
-                                            "  " ++ propName ++ ": " ++ propValue ++ " !important;\n"
+                                            "  " ++ propName ++ ": " ++ propValue ++ ";\n"
                                         )
                                         mode.style
                                )
@@ -384,93 +314,14 @@ uniqueHelp f existing remaining =
                     first :: uniqueHelp f (Set.insert computedFirst existing) rest
 
 
-(=>) =
-    (,)
-
-
-render : Model -> StyleDefinition
-render style =
-    case style.visibility of
-        Hidden ->
-            let
-                renderedStyle =
-                    [ "display" => "none" ]
-            in
-                addClassName style.addClass
-                    { style = renderedStyle
-                    , tags = []
-                    , modes = []
-                    , keyframes = Nothing
-                    }
-
-        Transparent transparency ->
-            let
-                ( layout, childMargin, childrenPermissions ) =
-                    renderLayout style.layout
-
-                renderedStyle =
-                    List.concat <|
-                        List.filterMap identity
-                            [ Just <| layout
-                            , Just <| renderPosition style.position
-                            , renderInline style.inline
-                            , Just
-                                [ "opacity" => toString (1.0 - transparency)
-                                , "width" => (renderLength style.width)
-                                , "height" => (renderLength style.height)
-                                , "cursor" => style.cursor
-                                , "padding" => render4tuplePx style.padding
-                                ]
-                            , Just <| renderColors style.colors
-                            , Just <| renderText style.text
-                            , Just <| renderBorder style.border
-                            , Maybe.map renderBackgroundImage style.backgroundImage
-                            , Maybe.map renderFloating style.float
-                            , listMaybeMap (renderShadow "box-shadow" False) style.shadows
-                            , listMaybeMap (renderShadow "box-shadow" True) style.insetShadows
-                            , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
-                            , listMaybeMap renderFilters style.filters
-                            , listMaybeMap renderTransforms style.transforms
-                            , if not <| List.isEmpty style.transitions then
-                                Just cssTransitions
-                              else
-                                Nothing
-                            , Maybe.map renderAnimation style.animation
-                            ]
-
-                restrictedTags =
-                    let
-                        floating =
-                            Maybe.map (\_ -> "floating") style.float
-
-                        inline =
-                            if style.inline then
-                                Just "inline"
-                            else
-                                Nothing
-
-                        permissions =
-                            Just <|
-                                renderPermissions childrenPermissions
-                    in
-                        List.filterMap identity [ permissions, inline, floating ]
-            in
-                addClassName style.addClass
-                    { style = renderedStyle
-                    , tags = restrictedTags
-                    , modes =
-                        StyleDef
-                            { name = " > *"
-                            , style = [ "margin" => childMargin ]
-                            , tags = []
-                            , modes = []
-                            , keyframes = Nothing
-                            }
-                            :: List.map renderCssTransitions style.transitions
-                    , keyframes = Maybe.map renderAnimationKeyframes style.animation
-                    }
-
-
+addClassName :
+    Maybe String
+    -> { keyframes : Maybe (List ( Float, List ( String, String ) ))
+       , modes : List StyleDefinition
+       , style : List ( String, String )
+       , tags : List String
+       }
+    -> StyleDefinition
 addClassName mAdditionalNames { tags, style, modes, keyframes } =
     let
         styleString =
@@ -520,7 +371,7 @@ hash value =
         |> String.toLower
 
 
-renderVariation : Variation -> StyleDefinition
+renderVariation : Variation -> ( String, StyleDefinition )
 renderVariation style =
     let
         ( layout, childMargin, childrenPermissions ) =
@@ -550,6 +401,7 @@ renderVariation style =
                     , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
                     , listMaybeMap renderFilters style.filters
                     , listMaybeMap renderTransforms style.transforms
+                    , listMaybeMap identity style.additional
                     , Maybe.map renderVisibility style.visibility
                     , if not <| List.isEmpty style.transitions then
                         Just cssTransitions
@@ -574,21 +426,26 @@ renderVariation style =
                         renderPermissions childrenPermissions
             in
                 List.filterMap identity [ permissions, inline, floating ]
+
+        styleDefinition =
+            addClassName Nothing
+                { style = renderedStyle
+                , tags = restrictedTags
+                , modes =
+                    StyleDef
+                        { name = " > *"
+                        , tags = []
+                        , style = [ "margin" => childMargin ]
+                        , modes = []
+                        , keyframes = Nothing
+                        }
+                        :: List.map renderCssTransitions style.transitions
+                , keyframes = Maybe.map renderAnimationKeyframes style.animation
+                }
     in
-        addClassName Nothing
-            { style = renderedStyle
-            , tags = restrictedTags
-            , modes =
-                StyleDef
-                    { name = " > *"
-                    , tags = []
-                    , style = [ "margin" => childMargin ]
-                    , modes = []
-                    , keyframes = Nothing
-                    }
-                    :: List.map renderCssTransitions style.transitions
-            , keyframes = Maybe.map renderAnimationKeyframes style.animation
-            }
+        ( classNameAndTags styleDefinition
+        , styleDefinition
+        )
 
 
 listMaybeMap : (List a -> b) -> List a -> Maybe b
@@ -605,7 +462,7 @@ renderAnimationKeyframes : Animation -> List ( Float, List ( String, String ) )
 renderAnimationKeyframes (Animation anim) =
     let
         renderAnimStep ( marker, styleDef ) =
-            case renderVariation styleDef of
+            case snd (renderVariation styleDef) of
                 StyleDef { style } ->
                     ( marker, style )
     in
