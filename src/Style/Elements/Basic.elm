@@ -14,7 +14,6 @@ centered =
         | layout =
             flowRight
                 { wrap = True
-                , spacing = all 10
                 , horizontal = alignCenter
                 , vertical = verticalCenter
                 }
@@ -31,7 +30,6 @@ split =
             | layout =
                 flowRight
                     { wrap = True
-                    , spacing = all 10
                     , horizontal = alignCenter
                     , vertical = verticalCenter
                     }

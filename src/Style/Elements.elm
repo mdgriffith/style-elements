@@ -135,7 +135,7 @@ render style =
 
         Transparent transparency ->
             let
-                ( layout, childMargin, childrenPermissions ) =
+                ( layout, childrenPermissions ) =
                     renderLayout style.layout
 
                 renderedStyle =
@@ -156,9 +156,7 @@ render style =
                             , Just <| renderBorder style.border
                             , Maybe.map renderBackgroundImage style.backgroundImage
                             , Maybe.map renderFloating style.float
-                            , listMaybeMap (renderShadow "box-shadow" False) style.shadows
-                            , listMaybeMap (renderShadow "box-shadow" True) style.insetShadows
-                            , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
+                            , listMaybeMap renderShadow style.shadows
                             , listMaybeMap renderFilters style.filters
                             , listMaybeMap renderTransforms style.transforms
                             , listMaybeMap identity style.additional
@@ -193,7 +191,7 @@ render style =
                         , modes =
                             StyleDef
                                 { name = " > *"
-                                , style = [ "margin" => childMargin ]
+                                , style = [ "margin" => render4tuplePx style.spacing ]
                                 , tags = []
                                 , modes = []
                                 , keyframes = Nothing
@@ -374,73 +372,55 @@ hash value =
 renderVariation : Variation -> ( String, StyleDefinition )
 renderVariation style =
     let
-        ( layout, childMargin, childrenPermissions ) =
-            Maybe.map renderLayout style.layout
-                |> Maybe.withDefault ( [], "0px", { floats = False, inline = False } )
-
         renderedStyle =
             List.concat <|
                 List.filterMap identity
-                    [ Just layout
-                    , Maybe.map renderPosition style.position
-                    , renderInline style.inline
-                    , Just <|
+                    [ Just <|
                         List.filterMap identity
                             [ Maybe.map (\w -> "width" => (renderLength w)) style.width
                             , Maybe.map (\h -> "height" => (renderLength h)) style.height
                             , Maybe.map (\c -> "cursor" => c) style.cursor
                             , Maybe.map (\p -> "padding" => (render4tuplePx p)) style.padding
+                            , Maybe.map
+                                (\( x, y ) ->
+                                    "background-position" => (toString x ++ "px " ++ toString y ++ "px")
+                                )
+                                style.backgroundImagePosition
                             ]
                     , Maybe.map renderColors style.colors
                     , Maybe.map renderText style.text
                     , Maybe.map renderBorder style.border
-                    , Maybe.map renderBackgroundImage style.backgroundImage
-                    , Maybe.map renderFloating style.float
-                    , listMaybeMap (renderShadow "box-shadow" False) style.shadows
-                    , listMaybeMap (renderShadow "box-shadow" True) style.insetShadows
-                    , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
+                    , listMaybeMap renderShadow style.shadows
                     , listMaybeMap renderFilters style.filters
-                    , listMaybeMap renderTransforms style.transforms
+                    , case style.position of
+                        Nothing ->
+                            listMaybeMap renderTransforms style.transforms
+
+                        Just ( x, y ) ->
+                            Just <| renderTransforms (style.transforms ++ [ Translate x y 0 ])
                     , listMaybeMap identity style.additional
                     , Maybe.map renderVisibility style.visibility
-                    , if not <| List.isEmpty style.transitions then
-                        Just cssTransitions
-                      else
-                        Nothing
-                    , Maybe.map renderAnimation style.animation
                     ]
-
-        restrictedTags =
-            let
-                floating =
-                    Maybe.map (\_ -> "floating") style.float
-
-                inline =
-                    if style.inline then
-                        Just "inline"
-                    else
-                        Nothing
-
-                permissions =
-                    Just <|
-                        renderPermissions childrenPermissions
-            in
-                List.filterMap identity [ permissions, inline, floating ]
 
         styleDefinition =
             addClassName Nothing
                 { style = renderedStyle
-                , tags = restrictedTags
+                , tags = []
                 , modes =
-                    StyleDef
-                        { name = " > *"
-                        , tags = []
-                        , style = [ "margin" => childMargin ]
-                        , modes = []
-                        , keyframes = Nothing
-                        }
-                        :: List.map renderCssTransitions style.transitions
-                , keyframes = Maybe.map renderAnimationKeyframes style.animation
+                    case style.spacing of
+                        Nothing ->
+                            []
+
+                        Just spacing ->
+                            [ StyleDef
+                                { name = " > *"
+                                , tags = []
+                                , style = [ "margin" => render4tuplePx spacing ]
+                                , modes = []
+                                , keyframes = Nothing
+                                }
+                            ]
+                , keyframes = Nothing
                 }
     in
         ( classNameAndTags styleDefinition
@@ -618,22 +598,46 @@ filterToString filter =
             "sepia(" ++ toString x ++ "%)"
 
 
-renderShadow : String -> Bool -> List Shadow -> List ( String, String )
-renderShadow shadowName inset shadows =
-    [ shadowName => (String.join ", " (List.map (shadowValue inset) shadows)) ]
+renderShadow : List Shadow -> List ( String, String )
+renderShadow shadows =
+    let
+        ( text, box ) =
+            List.partition (\(Shadow s) -> s.kind == "text") shadows
+
+        renderedBox =
+            String.join ", " (List.map shadowValue box)
+
+        renderedText =
+            String.join ", " (List.map shadowValue text)
+    in
+        List.filterMap identity
+            [ if renderedBox == "" then
+                Nothing
+              else
+                Just <| ("box-shadow" => renderedBox)
+            , if renderedBox == "" then
+                Nothing
+              else
+                Just <| ("text-shadow" => renderedBox)
+            ]
 
 
-shadowValue : Bool -> Shadow -> String
-shadowValue inset { offset, size, blur, color } =
+shadowValue : Shadow -> String
+shadowValue (Shadow shadow) =
     String.join " "
-        [ if inset then
+        [ if shadow.kind == "inset" then
             "inset"
           else
             ""
-        , toString (fst offset) ++ "px"
-        , toString (snd offset) ++ "px"
-        , toString blur ++ "px"
-        , colorToString color
+        , toString (fst shadow.offset) ++ "px"
+        , toString (snd shadow.offset) ++ "px"
+        , toString shadow.blur ++ "px"
+        , (if shadow.kind == "text" then
+            ""
+           else
+            toString shadow.size ++ "px"
+          )
+        , colorToString shadow.color
         ]
 
 
@@ -815,20 +819,18 @@ renderPosition { relativeTo, anchor, position } =
                 ]
 
 
-renderLayout : Layout -> ( List ( String, String ), String, Permissions )
+renderLayout : Layout -> ( List ( String, String ), Permissions )
 renderLayout layout =
     case layout of
-        TextLayout { spacing } ->
+        TextLayout ->
             ( [ "display" => "block" ]
-            , render4tuplePx spacing
             , { floats = True
               , inline = True
               }
             )
 
-        TableLayout { spacing } ->
+        TableLayout ->
             ( [ "display" => "block" ]
-            , render4tuplePx spacing
             , { floats = False
               , inline = False
               }
@@ -977,7 +979,6 @@ renderLayout layout =
                             VStretch ->
                                 "align-items" => "stretch"
               ]
-            , render4tuplePx flex.spacing
             , { floats = False
               , inline = False
               }
@@ -1007,9 +1008,7 @@ renderTransitionStyle style =
             , Maybe.map renderColors style.colors
             , Maybe.map renderText style.text
             , Maybe.map renderBorder style.border
-            , listMaybeMap (renderShadow "box-shadow" False) style.shadows
-            , listMaybeMap (renderShadow "box-shadow" True) style.insetShadows
-            , listMaybeMap (renderShadow "text-shadow" False) style.textShadows
+            , listMaybeMap renderShadow style.shadows
             , listMaybeMap renderFilters style.filters
             , listMaybeMap renderTransforms style.transforms
             , Maybe.map renderVisibility style.visibility

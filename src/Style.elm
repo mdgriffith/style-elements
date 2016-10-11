@@ -15,10 +15,8 @@ module Style
         , Filter
         , Border
         , BorderStyle
-        , Table
         , Flow
         , Layout
-        , Textual
         , Text
         , Anchor
         , RelativeTo
@@ -102,6 +100,9 @@ module Style
         , animation
         , rotating
         , reverseRotating
+        , shadow
+        , insetShadow
+        , textShadow
         , empty
         , variation
         )
@@ -199,12 +200,6 @@ type alias BorderStyle =
 
 {-|
 -}
-type alias Table =
-    Style.Model.Table
-
-
-{-|
--}
 type alias Flexible =
     Style.Model.Flexible
 
@@ -213,12 +208,6 @@ type alias Flexible =
 -}
 type alias Layout =
     Style.Model.Layout
-
-
-{-|
--}
-type alias Textual =
-    Style.Model.Textual
 
 
 {-|
@@ -402,20 +391,19 @@ auto =
 
 
 {-| -}
-textLayout : Textual -> Layout
-textLayout t =
-    Style.Model.TextLayout t
+textLayout : Layout
+textLayout =
+    Style.Model.TextLayout
 
 
 {-| -}
-tableLayout : Table -> Layout
-tableLayout t =
-    Style.Model.TableLayout t
+tableLayout : Layout
+tableLayout =
+    Style.Model.TableLayout
 
 
 type alias Flow =
     { wrap : Bool
-    , spacing : ( Float, Float, Float, Float )
     , horizontal : Alignment
     , vertical : VerticalAlignment
     }
@@ -423,11 +411,10 @@ type alias Flow =
 
 {-| -}
 flowDown : Flow -> Layout
-flowDown { wrap, spacing, horizontal, vertical } =
+flowDown { wrap, horizontal, vertical } =
     Style.Model.FlexLayout
         { go = Style.Model.Down
         , wrap = wrap
-        , spacing = spacing
         , horizontal = horizontal
         , vertical = vertical
         }
@@ -435,11 +422,10 @@ flowDown { wrap, spacing, horizontal, vertical } =
 
 {-| -}
 flowUp : Flow -> Layout
-flowUp { wrap, spacing, horizontal, vertical } =
+flowUp { wrap, horizontal, vertical } =
     Style.Model.FlexLayout
         { go = Style.Model.Up
         , wrap = wrap
-        , spacing = spacing
         , horizontal = horizontal
         , vertical = vertical
         }
@@ -447,11 +433,10 @@ flowUp { wrap, spacing, horizontal, vertical } =
 
 {-| -}
 flowRight : Flow -> Layout
-flowRight { wrap, spacing, horizontal, vertical } =
+flowRight { wrap, horizontal, vertical } =
     Style.Model.FlexLayout
         { go = Style.Model.Right
         , wrap = wrap
-        , spacing = spacing
         , horizontal = horizontal
         , vertical = vertical
         }
@@ -459,11 +444,10 @@ flowRight { wrap, spacing, horizontal, vertical } =
 
 {-| -}
 flowLeft : Flow -> Layout
-flowLeft { wrap, spacing, horizontal, vertical } =
+flowLeft { wrap, horizontal, vertical } =
     Style.Model.FlexLayout
         { go = Style.Model.Left
         , wrap = wrap
-        , spacing = spacing
         , horizontal = horizontal
         , vertical = vertical
         }
@@ -701,6 +685,55 @@ opacity x =
     Style.Model.Transparent (1.0 - x)
 
 
+shadow :
+    { offset : ( Float, Float )
+    , size : Float
+    , blur : Float
+    , color : Color.Color
+    }
+    -> Shadow
+shadow { offset, size, blur, color } =
+    Style.Model.Shadow
+        { kind = "box"
+        , offset = offset
+        , size = size
+        , blur = blur
+        , color = color
+        }
+
+
+insetShadow :
+    { offset : ( Float, Float )
+    , blur : Float
+    , color : Color.Color
+    }
+    -> Shadow
+insetShadow { offset, blur, color } =
+    Style.Model.Shadow
+        { kind = "inset"
+        , offset = offset
+        , size = 0
+        , blur = blur
+        , color = color
+        }
+
+
+textShadow :
+    { offset : ( Float, Float )
+    , blur : Float
+    , color : Color.Color
+    }
+    -> Shadow
+textShadow { offset, blur, color } =
+    Style.Model.Shadow
+        { kind = "text"
+        , offset = offset
+        , size = 0
+        , blur = blur
+        , color = color
+        }
+
+
 {-| Units always given as radians.
 
 Use `x * deg` if you want to use a different set of units.
@@ -801,7 +834,7 @@ animation anim =
 empty : Model
 empty =
     { addClass = Nothing
-    , layout = textLayout { spacing = all 0 }
+    , layout = textLayout
     , visibility = visible
     , position =
         { relativeTo = currentPosition
@@ -833,12 +866,11 @@ empty =
     , width = auto
     , height = auto
     , padding = all 0
+    , spacing = all 0
     , float = Nothing
     , inline = False
     , backgroundImage = Nothing
-    , textShadows = []
     , shadows = []
-    , insetShadows = []
     , transforms = []
     , filters = []
     , transitions = []
@@ -849,8 +881,7 @@ empty =
 
 variation : Variation
 variation =
-    { layout = Nothing
-    , visibility = Nothing
+    { visibility = Nothing
     , position = Nothing
     , colors = Nothing
     , text = Nothing
@@ -859,16 +890,11 @@ variation =
     , width = Nothing
     , height = Nothing
     , padding = Nothing
-    , float = Nothing
-    , inline = False
-    , backgroundImage = Nothing
-    , textShadows = []
+    , spacing = Nothing
+    , backgroundImagePosition = Nothing
     , shadows = []
-    , insetShadows = []
     , transforms = []
     , filters = []
-    , transitions = []
-    , animation = Nothing
     , additional = []
     }
 

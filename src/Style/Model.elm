@@ -33,6 +33,7 @@ type alias Model =
     , width : Length
     , height : Length
     , colors : Colors
+    , spacing : ( Float, Float, Float, Float )
     , padding : ( Float, Float, Float, Float )
     , text : Text
     , border : Border
@@ -40,8 +41,6 @@ type alias Model =
     , float : Maybe Floating
     , inline : Bool
     , shadows : List Shadow
-    , textShadows : List Shadow
-    , insetShadows : List Shadow
     , transforms : List Transform
     , filters : List Filter
     , additional : List ( String, String )
@@ -57,27 +56,21 @@ This is used to construct the target style for animations and transitions.
 
 -}
 type alias Variation =
-    { layout : Maybe Layout
-    , visibility : Maybe Visibility
-    , position : Maybe Position
+    { visibility : Maybe Visibility
+    , position : Maybe ( Float, Float )
     , cursor : Maybe String
     , width : Maybe Length
     , height : Maybe Length
     , colors : Maybe Colors
     , padding : Maybe ( Float, Float, Float, Float )
+    , spacing : Maybe ( Float, Float, Float, Float )
     , text : Maybe Text
     , border : Maybe Border
-    , backgroundImage : Maybe BackgroundImage
-    , float : Maybe Floating
-    , inline : Bool
+    , backgroundImagePosition : Maybe ( Float, Float )
     , shadows : List Shadow
-    , textShadows : List Shadow
-    , insetShadows : List Shadow
     , transforms : List Transform
     , filters : List Filter
     , additional : List ( String, String )
-    , transitions : List Transition
-    , animation : Maybe Animation
     }
 
 
@@ -189,27 +182,14 @@ type Length
 {-| -}
 type Layout
     = FlexLayout Flexible
-    | TextLayout Textual
-    | TableLayout Table
-
-
-{-| -}
-type alias Table =
-    { spacing : ( Float, Float, Float, Float )
-    }
-
-
-{-| -}
-type alias Textual =
-    { spacing : ( Float, Float, Float, Float )
-    }
+    | TextLayout
+    | TableLayout
 
 
 {-| -}
 type alias Flexible =
     { go : Direction
     , wrap : Bool
-    , spacing : ( Float, Float, Float, Float )
     , horizontal : Alignment
     , vertical : VerticalAlignment
     }
@@ -290,12 +270,14 @@ type Whitespace
 
 
 {-| -}
-type alias Shadow =
-    { offset : ( Float, Float )
-    , size : Float
-    , blur : Float
-    , color : Color
-    }
+type Shadow
+    = Shadow
+        { kind : String
+        , offset : ( Float, Float )
+        , size : Float
+        , blur : Float
+        , color : Color
+        }
 
 
 {-| Border width and corners are always given in px
