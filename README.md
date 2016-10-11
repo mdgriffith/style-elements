@@ -1,50 +1,23 @@
-# Style Blocks
+# The Style Elements Library for Elm
 
+> This library is experimental.
 
+It's easy to write impossible css, styles that invalidate themselves, or break due to an obscure quirk.
 
+The style-elements library is an attempt to make the styling process more intuitive by only giving access to the good parts of css and limiting css's more mysterious behavior.  
 
-# Potential Features
- * Prepare custom elements
- * Keep track of all composit models
- *
+Instead of relying on `classes` and `ids` to associate your style to the nodes in your view, the `style-elements` library focuses on creating collections of styled elements that you can pull from.  While this may seem bizarre, the benefit is that your views look cleaner and more meaningful and we still maintain our ability to express style variations like we would with classes.
 
+For added polish, there is built-in support for css transitions and animations.
 
+## Getting Started
 
+Using this library generally falls into the following pattern.
 
+ 1. Establish a base style using the style-elements model.
+ 2. Create a collection of styled elements by binding variations of the base style to dom elements using the `Style.Elements.element` function.
+ 3. Build your view from that collection of styled elements
 
+Here's [a simple example]().
 
-## Criticism Points
-
-
-In the current system of using css or a less processor and html:
-
-There are multiple places you can compose styles.
-  * In the html itself by specifying multiple styles
-  * In the CSS using mixins if you're using LESS
-  * Accidentally, using inherited styles
-
-When there are multiple places for composition, this means that one will usually use some degree of all of them.  Or, use one if you're more principled.  The issue is that everyone will have different principles.
-
-
-
-Lets limit the places you can compose styles.
-
-
-
-# Common tasks that need to be expressed
-
-  [x] - Expressing Variations
-        - Slightly varying styles that vary depending on each other
-        - In your view, define which variation is being shown.
-            - Change depending on model
-        
-  [ ] - Media Queries?
-        - Must be rendered as a style sheet.
-
-  [x] - Convert to elm-style-animation
-
-  [ ] - Expressing Hover Styles
-
-
-
-When using flexbox, the parent detirmines the layout of the children.  It probably makes sense to have it specify "spacing" of children as well.  However this requires setting fields on both the parent and the children to get the spacing to look decent.
+Here's [a more complicated example with animations and patterns more common to real world applications]().
