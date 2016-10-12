@@ -1,5 +1,17 @@
 module Style.Elements exposing (html, element, elementAs, build, buildAs)
 
+{-|
+
+# Creating Elements
+
+@docs element, elementAs, html
+
+# Building the Stylesheet
+
+@docs build, buildAs
+
+-}
+
 import String
 import Char
 import Murmur3
@@ -7,10 +19,11 @@ import Color exposing (Color)
 import Html
 import Set exposing (Set)
 import Svg.Attributes
-import Html.Attributes
 import Style.Model exposing (..)
+import Style exposing (Model, Variation, Colors, Text, Element, Animation(..), Transition(..), Border, Position, BackgroundImage)
 
 
+{-| -}
 html : (List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 html node attrs elements =
     let
@@ -22,11 +35,16 @@ html node attrs elements =
         )
 
 
+{-| Turn a style into an element that can be used to build your view.  In this case, the element will be rendered as a div.
+
+-}
 element : Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 element =
     elementAs "div"
 
 
+{-| Specify your own html node to render the element as.
+-}
 elementAs : String -> Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 elementAs node styleModel attrs elements =
     let
@@ -76,11 +94,17 @@ renderPermissions perm =
         ""
 
 
+{-| Same as `element` except it will render all collected styles into an embedded stylesheet.  This needs to be at the top of all your elements for them to render correctly.
+
+If this seems unclear, check out the examples!
+
+-}
 build : Model -> List (Html.Attribute msg) -> List ( List StyleDefinition, Html.Html msg ) -> Html.Html msg
 build =
     buildAs "div"
 
 
+{-| -}
 buildAs : String -> Model -> List (Html.Attribute msg) -> List ( List StyleDefinition, Html.Html msg ) -> Html.Html msg
 buildAs node styleModel attrs elements =
     let
@@ -109,6 +133,7 @@ buildAs node styleModel attrs elements =
             (stylesheet :: children)
 
 
+(=>) : x -> y -> ( x, y )
 (=>) =
     (,)
 
@@ -184,19 +209,46 @@ render style =
                     in
                         List.filterMap identity [ permissions, inline, floating ]
 
-                styleDefinition =
-                    addClassName style.addClass
-                        { style = renderedStyle
-                        , tags = restrictedTags
-                        , modes =
-                            StyleDef
-                                { name = " > *"
+                childOverrides =
+                    case style.layout of
+                        TableLayout ->
+                            [ StyleDef
+                                { name = " > *:not(.inline)"
+                                , style =
+                                    [ "margin" => render4tuplePx style.spacing
+                                    , "display" => "table-row !important;"
+                                    ]
+                                , tags = []
+                                , modes = []
+                                , keyframes = Nothing
+                                }
+                            , StyleDef
+                                { name = " > * > *"
+                                , style =
+                                    [ "display" => "table-cell !important;"
+                                    ]
+                                , tags = []
+                                , modes = []
+                                , keyframes = Nothing
+                                }
+                            ]
+
+                        _ ->
+                            [ StyleDef
+                                { name = " > *:not(.inline)"
                                 , style = [ "margin" => render4tuplePx style.spacing ]
                                 , tags = []
                                 , modes = []
                                 , keyframes = Nothing
                                 }
-                                :: List.map renderCssTransitions style.transitions
+                            ]
+
+                styleDefinition =
+                    addClassName style.addClass
+                        { style = renderedStyle
+                        , tags = restrictedTags
+                        , modes =
+                            childOverrides ++ List.map renderCssTransitions style.transitions
                         , keyframes = Maybe.map renderAnimationKeyframes style.animation
                         }
             in
@@ -487,10 +539,28 @@ renderFloating : Floating -> List ( String, String )
 renderFloating floating =
     case floating of
         FloatLeft ->
-            [ "float" => "left" ]
+            [ "float" => "left"
+            , "margin-left" => "0px !important"
+              --, "margin-top" => "0px !important"
+            ]
 
         FloatRight ->
-            [ "float" => "right" ]
+            [ "float" => "right"
+            , "margin-right" => "0px !important"
+              --, "margin-top" => "0px !important"
+            ]
+
+        FloatLeftTop ->
+            [ "float" => "left"
+            , "margin-left" => "0px !important"
+            , "margin-top" => "0px !important"
+            ]
+
+        FloatRightTop ->
+            [ "float" => "right"
+            , "margin-right" => "0px !important"
+            , "margin-top" => "0px !important"
+            ]
 
 
 renderBackgroundImage : BackgroundImage -> List ( String, String )
@@ -541,11 +611,11 @@ transformToString transform =
         Rotate x y z ->
             "rotateX("
                 ++ toString x
-                ++ "deg) rotateY("
+                ++ "rad) rotateY("
                 ++ toString y
-                ++ "deg) rotateZ("
+                ++ "rad) rotateZ("
                 ++ toString z
-                ++ "deg)"
+                ++ "rad)"
 
         Scale x y z ->
             "scale3d("
@@ -830,13 +900,13 @@ renderLayout layout =
             )
 
         TableLayout ->
-            ( [ "display" => "block" ]
+            ( [ "display" => "table", "border-collapse" => "collapse" ]
             , { floats = False
               , inline = False
               }
             )
 
-        FlexLayout flex ->
+        FlexLayout (Flexible flex) ->
             ( [ "display" => "flex"
               , case flex.go of
                     Right ->

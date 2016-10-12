@@ -1,5 +1,14 @@
 module Style.Elements.Basic exposing (..)
 
+{-|
+
+@docs centered, split, fontSizes
+
+# Common Text Elements
+@docs text, i, b, break, line, dottedList, numberedList
+
+-}
+
 import Html
 import Html.Attributes
 import Style exposing (..)
@@ -15,25 +24,23 @@ centered =
             flowRight
                 { wrap = True
                 , horizontal = alignCenter
-                , vertical = verticalCenter
+                , vertical = alignTop
                 }
     }
 
 
 {-| Flow child elements horizontally, but have them keep to the edges.
-Good for nav bars with options on both sides
 -}
-split : List (Html.Attribute msg) -> List (Element msg) -> Element msg
+split : Style.Model
 split =
-    elementAs "split"
-        { empty
-            | layout =
-                flowRight
-                    { wrap = True
-                    , horizontal = alignCenter
-                    , vertical = verticalCenter
-                    }
-        }
+    { empty
+        | layout =
+            flowRight
+                { wrap = True
+                , horizontal = justify
+                , vertical = verticalCenter
+                }
+    }
 
 
 {-| Standard font sizes so you don't have to look them up.
@@ -66,7 +73,11 @@ i : String -> Element msg
 i str =
     html
         Html.i
-        [ Html.Attributes.style [ ( "font-style", "italic" ) ] ]
+        [ Html.Attributes.style
+            [ ( "font-style", "italic" )
+            ]
+        , Html.Attributes.class "inline"
+        ]
         [ text str ]
 
 
@@ -75,14 +86,18 @@ b : String -> Element msg
 b str =
     html
         Html.b
-        [ Html.Attributes.style [ ( "font-weight", "bold" ) ] ]
+        [ Html.Attributes.style
+            [ ( "font-weight", "bold" )
+            ]
+        , Html.Attributes.class "inline"
+        ]
         [ text str ]
 
 
 {-| -}
 break : Element msg
 break =
-    html Html.br [] []
+    html Html.br [ Html.Attributes.class "inline" ] []
 
 
 {-| -}
@@ -95,20 +110,23 @@ line =
             , ( "border", "none" )
             , ( "background-color", "#ddd" )
             ]
+        , Html.Attributes.class "inline"
         ]
         []
 
 
-{-| -}
+{-| An unordered list that sets all children as `li` elements.
+-}
 dottedList : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 dottedList attrs children =
     html
         Html.ul
         attrs
-        (List.map (\child -> html Html.li [] [ child ]) children)
+        (List.map (\child -> html Html.li [ Html.Attributes.class "inline" ] [ child ]) children)
 
 
-{-| -}
+{-| An ordered list that sets all children as `li` elements.
+-}
 numberedList : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 numberedList attrs children =
     html
@@ -116,7 +134,7 @@ numberedList attrs children =
         attrs
         (List.map
             (\child ->
-                html Html.li [] [ child ]
+                html Html.li [ Html.Attributes.class "inline" ] [ child ]
             )
             children
         )

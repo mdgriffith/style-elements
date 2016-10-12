@@ -6,21 +6,25 @@ module Style
         , Colors
         , Position
         , Shadow
-        , Transition
+        , Transition(..)
         , Visibility
         , TextDecoration
         , Alignment
         , VerticalAlignment
+        , BackgroundImage
         , Transform
         , Filter
+        , Floating
         , Border
         , BorderStyle
         , Flow
         , Layout
         , Text
+        , Whitespace
         , Anchor
         , RelativeTo
         , Repeat
+        , Animation(..)
         , flowUp
         , flowDown
         , flowRight
@@ -71,6 +75,8 @@ module Style
         , dashed
         , floatLeft
         , floatRight
+        , floatLeftTop
+        , floatRightTop
         , on
         , scale
         , translate
@@ -109,57 +115,319 @@ module Style
 
 {-| A different take on styling.
 
+@docs Model, empty
 
+@docs Variation, variation
+
+
+
+# Layouts
+
+Layouts affect how children are arranged.  It is one of the principles of the library that layout is mostly controlled by the parent element.
+
+
+
+@docs Layout, textLayout, tableLayout
+
+@docs Flow, flowUp, flowDown, flowRight, flowLeft
+
+
+
+@docs Alignment, alignLeft, alignRight, justify, justifyAll, alignCenter
+
+@docs VerticalAlignment, verticalCenter, verticalStretch, alignTop, alignBottom
+
+
+
+# Colors
+
+@docs Colors
+
+
+
+# Float & Inline
+
+@docs Floating, floatLeft, floatRight, floatLeftTop, floatRightTop
+
+
+
+# Visibility
+
+@docs Visibility, hidden, opacity, transparency, visible
+
+
+
+# Units
+
+Most values in this library have one set of units chosen and built in to the library.  The exception is for `width` and `height` values which sometimes require different units.  Here's how to create them.
+
+@docs percent, px, auto
+
+
+# Positioning
+
+@docs Position
+
+@docs parent, currentPosition, screen, RelativeTo
+
+@docs topLeft, topRight, bottomLeft, bottomRight, Anchor
+
+# A Note on Padding and Margins
+
+`padding` and `margin` are interesting when you have a parent and a child element.  You now have two ways of specifying the spacing of the child element within the parent.  Either the `margin` on the child or the `padding` on the parent.  This causes anxiety in the developer.
+
+In the effort of having only one good way to accomplish something, we only allow the `padding` property to be set.
+
+We introduce the `spacing` attribute, which sets the spacing between all child elements.
+
+`inline` elements are not affected by spacing.
+
+Floating elements will only respect spacing values set for the bottom, and whichever happens to be the inner side.
+
+
+# Padding, Spacing, and Borders
+
+Padding, spacing, and border widths are all specified by a tuple of four floats that represent (top, right, bottom, left).  These are all rendered as `px` values.
+
+The following are convenience functions for setting these values.
+
+@docs all, top, bottom, left, right, topBottom, leftRight, allButTop, allButLeft, allButRight, allButBottom
+
+## Borderstyles
+
+@docs Border, BorderStyle, solid, dotted, dashed
+
+
+
+
+# Text/Font
+
+@docs Text, TextDecoration, underline, overline, strike.
+
+@docs bold, bolder, light
+
+@docs Whitespace, normal, pre, preLine, preWrap, noWrap
+
+
+# Background Images
+
+@docs BackgroundImage, Repeat, repeat, repeatX, repeatY, noRepeat, round, space
+
+
+# Shadows
+
+@docs shadow, insetShadow, textShadow, Shadow
+
+
+
+# Transforms
+@docs Transform, translate, rotate, scale
+
+# Filters
+@docs Filter, filterUrl, blur, brightness, contrast, grayscale, hueRotate, invert, opacityFilter, saturate, sepia
+
+# Transitions
+@docs Transition, on
+
+# Animations
+@docs Animation, animation, rotating, reverseRotating
+
+# Element
+@docs Element
 
 -}
 
 import Html
-import Html.Attributes
 import Time exposing (Time)
-import Color
+import Color exposing (Color)
 import Style.Model
 
 
-{-|
+{-| The full model for a style.
+
+Some properties are mandatory makes our styles predictable.
+
+Generally you will only define a full style once, and the rest of your styles will be based off that single foundation style.
 -}
 type alias Model =
-    Style.Model.Model
+    { addClass : Maybe String
+    , layout : Layout
+    , visibility : Visibility
+    , position : Position
+    , cursor : String
+    , width : Length
+    , height : Length
+    , colors : Colors
+    , spacing : ( Float, Float, Float, Float )
+    , padding : ( Float, Float, Float, Float )
+    , text : Text
+    , border : Border
+    , backgroundImage : Maybe BackgroundImage
+    , float : Maybe Floating
+    , inline : Bool
+    , shadows : List Shadow
+    , transforms : List Transform
+    , filters : List Filter
+    , additional : List ( String, String )
+    , transitions : List Transition
+    , animation : Maybe Animation
+    }
 
 
-{-|
+{-| -}
+empty : Model
+empty =
+    { addClass = Nothing
+    , layout = textLayout
+    , visibility = visible
+    , position =
+        { relativeTo = currentPosition
+        , anchor = topLeft
+        , position = ( 0, 0 )
+        }
+    , colors =
+        { background = Color.rgba 255 255 255 0
+        , text = Color.black
+        , border = Color.grey
+        }
+    , text =
+        { font = "georgia"
+        , size = 16
+        , characterOffset = Nothing
+        , lineHeight = 1.7
+        , italic = False
+        , boldness = Nothing
+        , align = alignLeft
+        , decoration = Nothing
+        , whitespace = normal
+        }
+    , border =
+        { style = solid
+        , width = all 0
+        , corners = all 0
+        }
+    , cursor = "auto"
+    , width = auto
+    , height = auto
+    , padding = all 0
+    , spacing = all 0
+    , float = Nothing
+    , inline = False
+    , backgroundImage = Nothing
+    , shadows = []
+    , transforms = []
+    , filters = []
+    , transitions = []
+    , animation = Nothing
+    , additional = []
+    }
+
+
+{-| A `Variation` is a style where all the properties are optional.
+
+This is used to construct animations and transitions.
+
+Only properties that make sense in that context are present.
+
+
 -}
 type alias Variation =
-    Style.Model.Variation
+    { visibility : Maybe Visibility
+    , position : Maybe ( Float, Float )
+    , cursor : Maybe String
+    , width : Maybe Length
+    , height : Maybe Length
+    , colors : Maybe Colors
+    , padding : Maybe ( Float, Float, Float, Float )
+    , spacing : Maybe ( Float, Float, Float, Float )
+    , text : Maybe Text
+    , border : Maybe Border
+    , backgroundImagePosition : Maybe ( Float, Float )
+    , shadows : List Shadow
+    , transforms : List Transform
+    , filters : List Filter
+    , additional : List ( String, String )
+    }
+
+
+{-| An empty `Variation`
+-}
+variation : Variation
+variation =
+    { visibility = Nothing
+    , position = Nothing
+    , colors = Nothing
+    , text = Nothing
+    , border = Nothing
+    , cursor = Nothing
+    , width = Nothing
+    , height = Nothing
+    , padding = Nothing
+    , spacing = Nothing
+    , backgroundImagePosition = Nothing
+    , shadows = []
+    , transforms = []
+    , filters = []
+    , additional = []
+    }
 
 
 {-|
 -}
 type alias Element msg =
-    Style.Model.Element msg
+    ( List Style.Model.StyleDefinition, Html.Html msg )
+
+
+{-| -}
+type Animation
+    = Animation
+        { duration : Time
+        , easing : String
+        , repeat : Float
+        , steps : List ( Float, Variation )
+        }
+
+
+{-| -}
+type Transition
+    = Transition String Variation
+
+
+{-| Colors are bound together in a record.  This is useful for creating palettes of colors.
+
+-}
+type alias Colors =
+    { background : Color
+    , text : Color
+    , border : Color
+    }
 
 
 {-|
+
+Position coordinates are always rendered in pixels.
+They are provided as x and y coordinates where right and down are the positive directions, same as coordinates for svg.
+
 -}
-type alias Colors =
-    Style.Model.Colors
+type alias Position =
+    { relativeTo : RelativeTo
+    , anchor : Anchor
+    , position : ( Float, Float )
+    }
+
+
+{-| -}
+type alias BackgroundImage =
+    { src : String
+    , position : ( Float, Float )
+    , repeat : Repeat
+    }
 
 
 {-|
 -}
 type alias Shadow =
     Style.Model.Shadow
-
-
-{-|
--}
-type alias Position =
-    Style.Model.Position
-
-
-{-|
--}
-type alias Transition =
-    Style.Model.Transition
 
 
 {-|
@@ -174,7 +442,7 @@ type alias TextDecoration =
     Style.Model.TextDecoration
 
 
-{-|
+{-| Used for specifying text alignment and the horizontal alignment of in flex layouts
 -}
 type alias Alignment =
     Style.Model.Alignment
@@ -216,6 +484,12 @@ type alias Length =
     Style.Model.Length
 
 
+{-| Only rendered if the parent is a textLayout.
+-}
+type alias Floating =
+    Style.Model.Floating
+
+
 {-|
 -}
 type alias Anchor =
@@ -230,26 +504,36 @@ type alias RelativeTo =
 
 {-|
 -}
-type alias Floating =
-    Style.Model.Floating
-
-
-{-|
--}
 type alias Repeat =
     Style.Model.Repeat
 
 
-{-|
+{-| Border width and corners are always given as floats and rendered as 'px'.
+
+Corners is the same as `border-radius`
 -}
 type alias Border =
-    Style.Model.Border
+    { style : BorderStyle
+    , width : ( Float, Float, Float, Float )
+    , corners : ( Float, Float, Float, Float )
+    }
 
 
-{-|
+{-| All values are given in 'px' units except for lineHeight which is given in proportion to the fontsize.
+
+So, a fontsize of 16 and a lineHeight of 1 means that the lineheight is going to be 16px.
 -}
 type alias Text =
-    Style.Model.Text
+    { font : String
+    , size : Float
+    , lineHeight : Float
+    , characterOffset : Maybe Float
+    , italic : Bool
+    , boldness : Maybe Float
+    , align : Alignment
+    , decoration : Maybe TextDecoration
+    , whitespace : Whitespace
+    }
 
 
 {-| -}
@@ -263,12 +547,7 @@ type alias Filter =
     Style.Model.Filter
 
 
-{-|
--}
-type alias Animation =
-    Style.Model.Animation
-
-
+(=>) : a -> b -> ( a, b )
 (=>) =
     (,)
 
@@ -309,9 +588,14 @@ noRepeat =
     Style.Model.NoRepeat
 
 
+{-| Create a transition by specifying a pseudo class and the target style as a Variation.  For example to make a transition on hover, you'd do the following:
+
+```on ":hover" { variation | colors = linkHover }```
+
+-}
 on : String -> Variation -> Transition
 on name model =
-    Style.Model.Transition name model
+    Transition name model
 
 
 {-|
@@ -328,6 +612,22 @@ floatLeft =
 floatRight : Floating
 floatRight =
     Style.Model.FloatRight
+
+
+{-| Same as floatLeft, except it will ignore any top spacing that it's parent has set for it.  This is useful for floating things at the beginning of beginning of text.
+
+-}
+floatLeftTop : Floating
+floatLeftTop =
+    Style.Model.FloatLeftTop
+
+
+{-|
+
+-}
+floatRightTop : Floating
+floatRightTop =
+    Style.Model.FloatRightTop
 
 
 {-| -}
@@ -390,18 +690,29 @@ auto =
     Style.Model.Auto
 
 
-{-| -}
+{-| Besides that all children are arranged as `display:block` elements.
+
+This is the only layout that allows for child elements to use `float` or `inline`.
+
+If you try to assign a float or make an element inline that is not the child of a textLayout, the float or inline will be ignored and the element will be highlighted in red with a large warning.
+
+-}
 textLayout : Layout
 textLayout =
     Style.Model.TextLayout
 
 
-{-| -}
+{-| This is the same as setting an element to `display:table`, also known as the "anti-hero of CSS".
+
+-}
 tableLayout : Layout
 tableLayout =
     Style.Model.TableLayout
 
 
+{-|
+
+-}
 type alias Flow =
     { wrap : Bool
     , horizontal : Alignment
@@ -409,48 +720,55 @@ type alias Flow =
     }
 
 
-{-| -}
+{-|
+
+-}
 flowDown : Flow -> Layout
 flowDown { wrap, horizontal, vertical } =
-    Style.Model.FlexLayout
-        { go = Style.Model.Down
-        , wrap = wrap
-        , horizontal = horizontal
-        , vertical = vertical
-        }
+    Style.Model.FlexLayout <|
+        Style.Model.Flexible
+            { go = Style.Model.Down
+            , wrap = wrap
+            , horizontal = horizontal
+            , vertical = vertical
+            }
 
 
-{-| -}
+{-| This is a flexbox based layout
+-}
 flowUp : Flow -> Layout
 flowUp { wrap, horizontal, vertical } =
-    Style.Model.FlexLayout
-        { go = Style.Model.Up
-        , wrap = wrap
-        , horizontal = horizontal
-        , vertical = vertical
-        }
+    Style.Model.FlexLayout <|
+        Style.Model.Flexible
+            { go = Style.Model.Up
+            , wrap = wrap
+            , horizontal = horizontal
+            , vertical = vertical
+            }
 
 
 {-| -}
 flowRight : Flow -> Layout
 flowRight { wrap, horizontal, vertical } =
-    Style.Model.FlexLayout
-        { go = Style.Model.Right
-        , wrap = wrap
-        , horizontal = horizontal
-        , vertical = vertical
-        }
+    Style.Model.FlexLayout <|
+        Style.Model.Flexible
+            { go = Style.Model.Right
+            , wrap = wrap
+            , horizontal = horizontal
+            , vertical = vertical
+            }
 
 
 {-| -}
 flowLeft : Flow -> Layout
 flowLeft { wrap, horizontal, vertical } =
-    Style.Model.FlexLayout
-        { go = Style.Model.Left
-        , wrap = wrap
-        , horizontal = horizontal
-        , vertical = vertical
-        }
+    Style.Model.FlexLayout <|
+        Style.Model.Flexible
+            { go = Style.Model.Left
+            , wrap = wrap
+            , horizontal = horizontal
+            , vertical = vertical
+            }
 
 
 {-| -}
@@ -671,20 +989,21 @@ visible =
     Style.Model.Transparent 0
 
 
-{-| A Value between 0 and 1
+{-| A value between 0 and 1
 -}
 transparency : Float -> Visibility
 transparency x =
     Style.Model.Transparent x
 
 
-{-| A Value between 0 and 1
+{-| A value between 0 and 1
 -}
 opacity : Float -> Visibility
 opacity x =
     Style.Model.Transparent (1.0 - x)
 
 
+{-| -}
 shadow :
     { offset : ( Float, Float )
     , size : Float
@@ -702,6 +1021,7 @@ shadow { offset, size, blur, color } =
         }
 
 
+{-| -}
 insetShadow :
     { offset : ( Float, Float )
     , blur : Float
@@ -718,6 +1038,7 @@ insetShadow { offset, blur, color } =
         }
 
 
+{-| -}
 textShadow :
     { offset : ( Float, Float )
     , blur : Float
@@ -734,16 +1055,16 @@ textShadow { offset, blur, color } =
         }
 
 
-{-| Units always given as radians.
+{-| Units always rendered as `radians`.
 
-Use `x * deg` if you want to use a different set of units.
+Use `x * deg` or `x * turn` from the standard library if you want to use a different set of units.
 -}
 rotate : Float -> Float -> Float -> Transform
 rotate x y z =
     Style.Model.Rotate x y z
 
 
-{-| Units always always as pixels
+{-| Units are always as pixels
 -}
 translate : Float -> Float -> Float -> Transform
 translate x y z =
@@ -816,10 +1137,7 @@ sepia x =
     Style.Model.Sepia x
 
 
-
--- CSS Animations
-
-
+{-| -}
 animation :
     { duration : Time
     , easing : String
@@ -828,75 +1146,7 @@ animation :
     }
     -> Maybe Animation
 animation anim =
-    Just <| Style.Model.Animation anim
-
-
-empty : Model
-empty =
-    { addClass = Nothing
-    , layout = textLayout
-    , visibility = visible
-    , position =
-        { relativeTo = currentPosition
-        , anchor = topLeft
-        , position = ( 0, 0 )
-        }
-    , colors =
-        { background = Color.rgba 255 255 255 0
-        , text = Color.black
-        , border = Color.grey
-        }
-    , text =
-        { font = "georgia"
-        , size = 16
-        , characterOffset = Nothing
-        , lineHeight = 1.7
-        , italic = False
-        , boldness = Nothing
-        , align = alignLeft
-        , decoration = Nothing
-        , whitespace = normal
-        }
-    , border =
-        { style = solid
-        , width = all 0
-        , corners = all 0
-        }
-    , cursor = "auto"
-    , width = auto
-    , height = auto
-    , padding = all 0
-    , spacing = all 0
-    , float = Nothing
-    , inline = False
-    , backgroundImage = Nothing
-    , shadows = []
-    , transforms = []
-    , filters = []
-    , transitions = []
-    , animation = Nothing
-    , additional = []
-    }
-
-
-variation : Variation
-variation =
-    { visibility = Nothing
-    , position = Nothing
-    , colors = Nothing
-    , text = Nothing
-    , border = Nothing
-    , cursor = Nothing
-    , width = Nothing
-    , height = Nothing
-    , padding = Nothing
-    , spacing = Nothing
-    , backgroundImagePosition = Nothing
-    , shadows = []
-    , transforms = []
-    , filters = []
-    , additional = []
-    }
+    Just <| Animation anim
 
 
 {-| An animation
@@ -904,7 +1154,7 @@ variation =
 rotating : List ( Float, Variation )
 rotating =
     [ 0 => { variation | transforms = [ rotate 0 0 0 ] }
-    , 100 => { variation | transforms = [ rotate 0 0 360 ] }
+    , 100 => { variation | transforms = [ rotate 0 0 (2 * pi) ] }
     ]
 
 
@@ -912,12 +1162,13 @@ rotating =
 -}
 reverseRotating : List ( Float, Variation )
 reverseRotating =
-    [ 0 => { variation | transforms = [ rotate 0 0 360 ] }
+    [ 0 => { variation | transforms = [ rotate 0 0 (2 * pi) ] }
     , 100 => { variation | transforms = [ rotate 0 0 0 ] }
     ]
 
 
 {-| An animation
 -}
+forever : Float
 forever =
     1.0 / 0

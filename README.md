@@ -6,9 +6,16 @@ It's easy to write impossible css, styles that invalidate themselves, or break d
 
 The style-elements library is an attempt to make the styling process more intuitive by only giving access to the good parts of css and limiting css's more mysterious behavior.  The goal is that the style-elements library prevents you from shooting yourself in the foot with your CSS ever again.
 
+
 On top of this, the style-elements library takes a different aproach to associating your styles with nodes.  Instead of relying on `classes` and `ids`, the `style-elements` library focuses on creating collections of styled elements that you can pull from.  While this may seem bizarre, the benefit is that your views look cleaner and more meaningful, and we still maintain our ability to express style variations like we would with classes.
 
-For added polish, there is built-in support for css transitions and animations.
+There is also built-in support for css transitions and animations.
+
+This library tries to follow the following guidelines.
+ * Broken css should not be creatable
+ * Parent elements are in charge of the layout of child elements
+ * There should be one good way to do things
+
 
 ## Getting Started
 
@@ -21,3 +28,6 @@ Using this library generally falls into the following pattern.
 Here's [a simple example]().
 
 Here's [a more complicated example with animations and patterns more common to real world applications]().
+
+And, of course, [the documentation]().
+
