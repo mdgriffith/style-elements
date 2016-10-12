@@ -6,7 +6,7 @@ module Style
         , Colors
         , Position
         , Shadow
-        , Transition(..)
+        , Transition
         , Visibility
         , TextDecoration
         , Alignment
@@ -24,7 +24,7 @@ module Style
         , Anchor
         , RelativeTo
         , Repeat
-        , Animation(..)
+        , Animation
         , flowUp
         , flowDown
         , flowRight
@@ -104,8 +104,6 @@ module Style
         , light
         , bolder
         , animation
-        , rotating
-        , reverseRotating
         , shadow
         , insetShadow
         , textShadow
@@ -379,18 +377,13 @@ type alias Element msg =
 
 
 {-| -}
-type Animation
-    = Animation
-        { duration : Time
-        , easing : String
-        , repeat : Float
-        , steps : List ( Float, Variation )
-        }
+type alias Transition =
+    Style.Model.Transition Variation
 
 
 {-| -}
-type Transition
-    = Transition String Variation
+type alias Animation =
+    Style.Model.Animated Variation
 
 
 {-| Colors are bound together in a record.  This is useful for creating palettes of colors.
@@ -595,7 +588,7 @@ noRepeat =
 -}
 on : String -> Variation -> Transition
 on name model =
-    Transition name model
+    Style.Model.Transition name model
 
 
 {-|
@@ -1146,29 +1139,4 @@ animation :
     }
     -> Maybe Animation
 animation anim =
-    Just <| Animation anim
-
-
-{-| An animation
--}
-rotating : List ( Float, Variation )
-rotating =
-    [ 0 => { variation | transforms = [ rotate 0 0 0 ] }
-    , 100 => { variation | transforms = [ rotate 0 0 (2 * pi) ] }
-    ]
-
-
-{-| An animation
--}
-reverseRotating : List ( Float, Variation )
-reverseRotating =
-    [ 0 => { variation | transforms = [ rotate 0 0 (2 * pi) ] }
-    , 100 => { variation | transforms = [ rotate 0 0 0 ] }
-    ]
-
-
-{-| An animation
--}
-forever : Float
-forever =
-    1.0 / 0
+    Just <| Style.Model.Animation anim

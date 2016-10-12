@@ -20,7 +20,7 @@ import Html
 import Set exposing (Set)
 import Svg.Attributes
 import Style.Model exposing (..)
-import Style exposing (Model, Variation, Colors, Text, Element, Animation(..), Transition(..), Border, Position, BackgroundImage)
+import Style exposing (Model, Variation, Colors, Text, Element, Animation, Transition, Border, Position, BackgroundImage)
 
 
 {-| -}
@@ -1087,7 +1087,7 @@ renderTransitionStyle style =
 
 {-|
 -}
-renderCssTransitions : Transition -> StyleDefinition
+renderCssTransitions : Style.Model.Transition Variation -> StyleDefinition
 renderCssTransitions (Transition name targetStyle) =
     StyleDef
         { name = ":" ++ name

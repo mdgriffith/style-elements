@@ -3,6 +3,7 @@ module Style.Model exposing (..)
 {-| -}
 
 import Color exposing (Color)
+import Time exposing (Time)
 
 
 {-| -}
@@ -15,6 +16,21 @@ type StyleDefinition
             List StyleDefinition
         , keyframes :
             Maybe (List ( Float, List ( String, String ) ))
+        }
+
+
+{-| -}
+type Transition style
+    = Transition String style
+
+
+{-| -}
+type Animated style
+    = Animation
+        { duration : Time
+        , easing : String
+        , repeat : Float
+        , steps : List ( Float, style )
         }
 
 
