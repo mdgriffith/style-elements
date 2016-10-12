@@ -667,6 +667,9 @@ filterToString filter =
         Sepia x ->
             "sepia(" ++ toString x ++ "%)"
 
+        DropShadow shadow ->
+            "drop-shadow(" ++ shadowValue shadow ++ ")"
+
 
 renderShadow : List Shadow -> List ( String, String )
 renderShadow shadows =
@@ -684,11 +687,11 @@ renderShadow shadows =
             [ if renderedBox == "" then
                 Nothing
               else
-                Just <| ("box-shadow" => renderedBox)
-            , if renderedBox == "" then
+                Just ("box-shadow" => renderedBox)
+            , if renderedText == "" then
                 Nothing
               else
-                Just <| ("text-shadow" => renderedBox)
+                Just ("text-shadow" => renderedText)
             ]
 
 
@@ -702,7 +705,7 @@ shadowValue (Shadow shadow) =
         , toString (fst shadow.offset) ++ "px"
         , toString (snd shadow.offset) ++ "px"
         , toString shadow.blur ++ "px"
-        , (if shadow.kind == "text" then
+        , (if shadow.kind == "text" || shadow.kind == "drop" then
             ""
            else
             toString shadow.size ++ "px"

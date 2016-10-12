@@ -75,8 +75,8 @@ module Style
         , dashed
         , floatLeft
         , floatRight
-        , floatLeftTop
-        , floatRightTop
+        , floatTopLeft
+        , floatTopRight
         , on
         , scale
         , translate
@@ -145,7 +145,7 @@ Layouts affect how children are arranged.  It is one of the principles of the li
 
 # Float & Inline
 
-@docs Floating, floatLeft, floatRight, floatLeftTop, floatRightTop
+@docs Floating, floatLeft, floatRight, floatTopLeft, floatTopRight
 
 
 
@@ -214,7 +214,7 @@ The following are convenience functions for setting these values.
 
 # Shadows
 
-@docs shadow, insetShadow, textShadow, Shadow
+@docs Shadow, shadow, insetShadow, textShadow, dropShadow
 
 
 
@@ -591,7 +591,9 @@ on name model =
     Style.Model.Transition name model
 
 
-{-|
+{-| Float something to the left.  Only valid in textLayouts.
+
+Will ignore any left spacing that it's parent has set for it.
 
 -}
 floatLeft : Floating
@@ -607,19 +609,19 @@ floatRight =
     Style.Model.FloatRight
 
 
-{-| Same as floatLeft, except it will ignore any top spacing that it's parent has set for it.  This is useful for floating things at the beginning of beginning of text.
+{-| Same as floatLeft, except it will ignore any top spacing that it's parent has set for it.  This is useful for floating things at the beginning of text.
 
 -}
-floatLeftTop : Floating
-floatLeftTop =
+floatTopLeft : Floating
+floatTopLeft =
     Style.Model.FloatLeftTop
 
 
 {-|
 
 -}
-floatRightTop : Floating
-floatRightTop =
+floatTopRight : Floating
+floatTopRight =
     Style.Model.FloatRightTop
 
 
@@ -1017,15 +1019,16 @@ shadow { offset, size, blur, color } =
 {-| -}
 insetShadow :
     { offset : ( Float, Float )
+    , size : Float
     , blur : Float
     , color : Color.Color
     }
     -> Shadow
-insetShadow { offset, blur, color } =
+insetShadow { offset, blur, color, size } =
     Style.Model.Shadow
         { kind = "inset"
         , offset = offset
-        , size = 0
+        , size = size
         , blur = blur
         , color = color
         }
@@ -1041,6 +1044,24 @@ textShadow :
 textShadow { offset, blur, color } =
     Style.Model.Shadow
         { kind = "text"
+        , offset = offset
+        , size = 0
+        , blur = blur
+        , color = color
+        }
+
+
+{-|
+-}
+dropShadow :
+    { offset : ( Float, Float )
+    , blur : Float
+    , color : Color.Color
+    }
+    -> Shadow
+dropShadow { offset, blur, color } =
+    Style.Model.Shadow
+        { kind = "drop"
         , offset = offset
         , size = 0
         , blur = blur

@@ -31,3 +31,10 @@ Here's [a more complicated example with animations and patterns more common to r
 
 And, of course, [the documentation]().
 
+
+Overview of modules:
+
+  * _Style_ - Everything that is needed to define a style
+  * _Style.Elements_ - Functions for attaching a style to an element and building your view.
+  * _Style.Basic_ - Some common styles that you may find useful.
+  * _Style.Elements.Basic_ - Some common elements that you may find useful.

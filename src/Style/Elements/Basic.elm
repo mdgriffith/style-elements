@@ -2,9 +2,11 @@ module Style.Elements.Basic exposing (..)
 
 {-|
 
-@docs centered, split, fontSizes
+@docs centered, split, floatLeft, floatRight, floatTopLeft, floatTopRight
 
 # Common Text Elements
+
+
 @docs text, i, b, break, line, dottedList, numberedList
 
 -}
@@ -15,43 +17,82 @@ import Style exposing (..)
 import Style.Elements exposing (..)
 
 
-{-| Flow child elements horizontally and center them.
+{-| Flow child elements horizontally to the right and center them.
 -}
-centered : Style.Model
+centered : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 centered =
-    { empty
-        | layout =
-            flowRight
-                { wrap = True
-                , horizontal = alignCenter
-                , vertical = alignTop
-                }
-    }
+    element
+        { empty
+            | layout =
+                flowRight
+                    { wrap = True
+                    , horizontal = alignCenter
+                    , vertical = alignTop
+                    }
+        }
 
 
 {-| Flow child elements horizontally, but have them keep to the edges.
 -}
-split : Style.Model
+split : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 split =
-    { empty
-        | layout =
-            flowRight
-                { wrap = True
-                , horizontal = justify
-                , vertical = verticalCenter
-                }
-    }
+    element
+        { empty
+            | layout =
+                flowRight
+                    { wrap = True
+                    , horizontal = justify
+                    , vertical = verticalCenter
+                    }
+        }
 
 
-{-| Standard font sizes so you don't have to look them up.
+{-| Float a single element to the left
 -}
-fontSizes : { standard : Float, h1 : Float, h2 : Float, h3 : Float }
-fontSizes =
-    { standard = 16
-    , h3 = 18
-    , h2 = 24
-    , h1 = 32
-    }
+floatLeft : Element a -> Element a
+floatLeft floater =
+    element
+        { empty
+            | float = Just Style.floatLeft
+        }
+        []
+        [ floater ]
+
+
+{-|
+-}
+floatRight : Element a -> Element a
+floatRight floater =
+    element
+        { empty
+            | float = Just Style.floatRight
+        }
+        []
+        [ floater ]
+
+
+{-| Float a single element to the left.  "topLeft" means it will ignore top spacing that the parent specifies and use 0px insteas.
+-}
+floatTopLeft : Element a -> Element a
+floatTopLeft floater =
+    element
+        { empty
+            | float = Just Style.floatTopLeft
+        }
+        []
+        [ floater ]
+
+
+{-|
+-}
+floatTopRight : Element a -> Element a
+floatTopRight floater =
+    element
+        { empty
+            | float = Just Style.floatTopRight
+        }
+        []
+        [ floater ]
 
 
 

@@ -56,6 +56,7 @@ type Filter
     | Opacity Float
     | Saturate Float
     | Sepia Float
+    | DropShadow Shadow
 
 
 {-| Floats only work if the parent has its layout set to `TextLayout`.
