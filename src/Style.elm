@@ -110,6 +110,24 @@ module Style
         , textShadow
         , empty
         , variation
+        , relativeTo
+        , anchor
+        , position
+        , background
+        , text
+        , border
+        , font
+        , size
+        , characterOffset
+        , lineHeight
+        , italic
+        , boldness
+        , align
+        , decoration
+        , whitespace
+        , style
+        , width
+        , corners
         )
 
 {-| A different take on styling.
@@ -171,6 +189,10 @@ Most values in this library have one set of units chosen and built in to the lib
 
 @docs topLeft, topRight, bottomLeft, bottomRight, Anchor
 
+## Piping functions for Positioning
+
+@docs relativeTo, anchor, position
+
 # A Note on Padding and Margins
 
 `padding` and `margin` are interesting when you have a parent and a child element.  You now have two ways of specifying the spacing of the child element within the parent.  Either the `margin` on the child or the `padding` on the parent.  This causes anxiety in the developer.
@@ -197,6 +219,9 @@ The following are convenience functions for setting these values.
 @docs Border, BorderStyle, solid, dotted, dashed
 
 
+## Piping Functions for Borders
+
+@docs style, width, corners
 
 
 # Text/Font
@@ -206,6 +231,11 @@ The following are convenience functions for setting these values.
 @docs bold, bolder, light
 
 @docs Whitespace, normal, pre, preLine, preWrap, noWrap
+
+## Piping Functions for Text/Font
+
+@docs background, text, border, font, size, characterOffset, lineHeight, italic, boldness, align, decoration, whitespace
+
 
 
 # Background Images
@@ -233,6 +263,11 @@ The following are convenience functions for setting these values.
 
 # Element
 @docs Element
+
+
+
+
+
 
 -}
 
@@ -1171,3 +1206,117 @@ animation :
     -> Animation
 animation anim =
     Style.Model.Animation anim
+
+
+
+--------------------------
+-- Functions for piping updates
+--------------------------
+
+
+{-| -}
+relativeTo : RelativeTo -> Position -> Position
+relativeTo to model =
+    { model | relativeTo = to }
+
+
+{-| -}
+anchor : Anchor -> Position -> Position
+anchor anch model =
+    { model | anchor = anch }
+
+
+{-| -}
+position : ( Float, Float ) -> Position -> Position
+position p model =
+    { model | position = p }
+
+
+{-| -}
+background : Color -> Colors -> Colors
+background b model =
+    { model | background = b }
+
+
+{-| -}
+text : Color -> Colors -> Colors
+text t model =
+    { model | text = t }
+
+
+{-| -}
+border : Color -> Colors -> Colors
+border t model =
+    { model | border = t }
+
+
+{-| -}
+font : String -> Text -> Text
+font t model =
+    { model | font = t }
+
+
+{-| -}
+size : Float -> Text -> Text
+size t model =
+    { model | size = t }
+
+
+{-| -}
+characterOffset : Maybe Float -> Text -> Text
+characterOffset t model =
+    { model | characterOffset = t }
+
+
+{-| -}
+lineHeight : Float -> Text -> Text
+lineHeight t model =
+    { model | lineHeight = t }
+
+
+{-| -}
+italic : Bool -> Text -> Text
+italic t model =
+    { model | italic = t }
+
+
+{-| -}
+boldness : Maybe Float -> Text -> Text
+boldness t model =
+    { model | boldness = t }
+
+
+{-| -}
+align : Alignment -> Text -> Text
+align t model =
+    { model | align = t }
+
+
+{-| -}
+decoration : Maybe TextDecoration -> Text -> Text
+decoration t model =
+    { model | decoration = t }
+
+
+{-| -}
+whitespace : Whitespace -> Text -> Text
+whitespace t model =
+    { model | whitespace = t }
+
+
+{-| -}
+style : BorderStyle -> Border -> Border
+style t model =
+    { model | style = t }
+
+
+{-| -}
+width : ( Float, Float, Float, Float ) -> Border -> Border
+width t model =
+    { model | width = t }
+
+
+{-| -}
+corners : ( Float, Float, Float, Float ) -> Border -> Border
+corners t model =
+    { model | corners = t }
