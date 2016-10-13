@@ -269,7 +269,7 @@ render style =
                                 { name = " > *:not(.inline)"
                                 , style =
                                     [ "margin" => render4tuplePx style.spacing
-                                    , "display" => "table-row !important;"
+                                    , "display" => "table-row !important"
                                     ]
                                 , tags = []
                                 , modes = []
@@ -278,7 +278,7 @@ render style =
                             , StyleDef
                                 { name = " > * > *"
                                 , style =
-                                    [ "display" => "table-cell !important;"
+                                    [ "display" => "table-cell !important"
                                     ]
                                 , tags = []
                                 , modes = []
@@ -1108,7 +1108,7 @@ renderLayout layout =
 cssTransitions : List ( String, String )
 cssTransitions =
     [ "transition-property" => "opacity, padding, left, top, right, bottom, height, width, color, background-color, border-color, border-width, box-shadow, text-shadow, filter, transform, font-size, line-height"
-    , "transition-duration" => "500ms"
+    , "transition-duration" => "300ms"
     , "-webkit-transition-timing-function" => "ease-out"
     , "transition-timing-function" => "ease-out"
     ]
@@ -1140,7 +1140,7 @@ renderTransitionStyle style =
 renderCssTransitions : Style.Model.Transition Variation -> StyleDefinition
 renderCssTransitions (Transition name targetStyle) =
     StyleDef
-        { name = ":" ++ name
+        { name = name
         , tags = []
         , style = renderTransitionStyle targetStyle
         , modes = []
