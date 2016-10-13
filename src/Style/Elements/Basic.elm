@@ -2,10 +2,13 @@ module Style.Elements.Basic exposing (..)
 
 {-|
 
-@docs centered, split, floatLeft, floatRight, floatTopLeft, floatTopRight
+# Useful elements for layout
+
+@docs centered, completelyCentered, split, floatLeft, floatRight, floatTopLeft, floatTopRight
+
+@docs div
 
 # Common Text Elements
-
 
 @docs text, i, b, break, line, dottedList, numberedList
 
@@ -17,7 +20,7 @@ import Style exposing (..)
 import Style.Elements exposing (..)
 
 
-{-| Flow child elements horizontally to the right and center them.
+{-| Flow child elements horizontally to the right and center them.  They will be aligned to the top.
 -}
 centered : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 centered =
@@ -32,7 +35,22 @@ centered =
         }
 
 
-{-| Flow child elements horizontally, but have them keep to the edges.
+{-| Flow child elements horizontally to the right.  Center them horizontally and vertically.
+-}
+completelyCentered : List (Html.Attribute msg) -> List (Element msg) -> Element msg
+completelyCentered =
+    element
+        { empty
+            | layout =
+                flowRight
+                    { wrap = True
+                    , horizontal = alignCenter
+                    , vertical = verticalCenter
+                    }
+        }
+
+
+{-| Flow child elements horizontally, but have them keep to the edges.  They will be vertically centered.  They will not wrap.
 -}
 split : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 split =
@@ -40,7 +58,7 @@ split =
         { empty
             | layout =
                 flowRight
-                    { wrap = True
+                    { wrap = False
                     , horizontal = justify
                     , vertical = verticalCenter
                     }
@@ -95,12 +113,26 @@ floatTopRight floater =
         [ floater ]
 
 
+table : List (Html.Attribute msg) -> List (Element msg) -> Element msg
+table =
+    elementAs "table"
+        { empty
+            | layout = tableLayout
+        }
+
+
 
 -----------------
 -- Text Elements
 -- Most of these take either no arguments or a single piece of text.
 -- This limits what you can do with them but cleans up text areas of the UI code.
 -----------------
+
+
+{-| -}
+div : List (Html.Attribute msg) -> List (Element msg) -> Element msg
+div attrs children =
+    html Html.div attrs children
 
 
 {-| -}

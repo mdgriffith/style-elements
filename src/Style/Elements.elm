@@ -62,6 +62,58 @@ elementAs node styleModel attrs elements =
         )
 
 
+{-| Turn a style into an element that can be used to build your view.  In this case, the element will be rendered as a div.
+
+-}
+optional : Model -> List ( Bool, Style.Variation ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+optional =
+    optionalAs "div"
+
+
+{-| Specify your own html node to render the element as.
+-}
+optionalAs : String -> Model -> List ( Bool, Style.Variation ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+optionalAs node styleModel variations attrs elements =
+    let
+        ( className, styleDef ) =
+            render styleModel
+
+        variationTransitions =
+            List.map
+                (\( active, variation ) ->
+                    ( active
+                    , prependClassName className <| renderVariation variation
+                    )
+                )
+                variations
+
+        activatedVariationNames =
+            List.filter fst variationTransitions
+                |> List.map (\x -> fst <| snd x)
+                |> List.foldl (++) ""
+
+        ( childrenStyles, children ) =
+            List.unzip elements
+
+        allStyles =
+            styleDef :: List.concat childrenStyles ++ List.map (\x -> snd (snd x)) variationTransitions
+    in
+        ( allStyles
+        , Html.node node (Svg.Attributes.class (className ++ activatedVariationNames) :: attrs) children
+        )
+
+
+prependClassName : String -> ( String, StyleDefinition ) -> ( String, StyleDefinition )
+prependClassName parentName ( name, StyleDef style ) =
+    let
+        prepended =
+            parentName ++ " " ++ name
+    in
+        ( prepended
+        , StyleDef { style | name = prepended }
+        )
+
+
 classNameAndTags : StyleDefinition -> String
 classNameAndTags def =
     case def of
@@ -147,7 +199,7 @@ render style =
                     [ "display" => "none" ]
 
                 styleDefinition =
-                    addClassName style.addClass
+                    addClassName
                         { style = renderedStyle
                         , tags = []
                         , modes = []
@@ -170,7 +222,8 @@ render style =
                             , Just <| renderPosition style.position
                             , renderInline style.inline
                             , Just
-                                [ "opacity" => toString (1.0 - transparency)
+                                [ "box-sizing" => "border-box"
+                                , "opacity" => toString (1.0 - transparency)
                                 , "width" => (renderLength style.width)
                                 , "height" => (renderLength style.height)
                                 , "cursor" => style.cursor
@@ -244,7 +297,7 @@ render style =
                             ]
 
                 styleDefinition =
-                    addClassName style.addClass
+                    addClassName
                         { style = renderedStyle
                         , tags = restrictedTags
                         , modes =
@@ -365,14 +418,13 @@ uniqueHelp f existing remaining =
 
 
 addClassName :
-    Maybe String
-    -> { keyframes : Maybe (List ( Float, List ( String, String ) ))
-       , modes : List StyleDefinition
-       , style : List ( String, String )
-       , tags : List String
-       }
+    { keyframes : Maybe (List ( Float, List ( String, String ) ))
+    , modes : List StyleDefinition
+    , style : List ( String, String )
+    , tags : List String
+    }
     -> StyleDefinition
-addClassName mAdditionalNames { tags, style, modes, keyframes } =
+addClassName { tags, style, modes, keyframes } =
     let
         styleString =
             List.map (\( name, value ) -> name ++ value) style
@@ -385,12 +437,7 @@ addClassName mAdditionalNames { tags, style, modes, keyframes } =
             convertModesToCSS "" modes
 
         name =
-            case mAdditionalNames of
-                Nothing ->
-                    hash (styleString ++ keyframeString ++ modesString)
-
-                Just addName ->
-                    hash (styleString ++ keyframeString ++ modesString) ++ " " ++ addName
+            hash (styleString ++ keyframeString ++ modesString)
     in
         StyleDef
             { name = name
@@ -455,7 +502,7 @@ renderVariation style =
                     ]
 
         styleDefinition =
-            addClassName Nothing
+            addClassName
                 { style = renderedStyle
                 , tags = []
                 , modes =
@@ -940,10 +987,10 @@ renderLayout layout =
                                 "justify-content" => "center"
 
                             Justify ->
-                                "justify-content" => "stretch"
+                                "justify-content" => "space-between"
 
                             JustifyAll ->
-                                "justify-content" => "stretch"
+                                "justify-content" => "space-between"
 
                     Left ->
                         case flex.horizontal of
@@ -957,10 +1004,10 @@ renderLayout layout =
                                 "justify-content" => "center"
 
                             Justify ->
-                                "justify-content" => "stretch"
+                                "justify-content" => "space-between"
 
                             JustifyAll ->
-                                "justify-content" => "stretch"
+                                "justify-content" => "space-between"
 
                     Down ->
                         case flex.horizontal of
@@ -1027,30 +1074,30 @@ renderLayout layout =
                     Down ->
                         case flex.vertical of
                             AlignTop ->
-                                "align-items" => "flex-start"
+                                "justify-content" => "flex-start"
 
                             AlignBottom ->
-                                "align-items" => "flex-end"
+                                "justify-content" => "flex-end"
 
                             VCenter ->
-                                "align-items" => "center"
+                                "justify-content" => "center"
 
                             VStretch ->
-                                "align-items" => "stretch"
+                                "justify-content" => "space-between"
 
                     Up ->
                         case flex.vertical of
                             AlignTop ->
-                                "align-items" => "flex-end"
+                                "justify-content" => "flex-end"
 
                             AlignBottom ->
-                                "align-items" => "flex-start"
+                                "justify-content" => "flex-start"
 
                             VCenter ->
-                                "align-items" => "center"
+                                "justify-content" => "center"
 
                             VStretch ->
-                                "align-items" => "stretch"
+                                "justify-content" => "space-between"
               ]
             , { floats = False
               , inline = False

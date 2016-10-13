@@ -38,6 +38,7 @@ module Style
         , all
         , topBottom
         , leftRight
+        , leftRightAndTopBottom
         , allButTop
         , allButLeft
         , allButRight
@@ -189,7 +190,7 @@ Padding, spacing, and border widths are all specified by a tuple of four floats 
 
 The following are convenience functions for setting these values.
 
-@docs all, top, bottom, left, right, topBottom, leftRight, allButTop, allButLeft, allButRight, allButBottom
+@docs all, top, bottom, left, right, topBottom, leftRight, leftRightAndTopBottom, allButTop, allButLeft, allButRight, allButBottom
 
 ## Borderstyles
 
@@ -396,10 +397,8 @@ type alias Colors =
     }
 
 
-{-|
-
-Position coordinates are always rendered in pixels.
-They are provided as x and y coordinates where right and down are the positive directions, same as coordinates for svg.
+{-| Position coordinates are always rendered in pixels.
+They are provided as x and y coordinates where right and down are the positive directions, same as the standard coordinate system for svg.
 
 -}
 type alias Position =
@@ -929,6 +928,12 @@ leftRight x =
 
 
 {-| -}
+leftRightAndTopBottom : Float -> Float -> ( Float, Float, Float, Float )
+leftRightAndTopBottom x y =
+    ( y, x, y, x )
+
+
+{-| -}
 allButRight : Float -> ( Float, Float, Float, Float )
 allButRight x =
     ( x, 0, x, x )
@@ -1151,13 +1156,18 @@ sepia x =
     Style.Model.Sepia x
 
 
-{-| -}
+{-|
+
+Easing is given as a string name from any of the values accepted by the animation-timing-function css property.
+
+https://developer.mozilla.org/en-US/docs/Web/CSS/animation-timing-function
+-}
 animation :
     { duration : Time
     , easing : String
     , repeat : Float
     , steps : List ( Float, Variation )
     }
-    -> Maybe Animation
+    -> Animation
 animation anim =
-    Just <| Style.Model.Animation anim
+    Style.Model.Animation anim
