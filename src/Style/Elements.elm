@@ -20,7 +20,7 @@ import Html
 import Set exposing (Set)
 import Svg.Attributes
 import Style.Model exposing (..)
-import Style exposing (Model, Variation, Colors, Text, Element, Animation, Transition, Border, Position, BackgroundImage)
+import Style exposing (Model, Variation, Colors, Text, Element, Animation, Transition, BackgroundImage)
 
 
 {-| -}
@@ -219,19 +219,30 @@ render style =
                     List.concat <|
                         List.filterMap identity
                             [ Just <| layout
-                            , Just <| renderPosition style.position
+                            , Just <| renderPosition style.relativeTo style.anchor style.position
                             , renderInline style.inline
                             , Just
                                 [ "box-sizing" => "border-box"
                                 , "opacity" => toString (1.0 - transparency)
-                                , "width" => (renderLength style.width)
-                                , "height" => (renderLength style.height)
+                                , "width" => renderLength style.width
+                                , "height" => renderLength style.height
                                 , "cursor" => style.cursor
                                 , "padding" => render4tuplePx style.padding
+                                , "border-width" => render4tuplePx style.borderWidth
+                                , "border-radius" => render4tuplePx style.corners
+                                , "border-style"
+                                    => case style.borderStyle of
+                                        Solid ->
+                                            "solid"
+
+                                        Dashed ->
+                                            "dashed"
+
+                                        Dotted ->
+                                            "dotted"
                                 ]
                             , Just <| renderColors style.colors
                             , Just <| renderText style.text
-                            , Just <| renderBorder style.border
                             , Maybe.map renderBackgroundImage style.backgroundImage
                             , Maybe.map renderFloating style.float
                             , listMaybeMap renderShadow style.shadows
@@ -485,10 +496,25 @@ renderVariation style =
                                     "background-position" => (toString x ++ "px " ++ toString y ++ "px")
                                 )
                                 style.backgroundImagePosition
+                            , Maybe.map (\p -> "border-width" => (render4tuplePx p)) style.borderWidth
+                            , Maybe.map (\p -> "border-radius" => (render4tuplePx p)) style.corners
+                            , Maybe.map
+                                (\bstyle ->
+                                    "border-style"
+                                        => case bstyle of
+                                            Solid ->
+                                                "solid"
+
+                                            Dashed ->
+                                                "dashed"
+
+                                            Dotted ->
+                                                "dotted"
+                                )
+                                style.borderStyle
                             ]
                     , Maybe.map renderColors style.colors
                     , Maybe.map renderText style.text
-                    , Maybe.map renderBorder style.border
                     , listMaybeMap renderShadow style.shadows
                     , listMaybeMap renderFilters style.filters
                     , case style.position of
@@ -766,25 +792,6 @@ render4tuplePx ( a, b, c, d ) =
     toString a ++ "px " ++ toString b ++ "px " ++ toString c ++ "px " ++ toString d ++ "px"
 
 
-renderBorder : Border -> List ( String, String )
-renderBorder { style, width, corners } =
-    [ "border-style"
-        => case style of
-            Solid ->
-                "solid"
-
-            Dashed ->
-                "dashed"
-
-            Dotted ->
-                "dotted"
-    , "border-width"
-        => render4tuplePx width
-    , "border-radius"
-        => render4tuplePx corners
-    ]
-
-
 renderText : Text -> List ( String, String )
 renderText text =
     List.filterMap identity
@@ -896,8 +903,8 @@ renderLength l =
             "auto"
 
 
-renderPosition : Position -> List ( String, String )
-renderPosition { relativeTo, anchor, position } =
+renderPosition : RelativeTo -> Anchor -> ( Float, Float ) -> List ( String, String )
+renderPosition relativeTo anchor position =
     let
         ( x, y ) =
             position
@@ -1124,10 +1131,25 @@ renderTransitionStyle style =
                     , Maybe.map (\h -> "height" => (renderLength h)) style.height
                     , Maybe.map (\c -> "cursor" => c) style.cursor
                     , Maybe.map (\p -> "padding" => (render4tuplePx p)) style.padding
+                    , Maybe.map (\p -> "border-width" => (render4tuplePx p)) style.borderWidth
+                    , Maybe.map (\p -> "border-radius" => (render4tuplePx p)) style.corners
+                    , Maybe.map
+                        (\bstyle ->
+                            "border-style"
+                                => case bstyle of
+                                    Solid ->
+                                        "solid"
+
+                                    Dashed ->
+                                        "dashed"
+
+                                    Dotted ->
+                                        "dotted"
+                        )
+                        style.borderStyle
                     ]
             , Maybe.map renderColors style.colors
             , Maybe.map renderText style.text
-            , Maybe.map renderBorder style.border
             , listMaybeMap renderShadow style.shadows
             , listMaybeMap renderFilters style.filters
             , listMaybeMap renderTransforms style.transforms

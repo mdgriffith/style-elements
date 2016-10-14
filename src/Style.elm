@@ -4,7 +4,6 @@ module Style
         , Variation
         , Element
         , Colors
-        , Position
         , Shadow
         , Transition
         , Visibility
@@ -15,7 +14,6 @@ module Style
         , Transform
         , Filter
         , Floating
-        , Border
         , BorderStyle
         , Flow
         , Layout
@@ -250,7 +248,9 @@ type alias Model =
     { addClass : Maybe String
     , layout : Layout
     , visibility : Visibility
-    , position : Position
+    , relativeTo : RelativeTo
+    , anchor : Anchor
+    , position : ( Float, Float )
     , cursor : String
     , width : Length
     , height : Length
@@ -258,7 +258,9 @@ type alias Model =
     , spacing : ( Float, Float, Float, Float )
     , padding : ( Float, Float, Float, Float )
     , text : Text
-    , border : Border
+    , borderStyle : BorderStyle
+    , borderWidth : ( Float, Float, Float, Float )
+    , corners : ( Float, Float, Float, Float )
     , backgroundImage : Maybe BackgroundImage
     , float : Maybe Floating
     , inline : Bool
@@ -277,11 +279,9 @@ empty =
     { addClass = Nothing
     , layout = textLayout
     , visibility = visible
-    , position =
-        { relativeTo = currentPosition
-        , anchor = topLeft
-        , position = ( 0, 0 )
-        }
+    , relativeTo = currentPosition
+    , anchor = topLeft
+    , position = ( 0, 0 )
     , colors =
         { background = Color.rgba 255 255 255 0
         , text = Color.black
@@ -298,11 +298,9 @@ empty =
         , decoration = Nothing
         , whitespace = normal
         }
-    , border =
-        { style = solid
-        , width = all 0
-        , corners = all 0
-        }
+    , borderStyle = solid
+    , borderWidth = all 0
+    , corners = all 0
     , cursor = "auto"
     , width = auto
     , height = auto
@@ -338,7 +336,9 @@ type alias Variation =
     , padding : Maybe ( Float, Float, Float, Float )
     , spacing : Maybe ( Float, Float, Float, Float )
     , text : Maybe Text
-    , border : Maybe Border
+    , borderStyle : Maybe BorderStyle
+    , borderWidth : Maybe ( Float, Float, Float, Float )
+    , corners : Maybe ( Float, Float, Float, Float )
     , backgroundImagePosition : Maybe ( Float, Float )
     , shadows : List Shadow
     , transforms : List Transform
@@ -355,7 +355,9 @@ variation =
     , position = Nothing
     , colors = Nothing
     , text = Nothing
-    , border = Nothing
+    , borderStyle = Nothing
+    , borderWidth = Nothing
+    , corners = Nothing
     , cursor = Nothing
     , width = Nothing
     , height = Nothing
@@ -392,17 +394,6 @@ type alias Colors =
     { background : Color
     , text : Color
     , border : Color
-    }
-
-
-{-| Position coordinates are always rendered in pixels.
-They are provided as x and y coordinates where right and down are the positive directions, same as the standard coordinate system for svg.
-
--}
-type alias Position =
-    { relativeTo : RelativeTo
-    , anchor : Anchor
-    , position : ( Float, Float )
     }
 
 
@@ -496,17 +487,6 @@ type alias RelativeTo =
 -}
 type alias Repeat =
     Style.Model.Repeat
-
-
-{-| Border width and corners are always given as floats and rendered as 'px'.
-
-Corners is the same as `border-radius`
--}
-type alias Border =
-    { style : BorderStyle
-    , width : ( Float, Float, Float, Float )
-    , corners : ( Float, Float, Float, Float )
-    }
 
 
 {-| All values are given in 'px' units except for lineHeight which is given in proportion to the fontsize.
