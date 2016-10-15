@@ -87,7 +87,7 @@ Provide the duration for one revolution.
 -}
 rotating : Time -> Animation
 rotating durationForOneRevolution =
-    Style.animation
+    Style.animate
         { duration = durationForOneRevolution
         , easing = "linear"
         , repeat = forever
@@ -105,7 +105,7 @@ Provide the duration for one revolution.
 -}
 reverseRotating : Time -> Animation
 reverseRotating durationForOneRevolution =
-    Style.animation
+    Style.animate
         { duration = durationForOneRevolution
         , easing = "linear"
         , repeat = forever
@@ -114,6 +114,15 @@ reverseRotating durationForOneRevolution =
             , 100 => { variation | transforms = [ rotate 0 0 0 ] }
             ]
         }
+
+
+
+-- Common variations
+
+
+levitate : Variation
+levitate =
+    variation
 
 
 {-| -}

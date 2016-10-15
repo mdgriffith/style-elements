@@ -20,7 +20,7 @@ import Html
 import Set exposing (Set)
 import Svg.Attributes
 import Style.Model exposing (..)
-import Style exposing (Model, Variation, Colors, Text, Element, Animation, Transition, BackgroundImage)
+import Style exposing (Model, Variation, Colors, Text, Element, Animation, BackgroundImage)
 
 
 {-| -}
@@ -62,45 +62,39 @@ elementAs node styleModel attrs elements =
         )
 
 
-{-| Turn a style into an element that can be used to build your view.  In this case, the element will be rendered as a div.
 
--}
-optional : Model -> List ( Bool, Style.Variation ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
-optional =
-    optionalAs "div"
-
-
-{-| Specify your own html node to render the element as.
--}
-optionalAs : String -> Model -> List ( Bool, Style.Variation ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
-optionalAs node styleModel variations attrs elements =
-    let
-        ( className, styleDef ) =
-            render styleModel
-
-        variationTransitions =
-            List.map
-                (\( active, variation ) ->
-                    ( active
-                    , prependClassName className <| renderVariation variation
-                    )
-                )
-                variations
-
-        activatedVariationNames =
-            List.filter fst variationTransitions
-                |> List.map (\x -> fst <| snd x)
-                |> List.foldl (++) ""
-
-        ( childrenStyles, children ) =
-            List.unzip elements
-
-        allStyles =
-            styleDef :: List.concat childrenStyles ++ List.map (\x -> snd (snd x)) variationTransitions
-    in
-        ( allStyles
-        , Html.node node (Svg.Attributes.class (className ++ activatedVariationNames) :: attrs) children
-        )
+--{-| Turn a style into an element that can be used to build your view.  In this case, the element will be rendered as a div.
+---}
+--optional : Model -> List ( Bool, Style.Variation ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+--optional =
+--    optionalAs "div"
+--{-| Specify your own html node to render the element as.
+---}
+--optionalAs : String -> Model -> List ( Bool, Style.Variation ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+--optionalAs node styleModel variations attrs elements =
+--    let
+--        ( className, styleDef ) =
+--            render styleModel
+--        variationTransitions =
+--            List.map
+--                (\( active, variation ) ->
+--                    ( active
+--                    , prependClassName className <| renderVariation variation
+--                    )
+--                )
+--                variations
+--        activatedVariationNames =
+--            List.filter fst variationTransitions
+--                |> List.map (\x -> fst <| snd x)
+--                |> List.foldl (++) ""
+--        ( childrenStyles, children ) =
+--            List.unzip elements
+--        allStyles =
+--            styleDef :: List.concat childrenStyles ++ List.map (\x -> snd (snd x)) variationTransitions
+--    in
+--        ( allStyles
+--        , Html.node node (Svg.Attributes.class (className ++ activatedVariationNames) :: attrs) children
+--        )
 
 
 prependClassName : String -> ( String, StyleDefinition ) -> ( String, StyleDefinition )
@@ -202,8 +196,7 @@ render style =
                     addClassName
                         { style = renderedStyle
                         , tags = []
-                        , modes = []
-                        , keyframes = Nothing
+                        , animations = []
                         }
             in
                 ( classNameAndTags styleDefinition
@@ -249,11 +242,10 @@ render style =
                             , listMaybeMap renderFilters style.filters
                             , listMaybeMap renderTransforms style.transforms
                             , listMaybeMap identity style.additional
-                            , if not <| List.isEmpty style.transitions then
+                            , if List.any isTransition style.animations then
                                 Just cssTransitions
                               else
                                 Nothing
-                            , Maybe.map renderAnimation style.animation
                             ]
 
                 restrictedTags =
@@ -276,44 +268,30 @@ render style =
                 childOverrides =
                     case style.layout of
                         TableLayout ->
-                            [ StyleDef
-                                { name = " > *:not(.inline)"
-                                , style =
-                                    [ "margin" => render4tuplePx style.spacing
-                                    , "display" => "table-row !important"
-                                    ]
-                                , tags = []
-                                , modes = []
-                                , keyframes = Nothing
-                                }
-                            , StyleDef
-                                { name = " > * > *"
-                                , style =
-                                    [ "display" => "table-cell !important"
-                                    ]
-                                , tags = []
-                                , modes = []
-                                , keyframes = Nothing
-                                }
+                            [ ( PseudoClass " > *:not(.inline)"
+                              , [ "margin" => render4tuplePx style.spacing
+                                , "display" => "table-row !important"
+                                ]
+                              , Nothing
+                              )
+                            , ( PseudoClass " > * > *"
+                              , [ "display" => "table-cell !important" ]
+                              , Nothing
+                              )
                             ]
 
                         _ ->
-                            [ StyleDef
-                                { name = " > *:not(.inline)"
-                                , style = [ "margin" => render4tuplePx style.spacing ]
-                                , tags = []
-                                , modes = []
-                                , keyframes = Nothing
-                                }
+                            [ ( PseudoClass " > *:not(.inline)"
+                              , [ "margin" => render4tuplePx style.spacing ]
+                              , Nothing
+                              )
                             ]
 
                 styleDefinition =
                     addClassName
                         { style = renderedStyle
                         , tags = restrictedTags
-                        , modes =
-                            childOverrides ++ List.map renderCssTransitions style.transitions
-                        , keyframes = Maybe.map renderAnimationKeyframes style.animation
+                        , animations = List.map renderAnimation style.animations ++ childOverrides
                         }
             in
                 ( classNameAndTags styleDefinition
@@ -321,29 +299,108 @@ render style =
                 )
 
 
+isTransition : Animation -> Bool
+isTransition (Animation { frames }) =
+    case frames of
+        Transition _ ->
+            True
+
+        _ ->
+            False
+
+
+brace : String -> String
+brace str =
+    " {\n" ++ str ++ "\n}"
+
+
+isMount : ( Trigger, Style, Maybe ( String, Keyframes ) ) -> Bool
+isMount ( trigger, _, _ ) =
+    trigger == Style.Model.Mount
+
+
+renderProp : ( String, String ) -> String
+renderProp ( propName, propValue ) =
+    "  " ++ propName ++ ": " ++ propValue ++ ";"
+
+
+{-| Only handles the CSS related
+
+Keyframes are rendered elsewhere.
+-}
+convertAnimation : String -> ( Trigger, Style, Maybe ( String, Keyframes ) ) -> String
+convertAnimation name ( trigger, style, frames ) =
+    let
+        triggerName =
+            case trigger of
+                Mount ->
+                    ""
+
+                PseudoClass cls ->
+                    cls
+
+        class =
+            "." ++ name ++ triggerName
+
+        props =
+            List.map renderProp style
+                |> String.join "\n"
+    in
+        class ++ (brace props)
+
+
 convertToCSS : List StyleDefinition -> String
 convertToCSS styles =
     let
         convert style =
             case style of
-                StyleDef { name, style, modes, keyframes } ->
-                    (if List.length style == 0 then
+                StyleDef { name, style, animations } ->
+                    if List.length style == 0 then
                         ""
-                     else
-                        "."
-                            ++ name
-                            ++ " {\n"
-                            ++ (String.concat <|
-                                    List.map
-                                        (\( propName, propValue ) ->
-                                            "  " ++ propName ++ ": " ++ propValue ++ ";\n"
-                                        )
-                                        style
-                               )
-                            ++ "}\n"
-                    )
-                        ++ convertModesToCSS name modes
-                        ++ convertKeyframesToCSS name keyframes
+                    else
+                        let
+                            class =
+                                "." ++ name
+
+                            ( mountAnims, transitions ) =
+                                List.partition isMount animations
+
+                            animationProps =
+                                List.concatMap
+                                    (\mounts ->
+                                        case mounts of
+                                            ( _, aProps, _ ) ->
+                                                aProps
+                                    )
+                                    mountAnims
+
+                            props =
+                                List.map renderProp
+                                    (style
+                                        ++ animationProps
+                                    )
+                                    |> String.join "\n"
+
+                            keyframes =
+                                List.map
+                                    (\( _, _, frames ) ->
+                                        Maybe.map (\( animName, frames ) -> convertKeyframesToCSS name animName frames) frames
+                                    )
+                                    animations
+                                    |> List.filterMap identity
+                                    |> String.join "\n"
+                                    |> (++) "\n"
+
+                            modes =
+                                List.map (convertAnimation name) transitions
+                                    |> String.join "\n"
+                                    |> (++) "\n"
+                        in
+                            class
+                                ++ (brace props)
+                                ++ "\n"
+                                ++ modes
+                                ++ keyframes
     in
         uniqueBy className styles
             |> List.map convert
@@ -351,57 +408,53 @@ convertToCSS styles =
             |> String.trim
 
 
-convertKeyframesToCSS : String -> Maybe (List ( Float, List ( String, String ) )) -> String
-convertKeyframesToCSS name keyframes =
-    case keyframes of
-        Nothing ->
-            ""
-
-        Just frames ->
-            "@keyframes animation-"
-                ++ name
-                ++ " {\n"
-                ++ (String.join "\n" <|
-                        List.map
-                            (\( marker, frame ) ->
-                                "  "
-                                    ++ toString marker
-                                    ++ "% {\n"
-                                    ++ (String.concat <|
-                                            List.map
-                                                (\( propName, propValue ) ->
-                                                    "    " ++ propName ++ ": " ++ propValue ++ ";\n"
-                                                )
-                                                frame
-                                       )
-                                    ++ "  }\n"
-                            )
-                            frames
-                   )
-                ++ "}\n"
-
-
-convertModesToCSS : String -> List StyleDefinition -> String
-convertModesToCSS name modes =
-    String.join "\n" <|
-        List.map
-            (\st ->
-                case st of
-                    StyleDef mode ->
-                        "."
-                            ++ name
-                            ++ mode.name
-                            ++ " {\n"
+convertKeyframesToCSS : String -> String -> List ( Float, List ( String, String ) ) -> String
+convertKeyframesToCSS name animName frames =
+    "@keyframes "
+        ++ animName
+        ++ " {\n"
+        ++ (String.join "\n" <|
+                List.map
+                    (\( marker, frame ) ->
+                        "  "
+                            ++ toString marker
+                            ++ "% {\n"
                             ++ (String.concat <|
                                     List.map
                                         (\( propName, propValue ) ->
-                                            "  " ++ propName ++ ": " ++ propValue ++ ";\n"
+                                            "    " ++ propName ++ ": " ++ propValue ++ ";\n"
                                         )
-                                        mode.style
+                                        frame
                                )
-                            ++ "}\n"
-            )
-            modes
+                            ++ "  }\n"
+                    )
+                    frames
+           )
+        ++ "}"
+
+
+
+--convertModesToCSS : String -> List StyleDefinition -> String
+--convertModesToCSS name modes =
+--    String.join "\n" <|
+--        List.map
+--            (\st ->
+--                case st of
+--                    StyleDef mode ->
+--                        "."
+--                            ++ name
+--                            ++ mode.name
+--                            ++ " {\n"
+--                            ++ (String.concat <|
+--                                    List.map
+--                                        (\( propName, propValue ) ->
+--                                            "  " ++ propName ++ ": " ++ propValue ++ ";\n"
+--                                        )
+--                                        mode.style
+--                               )
+--                            ++ "}\n"
+--            )
+--            modes
 
 
 {-| Drop duplicates where what is considered to be a duplicate is the result of first applying the supplied function to the elements of the list.
@@ -429,26 +482,24 @@ uniqueHelp f existing remaining =
 
 
 addClassName :
-    { keyframes : Maybe (List ( Float, List ( String, String ) ))
-    , modes : List StyleDefinition
+    { animations : List ( Trigger, Style, Maybe ( String, Keyframes ) )
     , style : List ( String, String )
     , tags : List String
     }
     -> StyleDefinition
-addClassName { tags, style, modes, keyframes } =
+addClassName { tags, style, animations } =
     let
         styleString =
             List.map (\( name, value ) -> name ++ value) style
                 |> String.concat
 
-        keyframeString =
-            convertKeyframesToCSS "" keyframes
-
-        modesString =
-            convertModesToCSS "" modes
-
+        -- TODO: ANIMATIONS NEED TO BE COVERED IN NAME GENERATION
+        --keyframeString =
+        --    convertKeyframesToCSS "" keyframes
+        --modesString =
+        --    convertModesToCSS "" modes
         name =
-            hash (styleString ++ keyframeString ++ modesString)
+            hash (styleString)
     in
         StyleDef
             { name = name
@@ -462,8 +513,7 @@ addClassName { tags, style, modes, keyframes } =
                             ( pName, pValue )
                     )
                     style
-            , modes = modes
-            , keyframes = keyframes
+            , animations = animations
             }
 
 
@@ -531,21 +581,17 @@ renderVariation style =
             addClassName
                 { style = renderedStyle
                 , tags = []
-                , modes =
+                , animations =
                     case style.spacing of
                         Nothing ->
                             []
 
                         Just spacing ->
-                            [ StyleDef
-                                { name = " > *"
-                                , tags = []
-                                , style = [ "margin" => render4tuplePx spacing ]
-                                , modes = []
-                                , keyframes = Nothing
-                                }
+                            [ ( PseudoClass " > *"
+                              , [ "margin" => render4tuplePx spacing ]
+                              , Nothing
+                              )
                             ]
-                , keyframes = Nothing
                 }
     in
         ( classNameAndTags styleDefinition
@@ -563,31 +609,93 @@ listMaybeMap fn ls =
             Just <| fn nonEmptyList
 
 
-renderAnimationKeyframes : Animation -> List ( Float, List ( String, String ) )
-renderAnimationKeyframes (Animation anim) =
+
+-- TODO ANIMATION NAME NEEDS TO HAVE
+
+
+renderAnimation : Animation -> ( Trigger, Style.Model.Style, Maybe ( String, Style.Model.Keyframes ) )
+renderAnimation (Animation { trigger, duration, easing, frames }) =
     let
-        renderAnimStep ( marker, styleDef ) =
-            case snd (renderVariation styleDef) of
-                StyleDef { style } ->
-                    ( marker, style )
+        ( renderedStyle, renderedFrames ) =
+            case frames of
+                Transition variation ->
+                    let
+                        rendered =
+                            case snd <| renderVariation variation of
+                                StyleDef { style } ->
+                                    style
+                    in
+                        ( rendered
+                            ++ [ "transition-property" => "opacity, padding, left, top, right, bottom, height, width, color, background-color, border-color, border-width, box-shadow, text-shadow, filter, transform, font-size, line-height"
+                               , "transition-duration" => (toString duration ++ "ms")
+                               , "-webkit-transition-timing-function" => easing
+                               , "transition-timing-function" => easing
+                               ]
+                        , Nothing
+                        )
+
+                Keyframes { repeat, steps } ->
+                    let
+                        renderedDuration =
+                            toString duration ++ "ms"
+
+                        iterations =
+                            if isInfinite repeat then
+                                "infinite"
+                            else
+                                toString repeat
+
+                        ( allNames, renderedSteps ) =
+                            List.unzip <|
+                                List.map
+                                    (\( marker, variation ) ->
+                                        let
+                                            ( name, styleDef ) =
+                                                renderVariation variation
+
+                                            rendered =
+                                                case styleDef of
+                                                    StyleDef { style } ->
+                                                        style
+                                        in
+                                            ( name, ( marker, rendered ) )
+                                    )
+                                    steps
+
+                        animationName =
+                            "animation-" ++ (hash <| String.concat allNames)
+                    in
+                        ( [ "animation" => (animationName ++ " " ++ renderedDuration ++ " " ++ easing ++ " " ++ iterations) ]
+                        , Just
+                            ( animationName
+                            , renderedSteps
+                            )
+                        )
     in
-        List.map renderAnimStep anim.steps
+        ( trigger, renderedStyle, renderedFrames )
 
 
-renderAnimation : Animation -> List ( String, String )
-renderAnimation (Animation anim) =
-    let
-        duration =
-            toString anim.duration ++ "ms"
+cssTransitions : List ( String, String )
+cssTransitions =
+    [ "transition-property" => "opacity, padding, left, top, right, bottom, height, width, color, background-color, border-color, border-width, box-shadow, text-shadow, filter, transform, font-size, line-height"
+    , "transition-duration" => "300ms"
+    , "-webkit-transition-timing-function" => "ease-out"
+    , "transition-timing-function" => "ease-out"
+    ]
 
-        iterations =
-            if isInfinite anim.repeat then
-                "infinite"
-            else
-                toString anim.repeat
-    in
-        [ "animation" => (duration ++ " " ++ anim.easing ++ " " ++ iterations)
-        ]
+
+
+--{-|
+---}
+--renderCssTransitions : Style.Model.Transition Variation -> StyleDefinition
+--renderCssTransitions (Transition name targetStyle) =
+--    StyleDef
+--        { name = name
+--        , tags = []
+--        , style = renderTransitionStyle targetStyle
+--        , modes = []
+--        , keyframes = Nothing
+--        }
 
 
 renderVisibility : Visibility -> List ( String, String )
@@ -923,25 +1031,25 @@ renderPosition relativeTo anchor position =
         case anchor of
             ( AnchorTop, AnchorLeft ) ->
                 [ relative
-                , "top" => (toString (-1 * y) ++ "px")
+                , "top" => (toString y ++ "px")
                 , "left" => (toString x ++ "px")
                 ]
 
             ( AnchorTop, AnchorRight ) ->
                 [ relative
-                , "top" => (toString (-1 * y) ++ "px")
+                , "top" => (toString y ++ "px")
                 , "right" => (toString (-1 * x) ++ "px")
                 ]
 
             ( AnchorBottom, AnchorLeft ) ->
                 [ relative
-                , "bottom" => (toString y ++ "px")
+                , "bottom" => (toString (-1 * y) ++ "px")
                 , "left" => (toString x ++ "px")
                 ]
 
             ( AnchorBottom, AnchorRight ) ->
                 [ relative
-                , "bottom" => (toString y ++ "px")
+                , "bottom" => (toString (-1 * y) ++ "px")
                 , "right" => (toString (-1 * x) ++ "px")
                 ]
 
@@ -1110,64 +1218,6 @@ renderLayout layout =
               , inline = False
               }
             )
-
-
-cssTransitions : List ( String, String )
-cssTransitions =
-    [ "transition-property" => "opacity, padding, left, top, right, bottom, height, width, color, background-color, border-color, border-width, box-shadow, text-shadow, filter, transform, font-size, line-height"
-    , "transition-duration" => "300ms"
-    , "-webkit-transition-timing-function" => "ease-out"
-    , "transition-timing-function" => "ease-out"
-    ]
-
-
-renderTransitionStyle : Variation -> List ( String, String )
-renderTransitionStyle style =
-    List.concat <|
-        List.filterMap identity
-            [ Just <|
-                List.filterMap identity
-                    [ Maybe.map (\w -> "width" => (renderLength w)) style.width
-                    , Maybe.map (\h -> "height" => (renderLength h)) style.height
-                    , Maybe.map (\c -> "cursor" => c) style.cursor
-                    , Maybe.map (\p -> "padding" => (render4tuplePx p)) style.padding
-                    , Maybe.map (\p -> "border-width" => (render4tuplePx p)) style.borderWidth
-                    , Maybe.map (\p -> "border-radius" => (render4tuplePx p)) style.corners
-                    , Maybe.map
-                        (\bstyle ->
-                            "border-style"
-                                => case bstyle of
-                                    Solid ->
-                                        "solid"
-
-                                    Dashed ->
-                                        "dashed"
-
-                                    Dotted ->
-                                        "dotted"
-                        )
-                        style.borderStyle
-                    ]
-            , Maybe.map renderColors style.colors
-            , Maybe.map renderText style.text
-            , listMaybeMap renderShadow style.shadows
-            , listMaybeMap renderFilters style.filters
-            , listMaybeMap renderTransforms style.transforms
-            , Maybe.map renderVisibility style.visibility
-            ]
-
-
-{-|
--}
-renderCssTransitions : Style.Model.Transition Variation -> StyleDefinition
-renderCssTransitions (Transition name targetStyle) =
-    StyleDef
-        { name = name
-        , tags = []
-        , style = renderTransitionStyle targetStyle
-        , modes = []
-        , keyframes = Nothing
-        }
 
 
 floatError : String

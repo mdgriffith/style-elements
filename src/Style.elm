@@ -5,7 +5,6 @@ module Style
         , Element
         , Colors
         , Shadow
-        , Transition
         , Visibility
         , TextDecoration
         , Alignment
@@ -23,6 +22,7 @@ module Style
         , RelativeTo
         , Repeat
         , Animation
+        , Trigger
         , flowUp
         , flowDown
         , flowRight
@@ -76,7 +76,6 @@ module Style
         , floatRight
         , floatTopLeft
         , floatTopRight
-        , on
         , scale
         , translate
         , rotate
@@ -102,10 +101,16 @@ module Style
         , bold
         , light
         , bolder
-        , animation
         , shadow
         , insetShadow
         , textShadow
+        , on
+        , onWith
+        , animate
+        , animateOn
+        , hover
+        , focus
+        , checked
         , empty
         , variation
         )
@@ -268,8 +273,7 @@ type alias Model =
     , transforms : List Transform
     , filters : List Filter
     , additional : List ( String, String )
-    , transitions : List Transition
-    , animation : Maybe Animation
+    , animations : List Animation
     }
 
 
@@ -312,8 +316,7 @@ empty =
     , shadows = []
     , transforms = []
     , filters = []
-    , transitions = []
-    , animation = Nothing
+    , animations = []
     , additional = []
     }
 
@@ -378,13 +381,13 @@ type alias Element msg =
 
 
 {-| -}
-type alias Transition =
-    Style.Model.Transition Variation
+type alias Animation =
+    Style.Model.Animated Variation
 
 
 {-| -}
-type alias Animation =
-    Style.Model.Animated Variation
+type alias Trigger =
+    Style.Model.Trigger
 
 
 {-| Colors are bound together in a record.  This is useful for creating palettes of colors.
@@ -556,16 +559,6 @@ round =
 noRepeat : Repeat
 noRepeat =
     Style.Model.NoRepeat
-
-
-{-| Create a transition by specifying a pseudo class and the target style as a Variation.  For example to make a transition on hover, you'd do the following:
-
-```on ":hover" { variation | colors = linkHover }```
-
--}
-on : String -> Variation -> Transition
-on name model =
-    Style.Model.Transition name model
 
 
 {-| Float something to the left.  Only valid in textLayouts.
@@ -1134,18 +1127,94 @@ sepia x =
     Style.Model.Sepia x
 
 
-{-|
+{-| Create a transition by specifying a pseudo class and the target style as a Variation.  For example to make a transition on hover, you'd do the following:
 
-Easing is given as a string name from any of the values accepted by the animation-timing-function css property.
+```on hover { variation | colors = linkHover }```
 
-https://developer.mozilla.org/en-US/docs/Web/CSS/animation-timing-function
+Defaults to duration 300, easing as "ease"
+
 -}
-animation :
+on : Trigger -> Variation -> Animation
+on trigger model =
+    Style.Model.Animation
+        { trigger = trigger
+        , duration = 300
+        , easing = "ease"
+        , frames = Style.Model.Transition model
+        }
+
+
+{-|
+-}
+onWith : Trigger -> { duration : Time, easing : String } -> Variation -> Animation
+onWith trigger { duration, easing } model =
+    Style.Model.Animation
+        { trigger = trigger
+        , duration = duration
+        , easing = easing
+        , frames = Style.Model.Transition model
+        }
+
+
+{-| Begin an animation as soon as the elment is mounted.
+-}
+animate :
     { duration : Time
     , easing : String
     , repeat : Float
     , steps : List ( Float, Variation )
     }
     -> Animation
-animation anim =
-    Style.Model.Animation anim
+animate { duration, easing, repeat, steps } =
+    Style.Model.Animation
+        { trigger = Style.Model.Mount
+        , duration = duration
+        , easing = easing
+        , frames =
+            Style.Model.Keyframes
+                { repeat = repeat
+                , steps = steps
+                }
+        }
+
+
+{-| Begin an animation on a trigger.
+
+-}
+animateOn :
+    Trigger
+    -> { duration : Time
+       , easing : String
+       , repeat : Float
+       , steps : List ( Float, Variation )
+       }
+    -> Animation
+animateOn trigger { duration, easing, repeat, steps } =
+    Style.Model.Animation
+        { trigger = trigger
+        , duration = duration
+        , easing = easing
+        , frames =
+            Style.Model.Keyframes
+                { repeat = repeat
+                , steps = steps
+                }
+        }
+
+
+{-| -}
+hover : Trigger
+hover =
+    Style.Model.PseudoClass ":hover"
+
+
+{-| -}
+focus : Trigger
+focus =
+    Style.Model.PseudoClass ":focus"
+
+
+{-| -}
+checked : Trigger
+checked =
+    Style.Model.PseudoClass ":checked"

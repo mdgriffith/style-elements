@@ -12,24 +12,38 @@ type StyleDefinition
         { name : String
         , tags : List String
         , style : List ( String, String )
-        , modes :
-            List StyleDefinition
-        , keyframes :
-            Maybe (List ( Float, List ( String, String ) ))
+        , animations :
+            List ( Trigger, Style, Maybe ( String, Keyframes ) )
         }
 
 
-{-| -}
-type Transition style
-    = Transition String style
+type alias Style =
+    List ( String, String )
+
+
+type alias Keyframes =
+    List ( Float, List ( String, String ) )
 
 
 {-| -}
 type Animated style
     = Animation
-        { duration : Time
+        { trigger : Trigger
+        , duration : Time
         , easing : String
-        , repeat : Float
+        , frames : Frames style
+        }
+
+
+type Trigger
+    = Mount
+    | PseudoClass String
+
+
+type Frames style
+    = Transition style
+    | Keyframes
+        { repeat : Float
         , steps : List ( Float, style )
         }
 
