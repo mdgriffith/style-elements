@@ -384,7 +384,7 @@ convertToCSS styles =
                             keyframes =
                                 List.map
                                     (\( _, _, frames ) ->
-                                        Maybe.map (\( animName, frames ) -> convertKeyframesToCSS name animName frames) frames
+                                        Maybe.map (\( animName, frames ) -> convertKeyframesToCSS animName frames) frames
                                     )
                                     animations
                                     |> List.filterMap identity
@@ -408,8 +408,8 @@ convertToCSS styles =
             |> String.trim
 
 
-convertKeyframesToCSS : String -> String -> List ( Float, List ( String, String ) ) -> String
-convertKeyframesToCSS name animName frames =
+convertKeyframesToCSS : String -> List ( Float, List ( String, String ) ) -> String
+convertKeyframesToCSS animName frames =
     "@keyframes "
         ++ animName
         ++ " {\n"
@@ -493,13 +493,22 @@ addClassName { tags, style, animations } =
             List.map (\( name, value ) -> name ++ value) style
                 |> String.concat
 
-        -- TODO: ANIMATIONS NEED TO BE COVERED IN NAME GENERATION
-        --keyframeString =
-        --    convertKeyframesToCSS "" keyframes
-        --modesString =
-        --    convertModesToCSS "" modes
+        keyframeString =
+            List.map
+                (\( _, _, frames ) ->
+                    Maybe.map (\( animName, frames ) -> convertKeyframesToCSS animName frames) frames
+                )
+                animations
+                |> List.filterMap identity
+                |> String.concat
+
+        modes =
+            List.filter (\anim -> not <| isMount anim) animations
+                |> List.map (convertAnimation name)
+                |> String.concat
+
         name =
-            hash (styleString)
+            hash (styleString ++ modes ++ keyframeString)
     in
         StyleDef
             { name = name
