@@ -7,7 +7,7 @@ module Style.Basic exposing (..)
 @docs centered, completelyCentered, split, fontSizes
 
 
-@docs rotating, reverseRotating
+@docs rotating, reverseRotating, levitate
 
 
 -}

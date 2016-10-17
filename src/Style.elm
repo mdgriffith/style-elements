@@ -104,6 +104,7 @@ module Style
         , shadow
         , insetShadow
         , textShadow
+        , dropShadow
         , on
         , onWith
         , animate
@@ -117,10 +118,12 @@ module Style
 
 {-| A different take on styling.
 
+This module is focused around composing a style.
+
+
 @docs Model, empty
 
 @docs Variation, variation
-
 
 
 # Layouts
@@ -153,31 +156,37 @@ Layouts affect how children are arranged.  It is one of the principles of the li
 
 # Units
 
-Most values in this library have one set of units chosen and built in to the library.  The exception is for `width` and `height` values which sometimes require different units.  Here's how to create them.
+Most values in this library have one set of units chosen and built in to the library.
+
+However, `width` and `height` values can be pixels, percent, or auto.
 
 @docs percent, px, auto
 
 
 # Positioning
 
-@docs Position
+The coordinates for the `position` value in the style model are x and y coordinates where right and down are the positive directions, same as the standard coordinate system for svg.
 
-@docs parent, currentPosition, screen, RelativeTo
+These coordinates are always rendered in pixels.
 
-@docs topLeft, topRight, bottomLeft, bottomRight, Anchor
+@docs RelativeTo, parent, currentPosition, screen
+
+@docs Anchor, topLeft, topRight, bottomLeft, bottomRight
 
 
 # A Note on Padding and Margins
 
-`padding` and `margin` are interesting when you have a parent and a child element.  You now have two ways of specifying the spacing of the child element within the parent.  Either the `margin` on the child or the `padding` on the parent.  This causes anxiety in the developer.
+In CSS `padding` and `margin` are interesting when you have a parent and a child element.  You now have two ways of specifying the spacing of the child element within the parent.  Either the `margin` on the child or the `padding` on the parent.  This causes anxiety in the developer.
 
 In the effort of having only one good way to accomplish something, we only allow the `padding` property to be set.
 
-We introduce the `spacing` attribute, which sets the spacing between all child elements.
+We introduce the `spacing` attribute, which sets the spacing between all _child_ elements (using the margin property).
 
-`inline` elements are not affected by spacing.
-
-Floating elements will only respect spacing values set for the bottom, and whichever happens to be the inner side.
+> __Some exceptions__
+>
+> `inline` elements are not affected by spacing.
+>
+> Floating elements will only respect certain spacing values.
 
 
 # Padding, Spacing, and Borders
@@ -190,8 +199,8 @@ The following are convenience functions for setting these values.
 
 ## Borderstyles
 
-@docs Border, BorderStyle, solid, dotted, dashed
 
+@docs BorderStyle, solid, dotted, dashed
 
 
 # Text/Font
@@ -221,11 +230,14 @@ The following are convenience functions for setting these values.
 
 @docs Filter, filterUrl, blur, brightness, contrast, grayscale, hueRotate, invert, opacityFilter, saturate, sepia
 
-# Transitions
-@docs Transition, on
+
 
 # Animations
-@docs Animation, animation, rotating, reverseRotating
+@docs Animation, on, onWith, animate, animateOn
+
+Animation triggers.
+
+@docs Trigger, hover, focus, checked
 
 # Element
 @docs Element
@@ -468,7 +480,7 @@ type alias Length =
     Style.Model.Length
 
 
-{-| Only rendered if the parent is a textLayout.
+{-| Only rendered if the parent is a textLayout.  Otherwise it will give a red visual warning.
 -}
 type alias Floating =
     Style.Model.Floating
@@ -579,7 +591,9 @@ floatRight =
     Style.Model.FloatRight
 
 
-{-| Same as floatLeft, except it will ignore any top spacing that it's parent has set for it.  This is useful for floating things at the beginning of text.
+{-| Same as floatLeft, except it will ignore any top spacing that it's parent has set for it.
+
+This is useful for floating things at the beginning of text.
 
 -}
 floatTopLeft : Floating
@@ -655,11 +669,11 @@ auto =
     Style.Model.Auto
 
 
-{-| Besides that all children are arranged as `display:block` elements.
-
-This is the only layout that allows for child elements to use `float` or `inline`.
+{-| This is the only layout that allows for child elements to use `float` or `inline`.
 
 If you try to assign a float or make an element inline that is not the child of a textLayout, the float or inline will be ignored and the element will be highlighted in red with a large warning.
+
+Besides this, all immediate children are arranged as if they were `display: block`.
 
 -}
 textLayout : Layout
@@ -667,7 +681,7 @@ textLayout =
     Style.Model.TextLayout
 
 
-{-| This is the same as setting an element to `display:table`, also known as the "anti-hero of CSS".
+{-| This is the same as setting an element to `display:table`.
 
 -}
 tableLayout : Layout
@@ -685,6 +699,19 @@ type alias Flow =
     }
 
 
+{-| This is a flexbox based layout
+-}
+flowUp : Flow -> Layout
+flowUp { wrap, horizontal, vertical } =
+    Style.Model.FlexLayout <|
+        Style.Model.Flexible
+            { go = Style.Model.Up
+            , wrap = wrap
+            , horizontal = horizontal
+            , vertical = vertical
+            }
+
+
 {-|
 
 -}
@@ -693,19 +720,6 @@ flowDown { wrap, horizontal, vertical } =
     Style.Model.FlexLayout <|
         Style.Model.Flexible
             { go = Style.Model.Down
-            , wrap = wrap
-            , horizontal = horizontal
-            , vertical = vertical
-            }
-
-
-{-| This is a flexbox based layout
--}
-flowUp : Flow -> Layout
-flowUp { wrap, horizontal, vertical } =
-    Style.Model.FlexLayout <|
-        Style.Model.Flexible
-            { go = Style.Model.Up
             , wrap = wrap
             , horizontal = horizontal
             , vertical = vertical

@@ -6,7 +6,7 @@ module Style.Elements.Basic exposing (..)
 
 @docs centered, completelyCentered, split, floatLeft, floatRight, floatTopLeft, floatTopRight
 
-@docs div
+@docs div, table
 
 # Common Text Elements
 
@@ -113,6 +113,8 @@ floatTopRight floater =
         [ floater ]
 
 
+{-|
+-}
 table : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 table =
     elementAs "table"
