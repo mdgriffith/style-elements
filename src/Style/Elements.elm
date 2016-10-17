@@ -62,39 +62,63 @@ elementAs node styleModel attrs elements =
         )
 
 
+{-| Turn a style into an element that can be used to build your view.  In this case, the element will be rendered as a div.
+-}
+optional : Model -> List ( Bool, Style.Variation ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+optional =
+    optionalAs "div"
 
---{-| Turn a style into an element that can be used to build your view.  In this case, the element will be rendered as a div.
----}
---optional : Model -> List ( Bool, Style.Variation ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
---optional =
---    optionalAs "div"
---{-| Specify your own html node to render the element as.
----}
---optionalAs : String -> Model -> List ( Bool, Style.Variation ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
---optionalAs node styleModel variations attrs elements =
---    let
---        ( className, styleDef ) =
---            render styleModel
---        variationTransitions =
---            List.map
---                (\( active, variation ) ->
---                    ( active
---                    , prependClassName className <| renderVariation variation
---                    )
---                )
---                variations
---        activatedVariationNames =
---            List.filter fst variationTransitions
---                |> List.map (\x -> fst <| snd x)
---                |> List.foldl (++) ""
---        ( childrenStyles, children ) =
---            List.unzip elements
---        allStyles =
---            styleDef :: List.concat childrenStyles ++ List.map (\x -> snd (snd x)) variationTransitions
---    in
---        ( allStyles
---        , Html.node node (Svg.Attributes.class (className ++ activatedVariationNames) :: attrs) children
---        )
+
+{-| Specify your own html node to render the element as.
+-}
+optionalAs : String -> Model -> List ( Bool, Style.Variation ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+optionalAs node styleModel variations attrs elements =
+    let
+        ( className, styleDef ) =
+            render styleModel
+
+        variationTransitions =
+            List.map
+                (\( active, variation ) ->
+                    ( active
+                    , prependClassName className <| renderVariation variation
+                    )
+                )
+                variations
+
+        activatedVariationNames =
+            List.filter fst variationTransitions
+                |> List.map (\x -> fst <| snd x)
+                |> List.foldl (++) ""
+
+        ( childrenStyles, children ) =
+            List.unzip elements
+
+        allStyles =
+            styleDef :: List.concat childrenStyles ++ List.map (\x -> snd (snd x)) variationTransitions
+    in
+        ( allStyles
+        , Html.node node (Svg.Attributes.class (className ++ activatedVariationNames) :: attrs) children
+        )
+
+
+{-|
+-}
+replace : Element msg -> List ( Bool, Element msg ) -> Element msg
+replace el replacements =
+    let
+        allStyles =
+            List.concatMap (\x -> fst <| snd x) (( True, el ) :: replacements)
+
+        replacement =
+            List.filter fst replacements
+                |> List.head
+                |> Maybe.map snd
+
+        ( _, replaced ) =
+            Maybe.withDefault el replacement
+    in
+        ( allStyles, replaced )
 
 
 prependClassName : String -> ( String, StyleDefinition ) -> ( String, StyleDefinition )
@@ -433,30 +457,6 @@ convertKeyframesToCSS animName frames =
         ++ "}"
 
 
-
---convertModesToCSS : String -> List StyleDefinition -> String
---convertModesToCSS name modes =
---    String.join "\n" <|
---        List.map
---            (\st ->
---                case st of
---                    StyleDef mode ->
---                        "."
---                            ++ name
---                            ++ mode.name
---                            ++ " {\n"
---                            ++ (String.concat <|
---                                    List.map
---                                        (\( propName, propValue ) ->
---                                            "  " ++ propName ++ ": " ++ propValue ++ ";\n"
---                                        )
---                                        mode.style
---                               )
---                            ++ "}\n"
---            )
---            modes
-
-
 {-| Drop duplicates where what is considered to be a duplicate is the result of first applying the supplied function to the elements of the list.
 -}
 uniqueBy : (a -> comparable) -> List a -> List a
@@ -693,20 +693,6 @@ cssTransitions =
     ]
 
 
-
---{-|
----}
---renderCssTransitions : Style.Model.Transition Variation -> StyleDefinition
---renderCssTransitions (Transition name targetStyle) =
---    StyleDef
---        { name = name
---        , tags = []
---        , style = renderTransitionStyle targetStyle
---        , modes = []
---        , keyframes = Nothing
---        }
-
-
 renderVisibility : Visibility -> List ( String, String )
 renderVisibility vis =
     case vis of
@@ -731,13 +717,11 @@ renderFloating floating =
         FloatLeft ->
             [ "float" => "left"
             , "margin-left" => "0px !important"
-              --, "margin-top" => "0px !important"
             ]
 
         FloatRight ->
             [ "float" => "right"
             , "margin-right" => "0px !important"
-              --, "margin-top" => "0px !important"
             ]
 
         FloatLeftTop ->
