@@ -23,6 +23,7 @@ module Style
         , Repeat
         , Animation
         , Trigger
+        , MediaQuery
         , flowUp
         , flowDown
         , flowRight

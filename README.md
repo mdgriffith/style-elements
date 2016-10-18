@@ -2,13 +2,15 @@
 
 > This library is experimental.  Try it out and let me know your feedback!
 
-It's easy to write _valid_ CSS that is still broken and frustrating.  In dealing with CSS we have to handle inconsistent browser defaults, sometimes mysterious parent-child interactions, confusing property naming, and a whole host of unintuitive workarounds.
+It's easy to write _valid_ CSS that is still broken and frustrating.
 
-What if we could just make broken styles not expressible?  It takes a lot of discipline to make a well crafted stylesheet, why can't we shift that discipline to the elm compiler?  We can get a lot farther by having a library that sets smart defaults and protects you from the parts of CSS that bite.
+In dealing with CSS we have to handle inconsistent browser defaults, mysterious parent-child interactions, confusing property naming, and a whole host of unintuitive workarounds.
+
+What if we could just make frustrating styles not expressible?  It takes a lot of discipline to make a well crafted stylesheet, why can't we shift that discipline to the elm compiler?  We can get a lot farther by having a library that sets smart defaults and protects you from the parts of CSS that bite.
 
 That's the aim of `style-elements` library. To give you the tools to write styles that are intuitive and robust, while still being productive and expressive.  To make styles that don't break.
 
-And while we're at it, it wouldn't hurt to have built in support for `animations`, `transitions`, and `media queries` too, so that we can make our webapp feel modern and responsive.
+And while we're at it, it wouldn't hurt to have built in support for `animations`, `transitions`, and `media queries` too.
 
 Maybe styling can actually be _fun_ now.
 

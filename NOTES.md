@@ -546,6 +546,17 @@ To me it feels like an elmish solution.  The tradeoff is some initial boilerplat
 
 
 
+# Moving from content-box to border-box
+
+I didn't have an opinion on content-box vs border-box for a long while.  Generally I've viewed them as somewhat obscure css that I need once in a blue moon....and that generally I dind't need to worry about them.
+
+So, we have to make a decision, which is more important to have 'width/height' refer to?  The size of the box itself, or the size of the content inside the padding and border?
+
+Browsers default having the width and height values content inside the padding and border is what the width/height apply to.  I'd have to say
+
+However all of this is sorta nitpicky, there is one case which swayed me to making border-box the default.
+
+It's when you try to use flex-box with justify-content: spacing-between.  This can be super useful to set a navbar where you have things on the left and things on the right.  However when the navbar has any sort of padding and with box-sizing set to content-box, then the right element is severely out of place.
 
 
 

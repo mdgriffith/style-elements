@@ -515,8 +515,12 @@ addClassName { tags, style, animations, media } =
 
         keyframeString =
             List.map
-                (\( _, _, frames ) ->
-                    Maybe.map (\( animName, frames ) -> convertKeyframesToCSS animName frames) frames
+                (\( _, _, keyframes ) ->
+                    Maybe.map
+                        (\( animName, frames ) ->
+                            convertKeyframesToCSS animName frames
+                        )
+                        keyframes
                 )
                 animations
                 |> List.filterMap identity
