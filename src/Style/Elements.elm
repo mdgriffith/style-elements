@@ -1,10 +1,10 @@
-module Style.Elements exposing (html, element, elementAs, build, buildAs)
+module Style.Elements exposing (html, element, elementAs, optional, optionalAs, build, buildAs)
 
 {-|
 
 # Creating Elements
 
-@docs element, elementAs, html
+@docs element, elementAs, optional, optionalAs, html
 
 # Building the Stylesheet
 
@@ -62,14 +62,15 @@ elementAs node styleModel attrs elements =
         )
 
 
-{-| Turn a style into an element that can be used to build your view.  In this case, the element will be rendered as a div.
+{-| Create an element with style variations that can be turned on/off.  The variations will stack.
+
 -}
 optional : Model -> List ( Bool, Style.Variation ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 optional =
     optionalAs "div"
 
 
-{-| Specify your own html node to render the element as.
+{-|
 -}
 optionalAs : String -> Model -> List ( Bool, Style.Variation ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 optionalAs node styleModel variations attrs elements =
