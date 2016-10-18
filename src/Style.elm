@@ -259,11 +259,9 @@ import Style.Model
 
 Some properties are mandatory makes our styles predictable.
 
-Generally you will only define a full style once, and the rest of your styles will be based off that single foundation style.
 -}
 type alias Model =
-    { addClass : Maybe String
-    , layout : Layout
+    { layout : Layout
     , visibility : Visibility
     , relativeTo : RelativeTo
     , anchor : Anchor
@@ -277,7 +275,7 @@ type alias Model =
     , text : Text
     , borderStyle : BorderStyle
     , borderWidth : ( Float, Float, Float, Float )
-    , corners : ( Float, Float, Float, Float )
+    , cornerRadius : ( Float, Float, Float, Float )
     , backgroundImage : Maybe BackgroundImage
     , float : Maybe Floating
     , inline : Bool
@@ -292,8 +290,7 @@ type alias Model =
 {-| -}
 empty : Model
 empty =
-    { addClass = Nothing
-    , layout = textLayout
+    { layout = textLayout
     , visibility = visible
     , relativeTo = currentPosition
     , anchor = topLeft
@@ -316,7 +313,7 @@ empty =
         }
     , borderStyle = solid
     , borderWidth = all 0
-    , corners = all 0
+    , cornerRadius = all 0
     , cursor = "auto"
     , width = auto
     , height = auto
@@ -353,7 +350,7 @@ type alias Variation =
     , text : Maybe Text
     , borderStyle : Maybe BorderStyle
     , borderWidth : Maybe ( Float, Float, Float, Float )
-    , corners : Maybe ( Float, Float, Float, Float )
+    , cornerRadius : Maybe ( Float, Float, Float, Float )
     , backgroundImagePosition : Maybe ( Float, Float )
     , shadows : List Shadow
     , transforms : List Transform
@@ -372,7 +369,7 @@ variation =
     , text = Nothing
     , borderStyle = Nothing
     , borderWidth = Nothing
-    , corners = Nothing
+    , cornerRadius = Nothing
     , cursor = Nothing
     , width = Nothing
     , height = Nothing

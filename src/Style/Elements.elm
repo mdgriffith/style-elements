@@ -246,7 +246,7 @@ render style =
                                 , "cursor" => style.cursor
                                 , "padding" => render4tuplePx style.padding
                                 , "border-width" => render4tuplePx style.borderWidth
-                                , "border-radius" => render4tuplePx style.corners
+                                , "border-radius" => render4tuplePx style.cornerRadius
                                 , "border-style"
                                     => case style.borderStyle of
                                         Solid ->
@@ -527,6 +527,7 @@ addClassName { tags, style, animations } =
 
 
 {-| http://package.elm-lang.org/packages/Skinney/murmur3/2.0.2/Murmur3
+
 -}
 hash : String -> String
 hash value =
@@ -556,7 +557,7 @@ renderVariation style =
                                 )
                                 style.backgroundImagePosition
                             , Maybe.map (\p -> "border-width" => (render4tuplePx p)) style.borderWidth
-                            , Maybe.map (\p -> "border-radius" => (render4tuplePx p)) style.corners
+                            , Maybe.map (\p -> "border-radius" => (render4tuplePx p)) style.cornerRadius
                             , Maybe.map
                                 (\bstyle ->
                                     "border-style"
@@ -618,10 +619,6 @@ listMaybeMap fn ls =
             Just <| fn nonEmptyList
 
 
-
--- TODO ANIMATION NAME NEEDS TO HAVE
-
-
 renderAnimation : Animation -> ( Trigger, Style.Model.Style, Maybe ( String, Style.Model.Keyframes ) )
 renderAnimation (Animation { trigger, duration, easing, frames }) =
     let
@@ -635,7 +632,7 @@ renderAnimation (Animation { trigger, duration, easing, frames }) =
                                     style
                     in
                         ( rendered
-                            ++ [ "transition-property" => "opacity, padding, left, top, right, bottom, height, width, color, background-color, border-color, border-width, box-shadow, text-shadow, filter, transform, font-size, line-height"
+                            ++ [ "transition-property" => "all"
                                , "transition-duration" => (toString duration ++ "ms")
                                , "-webkit-transition-timing-function" => easing
                                , "transition-timing-function" => easing
@@ -686,7 +683,7 @@ renderAnimation (Animation { trigger, duration, easing, frames }) =
 
 cssTransitions : List ( String, String )
 cssTransitions =
-    [ "transition-property" => "opacity, padding, left, top, right, bottom, height, width, color, background-color, border-color, border-width, box-shadow, text-shadow, filter, transform, font-size, line-height"
+    [ "transition-property" => "all"
     , "transition-duration" => "300ms"
     , "-webkit-transition-timing-function" => "ease-out"
     , "transition-timing-function" => "ease-out"
