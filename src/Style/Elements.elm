@@ -431,9 +431,13 @@ convertToCSS styles =
                                         let
                                             mediaProps =
                                                 List.map renderProp (styleProps styleVarDef)
+                                                    |> List.map (\prop -> "  " ++ prop)
                                                     |> String.join "\n"
+
+                                            braced =
+                                                " {" ++ mediaProps ++ "\n  }\n"
                                         in
-                                            "@media " ++ query ++ brace mediaProps
+                                            "@media " ++ query ++ brace ("  " ++ class ++ braced)
                                     )
                                     media
                                     |> String.join "\n"

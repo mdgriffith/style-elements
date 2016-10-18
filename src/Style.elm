@@ -115,6 +115,7 @@ module Style
         , checked
         , empty
         , variation
+        , mediaQuery
         )
 
 {-| A different take on styling.
@@ -239,6 +240,11 @@ The following are convenience functions for setting these values.
 Animation triggers.
 
 @docs Trigger, hover, focus, checked
+
+
+# Media Queries
+
+@docs mediaQuery
 
 # Element
 @docs Element
@@ -1145,6 +1151,12 @@ saturate x =
 sepia : Float -> Filter
 sepia x =
     Style.Model.Sepia x
+
+
+{-| -}
+mediaQuery : String -> Variation -> MediaQuery
+mediaQuery name variation =
+    Style.Model.MediaQuery name variation
 
 
 {-| Create a transition by specifying a pseudo class and the target style as a Variation.  For example to make a transition on hover, you'd do the following:
