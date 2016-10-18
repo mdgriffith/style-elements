@@ -14,6 +14,8 @@ type StyleDefinition
         , style : List ( String, String )
         , animations :
             List ( Trigger, Style, Maybe ( String, Keyframes ) )
+        , media :
+            List ( String, StyleDefinition )
         }
 
 
@@ -46,6 +48,10 @@ type Frames style
         { repeat : Float
         , steps : List ( Float, style )
         }
+
+
+type MediaQuery style
+    = MediaQuery String style
 
 
 {-| -}

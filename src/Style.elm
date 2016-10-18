@@ -283,7 +283,9 @@ type alias Model =
     , transforms : List Transform
     , filters : List Filter
     , additional : List ( String, String )
-    , animations : List Animation
+    , animations :
+        List Animation
+    , media : List MediaQuery
     }
 
 
@@ -326,6 +328,7 @@ empty =
     , transforms = []
     , filters = []
     , animations = []
+    , media = []
     , additional = []
     }
 
@@ -397,6 +400,11 @@ type alias Animation =
 {-| -}
 type alias Trigger =
     Style.Model.Trigger
+
+
+{-| -}
+type alias MediaQuery =
+    Style.Model.MediaQuery Variation
 
 
 {-| Colors are bound together in a record.  This is useful for creating palettes of colors.

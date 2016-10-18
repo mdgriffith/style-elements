@@ -140,10 +140,13 @@ classNameAndTags def =
 
 
 className : StyleDefinition -> String
-className def =
-    case def of
-        StyleDef { name } ->
-            name
+className (StyleDef { name }) =
+    name
+
+
+styleProps : StyleDefinition -> List ( String, String )
+styleProps (StyleDef { style }) =
+    style
 
 
 type alias Permissions =
@@ -221,6 +224,7 @@ render style =
                         { style = renderedStyle
                         , tags = []
                         , animations = []
+                        , media = []
                         }
             in
                 ( classNameAndTags styleDefinition
@@ -316,6 +320,7 @@ render style =
                         { style = renderedStyle
                         , tags = restrictedTags
                         , animations = List.map renderAnimation style.animations ++ childOverrides
+                        , media = List.map (\(MediaQuery query mediaStyle) -> ( query, snd <| renderVariation mediaStyle )) style.media
                         }
             in
                 ( classNameAndTags styleDefinition
@@ -378,7 +383,7 @@ convertToCSS styles =
     let
         convert style =
             case style of
-                StyleDef { name, style, animations } ->
+                StyleDef { name, style, animations, media } ->
                     if List.length style == 0 then
                         ""
                     else
@@ -419,12 +424,26 @@ convertToCSS styles =
                                 List.map (convertAnimation name) transitions
                                     |> String.join "\n"
                                     |> (++) "\n"
+
+                            mediaQueries =
+                                List.map
+                                    (\( query, styleVarDef ) ->
+                                        let
+                                            mediaProps =
+                                                List.map renderProp (styleProps styleVarDef)
+                                                    |> String.join "\n"
+                                        in
+                                            "@media " ++ query ++ brace mediaProps
+                                    )
+                                    media
+                                    |> String.join "\n"
                         in
                             class
                                 ++ (brace props)
                                 ++ "\n"
                                 ++ modes
                                 ++ keyframes
+                                ++ mediaQueries
     in
         uniqueBy className styles
             |> List.map convert
@@ -485,9 +504,10 @@ addClassName :
     { animations : List ( Trigger, Style, Maybe ( String, Keyframes ) )
     , style : List ( String, String )
     , tags : List String
+    , media : List ( String, StyleDefinition )
     }
     -> StyleDefinition
-addClassName { tags, style, animations } =
+addClassName { tags, style, animations, media } =
     let
         styleString =
             List.map (\( name, value ) -> name ++ value) style
@@ -523,6 +543,7 @@ addClassName { tags, style, animations } =
                     )
                     style
             , animations = animations
+            , media = media
             }
 
 
@@ -602,6 +623,7 @@ renderVariation style =
                               , Nothing
                               )
                             ]
+                , media = []
                 }
     in
         ( classNameAndTags styleDefinition
