@@ -412,8 +412,8 @@ convertToCSS styles =
 
                             keyframes =
                                 List.map
-                                    (\( _, _, frames ) ->
-                                        Maybe.map (\( animName, frames ) -> convertKeyframesToCSS animName frames) frames
+                                    (\( _, _, keyframes ) ->
+                                        Maybe.map (\( animName, frames ) -> convertKeyframesToCSS animName frames) keyframes
                                     )
                                     animations
                                     |> List.filterMap identity
@@ -510,7 +510,7 @@ addClassName :
 addClassName { tags, style, animations, media } =
     let
         styleString =
-            List.map (\( name, value ) -> name ++ value) style
+            List.map (\( propName, value ) -> propName ++ value) style
                 |> String.concat
 
         keyframeString =
@@ -531,8 +531,9 @@ addClassName { tags, style, animations, media } =
                 |> List.map (convertAnimation name)
                 |> String.concat
 
+        -- For some reason this gives an error if these are not captured in parentheses
         name =
-            hash (styleString ++ modes ++ keyframeString)
+            hash ((styleString ++ modes) ++ keyframeString)
     in
         StyleDef
             { name = name
