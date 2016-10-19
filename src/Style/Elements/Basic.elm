@@ -10,7 +10,7 @@ module Style.Elements.Basic exposing (..)
 
 # Common Text Elements
 
-@docs text, i, b, break, line, dottedList, numberedList
+@docs text, i, b, u, s, sup, sub, break, divider, sup, sub, dottedList, numberedList
 
 -}
 
@@ -137,47 +137,90 @@ div attrs children =
     html Html.div attrs children
 
 
-{-| -}
+{-|
+-}
 text : String -> Element msg
 text str =
     html (\_ _ -> Html.text str) [] []
 
 
-{-| -}
+{-| Italicize text
+-}
 i : String -> Element msg
 i str =
     html
         Html.i
-        [ Html.Attributes.style
-            [ ( "font-style", "italic" )
-            ]
-        , Html.Attributes.class "inline"
+        [ Html.Attributes.class "inline"
         ]
         [ text str ]
 
 
-{-| -}
+{-| Bold text
+-}
 b : String -> Element msg
 b str =
     html
         Html.b
-        [ Html.Attributes.style
-            [ ( "font-weight", "bold" )
-            ]
-        , Html.Attributes.class "inline"
+        [ Html.Attributes.class "inline"
         ]
         [ text str ]
 
 
-{-| -}
-break : Element msg
-break =
+{-| Strike-through text
+-}
+s : String -> Element msg
+s str =
+    html
+        Html.s
+        [ Html.Attributes.class "inline"
+        ]
+        [ text str ]
+
+
+{-| Underline text
+-}
+u : String -> Element msg
+u str =
+    html
+        Html.u
+        [ Html.Attributes.class "inline"
+        ]
+        [ text str ]
+
+
+{-| Underline text
+-}
+sub : String -> Element msg
+sub str =
+    html
+        Html.sub
+        [ Html.Attributes.class "inline"
+        ]
+        [ text str ]
+
+
+{-| Underline text
+-}
+sup : String -> Element msg
+sup str =
+    html
+        Html.sup
+        [ Html.Attributes.class "inline"
+        ]
+        [ text str ]
+
+
+{-| A line break.
+-}
+br : Element msg
+br =
     html Html.br [ Html.Attributes.class "inline" ] []
 
 
-{-| -}
-line : Element msg
-line =
+{-| A dividing line rendered as an 'hr' element
+-}
+divider : Element msg
+divider =
     html
         Html.hr
         [ Html.Attributes.style

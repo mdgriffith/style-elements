@@ -949,16 +949,6 @@ renderText text =
             )
             text.characterOffset
         , Just <|
-            if text.italic then
-                "font-style" => "italic"
-            else
-                "font-style" => "normal"
-        , Maybe.map
-            (\bold ->
-                "font-weight" => (toString bold)
-            )
-            text.boldness
-        , Just <|
             case text.align of
                 AlignLeft ->
                     "text-align" => "left"
@@ -974,22 +964,6 @@ renderText text =
 
                 JustifyAll ->
                     "text-align" => "justify-all"
-        , Just <|
-            "text-decoration"
-                => case text.decoration of
-                    Nothing ->
-                        "none"
-
-                    Just position ->
-                        case position of
-                            Underline ->
-                                "underline"
-
-                            Overline ->
-                                "overline"
-
-                            Strike ->
-                                "line-through"
         ]
 
 
@@ -1013,10 +987,8 @@ colorToString color =
 renderColors : Colors -> List ( String, String )
 renderColors { text, background, border } =
     [ "border-color" => colorToString border
-    , "stroke" => colorToString border
     , "color" => colorToString text
     , "background-color" => colorToString background
-    , "fill" => colorToString background
     ]
 
 

@@ -86,9 +86,6 @@ module Style
         , space
         , round
         , noRepeat
-        , underline
-        , overline
-        , strike
         , filterUrl
         , blur
         , brightness
@@ -99,9 +96,6 @@ module Style
         , opacityFilter
         , saturate
         , sepia
-        , bold
-        , light
-        , bolder
         , shadow
         , insetShadow
         , textShadow
@@ -207,10 +201,6 @@ The following are convenience functions for setting these values.
 
 # Text/Font
 
-@docs Text, TextDecoration, underline, overline, strike.
-
-@docs bold, bolder, light
-
 @docs Whitespace, normal, pre, preLine, preWrap, noWrap
 
 
@@ -314,10 +304,7 @@ empty =
         , size = 16
         , characterOffset = Nothing
         , lineHeight = 1.7
-        , italic = False
-        , boldness = Nothing
         , align = alignLeft
-        , decoration = Nothing
         , whitespace = normal
         }
     , borderStyle = solid
@@ -525,10 +512,7 @@ type alias Text =
     , size : Float
     , lineHeight : Float
     , characterOffset : Maybe Float
-    , italic : Bool
-    , boldness : Maybe Float
     , align : Alignment
-    , decoration : Maybe TextDecoration
     , whitespace : Whitespace
     }
 
@@ -844,42 +828,6 @@ alignRight =
 alignCenter : Alignment
 alignCenter =
     Style.Model.AlignCenter
-
-
-{-| -}
-underline : TextDecoration
-underline =
-    Style.Model.Underline
-
-
-{-| -}
-overline : TextDecoration
-overline =
-    Style.Model.Overline
-
-
-{-| -}
-strike : TextDecoration
-strike =
-    Style.Model.Strike
-
-
-{-| -}
-bold : Maybe Float
-bold =
-    Just 700
-
-
-{-| -}
-light : Maybe Float
-light =
-    Just 300
-
-
-{-| -}
-bolder : Maybe Float
-bolder =
-    Just 900
 
 
 {-| -}
