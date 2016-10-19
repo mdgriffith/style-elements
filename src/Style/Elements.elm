@@ -803,7 +803,7 @@ transformToString : Transform -> String
 transformToString transform =
     case transform of
         Translate x y z ->
-            "transform3d("
+            "translate3d("
                 ++ toString x
                 ++ "px, "
                 ++ toString y
