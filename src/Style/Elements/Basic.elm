@@ -10,7 +10,23 @@ module Style.Elements.Basic exposing (..)
 
 # Common Text Elements
 
-@docs text, i, b, u, s, sup, sub, break, divider, sup, sub, dottedList, numberedList, clearfix
+You should use these! Here's why.
+
+A `Style.Element` has mandatory properties.  This generally makes styling much easier to think about because once an element is styled, it doesn't matter where it shows up in your document, it will have that style.
+
+However this doesn't make sense for text markup.  Lets say we use 2 fonts and 3 font sizes.  If we kept with out mandatory properties idea here and wanted to be able to italicize anything, we'd have to create 6 additional styles to represent italicizing a font at a specific size.
+
+These text elements solve this by just not having the mandatory properties, so you can mark up your text anywhere.
+
+@docs text, i, b, u, s, sup, sub, break, divider, sup, sub
+
+
+## Lists that automatically wrap their children in `li` elements
+
+@docs dottedList, numberedList
+
+
+@docs clearfix
 
 -}
 

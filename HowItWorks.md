@@ -12,9 +12,9 @@ First, check out the examples
 
 The `Style` module has the tools you need to craft a style.  Essentially you do this by creating a `Style.Model` record.  
 
-The `Style.Model` is a pretty large record with a handful of required properties. These required properties 
+The `Style.Model` is a pretty large record with a handful of required properties. By having required properties, we make an element be styled the same no matter where it occurs in your document.  In other words we remove the context-aware part of CSS to make our styles portable and easier to think about.
 
-You don't need to write an entire `Style.Model` by hand for every style in your library.  Generally you'll create one foundational style and then all the other styles will be based on that foundation.  This allows us to have very explicit inheritance which makes styling much easier to think about.
+Back to the point of the `Style.Model` being large; you don't need to write an entire `Style.Model` by hand for every style in your library.  Generally you'll create one foundational style and then all the other styles will be based on that foundation.  This allows us to have very explicit inheritance which makes styling much easier to think about.
 
 There's still one big question though; How do we associate a style with an html node?  Usually you'd do this with a `class` or `id`, but this library does things a bit differently.
 
@@ -47,7 +47,30 @@ Options for generating external css stylesheets are currently being considered.
 ## A Starterkit
 
 The `Style.Basic` module contains useful styles to get you started.
- * 
 
 The `Style.Elements.Basic` module contains useful elements to start with.
- * Text elements: 
+
+__Text elements__
+> 
+> `text`, `i`, `b`, `u`, `s`, `sup`, `sub`, `break`, `sup`, `sub`
+> 
+> You should use these! Here's why.
+>
+> A `Style.Element` has mandatory properties.  This generally makes styling much easier to think about because once an element is styled, it doesn't matter where it shows up in your document, it will have that style.
+>
+> However this doesn't make sense for text markup.  Lets say we use 2 fonts and 3 font sizes.  If we kept with out mandatory properties idea here and wanted to be able to italicize anything, we'd have to create 6 additional styles to represent italicizing a font at a specific size.
+>
+> These text elements solve this by just not having the mandatory properties, so you can mark up your text anywhere.
+
+
+__Basic Layout Elements__
+
+These are elements that can be used to set layout without having to craft a custom style as you normally would.
+
+
+
+
+
+
+
+
