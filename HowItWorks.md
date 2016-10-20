@@ -3,9 +3,9 @@
 
 First, check out the examples
 
- * a simple example: [code]() - [demo]()
- * a realworld example that uses animations, media queries, and palettes: [code]() - [demo]()
- * documentation (Unpublished for the moment, will be published soon)
+ * Simple example: [code](https://github.com/mdgriffith/elm-style-elements-simple-example) - [demo](https://mdgriffith.github.io/style-elements/simple/)
+ * Realworld example that uses animations, media queries, and palettes: [code](https://github.com/mdgriffith/elm-style-elements-complex-example) - [demo](https://mdgriffith.github.io/style-elements/realworld/)
+ * Documentation (Unpublished for the moment, will be published soon)
 
 
 ## Style Crafting

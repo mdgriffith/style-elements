@@ -535,9 +535,23 @@ addClassName { tags, style, animations, media } =
                 |> List.map (convertAnimation name)
                 |> String.concat
 
+        mediaQueries =
+            List.map
+                (\( query, styleVarDef ) ->
+                    let
+                        mediaProps =
+                            List.map renderProp (styleProps styleVarDef)
+                                |> List.map (\prop -> "  " ++ prop)
+                                |> String.join "\n"
+                    in
+                        query ++ mediaProps
+                )
+                media
+                |> String.concat
+
         -- For some reason this gives an error if these are not captured in parentheses
         name =
-            hash ((styleString ++ modes) ++ keyframeString)
+            hash (((styleString ++ modes) ++ keyframeString) ++ mediaQueries)
     in
         StyleDef
             { name = name
