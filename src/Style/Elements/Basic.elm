@@ -26,7 +26,8 @@ centered : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 centered =
     element
         { empty
-            | layout =
+            | spacing = all 10
+            , layout =
                 flowRight
                     { wrap = True
                     , horizontal = alignCenter
@@ -41,7 +42,8 @@ completelyCentered : List (Html.Attribute msg) -> List (Element msg) -> Element 
 completelyCentered =
     element
         { empty
-            | layout =
+            | spacing = all 10
+            , layout =
                 flowRight
                     { wrap = True
                     , horizontal = alignCenter
@@ -56,7 +58,8 @@ split : List (Html.Attribute msg) -> List (Element msg) -> Element msg
 split =
     element
         { empty
-            | layout =
+            | spacing = all 10
+            , layout =
                 flowRight
                     { wrap = False
                     , horizontal = justify

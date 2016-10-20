@@ -47,5 +47,7 @@ Options for generating external css stylesheets are currently being considered.
 ## A Starterkit
 
 The `Style.Basic` module contains useful styles to get you started.
+ * 
 
 The `Style.Elements.Basic` module contains useful elements to start with.
+ * Text elements: 

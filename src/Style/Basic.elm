@@ -14,6 +14,7 @@ module Style.Basic exposing (..)
 
 import Style exposing (..)
 import Time exposing (Time)
+import Color
 
 
 {-| Flow child elements horizontally.
@@ -21,16 +22,13 @@ import Time exposing (Time)
 Center them horizontally, but align them to the top.
 
 -}
-centered : Style.Model
+centered : Style.Layout
 centered =
-    { empty
-        | layout =
-            flowRight
-                { wrap = True
-                , horizontal = alignCenter
-                , vertical = alignTop
-                }
-    }
+    flowRight
+        { wrap = True
+        , horizontal = alignCenter
+        , vertical = alignTop
+        }
 
 
 {-| Flow child elements horizontally.
@@ -38,30 +36,24 @@ centered =
 Center them horizontally and vertically
 
 -}
-completelyCentered : Style.Model
+completelyCentered : Style.Layout
 completelyCentered =
-    { empty
-        | layout =
-            flowRight
-                { wrap = True
-                , horizontal = alignCenter
-                , vertical = verticalCenter
-                }
-    }
+    flowRight
+        { wrap = True
+        , horizontal = alignCenter
+        , vertical = verticalCenter
+        }
 
 
 {-| Flow child elements horizontally, but have them keep to the edges.
 -}
-split : Style.Model
+split : Style.Layout
 split =
-    { empty
-        | layout =
-            flowRight
-                { wrap = False
-                , horizontal = justify
-                , vertical = verticalCenter
-                }
-    }
+    flowRight
+        { wrap = False
+        , horizontal = justify
+        , vertical = verticalCenter
+        }
 
 
 {-| Standard font sizes so you don't have to look them up.
@@ -122,7 +114,19 @@ reverseRotating durationForOneRevolution =
 
 levitate : Variation
 levitate =
-    variation
+    { variation
+        | shadows =
+            [ shadow
+                { offset = ( 0, 5 )
+                , blur = 5
+                , size = 0
+                , color = Color.rgba 0 0 0 0.26
+                }
+            ]
+        , transforms =
+            [ translate 0 -2 0
+            ]
+    }
 
 
 {-| -}

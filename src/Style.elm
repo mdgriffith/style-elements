@@ -124,7 +124,7 @@ This module is focused around composing a style.
 
 # Layouts
 
-Layouts affect how children are arranged.  It is one of the principles of the library that layout is mostly controlled by the parent element.
+Layouts affect how children are arranged.  It is one of the principles of the library that layout is controlled by the parent element.
 
 @docs Layout, textLayout, tableLayout
 
