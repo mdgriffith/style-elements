@@ -65,41 +65,41 @@ elementAs node styleModel attrs elements =
 {-| Create an element with style variations that can be turned on/off.  The variations will stack.
 
 -}
-optional : Model -> List ( Bool, Style.Variation ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+optional : Model -> List ( Style.Variation, Bool ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 optional =
     optionalAs "div"
 
 
 {-|
 -}
-optionalAs : String -> Model -> List ( Bool, Style.Variation ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+optionalAs : String -> Model -> List ( Style.Variation, Bool ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 optionalAs node styleModel variations attrs elements =
     let
-        ( className, styleDef ) =
+        ( parentClass, styleDef ) =
             render styleModel
 
         variationTransitions =
             List.map
-                (\( active, variation ) ->
-                    ( active
-                    , prependClassName className <| renderVariation variation
+                (\( variation, active ) ->
+                    ( renderVariation variation
+                    , active
                     )
                 )
                 variations
 
         activatedVariationNames =
-            List.filter fst variationTransitions
-                |> List.map (\x -> fst <| snd x)
+            List.filter snd variationTransitions
+                |> List.map (\x -> fst <| fst x)
                 |> List.foldl (++) ""
 
         ( childrenStyles, children ) =
             List.unzip elements
 
         allStyles =
-            styleDef :: List.concat childrenStyles ++ List.map (\x -> snd (snd x)) variationTransitions
+            styleDef :: List.concat childrenStyles ++ List.map (\x -> snd (fst x)) variationTransitions
     in
         ( allStyles
-        , Html.node node (Svg.Attributes.class (className ++ activatedVariationNames) :: attrs) children
+        , Html.node node (Svg.Attributes.class (parentClass ++ " " ++ activatedVariationNames) :: attrs) children
         )
 
 
@@ -196,10 +196,9 @@ buildAs node styleModel attrs elements =
         stylesheet =
             Html.node "style"
                 []
-                [ Html.text <|
-                    floatError
-                        ++ inlineError
-                        ++ allStyles
+                [ Html.text <| allStyles
+                  --floatError
+                  --    ++ inlineError
                 ]
     in
         Html.node node
@@ -1224,10 +1223,12 @@ floatError =
     border: 3px solid red; !important;
 }
 .not-floatable > .floating::after {
-    display: block;
-    content: 'Floating Elements can only be in Text Layouts';
+    display: inline-block;
     color: black;
     background-color: red;
+}
+.not-floatable > .floating:hover::after {
+    content: 'Floating Elements can only be in Text Layouts';
 }
 """
 
