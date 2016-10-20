@@ -1124,7 +1124,12 @@ on trigger model =
         }
 
 
-{-|
+{-| Set a custom duration and easing for the transition.
+
+Easings are given as strings as they would be in css:
+
+https://developer.mozilla.org/en-US/docs/Web/CSS/animation-timing-function
+
 -}
 onWith : Trigger -> { duration : Time, easing : String } -> Variation -> Animation
 onWith trigger { duration, easing } model =

@@ -519,15 +519,15 @@ addClassName { tags, style, animations, media } =
 
         keyframeString =
             List.map
-                (\( _, _, keyframes ) ->
-                    Maybe.map
-                        (\( animName, frames ) ->
+                (\( trigger, style, keyframes ) ->
+                    case keyframes of
+                        Just ( animName, frames ) ->
                             convertKeyframesToCSS animName frames
-                        )
-                        keyframes
+
+                        Nothing ->
+                            String.concat <| List.map (\( name, val ) -> name ++ val) style
                 )
                 animations
-                |> List.filterMap identity
                 |> String.concat
 
         modes =
@@ -1211,6 +1211,18 @@ renderLayout layout =
               , inline = False
               }
             )
+
+
+clearfix : String
+clearfix =
+    """
+.floating:after {
+    visibility: hidden;
+    display: block;
+    clear: both;
+    height: 0px;
+}
+"""
 
 
 floatError : String
