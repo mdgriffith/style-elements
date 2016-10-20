@@ -10,7 +10,7 @@ module Style.Elements.Basic exposing (..)
 
 # Common Text Elements
 
-@docs text, i, b, u, s, sup, sub, break, divider, sup, sub, dottedList, numberedList
+@docs text, i, b, u, s, sup, sub, break, divider, sup, sub, dottedList, numberedList, clearfix
 
 -}
 
@@ -230,6 +230,24 @@ divider =
             [ ( "height", "1px" )
             , ( "border", "none" )
             , ( "background-color", "#ddd" )
+            ]
+        , Html.Attributes.class "inline"
+        ]
+        []
+
+
+{-| Clearfix a floating element
+-}
+clearfix : Element msg
+clearfix =
+    html
+        Html.div
+        [ Html.Attributes.style
+            [ ( "visibility", "hidden" )
+            , ( "display", "block" )
+            , ( "content", "" )
+            , ( "clear", "both" )
+            , ( "height", "0" )
             ]
         , Html.Attributes.class "inline"
         ]
