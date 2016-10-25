@@ -13,7 +13,7 @@ module Style.Elements exposing (html, element, elementAs, optional, optionalAs, 
 -}
 
 import Style.Model exposing (..)
-import Style exposing (Model, Variation, Colors, Text, Element, Animation, BackgroundImage)
+import Style exposing (Model, Variation, ColorPalette, Text, Element, Animation, BackgroundImage)
 import Html
 import Html.Attributes
 import Svg.Attributes
@@ -279,7 +279,7 @@ render style =
                                         Dotted ->
                                             "dotted"
                                 ]
-                            , Just <| renderColors style.colors
+                            , Just <| renderColorPalette style.colors
                             , Just <| renderText style.text
                             , Maybe.map renderBackgroundImage style.backgroundImage
                             , Maybe.map renderFloating style.float
@@ -634,7 +634,7 @@ renderVariation style =
                                 )
                                 style.borderStyle
                             ]
-                    , Maybe.map renderColors style.colors
+                    , Maybe.map renderColorPalette style.colors
                     , Maybe.map renderText style.text
                     , listMaybeMap renderShadow style.shadows
                     , listMaybeMap renderFilters style.filters
@@ -1014,8 +1014,8 @@ colorToString color =
             ++ ")"
 
 
-renderColors : Colors -> List ( String, String )
-renderColors { text, background, border } =
+renderColorPalette : ColorPalette -> List ( String, String )
+renderColorPalette { text, background, border } =
     [ "border-color" => colorToString border
     , "color" => colorToString text
     , "background-color" => colorToString background

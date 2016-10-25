@@ -3,7 +3,7 @@ module Style
         ( Model
         , Variation
         , Element
-        , Colors
+        , ColorPalette
         , Shadow
         , Visibility
         , TextDecoration
