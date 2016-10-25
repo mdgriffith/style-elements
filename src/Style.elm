@@ -266,7 +266,7 @@ type alias Model =
     , cursor : String
     , width : Length
     , height : Length
-    , colors : Colors
+    , colors : ColorPalette
     , spacing : ( Float, Float, Float, Float )
     , padding : ( Float, Float, Float, Float )
     , text : Text
@@ -341,7 +341,7 @@ type alias Variation =
     , cursor : Maybe String
     , width : Maybe Length
     , height : Maybe Length
-    , colors : Maybe Colors
+    , colors : Maybe ColorPalette
     , padding : Maybe ( Float, Float, Float, Float )
     , spacing : Maybe ( Float, Float, Float, Float )
     , text : Maybe Text
@@ -401,10 +401,9 @@ type alias MediaQuery =
     Style.Model.MediaQuery Variation
 
 
-{-| Colors are bound together in a record.  This is useful for creating palettes of colors.
-
+{-|
 -}
-type alias Colors =
+type alias ColorPalette =
     { background : Color
     , text : Color
     , border : Color
