@@ -24,15 +24,11 @@ import Style exposing (Model, Variation, Colors, Text, Element, Animation, Backg
 
 
 {-| -}
-html : (List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
-html node attrs elements =
-    let
-        ( styles, children ) =
-            List.unzip elements
-    in
-        ( List.concat styles
-        , node attrs children
-        )
+html : Html.Html msg -> Element msg
+html node =
+    ( []
+    , node
+    )
 
 
 {-| Turn a style into an element that can be used to build your view.  In this case, the element will be rendered as a div.
@@ -269,7 +265,7 @@ render style =
                             , listMaybeMap renderShadow style.shadows
                             , listMaybeMap renderFilters style.filters
                             , listMaybeMap renderTransforms style.transforms
-                            , listMaybeMap identity style.additional
+                            , listMaybeMap identity style.properties
                             , if List.any isTransition style.animations then
                                 Just cssTransitions
                               else
@@ -627,7 +623,7 @@ renderVariation style =
 
                         Just ( x, y ) ->
                             Just <| renderTransforms (style.transforms ++ [ Translate x y 0 ])
-                    , listMaybeMap identity style.additional
+                    , listMaybeMap identity style.properties
                     , Maybe.map renderVisibility style.visibility
                     ]
 

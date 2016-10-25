@@ -279,7 +279,7 @@ type alias Model =
     , shadows : List Shadow
     , transforms : List Transform
     , filters : List Filter
-    , additional : List ( String, String )
+    , properties : List ( String, String )
     , animations :
         List Animation
     , media : List MediaQuery
@@ -323,7 +323,7 @@ empty =
     , filters = []
     , animations = []
     , media = []
-    , additional = []
+    , properties = []
     }
 
 
@@ -352,7 +352,7 @@ type alias Variation =
     , shadows : List Shadow
     , transforms : List Transform
     , filters : List Filter
-    , additional : List ( String, String )
+    , properties : List ( String, String )
     }
 
 
@@ -376,7 +376,7 @@ variation =
     , shadows = []
     , transforms = []
     , filters = []
-    , additional = []
+    , properties = []
     }
 
 

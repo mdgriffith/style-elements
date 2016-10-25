@@ -8,8 +8,7 @@
     ],
     "exposed-modules": [
         "Style",
-        "Style.Elements",
-        "Style.Elements.Basic"
+        "Style.Elements"
     ],
     "dependencies": {
         "elm-lang/core": "4.0.5 <= v < 5.0.0",
