@@ -1,4 +1,4 @@
-module Style.Elements exposing (html, element, elementAs, optional, optionalAs, build, buildAs)
+module Style.Elements exposing (html, element, elementAs, optional, optionalAs, build, buildAs, svgAs)
 
 {-|
 
@@ -12,15 +12,17 @@ module Style.Elements exposing (html, element, elementAs, optional, optionalAs, 
 
 -}
 
-import String
-import Char
-import Murmur3
-import Color exposing (Color)
-import Html
-import Set exposing (Set)
-import Svg.Attributes
 import Style.Model exposing (..)
 import Style exposing (Model, Variation, Colors, Text, Element, Animation, BackgroundImage)
+import Html
+import Html.Attributes
+import Svg.Attributes
+import Color exposing (Color)
+import Murmur3
+import Json.Encode as Json
+import Set exposing (Set)
+import String
+import Char
 
 
 {-| -}
@@ -55,6 +57,25 @@ elementAs node styleModel attrs elements =
     in
         ( allStyles
         , Html.node node (Svg.Attributes.class className :: attrs) children
+        )
+
+
+{-| Specify an svg node to use
+-}
+svgAs : String -> Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+svgAs node styleModel attrs elements =
+    let
+        ( className, styleDef ) =
+            render styleModel
+
+        ( childrenStyles, children ) =
+            List.unzip elements
+
+        allStyles =
+            styleDef :: List.concat childrenStyles
+    in
+        ( allStyles
+        , Html.node node (Svg.Attributes.class className :: Html.Attributes.property "namespace" (Json.string "http://www.w3.org/2000/svg") :: attrs) children
         )
 
 
