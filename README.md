@@ -3,6 +3,11 @@
 # The Style Elements Library for Elm
 
 > __TLDR__: This library lets you craft styles that don't mysteriously break.
+>
+> It does this by
+>
+> * having required properties for each node
+> * disallowing certain properties
 > 
 > It also takes a different approach on attaching styles to html nodes.  Instead of using classes and ids, it focuses on creating collections of styled html elements that you can pull from and use to build your view.
 

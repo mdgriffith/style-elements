@@ -4,7 +4,7 @@ module Style.Elements exposing (html, element, elementAs, optional, optionalAs, 
 
 # Creating Elements
 
-@docs element, elementAs, optional, optionalAs, html
+@docs element, elementAs, svgAs, optional, optionalAs, html
 
 # Building the Stylesheet
 
@@ -33,7 +33,7 @@ html node =
     )
 
 
-{-| Turn a style into an element that can be used to build your view.  In this case, the element will be rendered as a div.
+{-| Turn a style into an element that can be used to build your view.  Renders as a div.
 
 -}
 element : Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
@@ -41,7 +41,7 @@ element =
     elementAs "div"
 
 
-{-| Specify your own html node to render the element as.
+{-| Specify an html element name to render.
 -}
 elementAs : String -> Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 elementAs node styleModel attrs elements =
@@ -537,12 +537,27 @@ addClassName { tags, style, animations, media } =
         keyframeString =
             List.map
                 (\( trigger, style, keyframes ) ->
-                    case keyframes of
-                        Just ( animName, frames ) ->
-                            convertKeyframesToCSS animName frames
+                    let
+                        renderedKeyframes =
+                            case keyframes of
+                                Just ( animName, frames ) ->
+                                    Just <| convertKeyframesToCSS animName frames
 
-                        Nothing ->
-                            String.concat <| List.map (\( name, val ) -> name ++ val) style
+                                Nothing ->
+                                    Nothing
+
+                        renderedStyle =
+                            Just <| String.concat <| List.map (\( name, val ) -> name ++ val) style
+
+                        renderedTrigger =
+                            case trigger of
+                                Mount ->
+                                    Just "mount"
+
+                                PseudoClass cls ->
+                                    Just cls
+                    in
+                        String.concat <| List.filterMap identity [ renderedKeyframes, renderedStyle, renderedTrigger ]
                 )
                 animations
                 |> String.concat
@@ -1019,6 +1034,8 @@ renderColorPalette { text, background, border } =
     [ "border-color" => colorToString border
     , "color" => colorToString text
     , "background-color" => colorToString background
+    , "fill" => colorToString background
+    , "stroke" => colorToString border
     ]
 
 
