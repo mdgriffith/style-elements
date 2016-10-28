@@ -37,6 +37,7 @@ module Style
         , topBottom
         , leftRight
         , leftRightAndTopBottom
+        , leftRightTopBottom
         , allButTop
         , allButLeft
         , allButRight
@@ -190,7 +191,7 @@ Padding, spacing, and border widths are all specified by a tuple of four floats 
 
 The following are convenience functions for setting these values.
 
-@docs all, top, bottom, left, right, topBottom, leftRight, leftRightAndTopBottom, allButTop, allButLeft, allButRight, allButBottom
+@docs all, top, bottom, left, right, topBottom, leftRight, leftRightAndTopBottom, leftRightTopBottom allButTop, allButLeft, allButRight, allButBottom
 
 ## Borderstyles
 
@@ -868,6 +869,12 @@ leftRight x =
 leftRightAndTopBottom : Float -> Float -> ( Float, Float, Float, Float )
 leftRightAndTopBottom x y =
     ( y, x, y, x )
+
+
+{-| -}
+leftRightTopBottom : Float -> Float -> ( Float, Float, Float, Float )
+leftRightTopBottom l r t b =
+    ( t, r, b, l )
 
 
 {-| -}
