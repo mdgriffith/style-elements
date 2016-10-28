@@ -6,7 +6,6 @@ module Style
         , ColorPalette
         , Shadow
         , Visibility
-        , TextDecoration
         , Alignment
         , VerticalAlignment
         , BackgroundImage
@@ -137,7 +136,7 @@ Layouts affect how children are arranged.  It is one of the principles of the li
 
 # Colors
 
-@docs Colors
+@docs ColorPalette
 
 
 # Float & Inline
@@ -201,7 +200,7 @@ The following are convenience functions for setting these values.
 
 # Text/Font
 
-@docs Whitespace, normal, pre, preLine, preWrap, noWrap
+@docs Text, Whitespace, normal, pre, preLine, preWrap, noWrap
 
 
 # Background Images
@@ -234,7 +233,7 @@ Animation triggers.
 
 # Media Queries
 
-@docs mediaQuery
+@docs MediaQuery, mediaQuery
 
 # Element
 @docs Element
@@ -428,12 +427,6 @@ type alias Shadow =
 -}
 type alias Visibility =
     Style.Model.Visibility
-
-
-{-|
--}
-type alias TextDecoration =
-    Style.Model.TextDecoration
 
 
 {-| Used for specifying text alignment and the horizontal alignment of in flex layouts
