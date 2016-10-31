@@ -6,20 +6,20 @@ module Style.Font exposing (FontSet, FontSizes, create, createFrom, cast)
 
 -}
 
-import Style
+import Style exposing (Text)
 
 
 {-| -}
 type alias FontSet =
-    { gigantic : Font
-    , huge : Font
-    , large : Font
-    , big : Font
-    , normal : Font
-    , small : Font
-    , little : Font
-    , tiny : Font
-    , mini : Font
+    { gigantic : Text
+    , huge : Text
+    , large : Text
+    , big : Text
+    , normal : Text
+    , small : Text
+    , little : Text
+    , tiny : Text
+    , mini : Text
     }
 
 
@@ -48,7 +48,6 @@ type alias FontSize =
 
  * 16px for the 'normal' fontsize
  * line height of 1.7em for 'normal'
- * not bold or italic
  * align left
  * no additional character offset
  * normal whitespace
@@ -58,14 +57,12 @@ create : String -> FontSet
 create family =
     let
         foundation =
-            { font = font
+            { font = family
             , size = 16
             , lineHeight = 1.7
             , characterOffset = Nothing
-            , align = alignLeft
-            , whitespace = normal
-            , italic = False
-            , bold = Nothing
+            , align = Style.alignLeft
+            , whitespace = Style.normal
             }
     in
         { gigantic =
@@ -118,51 +115,51 @@ create family =
 
 {-| Specify all values of a font and create 9 size variations.
 -}
-createFrom : Font -> FontSet
+createFrom : Text -> FontSet
 createFrom foundation =
     { gigantic =
         { foundation
-            | size = foundaton.size * (29.0 / 16.0)
+            | size = foundation.size * (29.0 / 16.0)
             , lineHeight = foundation.lineHeight * (1.125 / 1.6)
         }
     , huge =
         { foundation
-            | size = foundaton.size * (23.0 / 16.0)
+            | size = foundation.size * (23.0 / 16.0)
             , lineHeight = foundation.lineHeight * (1.125 / 1.6)
         }
     , large =
         { foundation
-            | size = foundaton.size * (21.0 / 16.0)
+            | size = foundation.size * (21.0 / 16.0)
             , lineHeight = foundation.lineHeight * (1.125 / 1.6)
         }
     , big =
         { foundation
-            | size = foundaton.size * (18.0 / 16.0)
+            | size = foundation.size * (18.0 / 16.0)
             , lineHeight = foundation.lineHeight * (1.2 / 1.6)
         }
     , normal =
         { foundation
-            | size = foundaton.size * (16.0 / 16.0)
+            | size = foundation.size * (16.0 / 16.0)
             , lineHeight = foundation.lineHeight * (1.6 / 1.6)
         }
     , small =
         { foundation
-            | size = foundaton.size * (14.0 / 16.0)
+            | size = foundation.size * (14.0 / 16.0)
             , lineHeight = foundation.lineHeight * (1.285 / 1.6)
         }
     , little =
         { foundation
-            | size = foundaton.size * (13.0 / 16.0)
+            | size = foundation.size * (13.0 / 16.0)
             , lineHeight = foundation.lineHeight * (1.33 / 1.6)
         }
     , tiny =
         { foundation
-            | size = foundaton.size * (12.0 / 16.0)
+            | size = foundation.size * (12.0 / 16.0)
             , lineHeight = foundation.lineHeight * (1.33 / 1.6)
         }
     , mini =
         { foundation
-            | size = foundaton.size * (11.0 / 16.0)
+            | size = foundation.size * (11.0 / 16.0)
             , lineHeight = foundation.lineHeight * (1.33 / 1.6)
         }
     }
@@ -170,7 +167,7 @@ createFrom foundation =
 
 {-| Specify all values of a font and provide 9 size variations to create.
 -}
-cast : Font -> FontSizes -> FontSet
+cast : Text -> FontSizes -> FontSet
 cast foundation fontSizes =
     { gigantic =
         { foundation

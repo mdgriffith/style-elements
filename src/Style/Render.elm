@@ -137,6 +137,27 @@ render style =
                                         Dotted ->
                                             "dotted"
                                 ]
+                            , if style.italic then
+                                Just [ "font-style" => "italic" ]
+                              else
+                                Nothing
+                            , Maybe.map
+                                (\bold ->
+                                    [ "font-weight" => toString bold ]
+                                )
+                                style.bold
+                            , case ( style.underline, style.strike ) of
+                                ( False, False ) ->
+                                    Just [ "text-decoration" => "none" ]
+
+                                ( True, False ) ->
+                                    Just [ "text-decoration" => "underline" ]
+
+                                ( False, True ) ->
+                                    Just [ "text-decoration" => "line-through" ]
+
+                                ( True, True ) ->
+                                    Just [ "text-decoration" => "underline line-through" ]
                             , Just <| renderColorPalette style.colors
                             , Just <| renderText style.text
                             , Maybe.map renderBackgroundImage style.backgroundImage
@@ -507,6 +528,31 @@ renderVariation style =
                                 )
                                 style.borderStyle
                             ]
+                    , if style.inline then
+                        Just [ "display" => "inline" ]
+                      else
+                        Nothing
+                    , if style.italic then
+                        Just [ "font-style" => "italic" ]
+                      else
+                        Nothing
+                    , Maybe.map
+                        (\bold ->
+                            [ "font-weight" => toString bold ]
+                        )
+                        style.bold
+                    , case ( style.underline, style.strike ) of
+                        ( False, False ) ->
+                            Just [ "text-decoration" => "none" ]
+
+                        ( True, False ) ->
+                            Just [ "text-decoration" => "underline" ]
+
+                        ( False, True ) ->
+                            Just [ "text-decoration" => "line-through" ]
+
+                        ( True, True ) ->
+                            Just [ "text-decoration" => "underline line-through" ]
                     , Maybe.map renderColorPalette style.colors
                     , Maybe.map renderText style.text
                     , listMaybeMap renderShadow style.shadows

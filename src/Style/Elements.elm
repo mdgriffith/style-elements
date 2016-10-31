@@ -1,10 +1,10 @@
-module Style.Elements exposing (html, element, elementAs, optional, optionalAs, build, buildAs, svgAs)
+module Style.Elements exposing (html, element, elementAs, inline, inlineAs, optional, optionalAs, build, buildAs, svgAs)
 
 {-|
 
 # Creating Elements
 
-@docs element, elementAs, svgAs, optional, optionalAs, html
+@docs element, elementAs, inline, inlineAs, svgAs, optional, optionalAs, html
 
 # Building the Stylesheet
 
@@ -58,6 +58,32 @@ elementAs node styleModel attrs elements =
     in
         ( allStyles
         , Html.node node (Svg.Attributes.class className :: attrs) children
+        )
+
+
+{-|
+-}
+inline : Variation -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+inline =
+    inlineAs "div"
+
+
+{-|
+-}
+inlineAs : String -> Variation -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+inlineAs node styleModel attrs elements =
+    let
+        ( className, styleDef ) =
+            renderVariation styleModel
+
+        ( childrenStyles, children ) =
+            List.unzip elements
+
+        allStyles =
+            styleDef :: List.concat childrenStyles
+    in
+        ( allStyles
+        , Html.node node (Svg.Attributes.class (className ++ " inline") :: attrs) children
         )
 
 

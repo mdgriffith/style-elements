@@ -67,6 +67,9 @@ module Style
         , visible
         , opacity
         , transparency
+        , bold
+        , light
+        , bolder
         , auto
         , px
         , percent
@@ -104,10 +107,12 @@ module Style
         , onWith
         , animate
         , animateOn
-        , selection
         , hover
         , focus
         , checked
+        , selection
+        , after
+        , before
         , empty
         , variation
         , mediaQuery
@@ -202,7 +207,7 @@ The following are convenience functions for setting these values.
 
 # Text/Font
 
-@docs Text, Whitespace, normal, pre, preLine, preWrap, noWrap
+@docs Text, Whitespace, normal, pre, preLine, preWrap, noWrap, bold,  bolder, light
 
 
 # Background Images
@@ -267,6 +272,10 @@ type alias Model =
     , spacing : ( Float, Float, Float, Float )
     , padding : ( Float, Float, Float, Float )
     , text : Text
+    , italic : Bool
+    , bold : Maybe Int
+    , strike : Bool
+    , underline : Bool
     , borderStyle : BorderStyle
     , borderWidth : ( Float, Float, Float, Float )
     , cornerRadius : ( Float, Float, Float, Float )
@@ -293,7 +302,7 @@ empty =
     , position = ( 0, 0 )
     , colors =
         { background = Color.rgba 255 255 255 0
-        , text = Color.black
+        , text = Color.darkCharcoal
         , border = Color.grey
         }
     , text =
@@ -303,9 +312,11 @@ empty =
         , lineHeight = 1.7
         , align = alignLeft
         , whitespace = normal
-        , italic = False
-        , bold = Nothing
         }
+    , italic = False
+    , bold = Nothing
+    , strike = False
+    , underline = False
     , borderStyle = solid
     , borderWidth = all 0
     , cornerRadius = all 0
@@ -328,10 +339,7 @@ empty =
 
 {-| A `Variation` is a style where all the properties are optional.
 
-This is used to construct animations and transitions.
-
-Only properties that make sense in that context are present.
-
+This is used to construct animations, transitions, and inline elements.
 
 -}
 type alias Variation =
@@ -340,13 +348,18 @@ type alias Variation =
     , cursor : Maybe String
     , width : Maybe Length
     , height : Maybe Length
+    , text : Maybe Text
+    , italic : Bool
+    , bold : Maybe Int
+    , strike : Bool
+    , underline : Bool
+    , inline : Bool
     , colors : Maybe ColorPalette
     , padding : Maybe ( Float, Float, Float, Float )
     , spacing : Maybe ( Float, Float, Float, Float )
-    , text : Maybe Text
-    , borderStyle : Maybe BorderStyle
     , borderWidth : Maybe ( Float, Float, Float, Float )
     , cornerRadius : Maybe ( Float, Float, Float, Float )
+    , borderStyle : Maybe BorderStyle
     , backgroundImagePosition : Maybe ( Float, Float )
     , shadows : List Shadow
     , transforms : List Transform
@@ -360,9 +373,14 @@ type alias Variation =
 variation : Variation
 variation =
     { visibility = Nothing
+    , inline = False
     , position = Nothing
     , colors = Nothing
     , text = Nothing
+    , italic = False
+    , bold = Nothing
+    , strike = False
+    , underline = False
     , borderStyle = Nothing
     , borderWidth = Nothing
     , cornerRadius = Nothing
@@ -506,28 +524,25 @@ type alias Text =
     , characterOffset : Maybe Float
     , align : Alignment
     , whitespace : Whitespace
-    , italic : Bool
-    , bold : Maybe Int
     }
 
 
 {-| -}
-italicize : Text -> Text
-italicize text =
-    { text | italic = True }
+bold : Int
+bold =
+    700
 
 
 {-| -}
-bold : Text -> Text
-bold text =
-    { text | bold = Just 700 }
+light : Int
+light =
+    300
 
 
-{-| Set a light font-weight (300)
--}
-light : Text -> Text
-light text =
-    { text | bold = Just 300 }
+{-| -}
+bolder : Int
+bolder =
+    900
 
 
 {-| -}
@@ -1213,12 +1228,6 @@ hover =
 
 
 {-| -}
-selection : Trigger
-selection =
-    Style.Model.PseudoClass "::selection"
-
-
-{-| -}
 focus : Trigger
 focus =
     Style.Model.PseudoClass ":focus"
@@ -1228,3 +1237,21 @@ focus =
 checked : Trigger
 checked =
     Style.Model.PseudoClass ":checked"
+
+
+{-| -}
+selection : Trigger
+selection =
+    Style.Model.PseudoClass "::selection"
+
+
+{-| -}
+after : Trigger
+after =
+    Style.Model.PseudoClass "::after"
+
+
+{-| -}
+before : Trigger
+before =
+    Style.Model.PseudoClass "::before"
