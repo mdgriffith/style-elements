@@ -104,6 +104,7 @@ module Style
         , onWith
         , animate
         , animateOn
+        , selection
         , hover
         , focus
         , checked
@@ -229,7 +230,7 @@ The following are convenience functions for setting these values.
 
 Animation triggers.
 
-@docs Trigger, hover, focus, checked
+@docs Trigger, selection, hover, focus, checked
 
 
 # Media Queries
@@ -238,10 +239,6 @@ Animation triggers.
 
 # Element
 @docs Element
-
-
-
-
 
 
 -}
@@ -306,6 +303,8 @@ empty =
         , lineHeight = 1.7
         , align = alignLeft
         , whitespace = normal
+        , italic = False
+        , bold = Nothing
         }
     , borderStyle = solid
     , borderWidth = all 0
@@ -507,7 +506,28 @@ type alias Text =
     , characterOffset : Maybe Float
     , align : Alignment
     , whitespace : Whitespace
+    , italic : Bool
+    , bold : Maybe Int
     }
+
+
+{-| -}
+italicize : Text -> Text
+italicize text =
+    { text | italic = True }
+
+
+{-| -}
+bold : Text -> Text
+bold text =
+    { text | bold = Just 700 }
+
+
+{-| Set a light font-weight (300)
+-}
+light : Text -> Text
+light text =
+    { text | bold = Just 300 }
 
 
 {-| -}
@@ -872,7 +892,7 @@ leftRightAndTopBottom x y =
 
 
 {-| -}
-leftRightTopBottom : Float -> Float -> ( Float, Float, Float, Float )
+leftRightTopBottom : Float -> Float -> Float -> Float -> ( Float, Float, Float, Float )
 leftRightTopBottom l r t b =
     ( t, r, b, l )
 
@@ -1190,6 +1210,12 @@ animateOn trigger { duration, easing, repeat, steps } =
 hover : Trigger
 hover =
     Style.Model.PseudoClass ":hover"
+
+
+{-| -}
+selection : Trigger
+selection =
+    Style.Model.PseudoClass "::selection"
 
 
 {-| -}
