@@ -1,10 +1,10 @@
-module Style.Elements exposing (html, element, elementAs, inline, inlineAs, optional, optionalAs, build, buildAs, svgAs)
+module Style.Elements exposing (html, element, elementAs, optional, optionalAs, build, buildAs, svgAs)
 
 {-|
 
 # Creating Elements
 
-@docs element, elementAs, inline, inlineAs, svgAs, optional, optionalAs, html
+@docs element, elementAs, svgAs, optional, optionalAs, html
 
 # Building the Stylesheet
 
@@ -13,8 +13,8 @@ module Style.Elements exposing (html, element, elementAs, inline, inlineAs, opti
 -}
 
 import Style.Model exposing (..)
-import Style.Render exposing (render, renderVariation)
-import Style exposing (Model, Variation, ColorPalette, Text, Element, Animation, BackgroundImage)
+import Style.Render exposing (render)
+import Style exposing (Element)
 import Html exposing (Html)
 import Html.Attributes
 import Svg.Attributes
@@ -37,14 +37,14 @@ html node =
 {-| Turn a style into an element that can be used to build your view.  Renders as a div.
 
 -}
-element : Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+element : Style.Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 element =
     elementAs "div"
 
 
 {-| Specify an html element name to render.
 -}
-elementAs : String -> Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+elementAs : String -> Style.Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 elementAs node styleModel attrs elements =
     let
         ( className, styleDef ) =
@@ -61,35 +61,9 @@ elementAs node styleModel attrs elements =
         )
 
 
-{-|
--}
-inline : Variation -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
-inline =
-    inlineAs "div"
-
-
-{-|
--}
-inlineAs : String -> Variation -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
-inlineAs node styleModel attrs elements =
-    let
-        ( className, styleDef ) =
-            renderVariation styleModel
-
-        ( childrenStyles, children ) =
-            List.unzip elements
-
-        allStyles =
-            styleDef :: List.concat childrenStyles
-    in
-        ( allStyles
-        , Html.node node (Svg.Attributes.class (className ++ " inline") :: attrs) children
-        )
-
-
 {-| Specify an svg node to use
 -}
-svgAs : String -> Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+svgAs : String -> Style.Model -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 svgAs node styleModel attrs elements =
     let
         ( className, styleDef ) =
@@ -109,14 +83,14 @@ svgAs node styleModel attrs elements =
 {-| Create an element with style variations that can be turned on/off.  The variations will stack.
 
 -}
-optional : Model -> List ( Style.Variation, Bool ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+optional : Style.Model -> List ( Style.Model, Bool ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 optional =
     optionalAs "div"
 
 
 {-|
 -}
-optionalAs : String -> Model -> List ( Style.Variation, Bool ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+optionalAs : String -> Style.Model -> List ( Style.Model, Bool ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 optionalAs node styleModel variations attrs elements =
     let
         ( parentClass, styleDef ) =
@@ -125,7 +99,7 @@ optionalAs node styleModel variations attrs elements =
         variationTransitions =
             List.map
                 (\( variation, active ) ->
-                    ( renderVariation variation
+                    ( render variation
                     , active
                     )
                 )
@@ -152,13 +126,13 @@ optionalAs node styleModel variations attrs elements =
 If this seems unclear, check out the examples!
 
 -}
-build : Model -> List (Html.Attribute msg) -> List ( List Style.Model.StyleDefinition, Html.Html msg ) -> Html msg
+build : Style.Model -> List (Html.Attribute msg) -> List ( List Style.Model.StyleDefinition, Html.Html msg ) -> Html msg
 build =
     buildAs "div"
 
 
 {-| -}
-buildAs : String -> Model -> List (Html.Attribute msg) -> List ( List Style.Model.StyleDefinition, Html.Html msg ) -> Html msg
+buildAs : String -> Style.Model -> List (Html.Attribute msg) -> List ( List Style.Model.StyleDefinition, Html.Html msg ) -> Html msg
 buildAs node styleModel attrs elements =
     let
         ( className, style ) =

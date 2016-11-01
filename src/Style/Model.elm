@@ -6,6 +6,96 @@ import Color exposing (Color)
 import Time exposing (Time)
 
 
+type Model
+    = Model
+        { layout : Layout
+        , visibility : Visibility
+        , relativeTo : RelativeTo
+        , anchor : Anchor
+        , position : ( Float, Float )
+        , cursor : String
+        , width : Length
+        , height : Length
+        , colors : ColorPalette
+        , spacing : ( Float, Float, Float, Float )
+        , padding : ( Float, Float, Float, Float )
+        , font : Font
+        , italic : Bool
+        , bold : Maybe Int
+        , strike : Bool
+        , underline : Bool
+        , borderStyle : BorderStyle
+        , borderWidth : ( Float, Float, Float, Float )
+        , cornerRadius : ( Float, Float, Float, Float )
+        , backgroundImage : Maybe BackgroundImage
+        , float : Maybe Floating
+        , inline : Bool
+        , shadows : List Shadow
+        , transforms : List Transform
+        , filters : List Filter
+        , animations : List Animation
+        , media : List (MediaQuery Model)
+        , properties : List ( String, String )
+        }
+    | Variation
+        { layout : Maybe Layout
+        , visibility : Maybe Visibility
+        , relativeTo : Maybe RelativeTo
+        , anchor : Maybe Anchor
+        , position : Maybe ( Float, Float )
+        , cursor : Maybe String
+        , width : Maybe Length
+        , height : Maybe Length
+        , colors : Maybe ColorPalette
+        , spacing : Maybe ( Float, Float, Float, Float )
+        , padding : Maybe ( Float, Float, Float, Float )
+        , font : Maybe Font
+        , italic : Bool
+        , bold : Maybe Int
+        , strike : Bool
+        , underline : Bool
+        , borderStyle : Maybe BorderStyle
+        , borderWidth : Maybe ( Float, Float, Float, Float )
+        , cornerRadius : Maybe ( Float, Float, Float, Float )
+        , backgroundImage : Maybe BackgroundImage
+        , float : Maybe Floating
+        , inline : Bool
+        , shadows : List Shadow
+        , transforms : List Transform
+        , filters : List Filter
+        , animations : List Animation
+        , media : List (MediaQuery Model)
+        , properties : List ( String, String )
+        }
+
+
+type alias Font =
+    { font : String
+    , size : Float
+    , lineHeight : Float
+    , characterOffset : Maybe Float
+    , align : Alignment
+    , whitespace : Whitespace
+    }
+
+
+{-|
+-}
+type alias ColorPalette =
+    { background : Color
+    , text : Color
+    , border : Color
+    }
+
+
+{-| -}
+type alias BackgroundImage =
+    { src : String
+    , position : ( Float, Float )
+    , repeat : Repeat
+    }
+
+
 {-| -}
 type StyleDefinition
     = StyleDef
@@ -17,6 +107,10 @@ type StyleDefinition
         , media :
             List ( String, StyleDefinition )
         }
+
+
+type alias Animation =
+    Animated Model
 
 
 type alias Style =

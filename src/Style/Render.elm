@@ -1,4 +1,4 @@
-module Style.Render exposing (render, renderVariation, convertToCSS)
+module Style.Render exposing (render, convertToCSS)
 
 {-|
 -}
@@ -7,43 +7,13 @@ import Html
 import Html.Attributes
 import Svg.Attributes
 import Style.Model exposing (..)
-import Style exposing (Model, Variation, ColorPalette, Text, Element, Animation, BackgroundImage)
+import Style
 import Color exposing (Color)
 import String
 import Char
 import Murmur3
 import Json.Encode as Json
 import Set exposing (Set)
-
-
-{-|
--}
-replace : Element msg -> List ( Bool, Element msg ) -> Element msg
-replace el replacements =
-    let
-        allStyles =
-            List.concatMap (\x -> fst <| snd x) (( True, el ) :: replacements)
-
-        replacement =
-            List.filter fst replacements
-                |> List.head
-                |> Maybe.map snd
-
-        ( _, replaced ) =
-            Maybe.withDefault el replacement
-    in
-        ( allStyles, replaced )
-
-
-prependClassName : String -> ( String, StyleDefinition ) -> ( String, StyleDefinition )
-prependClassName parentName ( name, StyleDef style ) =
-    let
-        prepended =
-            parentName ++ " " ++ name
-    in
-        ( prepended
-        , StyleDef { style | name = prepended }
-        )
 
 
 classNameAndTags : StyleDefinition -> String
@@ -87,56 +57,177 @@ renderPermissions perm =
 
 
 render : Model -> ( String, StyleDefinition )
-render style =
-    case style.visibility of
-        Hidden ->
+render model =
+    case model of
+        Model style ->
+            case style.visibility of
+                Hidden ->
+                    let
+                        renderedStyle =
+                            [ "display" => "none" ]
+
+                        styleDefinition =
+                            addClassName
+                                { style = renderedStyle
+                                , tags = []
+                                , animations = []
+                                , media = []
+                                }
+                    in
+                        ( classNameAndTags styleDefinition
+                        , styleDefinition
+                        )
+
+                Transparent transparency ->
+                    let
+                        ( layout, childrenPermissions ) =
+                            renderLayout style.layout
+
+                        renderedStyle =
+                            List.concat <|
+                                List.filterMap identity
+                                    [ Just <| layout
+                                    , Just <| renderPosition style.relativeTo style.anchor style.position
+                                    , renderInline style.inline
+                                    , Just
+                                        [ "box-sizing" => "border-box"
+                                        , "opacity" => toString (1.0 - transparency)
+                                        , "width" => renderLength style.width
+                                        , "height" => renderLength style.height
+                                        , "cursor" => style.cursor
+                                        , "padding" => render4tuplePx style.padding
+                                        , "border-width" => render4tuplePx style.borderWidth
+                                        , "border-radius" => render4tuplePx style.cornerRadius
+                                        , "border-style"
+                                            => case style.borderStyle of
+                                                Solid ->
+                                                    "solid"
+
+                                                Dashed ->
+                                                    "dashed"
+
+                                                Dotted ->
+                                                    "dotted"
+                                        ]
+                                    , if style.italic then
+                                        Just [ "font-style" => "italic" ]
+                                      else
+                                        Nothing
+                                    , Maybe.map
+                                        (\bold ->
+                                            [ "font-weight" => toString bold ]
+                                        )
+                                        style.bold
+                                    , case ( style.underline, style.strike ) of
+                                        ( False, False ) ->
+                                            Just [ "text-decoration" => "none" ]
+
+                                        ( True, False ) ->
+                                            Just [ "text-decoration" => "underline" ]
+
+                                        ( False, True ) ->
+                                            Just [ "text-decoration" => "line-through" ]
+
+                                        ( True, True ) ->
+                                            Just [ "text-decoration" => "underline line-through" ]
+                                    , Just <| renderColorPalette style.colors
+                                    , Just <| renderText style.font
+                                    , Maybe.map renderBackgroundImage style.backgroundImage
+                                    , Maybe.map renderFloating style.float
+                                    , listMaybeMap renderShadow style.shadows
+                                    , listMaybeMap renderFilters style.filters
+                                    , listMaybeMap renderTransforms style.transforms
+                                    , listMaybeMap identity style.properties
+                                    , if List.any isTransition style.animations then
+                                        Just cssTransitions
+                                      else
+                                        Nothing
+                                    ]
+
+                        restrictedTags =
+                            let
+                                floating =
+                                    Maybe.map (\_ -> "floating") style.float
+
+                                inline =
+                                    if style.inline then
+                                        Just "inline"
+                                    else
+                                        Nothing
+
+                                permissions =
+                                    Just <|
+                                        renderPermissions childrenPermissions
+                            in
+                                List.filterMap identity [ permissions, inline, floating ]
+
+                        childOverrides =
+                            case style.layout of
+                                TableLayout ->
+                                    [ ( PseudoClass " > *:not(.inline)"
+                                      , [ "margin" => render4tuplePx style.spacing
+                                        , "display" => "table-row !important"
+                                        ]
+                                      , Nothing
+                                      )
+                                    , ( PseudoClass " > * > *"
+                                      , [ "display" => "table-cell !important" ]
+                                      , Nothing
+                                      )
+                                    ]
+
+                                _ ->
+                                    [ ( PseudoClass " > *:not(.inline)"
+                                      , [ "margin" => render4tuplePx style.spacing ]
+                                      , Nothing
+                                      )
+                                    ]
+
+                        styleDefinition =
+                            addClassName
+                                { style = renderedStyle
+                                , tags = restrictedTags
+                                , animations = List.map renderAnimation style.animations ++ childOverrides
+                                , media = List.map (\(MediaQuery query mediaStyle) -> ( query, snd <| render mediaStyle )) style.media
+                                }
+                    in
+                        ( classNameAndTags styleDefinition
+                        , styleDefinition
+                        )
+
+        Variation style ->
             let
-                renderedStyle =
-                    [ "display" => "none" ]
-
-                styleDefinition =
-                    addClassName
-                        { style = renderedStyle
-                        , tags = []
-                        , animations = []
-                        , media = []
-                        }
-            in
-                ( classNameAndTags styleDefinition
-                , styleDefinition
-                )
-
-        Transparent transparency ->
-            let
-                ( layout, childrenPermissions ) =
-                    renderLayout style.layout
-
                 renderedStyle =
                     List.concat <|
                         List.filterMap identity
-                            [ Just <| layout
-                            , Just <| renderPosition style.relativeTo style.anchor style.position
-                            , renderInline style.inline
-                            , Just
-                                [ "box-sizing" => "border-box"
-                                , "opacity" => toString (1.0 - transparency)
-                                , "width" => renderLength style.width
-                                , "height" => renderLength style.height
-                                , "cursor" => style.cursor
-                                , "padding" => render4tuplePx style.padding
-                                , "border-width" => render4tuplePx style.borderWidth
-                                , "border-radius" => render4tuplePx style.cornerRadius
-                                , "border-style"
-                                    => case style.borderStyle of
-                                        Solid ->
-                                            "solid"
+                            [ Just <|
+                                List.filterMap identity
+                                    [ Maybe.map (\w -> "width" => (renderLength w)) style.width
+                                    , Maybe.map (\h -> "height" => (renderLength h)) style.height
+                                    , Maybe.map (\c -> "cursor" => c) style.cursor
+                                    , Maybe.map (\p -> "padding" => (render4tuplePx p)) style.padding
+                                    , Maybe.map (\p -> "border-width" => (render4tuplePx p)) style.borderWidth
+                                    , Maybe.map (\p -> "border-radius" => (render4tuplePx p)) style.cornerRadius
+                                    , Maybe.map
+                                        (\bstyle ->
+                                            "border-style"
+                                                => case bstyle of
+                                                    Solid ->
+                                                        "solid"
 
-                                        Dashed ->
-                                            "dashed"
+                                                    Dashed ->
+                                                        "dashed"
 
-                                        Dotted ->
-                                            "dotted"
-                                ]
+                                                    Dotted ->
+                                                        "dotted"
+                                        )
+                                        style.borderStyle
+                                    ]
+                            , Maybe.map renderBackgroundImage style.backgroundImage
+                            , if style.inline then
+                                Just [ "display" => "inline" ]
+                              else
+                                Nothing
                             , if style.italic then
                                 Just [ "font-style" => "italic" ]
                               else
@@ -158,65 +249,36 @@ render style =
 
                                 ( True, True ) ->
                                     Just [ "text-decoration" => "underline line-through" ]
-                            , Just <| renderColorPalette style.colors
-                            , Just <| renderText style.text
-                            , Maybe.map renderBackgroundImage style.backgroundImage
-                            , Maybe.map renderFloating style.float
+                            , Maybe.map renderColorPalette style.colors
+                            , Maybe.map renderText style.font
                             , listMaybeMap renderShadow style.shadows
                             , listMaybeMap renderFilters style.filters
-                            , listMaybeMap renderTransforms style.transforms
+                            , case style.position of
+                                Nothing ->
+                                    listMaybeMap renderTransforms style.transforms
+
+                                Just ( x, y ) ->
+                                    Just <| renderTransforms (style.transforms ++ [ Translate x y 0 ])
                             , listMaybeMap identity style.properties
-                            , if List.any isTransition style.animations then
-                                Just cssTransitions
-                              else
-                                Nothing
-                            ]
-
-                restrictedTags =
-                    let
-                        floating =
-                            Maybe.map (\_ -> "floating") style.float
-
-                        inline =
-                            if style.inline then
-                                Just "inline"
-                            else
-                                Nothing
-
-                        permissions =
-                            Just <|
-                                renderPermissions childrenPermissions
-                    in
-                        List.filterMap identity [ permissions, inline, floating ]
-
-                childOverrides =
-                    case style.layout of
-                        TableLayout ->
-                            [ ( PseudoClass " > *:not(.inline)"
-                              , [ "margin" => render4tuplePx style.spacing
-                                , "display" => "table-row !important"
-                                ]
-                              , Nothing
-                              )
-                            , ( PseudoClass " > * > *"
-                              , [ "display" => "table-cell !important" ]
-                              , Nothing
-                              )
-                            ]
-
-                        _ ->
-                            [ ( PseudoClass " > *:not(.inline)"
-                              , [ "margin" => render4tuplePx style.spacing ]
-                              , Nothing
-                              )
+                            , Maybe.map renderVisibility style.visibility
                             ]
 
                 styleDefinition =
                     addClassName
                         { style = renderedStyle
-                        , tags = restrictedTags
-                        , animations = List.map renderAnimation style.animations ++ childOverrides
-                        , media = List.map (\(MediaQuery query mediaStyle) -> ( query, snd <| renderVariation mediaStyle )) style.media
+                        , tags = []
+                        , animations =
+                            case style.spacing of
+                                Nothing ->
+                                    []
+
+                                Just spacing ->
+                                    [ ( PseudoClass " > *"
+                                      , [ "margin" => render4tuplePx spacing ]
+                                      , Nothing
+                                      )
+                                    ]
+                        , media = []
                         }
             in
                 ( classNameAndTags styleDefinition
@@ -494,102 +556,6 @@ hash value =
         |> String.toLower
 
 
-renderVariation : Variation -> ( String, StyleDefinition )
-renderVariation style =
-    let
-        renderedStyle =
-            List.concat <|
-                List.filterMap identity
-                    [ Just <|
-                        List.filterMap identity
-                            [ Maybe.map (\w -> "width" => (renderLength w)) style.width
-                            , Maybe.map (\h -> "height" => (renderLength h)) style.height
-                            , Maybe.map (\c -> "cursor" => c) style.cursor
-                            , Maybe.map (\p -> "padding" => (render4tuplePx p)) style.padding
-                            , Maybe.map
-                                (\( x, y ) ->
-                                    "background-position" => (toString x ++ "px " ++ toString y ++ "px")
-                                )
-                                style.backgroundImagePosition
-                            , Maybe.map (\p -> "border-width" => (render4tuplePx p)) style.borderWidth
-                            , Maybe.map (\p -> "border-radius" => (render4tuplePx p)) style.cornerRadius
-                            , Maybe.map
-                                (\bstyle ->
-                                    "border-style"
-                                        => case bstyle of
-                                            Solid ->
-                                                "solid"
-
-                                            Dashed ->
-                                                "dashed"
-
-                                            Dotted ->
-                                                "dotted"
-                                )
-                                style.borderStyle
-                            ]
-                    , if style.inline then
-                        Just [ "display" => "inline" ]
-                      else
-                        Nothing
-                    , if style.italic then
-                        Just [ "font-style" => "italic" ]
-                      else
-                        Nothing
-                    , Maybe.map
-                        (\bold ->
-                            [ "font-weight" => toString bold ]
-                        )
-                        style.bold
-                    , case ( style.underline, style.strike ) of
-                        ( False, False ) ->
-                            Just [ "text-decoration" => "none" ]
-
-                        ( True, False ) ->
-                            Just [ "text-decoration" => "underline" ]
-
-                        ( False, True ) ->
-                            Just [ "text-decoration" => "line-through" ]
-
-                        ( True, True ) ->
-                            Just [ "text-decoration" => "underline line-through" ]
-                    , Maybe.map renderColorPalette style.colors
-                    , Maybe.map renderText style.text
-                    , listMaybeMap renderShadow style.shadows
-                    , listMaybeMap renderFilters style.filters
-                    , case style.position of
-                        Nothing ->
-                            listMaybeMap renderTransforms style.transforms
-
-                        Just ( x, y ) ->
-                            Just <| renderTransforms (style.transforms ++ [ Translate x y 0 ])
-                    , listMaybeMap identity style.properties
-                    , Maybe.map renderVisibility style.visibility
-                    ]
-
-        styleDefinition =
-            addClassName
-                { style = renderedStyle
-                , tags = []
-                , animations =
-                    case style.spacing of
-                        Nothing ->
-                            []
-
-                        Just spacing ->
-                            [ ( PseudoClass " > *"
-                              , [ "margin" => render4tuplePx spacing ]
-                              , Nothing
-                              )
-                            ]
-                , media = []
-                }
-    in
-        ( classNameAndTags styleDefinition
-        , styleDefinition
-        )
-
-
 listMaybeMap : (List a -> b) -> List a -> Maybe b
 listMaybeMap fn ls =
     case ls of
@@ -608,7 +574,7 @@ renderAnimation (Animation { trigger, duration, easing, frames }) =
                 Transition variation ->
                     let
                         rendered =
-                            case snd <| renderVariation variation of
+                            case snd <| render variation of
                                 StyleDef { style } ->
                                     style
                     in
@@ -638,7 +604,7 @@ renderAnimation (Animation { trigger, duration, easing, frames }) =
                                     (\( marker, variation ) ->
                                         let
                                             ( name, styleDef ) =
-                                                renderVariation variation
+                                                render variation
 
                                             rendered =
                                                 case styleDef of
@@ -871,7 +837,7 @@ render4tuplePx ( a, b, c, d ) =
     toString a ++ "px " ++ toString b ++ "px " ++ toString c ++ "px " ++ toString d ++ "px"
 
 
-renderText : Text -> List ( String, String )
+renderText : Font -> List ( String, String )
 renderText text =
     List.filterMap identity
         [ Just ("font-family" => text.font)

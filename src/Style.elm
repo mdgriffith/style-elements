@@ -1,7 +1,6 @@
 module Style
     exposing
         ( Model
-        , Variation
         , Element
         , ColorPalette
         , Shadow
@@ -15,7 +14,7 @@ module Style
         , BorderStyle
         , Flow
         , Layout
-        , Text
+        , Font
         , Whitespace
         , Anchor
         , RelativeTo
@@ -67,9 +66,6 @@ module Style
         , visible
         , opacity
         , transparency
-        , bold
-        , light
-        , bolder
         , auto
         , px
         , percent
@@ -116,23 +112,52 @@ module Style
         , empty
         , variation
         , mediaQuery
+        , layout
+        , visibility
+        , relativeTo
+        , anchor
+        , position
+        , colors
+        , font
+        , italicize
+        , bold
+        , light
+        , strike
+        , underline
+        , borderStyle
+        , borderWidth
+        , cornerRadius
+        , cursor
+        , width
+        , height
+        , padding
+        , spacing
+        , float
+        , inline
+        , backgroundImage
+        , shadows
+        , transforms
+        , filters
+        , animations
+        , media
+        , properties
         )
 
-{-| A different take on styling.
+{-|
 
 This module is focused around composing a style.
 
+@docs Model, empty, variation
 
-@docs Model, empty
+@docs anchor, position, relativeTo
 
-@docs Variation, variation
 
 
 # Layouts
 
-Layouts affect how children are arranged.  It is one of the principles of the library that layout is controlled by the parent element.
+Layouts affect how children are arranged.  In this library, layout is controlled by the parent element.
 
-@docs Layout, textLayout, tableLayout
+@docs layout, Layout, textLayout, tableLayout
 
 @docs Flow, flowUp, flowDown, flowRight, flowLeft
 
@@ -143,20 +168,28 @@ Layouts affect how children are arranged.  It is one of the principles of the li
 
 # Colors
 
-@docs ColorPalette
+@docs colors, ColorPalette
 
 
-# Float & Inline
+# Inline
 
-@docs Floating, floatLeft, floatRight, floatTopLeft, floatTopRight
+@docs inline
+
+
+# Float
+
+@docs float, Floating, floatLeft, floatRight, floatTopLeft, floatTopRight
+
 
 
 # Visibility
 
-@docs Visibility, hidden, opacity, transparency, visible
+@docs visibility, Visibility, hidden, opacity, transparency, visible
 
 
 # Units
+
+@docs height, width
 
 Most values in this library have one set of units chosen and built in to the library.
 
@@ -171,9 +204,11 @@ The coordinates for the `position` value in the style model are x and y coordina
 
 These coordinates are always rendered in pixels.
 
-@docs RelativeTo, parent, currentPosition, screen
+@docs position
 
-@docs Anchor, topLeft, topRight, bottomLeft, bottomRight
+@docs relativeTo, RelativeTo, parent, currentPosition, screen
+
+@docs anchor, Anchor, topLeft, topRight, bottomLeft, bottomRight
 
 
 # A Note on Padding and Margins
@@ -190,6 +225,8 @@ We introduce the `spacing` attribute, which sets the spacing between all _child_
 >
 > Floating elements will only respect certain spacing values.
 
+@docs padding, spacing
+
 
 # Padding, Spacing, and Borders
 
@@ -197,50 +234,55 @@ Padding, spacing, and border widths are all specified by a tuple of four floats 
 
 The following are convenience functions for setting these values.
 
-@docs all, top, bottom, left, right, topBottom, leftRight, leftRightAndTopBottom, leftRightTopBottom allButTop, allButLeft, allButRight, allButBottom
+@docs all, top, bottom, left, right, topBottom, leftRight, leftRightAndTopBottom, leftRightTopBottom, allButTop, allButLeft, allButRight, allButBottom
 
 ## Borderstyles
 
 
-@docs BorderStyle, solid, dotted, dashed
+@docs borderStyle, borderWidth, BorderStyle, solid, dotted, dashed, cornerRadius
 
 
 # Text/Font
 
-@docs Text, Whitespace, normal, pre, preLine, preWrap, noWrap, bold,  bolder, light
+@docs font, Font, Whitespace, normal, pre, preLine, preWrap, noWrap, italicize, bold, light, strike, underline, cursor
 
 
 # Background Images
 
-@docs BackgroundImage, Repeat, repeat, repeatX, repeatY, noRepeat, round, space
+@docs backgroundImage, BackgroundImage, Repeat, repeat, repeatX, repeatY, noRepeat, round, space
 
+
+@docs properties
 
 # Shadows
 
-@docs Shadow, shadow, insetShadow, textShadow, dropShadow
+@docs shadows, Shadow, shadow, insetShadow, textShadow, dropShadow
 
 
 # Transforms
 
-@docs Transform, translate, rotate, scale
+@docs transforms, Transform, translate, rotate, scale
 
 # Filters
 
-@docs Filter, filterUrl, blur, brightness, contrast, grayscale, hueRotate, invert, opacityFilter, saturate, sepia
+@docs filters, Filter, filterUrl, blur, brightness, contrast, grayscale, hueRotate, invert, opacityFilter, saturate, sepia
 
 
 
 # Animations
-@docs Animation, on, onWith, animate, animateOn
 
-Animation triggers.
+@docs animations, Animation, on, onWith, animate, animateOn
 
-@docs Trigger, selection, hover, focus, checked
+## Animation triggers.
+
+@docs Trigger, selection, after, before, hover, focus, checked
+
+
 
 
 # Media Queries
 
-@docs MediaQuery, mediaQuery
+@docs media, MediaQuery, mediaQuery
 
 # Element
 @docs Element
@@ -251,150 +293,105 @@ Animation triggers.
 import Html
 import Time exposing (Time)
 import Color exposing (Color)
-import Style.Model
+import Style.Model exposing (Model(..))
 
 
 {-| The full model for a style.
 
-Some properties are mandatory makes our styles predictable.
+Some properties are mandatory in order to make predictable styles.
 
 -}
 type alias Model =
-    { layout : Layout
-    , visibility : Visibility
-    , relativeTo : RelativeTo
-    , anchor : Anchor
-    , position : ( Float, Float )
-    , cursor : String
-    , width : Length
-    , height : Length
-    , colors : ColorPalette
-    , spacing : ( Float, Float, Float, Float )
-    , padding : ( Float, Float, Float, Float )
-    , text : Text
-    , italic : Bool
-    , bold : Maybe Int
-    , strike : Bool
-    , underline : Bool
-    , borderStyle : BorderStyle
-    , borderWidth : ( Float, Float, Float, Float )
-    , cornerRadius : ( Float, Float, Float, Float )
-    , backgroundImage : Maybe BackgroundImage
-    , float : Maybe Floating
-    , inline : Bool
-    , shadows : List Shadow
-    , transforms : List Transform
-    , filters : List Filter
-    , properties : List ( String, String )
-    , animations :
-        List Animation
-    , media : List MediaQuery
-    }
+    Style.Model.Model
 
 
 {-| -}
 empty : Model
 empty =
-    { layout = textLayout
-    , visibility = visible
-    , relativeTo = currentPosition
-    , anchor = topLeft
-    , position = ( 0, 0 )
-    , colors =
-        { background = Color.rgba 255 255 255 0
-        , text = Color.darkCharcoal
-        , border = Color.grey
+    Model
+        { layout = textLayout
+        , visibility = visible
+        , relativeTo = currentPosition
+        , anchor = topLeft
+        , position = ( 0, 0 )
+        , colors =
+            { background = Color.rgba 255 255 255 0
+            , text = Color.darkCharcoal
+            , border = Color.grey
+            }
+        , font =
+            { font = "georgia"
+            , size = 16
+            , characterOffset = Nothing
+            , lineHeight = 1.7
+            , align = alignLeft
+            , whitespace = normal
+            }
+        , italic = False
+        , bold = Nothing
+        , strike = False
+        , underline = False
+        , borderStyle = solid
+        , borderWidth = all 0
+        , cornerRadius = all 0
+        , cursor = "auto"
+        , width = auto
+        , height = auto
+        , padding = all 0
+        , spacing = all 0
+        , float = Nothing
+        , inline = False
+        , backgroundImage = Nothing
+        , shadows = []
+        , transforms = []
+        , filters = []
+        , animations = []
+        , media = []
+        , properties = []
         }
-    , text =
-        { font = "georgia"
-        , size = 16
-        , characterOffset = Nothing
-        , lineHeight = 1.7
-        , align = alignLeft
-        , whitespace = normal
-        }
-    , italic = False
-    , bold = Nothing
-    , strike = False
-    , underline = False
-    , borderStyle = solid
-    , borderWidth = all 0
-    , cornerRadius = all 0
-    , cursor = "auto"
-    , width = auto
-    , height = auto
-    , padding = all 0
-    , spacing = all 0
-    , float = Nothing
-    , inline = False
-    , backgroundImage = Nothing
-    , shadows = []
-    , transforms = []
-    , filters = []
-    , animations = []
-    , media = []
-    , properties = []
-    }
 
 
-{-| A `Variation` is a style where all the properties are optional.
+{-| A `variation` is a style where all the properties are optional.
 
-This is used to construct animations, transitions, and inline elements.
+If you were to render it without setting anything the class wouldn't have any properties in it.
+
+Use this sparingly.  Your default should be to use `Style.empty` as your starting point.
+
+`Style.variation` should be used for animations and inline elements.
 
 -}
-type alias Variation =
-    { visibility : Maybe Visibility
-    , position : Maybe ( Float, Float )
-    , cursor : Maybe String
-    , width : Maybe Length
-    , height : Maybe Length
-    , text : Maybe Text
-    , italic : Bool
-    , bold : Maybe Int
-    , strike : Bool
-    , underline : Bool
-    , inline : Bool
-    , colors : Maybe ColorPalette
-    , padding : Maybe ( Float, Float, Float, Float )
-    , spacing : Maybe ( Float, Float, Float, Float )
-    , borderWidth : Maybe ( Float, Float, Float, Float )
-    , cornerRadius : Maybe ( Float, Float, Float, Float )
-    , borderStyle : Maybe BorderStyle
-    , backgroundImagePosition : Maybe ( Float, Float )
-    , shadows : List Shadow
-    , transforms : List Transform
-    , filters : List Filter
-    , properties : List ( String, String )
-    }
-
-
-{-| An empty `Variation`
--}
-variation : Variation
+variation : Model
 variation =
-    { visibility = Nothing
-    , inline = False
-    , position = Nothing
-    , colors = Nothing
-    , text = Nothing
-    , italic = False
-    , bold = Nothing
-    , strike = False
-    , underline = False
-    , borderStyle = Nothing
-    , borderWidth = Nothing
-    , cornerRadius = Nothing
-    , cursor = Nothing
-    , width = Nothing
-    , height = Nothing
-    , padding = Nothing
-    , spacing = Nothing
-    , backgroundImagePosition = Nothing
-    , shadows = []
-    , transforms = []
-    , filters = []
-    , properties = []
-    }
+    Variation
+        { layout = Nothing
+        , visibility = Nothing
+        , relativeTo = Nothing
+        , anchor = Nothing
+        , position = Nothing
+        , colors = Nothing
+        , font = Nothing
+        , italic = False
+        , bold = Nothing
+        , strike = False
+        , underline = False
+        , borderStyle = Nothing
+        , borderWidth = Nothing
+        , cornerRadius = Nothing
+        , cursor = Nothing
+        , width = Nothing
+        , height = Nothing
+        , padding = Nothing
+        , spacing = Nothing
+        , float = Nothing
+        , inline = False
+        , backgroundImage = Nothing
+        , shadows = []
+        , transforms = []
+        , filters = []
+        , animations = []
+        , media = []
+        , properties = []
+        }
 
 
 {-|
@@ -405,7 +402,7 @@ type alias Element msg =
 
 {-| -}
 type alias Animation =
-    Style.Model.Animated Variation
+    Style.Model.Animated Model
 
 
 {-| -}
@@ -415,7 +412,7 @@ type alias Trigger =
 
 {-| -}
 type alias MediaQuery =
-    Style.Model.MediaQuery Variation
+    Style.Model.MediaQuery Model
 
 
 {-|
@@ -489,7 +486,7 @@ type alias Length =
     Style.Model.Length
 
 
-{-| Only rendered if the parent is a textLayout.  Otherwise it will give a red visual warning.
+{-| Only rendered if the parent is a textLayout.
 -}
 type alias Floating =
     Style.Model.Floating
@@ -517,32 +514,8 @@ type alias Repeat =
 
 So, a fontsize of 16 and a lineHeight of 1 means that the lineheight is going to be 16px.
 -}
-type alias Text =
-    { font : String
-    , size : Float
-    , lineHeight : Float
-    , characterOffset : Maybe Float
-    , align : Alignment
-    , whitespace : Whitespace
-    }
-
-
-{-| -}
-bold : Int
-bold =
-    700
-
-
-{-| -}
-light : Int
-light =
-    300
-
-
-{-| -}
-bolder : Int
-bolder =
-    900
+type alias Font =
+    Style.Model.Font
 
 
 {-| -}
@@ -691,6 +664,325 @@ percent x =
 auto : Length
 auto =
     Style.Model.Auto
+
+
+{-| -}
+layout : Layout -> Model -> Model
+layout myLayout model =
+    case model of
+        Model state ->
+            Model { state | layout = myLayout }
+
+        Variation state ->
+            Variation { state | layout = Just myLayout }
+
+
+{-| -}
+visibility : Visibility -> Model -> Model
+visibility vis model =
+    case model of
+        Model state ->
+            Model { state | visibility = vis }
+
+        Variation state ->
+            Variation { state | visibility = Just vis }
+
+
+{-| -}
+anchor : Anchor -> Model -> Model
+anchor anc model =
+    case model of
+        Model state ->
+            Model { state | anchor = anc }
+
+        Variation state ->
+            Variation { state | anchor = Just anc }
+
+
+{-| -}
+relativeTo : RelativeTo -> Model -> Model
+relativeTo rel model =
+    case model of
+        Model state ->
+            Model { state | relativeTo = rel }
+
+        Variation state ->
+            Variation { state | relativeTo = Just rel }
+
+
+{-| -}
+position : ( Float, Float ) -> Model -> Model
+position pos model =
+    case model of
+        Model state ->
+            Model { state | position = pos }
+
+        Variation state ->
+            Variation { state | position = Just pos }
+
+
+{-| -}
+cursor : String -> Model -> Model
+cursor curs model =
+    case model of
+        Model state ->
+            Model { state | cursor = curs }
+
+        Variation state ->
+            Variation { state | cursor = Just curs }
+
+
+{-| -}
+width : Length -> Model -> Model
+width w model =
+    case model of
+        Model state ->
+            Model { state | width = w }
+
+        Variation state ->
+            Variation { state | width = Just w }
+
+
+{-| -}
+height : Length -> Model -> Model
+height h model =
+    case model of
+        Model state ->
+            Model { state | height = h }
+
+        Variation state ->
+            Variation { state | height = Just h }
+
+
+{-| -}
+colors : ColorPalette -> Model -> Model
+colors palette model =
+    case model of
+        Model state ->
+            Model { state | colors = palette }
+
+        Variation state ->
+            Variation { state | colors = Just palette }
+
+
+{-| -}
+spacing : ( Float, Float, Float, Float ) -> Model -> Model
+spacing s model =
+    case model of
+        Model state ->
+            Model { state | spacing = s }
+
+        Variation state ->
+            Variation { state | spacing = Just s }
+
+
+{-| -}
+padding : ( Float, Float, Float, Float ) -> Model -> Model
+padding s model =
+    case model of
+        Model state ->
+            Model { state | padding = s }
+
+        Variation state ->
+            Variation { state | padding = Just s }
+
+
+{-| -}
+borderWidth : ( Float, Float, Float, Float ) -> Model -> Model
+borderWidth s model =
+    case model of
+        Model state ->
+            Model { state | borderWidth = s }
+
+        Variation state ->
+            Variation { state | borderWidth = Just s }
+
+
+{-| -}
+cornerRadius : ( Float, Float, Float, Float ) -> Model -> Model
+cornerRadius s model =
+    case model of
+        Model state ->
+            Model { state | cornerRadius = s }
+
+        Variation state ->
+            Variation { state | cornerRadius = Just s }
+
+
+{-| -}
+font : Font -> Model -> Model
+font text model =
+    case model of
+        Model state ->
+            Model { state | font = text }
+
+        Variation state ->
+            Variation { state | font = Just text }
+
+
+{-| -}
+underline : Model -> Model
+underline model =
+    case model of
+        Model state ->
+            Model { state | underline = True }
+
+        Variation state ->
+            Variation { state | underline = True }
+
+
+{-| -}
+strike : Model -> Model
+strike model =
+    case model of
+        Model state ->
+            Model { state | strike = True }
+
+        Variation state ->
+            Variation { state | strike = True }
+
+
+{-| -}
+inline : Model -> Model
+inline model =
+    case model of
+        Model state ->
+            Model { state | inline = True }
+
+        Variation state ->
+            Variation { state | inline = True }
+
+
+{-| -}
+italicize : Model -> Model
+italicize model =
+    case model of
+        Model state ->
+            Model { state | italic = True }
+
+        Variation state ->
+            Variation { state | italic = True }
+
+
+{-| -}
+bold : Model -> Model
+bold model =
+    case model of
+        Model state ->
+            Model { state | bold = Just 700 }
+
+        Variation state ->
+            Variation { state | bold = Just 700 }
+
+
+{-| -}
+light : Model -> Model
+light model =
+    case model of
+        Model state ->
+            Model { state | bold = Just 300 }
+
+        Variation state ->
+            Variation { state | bold = Just 300 }
+
+
+{-| -}
+borderStyle : BorderStyle -> Model -> Model
+borderStyle style model =
+    case model of
+        Model state ->
+            Model { state | borderStyle = style }
+
+        Variation state ->
+            Variation { state | borderStyle = Just style }
+
+
+{-| -}
+float : Floating -> Model -> Model
+float floating model =
+    case model of
+        Model state ->
+            Model { state | float = Just floating }
+
+        Variation state ->
+            Variation { state | float = Just floating }
+
+
+{-| -}
+backgroundImage : BackgroundImage -> Model -> Model
+backgroundImage style model =
+    case model of
+        Model state ->
+            Model { state | backgroundImage = Just style }
+
+        Variation state ->
+            Variation { state | backgroundImage = Just style }
+
+
+{-| -}
+shadows : List Shadow -> Model -> Model
+shadows shades model =
+    case model of
+        Model state ->
+            Model { state | shadows = shades }
+
+        Variation state ->
+            Variation { state | shadows = shades }
+
+
+{-| -}
+transforms : List Transform -> Model -> Model
+transforms trans model =
+    case model of
+        Model state ->
+            Model { state | transforms = trans }
+
+        Variation state ->
+            Variation { state | transforms = trans }
+
+
+{-| -}
+filters : List Filter -> Model -> Model
+filters filts model =
+    case model of
+        Model state ->
+            Model { state | filters = filts }
+
+        Variation state ->
+            Variation { state | filters = filts }
+
+
+{-| -}
+animations : List Animation -> Model -> Model
+animations filts model =
+    case model of
+        Model state ->
+            Model { state | animations = filts }
+
+        Variation state ->
+            Variation { state | animations = filts }
+
+
+{-| -}
+media : List MediaQuery -> Model -> Model
+media queries model =
+    case model of
+        Model state ->
+            Model { state | media = queries }
+
+        Variation state ->
+            Variation { state | media = queries }
+
+
+{-| -}
+properties : List ( String, String ) -> Model -> Model
+properties props model =
+    case model of
+        Model state ->
+            Model { state | properties = props }
+
+        Variation state ->
+            Variation { state | properties = props }
 
 
 {-| This is the only layout that allows for child elements to use `float` or `inline`.
@@ -1136,7 +1428,7 @@ sepia x =
 
 
 {-| -}
-mediaQuery : String -> Variation -> MediaQuery
+mediaQuery : String -> Model -> MediaQuery
 mediaQuery name variation =
     Style.Model.MediaQuery name variation
 
@@ -1148,7 +1440,7 @@ mediaQuery name variation =
 Defaults to duration 300, easing as "ease"
 
 -}
-on : Trigger -> Variation -> Animation
+on : Trigger -> Model -> Animation
 on trigger model =
     Style.Model.Animation
         { trigger = trigger
@@ -1165,7 +1457,7 @@ Easings are given as strings as they would be in css:
 https://developer.mozilla.org/en-US/docs/Web/CSS/animation-timing-function
 
 -}
-onWith : Trigger -> { duration : Time, easing : String } -> Variation -> Animation
+onWith : Trigger -> { duration : Time, easing : String } -> Model -> Animation
 onWith trigger { duration, easing } model =
     Style.Model.Animation
         { trigger = trigger
@@ -1181,7 +1473,7 @@ animate :
     { duration : Time
     , easing : String
     , repeat : Float
-    , steps : List ( Float, Variation )
+    , steps : List ( Float, Model )
     }
     -> Animation
 animate { duration, easing, repeat, steps } =
@@ -1205,7 +1497,7 @@ animateOn :
     -> { duration : Time
        , easing : String
        , repeat : Float
-       , steps : List ( Float, Variation )
+       , steps : List ( Float, Model )
        }
     -> Animation
 animateOn trigger { duration, easing, repeat, steps } =

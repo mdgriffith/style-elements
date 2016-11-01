@@ -6,20 +6,20 @@ module Style.Font exposing (FontSet, FontSizes, create, createFrom, cast)
 
 -}
 
-import Style exposing (Text)
+import Style exposing (Font)
 
 
 {-| -}
 type alias FontSet =
-    { gigantic : Text
-    , huge : Text
-    , large : Text
-    , big : Text
-    , normal : Text
-    , small : Text
-    , little : Text
-    , tiny : Text
-    , mini : Text
+    { gigantic : Font
+    , huge : Font
+    , large : Font
+    , big : Font
+    , normal : Font
+    , small : Font
+    , little : Font
+    , tiny : Font
+    , mini : Font
     }
 
 
@@ -115,7 +115,7 @@ create family =
 
 {-| Specify all values of a font and create 9 size variations.
 -}
-createFrom : Text -> FontSet
+createFrom : Font -> FontSet
 createFrom foundation =
     { gigantic =
         { foundation
@@ -167,7 +167,7 @@ createFrom foundation =
 
 {-| Specify all values of a font and provide 9 size variations to create.
 -}
-cast : Text -> FontSizes -> FontSet
+cast : Font -> FontSizes -> FontSet
 cast foundation fontSizes =
     { gigantic =
         { foundation
