@@ -110,9 +110,7 @@ module Style
         , after
         , before
         , empty
-        , variation
         , mediaQuery
-        , layout
         , visibility
         , relativeTo
         , anchor
@@ -125,7 +123,7 @@ module Style
         , strike
         , underline
         , borderStyle
-        , borderWidth
+        , border
         , cornerRadius
         , cursor
         , width
@@ -149,54 +147,6 @@ This module is focused around composing a style.
 
 @docs Model, empty, variation
 
-@docs anchor, position, relativeTo
-
-
-
-# Layouts
-
-Layouts affect how children are arranged.  In this library, layout is controlled by the parent element.
-
-@docs layout, Layout, textLayout, tableLayout
-
-@docs Flow, flowUp, flowDown, flowRight, flowLeft
-
-@docs Alignment, alignLeft, alignRight, justify, justifyAll, alignCenter
-
-@docs VerticalAlignment, verticalCenter, verticalStretch, alignTop, alignBottom
-
-
-# Colors
-
-@docs colors, ColorPalette
-
-
-# Inline
-
-@docs inline
-
-
-# Float
-
-@docs float, Floating, floatLeft, floatRight, floatTopLeft, floatTopRight
-
-
-
-# Visibility
-
-@docs visibility, Visibility, hidden, opacity, transparency, visible
-
-
-# Units
-
-@docs height, width
-
-Most values in this library have one set of units chosen and built in to the library.
-
-However, `width` and `height` values can be pixels, percent, or auto.
-
-@docs percent, px, auto
-
 
 # Positioning
 
@@ -209,6 +159,19 @@ These coordinates are always rendered in pixels.
 @docs relativeTo, RelativeTo, parent, currentPosition, screen
 
 @docs anchor, Anchor, topLeft, topRight, bottomLeft, bottomRight
+
+
+# Width/Height
+
+@docs height, width
+
+# Units
+
+Most values in this library have one set of units to the library that are required to be used.
+
+However, `width` and `height` values can be pixels, percent, or auto.
+
+@docs percent, px, auto
 
 
 # A Note on Padding and Margins
@@ -236,10 +199,47 @@ The following are convenience functions for setting these values.
 
 @docs all, top, bottom, left, right, topBottom, leftRight, leftRightAndTopBottom, leftRightTopBottom, allButTop, allButLeft, allButRight, allButBottom
 
+
 ## Borderstyles
 
-
 @docs borderStyle, borderWidth, BorderStyle, solid, dotted, dashed, cornerRadius
+
+# Layouts
+
+Layouts affect how children are arranged.  In this library, layout is controlled by the parent element.
+
+@docs layout, Layout, textLayout, tableLayout
+
+@docs Flow, flowUp, flowDown, flowRight, flowLeft
+
+# Alignment
+
+@docs Alignment, alignLeft, alignRight, justify, justifyAll, alignCenter
+
+@docs VerticalAlignment, verticalCenter, verticalStretch, alignTop, alignBottom
+
+
+# Colors
+
+@docs colors, ColorPalette
+
+
+# Inline
+
+@docs inline
+
+
+# Float
+
+@docs float, Floating, floatLeft, floatRight, floatTopLeft, floatTopRight
+
+
+# Visibility
+
+@docs visibility, Visibility, hidden, opacity, transparency, visible
+
+
+
 
 
 # Text/Font
@@ -251,8 +251,8 @@ The following are convenience functions for setting these values.
 
 @docs backgroundImage, BackgroundImage, Repeat, repeat, repeatX, repeatY, noRepeat, round, space
 
-
 @docs properties
+
 
 # Shadows
 
@@ -268,16 +268,14 @@ The following are convenience functions for setting these values.
 @docs filters, Filter, filterUrl, blur, brightness, contrast, grayscale, hueRotate, invert, opacityFilter, saturate, sepia
 
 
-
 # Animations
 
 @docs animations, Animation, on, onWith, animate, animateOn
 
+
 ## Animation triggers.
 
 @docs Trigger, selection, after, before, hover, focus, checked
-
-
 
 
 # Media Queries
@@ -309,7 +307,7 @@ type alias Model =
 empty : Model
 empty =
     Model
-        { layout = textLayout
+        { layout = Style.Model.TextLayout
         , visibility = visible
         , relativeTo = currentPosition
         , anchor = topLeft
@@ -339,49 +337,6 @@ empty =
         , height = auto
         , padding = all 0
         , spacing = all 0
-        , float = Nothing
-        , inline = False
-        , backgroundImage = Nothing
-        , shadows = []
-        , transforms = []
-        , filters = []
-        , animations = []
-        , media = []
-        , properties = []
-        }
-
-
-{-| A `variation` is a style where all the properties are optional.
-
-If you were to render it without setting anything the class wouldn't have any properties in it.
-
-Use this sparingly.  Your default should be to use `Style.empty` as your starting point.
-
-`Style.variation` should be used for animations and inline elements.
-
--}
-variation : Model
-variation =
-    Variation
-        { layout = Nothing
-        , visibility = Nothing
-        , relativeTo = Nothing
-        , anchor = Nothing
-        , position = Nothing
-        , colors = Nothing
-        , font = Nothing
-        , italic = False
-        , bold = Nothing
-        , strike = False
-        , underline = False
-        , borderStyle = Nothing
-        , borderWidth = Nothing
-        , cornerRadius = Nothing
-        , cursor = Nothing
-        , width = Nothing
-        , height = Nothing
-        , padding = Nothing
-        , spacing = Nothing
         , float = Nothing
         , inline = False
         , backgroundImage = Nothing
@@ -444,7 +399,7 @@ type alias Visibility =
     Style.Model.Visibility
 
 
-{-| Used for specifying text alignment and the horizontal alignment of in flex layouts
+{-|
 -}
 type alias Alignment =
     Style.Model.Alignment
@@ -667,25 +622,11 @@ auto =
 
 
 {-| -}
-layout : Layout -> Model -> Model
-layout myLayout model =
-    case model of
-        Model state ->
-            Model { state | layout = myLayout }
-
-        Variation state ->
-            Variation { state | layout = Just myLayout }
-
-
-{-| -}
 visibility : Visibility -> Model -> Model
 visibility vis model =
     case model of
         Model state ->
             Model { state | visibility = vis }
-
-        Variation state ->
-            Variation { state | visibility = Just vis }
 
 
 {-| -}
@@ -695,9 +636,6 @@ anchor anc model =
         Model state ->
             Model { state | anchor = anc }
 
-        Variation state ->
-            Variation { state | anchor = Just anc }
-
 
 {-| -}
 relativeTo : RelativeTo -> Model -> Model
@@ -705,9 +643,6 @@ relativeTo rel model =
     case model of
         Model state ->
             Model { state | relativeTo = rel }
-
-        Variation state ->
-            Variation { state | relativeTo = Just rel }
 
 
 {-| -}
@@ -717,9 +652,6 @@ position pos model =
         Model state ->
             Model { state | position = pos }
 
-        Variation state ->
-            Variation { state | position = Just pos }
-
 
 {-| -}
 cursor : String -> Model -> Model
@@ -727,9 +659,6 @@ cursor curs model =
     case model of
         Model state ->
             Model { state | cursor = curs }
-
-        Variation state ->
-            Variation { state | cursor = Just curs }
 
 
 {-| -}
@@ -739,9 +668,6 @@ width w model =
         Model state ->
             Model { state | width = w }
 
-        Variation state ->
-            Variation { state | width = Just w }
-
 
 {-| -}
 height : Length -> Model -> Model
@@ -749,9 +675,6 @@ height h model =
     case model of
         Model state ->
             Model { state | height = h }
-
-        Variation state ->
-            Variation { state | height = Just h }
 
 
 {-| -}
@@ -761,9 +684,6 @@ colors palette model =
         Model state ->
             Model { state | colors = palette }
 
-        Variation state ->
-            Variation { state | colors = Just palette }
-
 
 {-| -}
 spacing : ( Float, Float, Float, Float ) -> Model -> Model
@@ -771,9 +691,6 @@ spacing s model =
     case model of
         Model state ->
             Model { state | spacing = s }
-
-        Variation state ->
-            Variation { state | spacing = Just s }
 
 
 {-| -}
@@ -783,19 +700,13 @@ padding s model =
         Model state ->
             Model { state | padding = s }
 
-        Variation state ->
-            Variation { state | padding = Just s }
-
 
 {-| -}
-borderWidth : ( Float, Float, Float, Float ) -> Model -> Model
-borderWidth s model =
+border : ( Float, Float, Float, Float ) -> Model -> Model
+border s model =
     case model of
         Model state ->
             Model { state | borderWidth = s }
-
-        Variation state ->
-            Variation { state | borderWidth = Just s }
 
 
 {-| -}
@@ -805,9 +716,6 @@ cornerRadius s model =
         Model state ->
             Model { state | cornerRadius = s }
 
-        Variation state ->
-            Variation { state | cornerRadius = Just s }
-
 
 {-| -}
 font : Font -> Model -> Model
@@ -815,9 +723,6 @@ font text model =
     case model of
         Model state ->
             Model { state | font = text }
-
-        Variation state ->
-            Variation { state | font = Just text }
 
 
 {-| -}
@@ -827,9 +732,6 @@ underline model =
         Model state ->
             Model { state | underline = True }
 
-        Variation state ->
-            Variation { state | underline = True }
-
 
 {-| -}
 strike : Model -> Model
@@ -837,9 +739,6 @@ strike model =
     case model of
         Model state ->
             Model { state | strike = True }
-
-        Variation state ->
-            Variation { state | strike = True }
 
 
 {-| -}
@@ -849,9 +748,6 @@ inline model =
         Model state ->
             Model { state | inline = True }
 
-        Variation state ->
-            Variation { state | inline = True }
-
 
 {-| -}
 italicize : Model -> Model
@@ -859,9 +755,6 @@ italicize model =
     case model of
         Model state ->
             Model { state | italic = True }
-
-        Variation state ->
-            Variation { state | italic = True }
 
 
 {-| -}
@@ -871,9 +764,6 @@ bold model =
         Model state ->
             Model { state | bold = Just 700 }
 
-        Variation state ->
-            Variation { state | bold = Just 700 }
-
 
 {-| -}
 light : Model -> Model
@@ -881,9 +771,6 @@ light model =
     case model of
         Model state ->
             Model { state | bold = Just 300 }
-
-        Variation state ->
-            Variation { state | bold = Just 300 }
 
 
 {-| -}
@@ -893,9 +780,6 @@ borderStyle style model =
         Model state ->
             Model { state | borderStyle = style }
 
-        Variation state ->
-            Variation { state | borderStyle = Just style }
-
 
 {-| -}
 float : Floating -> Model -> Model
@@ -903,9 +787,6 @@ float floating model =
     case model of
         Model state ->
             Model { state | float = Just floating }
-
-        Variation state ->
-            Variation { state | float = Just floating }
 
 
 {-| -}
@@ -915,9 +796,6 @@ backgroundImage style model =
         Model state ->
             Model { state | backgroundImage = Just style }
 
-        Variation state ->
-            Variation { state | backgroundImage = Just style }
-
 
 {-| -}
 shadows : List Shadow -> Model -> Model
@@ -925,9 +803,6 @@ shadows shades model =
     case model of
         Model state ->
             Model { state | shadows = shades }
-
-        Variation state ->
-            Variation { state | shadows = shades }
 
 
 {-| -}
@@ -937,9 +812,6 @@ transforms trans model =
         Model state ->
             Model { state | transforms = trans }
 
-        Variation state ->
-            Variation { state | transforms = trans }
-
 
 {-| -}
 filters : List Filter -> Model -> Model
@@ -947,9 +819,6 @@ filters filts model =
     case model of
         Model state ->
             Model { state | filters = filts }
-
-        Variation state ->
-            Variation { state | filters = filts }
 
 
 {-| -}
@@ -959,9 +828,6 @@ animations filts model =
         Model state ->
             Model { state | animations = filts }
 
-        Variation state ->
-            Variation { state | animations = filts }
-
 
 {-| -}
 media : List MediaQuery -> Model -> Model
@@ -970,19 +836,11 @@ media queries model =
         Model state ->
             Model { state | media = queries }
 
-        Variation state ->
-            Variation { state | media = queries }
-
 
 {-| -}
 properties : List ( String, String ) -> Model -> Model
-properties props model =
-    case model of
-        Model state ->
-            Model { state | properties = props }
-
-        Variation state ->
-            Variation { state | properties = props }
+properties props (Model style) =
+    Model { style | properties = model.properties ++ (List.map (\( name, val ) -> Property name val) props) }
 
 
 {-| This is the only layout that allows for child elements to use `float` or `inline`.
@@ -992,17 +850,21 @@ If you try to assign a float or make an element inline that is not the child of 
 Besides this, all immediate children are arranged as if they were `display: block`.
 
 -}
-textLayout : Layout
-textLayout =
-    Style.Model.TextLayout
+textLayout : Model -> Model
+textLayout model =
+    case model of
+        Model state ->
+            Model { state | layout = Style.Model.TextLayout }
 
 
 {-| This is the same as setting an element to `display:table`.
 
 -}
-tableLayout : Layout
-tableLayout =
-    Style.Model.TableLayout
+tableLayout : Model -> Model
+tableLayout model =
+    case model of
+        Model state ->
+            Model { state | layout = Style.Model.TableLayout }
 
 
 {-|
@@ -1017,53 +879,77 @@ type alias Flow =
 
 {-| This is a flexbox based layout
 -}
-flowUp : Flow -> Layout
-flowUp { wrap, horizontal, vertical } =
-    Style.Model.FlexLayout <|
-        Style.Model.Flexible
-            { go = Style.Model.Up
-            , wrap = wrap
-            , horizontal = horizontal
-            , vertical = vertical
-            }
+flowUp : Flow -> Model -> Model
+flowUp { wrap, horizontal, vertical } model =
+    let
+        layout =
+            Style.Model.FlexLayout <|
+                Style.Model.Flexible
+                    { go = Style.Model.Up
+                    , wrap = wrap
+                    , horizontal = horizontal
+                    , vertical = vertical
+                    }
+    in
+        case model of
+            Model state ->
+                Model { state | layout = layout }
 
 
 {-|
 
 -}
-flowDown : Flow -> Layout
-flowDown { wrap, horizontal, vertical } =
-    Style.Model.FlexLayout <|
-        Style.Model.Flexible
-            { go = Style.Model.Down
-            , wrap = wrap
-            , horizontal = horizontal
-            , vertical = vertical
-            }
+flowDown : Flow -> Model -> Model
+flowDown { wrap, horizontal, vertical } model =
+    let
+        layout =
+            Style.Model.FlexLayout <|
+                Style.Model.Flexible
+                    { go = Style.Model.Down
+                    , wrap = wrap
+                    , horizontal = horizontal
+                    , vertical = vertical
+                    }
+    in
+        case model of
+            Model state ->
+                Model { state | layout = layout }
 
 
 {-| -}
-flowRight : Flow -> Layout
-flowRight { wrap, horizontal, vertical } =
-    Style.Model.FlexLayout <|
-        Style.Model.Flexible
-            { go = Style.Model.Right
-            , wrap = wrap
-            , horizontal = horizontal
-            , vertical = vertical
-            }
+flowRight : Flow -> Model -> Model
+flowRight { wrap, horizontal, vertical } model =
+    let
+        layout =
+            Style.Model.FlexLayout <|
+                Style.Model.Flexible
+                    { go = Style.Model.Right
+                    , wrap = wrap
+                    , horizontal = horizontal
+                    , vertical = vertical
+                    }
+    in
+        case model of
+            Model state ->
+                Model { state | layout = layout }
 
 
 {-| -}
-flowLeft : Flow -> Layout
-flowLeft { wrap, horizontal, vertical } =
-    Style.Model.FlexLayout <|
-        Style.Model.Flexible
-            { go = Style.Model.Left
-            , wrap = wrap
-            , horizontal = horizontal
-            , vertical = vertical
-            }
+flowLeft : Flow -> Model -> Model
+flowLeft { wrap, horizontal, vertical } model =
+    let
+        layout =
+            Style.Model.FlexLayout <|
+                Style.Model.Flexible
+                    { go = Style.Model.Left
+                    , wrap = wrap
+                    , horizontal = horizontal
+                    , vertical = vertical
+                    }
+    in
+        case model of
+            Model state ->
+                Model { state | layout = layout }
 
 
 {-| -}
@@ -1151,7 +1037,7 @@ alignCenter =
 
 
 {-| -}
-all : a -> ( a, a, a, a )
+all : Float -> ( Float, Float, Float, Float )
 all x =
     ( x, x, x, x )
 
@@ -1246,7 +1132,7 @@ dotted =
     Style.Model.Dotted
 
 
-{-|
+{-| Same as "display:none"
 -}
 hidden : Visibility
 hidden =

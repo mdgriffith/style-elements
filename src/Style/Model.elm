@@ -35,38 +35,12 @@ type Model
         , filters : List Filter
         , animations : List Animation
         , media : List (MediaQuery Model)
-        , properties : List ( String, String )
+        , properties : List Property
         }
-    | Variation
-        { layout : Maybe Layout
-        , visibility : Maybe Visibility
-        , relativeTo : Maybe RelativeTo
-        , anchor : Maybe Anchor
-        , position : Maybe ( Float, Float )
-        , cursor : Maybe String
-        , width : Maybe Length
-        , height : Maybe Length
-        , colors : Maybe ColorPalette
-        , spacing : Maybe ( Float, Float, Float, Float )
-        , padding : Maybe ( Float, Float, Float, Float )
-        , font : Maybe Font
-        , italic : Bool
-        , bold : Maybe Int
-        , strike : Bool
-        , underline : Bool
-        , borderStyle : Maybe BorderStyle
-        , borderWidth : Maybe ( Float, Float, Float, Float )
-        , cornerRadius : Maybe ( Float, Float, Float, Float )
-        , backgroundImage : Maybe BackgroundImage
-        , float : Maybe Floating
-        , inline : Bool
-        , shadows : List Shadow
-        , transforms : List Transform
-        , filters : List Filter
-        , animations : List Animation
-        , media : List (MediaQuery Model)
-        , properties : List ( String, String )
-        }
+
+
+type Property
+    = Property String String
 
 
 type alias Font =
