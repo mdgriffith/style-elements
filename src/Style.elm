@@ -126,8 +126,13 @@ module Style
         , border
         , cornerRadius
         , cursor
+        , zIndex
         , width
+        , minWidth
+        , maxWidth
         , height
+        , minHeight
+        , maxHeight
         , padding
         , spacing
         , float
@@ -163,7 +168,7 @@ These coordinates are always rendered in pixels.
 
 # Width/Height
 
-@docs height, width
+@docs height, minHeight, maxHeight, width, minWidth, maxWidth
 
 # Units
 
@@ -188,7 +193,7 @@ We introduce the `spacing` attribute, which sets the spacing between all _child_
 >
 > Floating elements will only respect certain spacing values.
 
-@docs padding, spacing
+@docs padding, spacing, zIndex
 
 
 # Padding, Spacing, and Borders
@@ -345,7 +350,7 @@ empty =
         , filters = Nothing
         , animations = []
         , media = []
-        , properties = []
+        , properties = Nothing
         , zIndex = Nothing
         , minWidth = Nothing
         , maxWidth = Nothing
@@ -667,6 +672,14 @@ cursor curs model =
 
 
 {-| -}
+zIndex : Int -> Model -> Model
+zIndex i model =
+    case model of
+        Model state ->
+            Model { state | zIndex = Just i }
+
+
+{-| -}
 width : Length -> Model -> Model
 width w model =
     case model of
@@ -675,11 +688,43 @@ width w model =
 
 
 {-| -}
+minWidth : Length -> Model -> Model
+minWidth w model =
+    case model of
+        Model state ->
+            Model { state | minWidth = Just w }
+
+
+{-| -}
+maxWidth : Length -> Model -> Model
+maxWidth w model =
+    case model of
+        Model state ->
+            Model { state | maxWidth = Just w }
+
+
+{-| -}
 height : Length -> Model -> Model
 height h model =
     case model of
         Model state ->
             Model { state | height = h }
+
+
+{-| -}
+minHeight : Length -> Model -> Model
+minHeight h model =
+    case model of
+        Model state ->
+            Model { state | minHeight = Just h }
+
+
+{-| -}
+maxHeight : Length -> Model -> Model
+maxHeight h model =
+    case model of
+        Model state ->
+            Model { state | maxHeight = Just h }
 
 
 {-| -}
@@ -845,7 +890,7 @@ media queries model =
 {-| -}
 properties : List ( String, String ) -> Model -> Model
 properties props (Model style) =
-    Model { style | properties = props }
+    Model { style | properties = Just props }
 
 
 {-| This is the only layout that allows for child elements to use `float` or `inline`.

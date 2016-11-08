@@ -149,7 +149,7 @@ render (Model style) =
                                     , Maybe.map renderBackgroundImage style.backgroundImage
                                     , Maybe.map renderFloating style.float
                                     , Maybe.map renderShadow style.shadows
-                                    , listMaybeMap identity style.properties
+                                    , style.properties
                                     , if List.any isTransition style.animations then
                                         Just cssTransitions
                                       else

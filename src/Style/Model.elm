@@ -40,7 +40,7 @@ type Model
         , maxWidth : Maybe Length
         , minHeight : Maybe Length
         , maxHeight : Maybe Length
-        , properties : List ( String, String )
+        , properties : Maybe (List ( String, String ))
         }
 
 
