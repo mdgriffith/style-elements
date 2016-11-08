@@ -82,70 +82,81 @@ render (Model style) =
                     renderLayout style.layout
 
                 renderedStyle =
-                    List.concat <|
-                        List.filterMap identity
-                            [ Just <| layout
-                            , Just <| renderPosition style.relativeTo style.anchor style.position
-                            , renderInline style.inline
-                            , Just
-                                [ "box-sizing" => "border-box"
-                                , "opacity" => toString (1.0 - transparency)
-                                , "width" => renderLength style.width
-                                , "height" => renderLength style.height
-                                , "cursor" => style.cursor
-                                , "padding" => render4tuplePx style.padding
-                                , "border-width" => render4tuplePx style.borderWidth
-                                , "border-radius" => render4tuplePx style.cornerRadius
-                                , "border-style"
-                                    => case style.borderStyle of
-                                        Solid ->
-                                            "solid"
+                    let
+                        simple =
+                            List.filterMap identity
+                                [ if style.inline then
+                                    Just <| "display" => "inline-block"
+                                  else
+                                    Nothing
+                                , Just ("box-sizing" => "border-box")
+                                , Just ("opacity" => toString (1.0 - transparency))
+                                , Just ("width" => renderLength style.width)
+                                , Just ("height" => renderLength style.height)
+                                , Just ("cursor" => style.cursor)
+                                , Just ("padding" => render4tuplePx style.padding)
+                                , Just ("border-width" => render4tuplePx style.borderWidth)
+                                , Just ("border-radius" => render4tuplePx style.cornerRadius)
+                                , Just <|
+                                    "border-style"
+                                        => case style.borderStyle of
+                                            Solid ->
+                                                "solid"
 
-                                        Dashed ->
-                                            "dashed"
+                                            Dashed ->
+                                                "dashed"
 
-                                        Dotted ->
-                                            "dotted"
+                                            Dotted ->
+                                                "dotted"
+                                , if style.italic then
+                                    Just ("font-style" => "italic")
+                                  else
+                                    Nothing
+                                , Maybe.map
+                                    (\bold ->
+                                        "font-weight"
+                                            => toString bold
+                                    )
+                                    style.bold
+                                , case ( style.underline, style.strike ) of
+                                    ( False, False ) ->
+                                        Just ("text-decoration" => "none")
+
+                                    ( True, False ) ->
+                                        Just ("text-decoration" => "underline")
+
+                                    ( False, True ) ->
+                                        Just ("text-decoration" => "line-through")
+
+                                    ( True, True ) ->
+                                        Just ("text-decoration" => "underline line-through")
+                                , Maybe.map (\zIndex -> "z-index" => toString zIndex) style.zIndex
+                                , Maybe.map (\minWidth -> "min-width" => renderLength minWidth) style.minWidth
+                                , Maybe.map (\minHeight -> "min-height" => renderLength minHeight) style.minHeight
+                                , Maybe.map (\maxWidth -> "max-width" => renderLength maxWidth) style.maxWidth
+                                , Maybe.map (\maxHeight -> "max-height" => renderLength maxHeight) style.maxHeight
+                                , Maybe.map renderFilters style.filters
+                                , Maybe.map renderTransforms style.transforms
                                 ]
-                            , if style.italic then
-                                Just [ "font-style" => "italic" ]
-                              else
-                                Nothing
-                            , Maybe.map
-                                (\bold ->
-                                    [ "font-weight" => toString bold ]
-                                )
-                                style.bold
-                            , case ( style.underline, style.strike ) of
-                                ( False, False ) ->
-                                    Just [ "text-decoration" => "none" ]
 
-                                ( True, False ) ->
-                                    Just [ "text-decoration" => "underline" ]
-
-                                ( False, True ) ->
-                                    Just [ "text-decoration" => "line-through" ]
-
-                                ( True, True ) ->
-                                    Just [ "text-decoration" => "underline line-through" ]
-                            , Just <| renderColorPalette style.colors
-                            , Just <| renderText style.font
-                            , Maybe.map (\zIndex -> [ "z-index" => toString zIndex ]) style.zIndex
-                            , Maybe.map (\minWidth -> [ "min-width" => renderLength minWidth ]) style.minWidth
-                            , Maybe.map (\minHeight -> [ "min-height" => renderLength minHeight ]) style.minHeight
-                            , Maybe.map (\maxWidth -> [ "max-width" => renderLength maxWidth ]) style.maxWidth
-                            , Maybe.map (\maxHeight -> [ "max-height" => renderLength maxHeight ]) style.maxHeight
-                            , Maybe.map renderBackgroundImage style.backgroundImage
-                            , Maybe.map renderFloating style.float
-                            , listMaybeMap renderShadow style.shadows
-                            , listMaybeMap renderFilters style.filters
-                            , listMaybeMap renderTransforms style.transforms
-                            , listMaybeMap identity style.properties
-                            , if List.any isTransition style.animations then
-                                Just cssTransitions
-                              else
-                                Nothing
-                            ]
+                        compound =
+                            List.concat <|
+                                List.filterMap identity
+                                    [ Just layout
+                                    , Just <| renderPosition style.relativeTo style.anchor style.position
+                                    , Just <| renderColorPalette style.colors
+                                    , Just <| renderText style.font
+                                    , Maybe.map renderBackgroundImage style.backgroundImage
+                                    , Maybe.map renderFloating style.float
+                                    , Maybe.map renderShadow style.shadows
+                                    , listMaybeMap identity style.properties
+                                    , if List.any isTransition style.animations then
+                                        Just cssTransitions
+                                      else
+                                        Nothing
+                                    ]
+                    in
+                        simple ++ compound
 
                 restrictedTags =
                     let
@@ -550,22 +561,14 @@ cssTransitions =
     ]
 
 
-renderVisibility : Visibility -> List ( String, String )
+renderVisibility : Visibility -> ( String, String )
 renderVisibility vis =
     case vis of
         Hidden ->
-            [ "display" => "none" ]
+            "display" => "none"
 
         Transparent transparency ->
-            [ "opacity" => toString (1.0 - transparency) ]
-
-
-renderInline : Bool -> Maybe (List ( String, String ))
-renderInline inline =
-    if inline then
-        Just [ "display" => "inline-block" ]
-    else
-        Nothing
+            "opacity" => toString (1.0 - transparency)
 
 
 renderFloating : Floating -> List ( String, String )
@@ -620,11 +623,10 @@ renderBackgroundImage image =
     ]
 
 
-renderTransforms : List Transform -> List ( String, String )
+renderTransforms : List Transform -> ( String, String )
 renderTransforms transforms =
-    [ "transform"
+    "transform"
         => (String.join " " (List.map transformToString transforms))
-    ]
 
 
 transformToString : Transform -> String
@@ -658,11 +660,10 @@ transformToString transform =
                 ++ ")"
 
 
-renderFilters : List Filter -> List ( String, String )
+renderFilters : List Filter -> ( String, String )
 renderFilters filters =
-    [ "filter"
+    "filter"
         => (String.join " " <| List.map filterToString filters)
-    ]
 
 
 filterToString : Filter -> String

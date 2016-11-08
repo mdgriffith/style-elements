@@ -340,9 +340,9 @@ empty =
         , float = Nothing
         , inline = False
         , backgroundImage = Nothing
-        , shadows = []
-        , transforms = []
-        , filters = []
+        , shadows = Nothing
+        , transforms = Nothing
+        , filters = Nothing
         , animations = []
         , media = []
         , properties = []
@@ -807,7 +807,7 @@ shadows : List Shadow -> Model -> Model
 shadows shades model =
     case model of
         Model state ->
-            Model { state | shadows = shades }
+            Model { state | shadows = Just shades }
 
 
 {-| -}
@@ -815,7 +815,7 @@ transforms : List Transform -> Model -> Model
 transforms trans model =
     case model of
         Model state ->
-            Model { state | transforms = trans }
+            Model { state | transforms = Just trans }
 
 
 {-| -}
@@ -823,7 +823,7 @@ filters : List Filter -> Model -> Model
 filters filts model =
     case model of
         Model state ->
-            Model { state | filters = filts }
+            Model { state | filters = Just filts }
 
 
 {-| -}

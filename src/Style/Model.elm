@@ -30,9 +30,9 @@ type Model
         , borderWidth : ( Float, Float, Float, Float )
         , cornerRadius : ( Float, Float, Float, Float )
         , backgroundImage : Maybe BackgroundImage
-        , shadows : List Shadow
-        , transforms : List Transform
-        , filters : List Filter
+        , shadows : Maybe (List Shadow)
+        , transforms : Maybe (List Transform)
+        , filters : Maybe (List Filter)
         , animations : List Animation
         , media : List (MediaQuery Model)
         , zIndex : Maybe Int
