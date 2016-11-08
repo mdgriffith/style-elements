@@ -130,6 +130,11 @@ render (Model style) =
                                     Just [ "text-decoration" => "underline line-through" ]
                             , Just <| renderColorPalette style.colors
                             , Just <| renderText style.font
+                            , Maybe.map (\zIndex -> [ "z-index" => toString zIndex ]) style.zIndex
+                            , Maybe.map (\minWidth -> [ "min-width" => renderLength minWidth ]) style.minWidth
+                            , Maybe.map (\minHeight -> [ "min-height" => renderLength minHeight ]) style.minHeight
+                            , Maybe.map (\maxWidth -> [ "max-width" => renderLength maxWidth ]) style.maxWidth
+                            , Maybe.map (\maxHeight -> [ "max-height" => renderLength maxHeight ]) style.maxHeight
                             , Maybe.map renderBackgroundImage style.backgroundImage
                             , Maybe.map renderFloating style.float
                             , listMaybeMap renderShadow style.shadows

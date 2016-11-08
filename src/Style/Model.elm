@@ -8,8 +8,10 @@ import Time exposing (Time)
 
 type Model
     = Model
-        { layout : Layout
-        , visibility : Visibility
+        { visibility : Visibility
+        , layout : Layout
+        , inline : Bool
+        , float : Maybe Floating
         , relativeTo : RelativeTo
         , anchor : Anchor
         , position : ( Float, Float )
@@ -17,30 +19,29 @@ type Model
         , width : Length
         , height : Length
         , colors : ColorPalette
-        , spacing : ( Float, Float, Float, Float )
-        , padding : ( Float, Float, Float, Float )
         , font : Font
         , italic : Bool
         , bold : Maybe Int
         , strike : Bool
         , underline : Bool
+        , spacing : ( Float, Float, Float, Float )
+        , padding : ( Float, Float, Float, Float )
         , borderStyle : BorderStyle
         , borderWidth : ( Float, Float, Float, Float )
         , cornerRadius : ( Float, Float, Float, Float )
         , backgroundImage : Maybe BackgroundImage
-        , float : Maybe Floating
-        , inline : Bool
         , shadows : List Shadow
         , transforms : List Transform
         , filters : List Filter
         , animations : List Animation
         , media : List (MediaQuery Model)
-        , properties : List Property
+        , zIndex : Maybe Int
+        , minWidth : Maybe Length
+        , maxWidth : Maybe Length
+        , minHeight : Maybe Length
+        , maxHeight : Maybe Length
+        , properties : List ( String, String )
         }
-
-
-type Property
-    = Property String String
 
 
 type alias Font =

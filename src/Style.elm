@@ -329,12 +329,12 @@ empty =
         , bold = Nothing
         , strike = False
         , underline = False
-        , borderStyle = solid
-        , borderWidth = all 0
-        , cornerRadius = all 0
         , cursor = "auto"
         , width = auto
         , height = auto
+        , borderStyle = solid
+        , borderWidth = all 0
+        , cornerRadius = all 0
         , padding = all 0
         , spacing = all 0
         , float = Nothing
@@ -346,6 +346,11 @@ empty =
         , animations = []
         , media = []
         , properties = []
+        , zIndex = Nothing
+        , minWidth = Nothing
+        , maxWidth = Nothing
+        , minHeight = Nothing
+        , maxHeight = Nothing
         }
 
 
@@ -840,7 +845,7 @@ media queries model =
 {-| -}
 properties : List ( String, String ) -> Model -> Model
 properties props (Model style) =
-    Model { style | properties = model.properties ++ (List.map (\( name, val ) -> Property name val) props) }
+    Model { style | properties = props }
 
 
 {-| This is the only layout that allows for child elements to use `float` or `inline`.
