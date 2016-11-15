@@ -33,7 +33,7 @@ type Model
         , shadows : Maybe (List Shadow)
         , transforms : Maybe (List Transform)
         , filters : Maybe (List Filter)
-        , animations : List Animation
+        , animation : Maybe Animation
         , media : List (MediaQuery Model)
         , zIndex : Maybe Int
         , minWidth : Maybe Length
@@ -41,7 +41,38 @@ type Model
         , minHeight : Maybe Length
         , maxHeight : Maybe Length
         , properties : Maybe (List ( String, String ))
+        , transition : Maybe Transition
+        , subelements : Maybe SubElements
         }
+
+
+type alias SubElements =
+    { hover : Maybe Model
+    , focus : Maybe Model
+    , checked : Maybe Model
+    , after : Maybe Model
+    , before : Maybe Model
+    , selection : Maybe Model
+    }
+
+
+emptySubElements : SubElements
+emptySubElements =
+    { hover = Nothing
+    , focus = Nothing
+    , checked = Nothing
+    , after = Nothing
+    , before = Nothing
+    , selection = Nothing
+    }
+
+
+type alias Transition =
+    { property : String
+    , duration : Time
+    , easing : String
+    , delay : Time
+    }
 
 
 type alias Font =
@@ -77,10 +108,9 @@ type StyleDefinition
         { name : String
         , tags : List String
         , style : List ( String, String )
-        , animations :
-            List ( Trigger, Style, Maybe ( String, Keyframes ) )
-        , media :
-            List ( String, StyleDefinition )
+        , children : List StyleDefinition
+        , animation : Maybe ( Style, Maybe ( String, Keyframes ) )
+        , media : List ( String, StyleDefinition )
         }
 
 
@@ -99,22 +129,9 @@ type alias Keyframes =
 {-| -}
 type Animated style
     = Animation
-        { trigger : Trigger
-        , duration : Time
+        { duration : Time
         , easing : String
-        , frames : Frames style
-        }
-
-
-type Trigger
-    = Mount
-    | PseudoClass String
-
-
-type Frames style
-    = Transition style
-    | Keyframes
-        { repeat : Float
+        , repeat : Float
         , steps : List ( Float, style )
         }
 

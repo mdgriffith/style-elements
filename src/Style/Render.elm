@@ -68,7 +68,8 @@ render (Model style) =
                     addClassName
                         { style = renderedStyle
                         , tags = []
-                        , animations = []
+                        , children = []
+                        , animation = Nothing
                         , media = []
                         }
             in
@@ -150,10 +151,7 @@ render (Model style) =
                                     , Maybe.map renderFloating style.float
                                     , Maybe.map renderShadow style.shadows
                                     , style.properties
-                                    , if List.any isTransition style.animations then
-                                        Just cssTransitions
-                                      else
-                                        Nothing
+                                    , Maybe.map renderTransition style.transition
                                     ]
                     in
                         simple ++ compound
@@ -175,33 +173,58 @@ render (Model style) =
                     in
                         List.filterMap identity [ permissions, inline, floating ]
 
-                childOverrides =
+                childrenRestrictions =
                     case style.layout of
                         TableLayout ->
-                            [ ( PseudoClass " > *:not(.inline)"
-                              , [ "margin" => render4tuplePx style.spacing
-                                , "display" => "table-row !important"
-                                ]
-                              , Nothing
-                              )
-                            , ( PseudoClass " > * > *"
-                              , [ "display" => "table-cell !important" ]
-                              , Nothing
-                              )
+                            [ StyleDef
+                                { name = " > *:not(.inline)"
+                                , tags = []
+                                , style =
+                                    [ "margin" => render4tuplePx style.spacing
+                                    , "display" => "table-row !important"
+                                    ]
+                                , children = []
+                                , animation = Nothing
+                                , media = []
+                                }
+                            , StyleDef
+                                { name = " > * > *"
+                                , tags = []
+                                , style =
+                                    [ "display" => "table-cell !important" ]
+                                , children = []
+                                , animation = Nothing
+                                , media = []
+                                }
                             ]
 
                         _ ->
-                            [ ( PseudoClass " > *:not(.inline)"
-                              , [ "margin" => render4tuplePx style.spacing ]
-                              , Nothing
-                              )
+                            [ StyleDef
+                                { name = " > *:not(.inline)"
+                                , tags = []
+                                , style =
+                                    [ "margin" => render4tuplePx style.spacing
+                                    ]
+                                , children = []
+                                , animation = Nothing
+                                , media = []
+                                }
                             ]
+
+                children =
+                    case Maybe.map renderSubElements style.subelements of
+                        Nothing ->
+                            childrenRestrictions
+
+                        Just subs ->
+                            subs ++ childrenRestrictions
 
                 styleDefinition =
                     addClassName
                         { style = renderedStyle
                         , tags = restrictedTags
-                        , animations = List.map renderAnimation style.animations ++ childOverrides
+                        , children = children
+                        , animation = Maybe.map renderAnimation style.animation
                         , media = List.map (\(MediaQuery query mediaStyle) -> ( query, Tuple.second <| render mediaStyle )) style.media
                         }
             in
@@ -210,24 +233,9 @@ render (Model style) =
                 )
 
 
-isTransition : Animation -> Bool
-isTransition (Animation { frames }) =
-    case frames of
-        Transition _ ->
-            True
-
-        _ ->
-            False
-
-
 brace : String -> String
 brace str =
     " {\n" ++ str ++ "\n}"
-
-
-isMount : ( Trigger, Style, Maybe ( String, Keyframes ) ) -> Bool
-isMount ( trigger, _, _ ) =
-    trigger == Style.Model.Mount
 
 
 renderProp : ( String, String ) -> String
@@ -235,29 +243,44 @@ renderProp ( propName, propValue ) =
     "  " ++ propName ++ ": " ++ propValue ++ ";"
 
 
+renderSubElements : SubElements -> List StyleDefinition
+renderSubElements sub =
+    List.filterMap
+        (\( name, style ) ->
+            case style of
+                Nothing ->
+                    Nothing
+
+                Just s ->
+                    let
+                        (StyleDef rendered) =
+                            Tuple.second (render s)
+                    in
+                        Just <|
+                            StyleDef { rendered | name = name }
+        )
+        [ ":hover" => sub.hover
+        , ":focus" => sub.focus
+        , ":selection" => sub.selection
+        , ":focus" => sub.focus
+        , ":checked" => sub.checked
+        , ":after" => sub.after
+        , ":before" => sub.checked
+        ]
+
+
 {-| Only handles the CSS related
 
 Keyframes are rendered elsewhere.
 -}
-convertAnimation : String -> ( Trigger, Style, Maybe ( String, Keyframes ) ) -> String
-convertAnimation name ( trigger, style, frames ) =
+convertAnimation : String -> ( Style, Maybe ( String, Keyframes ) ) -> String
+convertAnimation name ( style, frames ) =
     let
-        triggerName =
-            case trigger of
-                Mount ->
-                    ""
-
-                PseudoClass cls ->
-                    cls
-
-        class =
-            "." ++ name ++ triggerName
-
         props =
             List.map renderProp style
                 |> String.join "\n"
     in
-        class ++ (brace props)
+        "." ++ name ++ (brace props)
 
 
 convertToCSS : List StyleDefinition -> String
@@ -265,7 +288,7 @@ convertToCSS styles =
     let
         convert style =
             case style of
-                StyleDef { name, style, animations, media } ->
+                StyleDef { name, style, animation, children, media } ->
                     if List.length style == 0 then
                         ""
                     else
@@ -273,63 +296,53 @@ convertToCSS styles =
                             class =
                                 "." ++ name
 
-                            ( mountAnims, transitions ) =
-                                List.partition isMount animations
-
                             animationProps =
-                                List.concatMap
-                                    (\mounts ->
-                                        case mounts of
-                                            ( _, aProps, _ ) ->
-                                                aProps
-                                    )
-                                    mountAnims
+                                animation
+                                    |> Maybe.map Tuple.first
+                                    |> Maybe.withDefault []
 
                             props =
-                                List.map renderProp
-                                    (style
-                                        ++ animationProps
-                                    )
+                                (style ++ animationProps)
+                                    |> List.map renderProp
                                     |> String.join "\n"
 
                             keyframes =
-                                List.map
-                                    (\( _, _, keyframes ) ->
-                                        Maybe.map (\( animName, frames ) -> convertKeyframesToCSS animName frames) keyframes
-                                    )
-                                    animations
-                                    |> List.filterMap identity
-                                    |> String.join "\n"
-                                    |> (++) "\n"
+                                animation
+                                    |> Maybe.map
+                                        (\( _, keyframes ) ->
+                                            keyframes
+                                                |> Maybe.map (\( animName, frames ) -> convertKeyframesToCSS animName frames)
+                                                |> Maybe.withDefault ""
+                                        )
+                                    |> Maybe.withDefault ""
 
-                            modes =
-                                List.map (convertAnimation name) transitions
-                                    |> String.join "\n"
-                                    |> (++) "\n"
+                            renderedChildren =
+                                children
+                                    |> convertToCSS
 
                             mediaQueries =
-                                List.map
-                                    (\( query, styleVarDef ) ->
-                                        let
-                                            mediaProps =
-                                                List.map renderProp (styleProps styleVarDef)
-                                                    |> List.map (\prop -> "  " ++ prop)
-                                                    |> String.join "\n"
+                                media
+                                    |> List.map
+                                        (\( query, styleVarDef ) ->
+                                            let
+                                                mediaProps =
+                                                    List.map renderProp (styleProps styleVarDef)
+                                                        |> List.map (\prop -> "  " ++ prop)
+                                                        |> String.join "\n"
 
-                                            braced =
-                                                " {" ++ mediaProps ++ "\n  }\n"
-                                        in
-                                            "@media " ++ query ++ brace ("  " ++ class ++ braced)
-                                    )
-                                    media
+                                                braced =
+                                                    " {\n" ++ mediaProps ++ "\n  }"
+                                            in
+                                                "@media " ++ query ++ brace ("  " ++ class ++ braced) ++ "\n"
+                                        )
                                     |> String.join "\n"
                         in
                             class
                                 ++ (brace props)
                                 ++ "\n"
-                                ++ modes
                                 ++ keyframes
                                 ++ mediaQueries
+                                ++ renderedChildren
     in
         uniqueBy className styles
             |> List.map convert
@@ -355,11 +368,11 @@ convertKeyframesToCSS animName frames =
                                         )
                                         frame
                                )
-                            ++ "  }\n"
+                            ++ "  }"
                     )
                     frames
            )
-        ++ "}"
+        ++ "\n}\n"
 
 
 {-| Drop duplicates where what is considered to be a duplicate is the result of first applying the supplied function to the elements of the list.
@@ -387,72 +400,73 @@ uniqueHelp f existing remaining =
 
 
 addClassName :
-    { animations : List ( Trigger, Style, Maybe ( String, Keyframes ) )
+    { animation : Maybe ( Style, Maybe ( String, Keyframes ) )
     , style : List ( String, String )
     , tags : List String
+    , children : List StyleDefinition
     , media : List ( String, StyleDefinition )
     }
     -> StyleDefinition
-addClassName { tags, style, animations, media } =
+addClassName { tags, style, children, animation, media } =
     let
         styleString =
-            List.map (\( propName, value ) -> propName ++ value) style
+            style
+                |> List.map (\( propName, value ) -> propName ++ value)
                 |> String.concat
 
         keyframeString =
-            List.map
-                (\( trigger, style, keyframes ) ->
-                    let
-                        renderedKeyframes =
-                            case keyframes of
-                                Just ( animName, frames ) ->
-                                    Just <| convertKeyframesToCSS animName frames
+            animation
+                |> Maybe.map
+                    (\( style, keyframes ) ->
+                        let
+                            renderedKeyframes =
+                                case keyframes of
+                                    Just ( animName, frames ) ->
+                                        Just <| convertKeyframesToCSS animName frames
 
-                                Nothing ->
-                                    Nothing
+                                    Nothing ->
+                                        Nothing
 
-                        renderedStyle =
-                            Just <| String.concat <| List.map (\( name, val ) -> name ++ val) style
+                            renderedStyle =
+                                style
+                                    |> List.map (\( name, val ) -> name ++ val)
+                                    |> String.concat
+                                    |> Just
+                        in
+                            String.concat <| List.filterMap identity [ renderedKeyframes, renderedStyle ]
+                    )
+                |> Maybe.withDefault ""
 
-                        renderedTrigger =
-                            case trigger of
-                                Mount ->
-                                    Just "mount"
+        animString =
+            animation
+                |> Maybe.map (convertAnimation "placeholder-for-hashing")
+                |> Maybe.withDefault ""
 
-                                PseudoClass cls ->
-                                    Just cls
-                    in
-                        String.concat <| List.filterMap identity [ renderedKeyframes, renderedStyle, renderedTrigger ]
-                )
-                animations
-                |> String.concat
-
-        modes =
-            List.filter (\anim -> not <| isMount anim) animations
-                |> List.map (convertAnimation "placeholder-for-hashing")
-                |> String.concat
+        childrenString =
+            convertToCSS children
 
         mediaQueries =
-            List.map
-                (\( query, styleVarDef ) ->
-                    let
-                        mediaProps =
-                            List.map renderProp (styleProps styleVarDef)
-                                |> List.map (\prop -> "  " ++ prop)
-                                |> String.join "\n"
-                    in
-                        query ++ mediaProps
-                )
-                media
+            media
+                |> List.map
+                    (\( query, styleVarDef ) ->
+                        let
+                            mediaProps =
+                                List.map renderProp (styleProps styleVarDef)
+                                    |> List.map (\prop -> "  " ++ prop)
+                                    |> String.join "\n"
+                        in
+                            query ++ mediaProps
+                    )
                 |> String.concat
 
         -- For some reason this gives an error if these are not captured in parentheses
         name =
-            hash (((styleString ++ modes) ++ keyframeString) ++ mediaQueries)
+            hash (styleString ++ animString ++ mediaQueries ++ childrenString)
     in
         StyleDef
             { name = name
             , tags = tags
+            , children = List.map (prependName name) children
             , style =
                 List.map
                     (\( pName, pValue ) ->
@@ -462,9 +476,15 @@ addClassName { tags, style, animations, media } =
                             ( pName, pValue )
                     )
                     style
-            , animations = animations
+            , animation = animation
             , media = media
             }
+
+
+prependName : String -> StyleDefinition -> StyleDefinition
+prependName name (StyleDef style) =
+    StyleDef
+        { style | name = name ++ style.name }
 
 
 {-| http://package.elm-lang.org/packages/Skinney/murmur3/2.0.2/Murmur3
@@ -490,74 +510,57 @@ listMaybeMap fn ls =
             Just <| fn nonEmptyList
 
 
-renderAnimation : Animation -> ( Trigger, Style.Model.Style, Maybe ( String, Style.Model.Keyframes ) )
-renderAnimation (Animation { trigger, duration, easing, frames }) =
+renderAnimation : Animation -> ( Style.Model.Style, Maybe ( String, Style.Model.Keyframes ) )
+renderAnimation (Animation { duration, easing, steps, repeat }) =
     let
         ( renderedStyle, renderedFrames ) =
-            case frames of
-                Transition variation ->
-                    let
-                        rendered =
-                            case Tuple.second <| render variation of
-                                StyleDef { style } ->
-                                    style
-                    in
-                        ( rendered
-                            ++ [ "transition-property" => "all"
-                               , "transition-duration" => (toString duration ++ "ms")
-                               , "-webkit-transition-timing-function" => easing
-                               , "transition-timing-function" => easing
-                               ]
-                        , Nothing
-                        )
+            let
+                renderedDuration =
+                    toString duration ++ "ms"
 
-                Keyframes { repeat, steps } ->
-                    let
-                        renderedDuration =
-                            toString duration ++ "ms"
+                iterations =
+                    if isInfinite repeat then
+                        "infinite"
+                    else
+                        toString repeat
 
-                        iterations =
-                            if isInfinite repeat then
-                                "infinite"
-                            else
-                                toString repeat
+                ( allNames, renderedSteps ) =
+                    List.unzip <|
+                        List.map
+                            (\( marker, variation ) ->
+                                let
+                                    ( name, styleDef ) =
+                                        render variation
 
-                        ( allNames, renderedSteps ) =
-                            List.unzip <|
-                                List.map
-                                    (\( marker, variation ) ->
-                                        let
-                                            ( name, styleDef ) =
-                                                render variation
-
-                                            rendered =
-                                                case styleDef of
-                                                    StyleDef { style } ->
-                                                        style
-                                        in
-                                            ( name, ( marker, rendered ) )
-                                    )
-                                    steps
-
-                        animationName =
-                            "animation-" ++ (hash <| String.concat allNames)
-                    in
-                        ( [ "animation" => (animationName ++ " " ++ renderedDuration ++ " " ++ easing ++ " " ++ iterations) ]
-                        , Just
-                            ( animationName
-                            , renderedSteps
+                                    rendered =
+                                        case styleDef of
+                                            StyleDef { style } ->
+                                                style
+                                in
+                                    ( name, ( marker, rendered ) )
                             )
-                        )
+                            steps
+
+                animationName =
+                    "animation-" ++ (hash <| String.concat allNames)
+            in
+                ( [ "animation" => (animationName ++ " " ++ renderedDuration ++ " " ++ easing ++ " " ++ iterations) ]
+                , Just
+                    ( animationName
+                    , renderedSteps
+                    )
+                )
     in
-        ( trigger, renderedStyle, renderedFrames )
+        ( renderedStyle, renderedFrames )
 
 
-cssTransitions : List ( String, String )
-cssTransitions =
-    [ "transition-property" => "all"
-    , "transition-duration" => "300ms"
-    , "-webkit-transition-timing-function" => "ease-out"
-    , "transition-timing-function" => "ease-out"
+renderTransition : Transition -> List ( String, String )
+renderTransition { property, duration, easing, delay } =
+    [ "transition-property" => property
+    , "transition-duration" => (toString duration ++ "ms")
+    , "-webkit-transition-timing-function" => easing
+    , "transition-timing-function" => easing
+    , "transition-delay" => (toString delay ++ "ms")
     ]
 
 

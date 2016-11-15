@@ -83,14 +83,14 @@ svgAs node styleModel attrs elements =
 {-| Create an element with style variations that can be turned on/off.  The variations will stack.
 
 -}
-optional : Style.Model -> List ( Style.Model, Bool ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+optional : Style.Model -> List ( Style.Model -> Style.Model, Bool ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 optional =
     optionalAs "div"
 
 
 {-|
 -}
-optionalAs : String -> Style.Model -> List ( Style.Model, Bool ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
+optionalAs : String -> Style.Model -> List ( Style.Model -> Style.Model, Bool ) -> List (Html.Attribute msg) -> List (Element msg) -> Element msg
 optionalAs node styleModel variations attrs elements =
     let
         ( parentClass, styleDef ) =
@@ -99,7 +99,7 @@ optionalAs node styleModel variations attrs elements =
         variationTransitions =
             List.map
                 (\( variation, active ) ->
-                    ( render variation
+                    ( render (variation styleModel)
                     , active
                     )
                 )

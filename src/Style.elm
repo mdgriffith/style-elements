@@ -20,7 +20,6 @@ module Style
         , RelativeTo
         , Repeat
         , Animation
-        , Trigger
         , MediaQuery
         , flowUp
         , flowDown
@@ -272,9 +271,9 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 @docs Animation, animate
 
 
-## Animation triggers.
+## Pseudo elements and classes
 
-@docs Trigger, selection, after, before, hover, focus, checked
+@docs selection, after, before, hover, focus, checked
 
 
 # Media Queries
@@ -290,7 +289,7 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 import Html
 import Time exposing (Time)
 import Color exposing (Color)
-import Style.Model exposing (Model(..))
+import Style.Model exposing (Model(..), emptySubElements)
 
 
 {-| The full model for a style.
@@ -342,7 +341,7 @@ empty =
         , shadows = Nothing
         , transforms = Nothing
         , filters = Nothing
-        , animations = []
+        , animation = Nothing
         , media = []
         , properties = Nothing
         , zIndex = Nothing
@@ -350,6 +349,14 @@ empty =
         , maxWidth = Nothing
         , minHeight = Nothing
         , maxHeight = Nothing
+        , transition =
+            Just
+                { property = "all"
+                , duration = 300
+                , easing = "ease-out"
+                , delay = 0
+                }
+        , subelements = Nothing
         }
 
 
@@ -357,17 +364,6 @@ empty =
 -}
 type alias Element msg =
     ( List Style.Model.StyleDefinition, Html.Html msg )
-
-
-
---{-| -}
---type alias Animation =
---    Style.Model.Animated Model
-
-
-{-| -}
-type alias Trigger =
-    Style.Model.Trigger
 
 
 {-| -}
@@ -1368,41 +1364,6 @@ mediaQuery name variation =
     ( name, variation )
 
 
-{-| Create a transition by specifying a pseudo class and the target style as a Variation.  For example to make a transition on hover, you'd do the following:
-
-```on hover { variation | colors = linkHover }```
-
-Defaults to duration 300, easing as "ease"
-
--}
-on : Trigger -> (Model -> Model) -> Model -> Model
-on trigger variation =
-    onWith trigger
-        { duration = 300, easing = "ease" }
-        variation
-
-
-{-| Set a custom duration and easing for the transition.
-
-Easings are given as strings as they would be in css:
-
-https://developer.mozilla.org/en-US/docs/Web/CSS/animation-timing-function
-
--}
-onWith : Trigger -> { duration : Time, easing : String } -> (Model -> Model) -> Model -> Model
-onWith trigger { duration, easing } variation (Model state) =
-    let
-        newAnim =
-            Style.Model.Animation
-                { trigger = trigger
-                , duration = duration
-                , easing = easing
-                , frames = Style.Model.Transition (variation <| Model state)
-                }
-    in
-        Model { state | animations = newAnim :: state.animations }
-
-
 {-| -}
 type alias Animation =
     { duration : Time
@@ -1416,23 +1377,17 @@ type alias Animation =
 -}
 animate : Animation -> Model -> Model
 animate { duration, easing, repeat, steps } (Model state) =
-    let
-        newAnim =
-            Style.Model.Animation
-                { trigger = Style.Model.Mount
-                , duration = duration
-                , easing = easing
-                , frames =
-                    Style.Model.Keyframes
-                        { repeat = repeat
+    Model
+        { state
+            | animation =
+                Just <|
+                    Style.Model.Animation
+                        { duration = duration
+                        , easing = easing
+                        , repeat = repeat
                         , steps = List.map (\( time, fn ) -> ( time, fn <| Model state )) steps
                         }
-                }
-    in
-        Model
-            { state
-                | animations = newAnim :: state.animations
-            }
+        }
 
 
 {-| Add a property.  Not to be exported, `properties` is to be used instead.
@@ -1453,37 +1408,133 @@ add prop (Model state) =
 
 {-| -}
 hover : (Model -> Model) -> Model -> Model
-hover =
-    on (Style.Model.PseudoClass ":hover")
+hover variation model =
+    let
+        (Model state) =
+            variation model
+
+        clearedSubSubElements =
+            Model { state | subelements = Nothing }
+    in
+        Model
+            { state
+                | subelements =
+                    case state.subelements of
+                        Nothing ->
+                            Just { emptySubElements | hover = Just clearedSubSubElements }
+
+                        Just subs ->
+                            Just { subs | hover = Just clearedSubSubElements }
+            }
 
 
 {-| -}
 focus : (Model -> Model) -> Model -> Model
-focus =
-    on (Style.Model.PseudoClass ":focus")
+focus variation model =
+    let
+        (Model state) =
+            variation model
+
+        clearedSubSubElements =
+            Model { state | subelements = Nothing }
+    in
+        Model
+            { state
+                | subelements =
+                    case state.subelements of
+                        Nothing ->
+                            Just { emptySubElements | focus = Just clearedSubSubElements }
+
+                        Just subs ->
+                            Just { subs | focus = Just clearedSubSubElements }
+            }
 
 
 {-| -}
 checked : (Model -> Model) -> Model -> Model
-checked =
-    on (Style.Model.PseudoClass ":checked")
+checked variation model =
+    let
+        (Model state) =
+            variation model
+
+        clearedSubSubElements =
+            Model { state | subelements = Nothing }
+    in
+        Model
+            { state
+                | subelements =
+                    case state.subelements of
+                        Nothing ->
+                            Just { emptySubElements | checked = Just clearedSubSubElements }
+
+                        Just subs ->
+                            Just { subs | checked = Just clearedSubSubElements }
+            }
 
 
 {-| -}
 selection : (Model -> Model) -> Model -> Model
-selection =
-    on (Style.Model.PseudoClass "::selection")
+selection variation model =
+    let
+        (Model state) =
+            variation model
+
+        clearedSubSubElements =
+            Model { state | subelements = Nothing }
+    in
+        Model
+            { state
+                | subelements =
+                    case state.subelements of
+                        Nothing ->
+                            Just { emptySubElements | selection = Just clearedSubSubElements }
+
+                        Just subs ->
+                            Just { subs | selection = Just clearedSubSubElements }
+            }
 
 
 {-| Requires a string which will be rendered as the 'content' property
 -}
 after : String -> (Model -> Model) -> Model -> Model
-after content fn =
-    on (Style.Model.PseudoClass "::after") (fn << add ( "content", content ))
+after content variation model =
+    let
+        (Model state) =
+            (variation << add ( "content", content )) model
+
+        clearedSubSubElements =
+            Model { state | subelements = Nothing }
+    in
+        Model
+            { state
+                | subelements =
+                    case state.subelements of
+                        Nothing ->
+                            Just { emptySubElements | after = Just clearedSubSubElements }
+
+                        Just subs ->
+                            Just { subs | after = Just clearedSubSubElements }
+            }
 
 
 {-| Requires a string which will be rendered as the 'content' property
 -}
 before : String -> (Model -> Model) -> Model -> Model
-before content fn =
-    on (Style.Model.PseudoClass "::before") (fn << add ( "content", content ))
+before content variation model =
+    let
+        (Model state) =
+            (variation << add ( "content", content )) model
+
+        clearedSubSubElements =
+            Model { state | subelements = Nothing }
+    in
+        Model
+            { state
+                | subelements =
+                    case state.subelements of
+                        Nothing ->
+                            Just { emptySubElements | before = Just clearedSubSubElements }
+
+                        Just subs ->
+                            Just { subs | before = Just clearedSubSubElements }
+            }
