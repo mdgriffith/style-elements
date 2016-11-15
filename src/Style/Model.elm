@@ -28,7 +28,7 @@ type Model
         , padding : ( Float, Float, Float, Float )
         , borderStyle : BorderStyle
         , borderWidth : ( Float, Float, Float, Float )
-        , cornerRadius : ( Float, Float, Float, Float )
+        , borderRadius : ( Float, Float, Float, Float )
         , backgroundImage : Maybe BackgroundImage
         , shadows : Maybe (List Shadow)
         , transforms : Maybe (List Transform)
@@ -48,7 +48,7 @@ type alias Font =
     { font : String
     , size : Float
     , lineHeight : Float
-    , characterOffset : Maybe Float
+    , letterOffset : Maybe Float
     , align : Alignment
     , whitespace : Whitespace
     }
@@ -156,8 +156,8 @@ Otherwise a warning will be logged and the float property won't be applied.
 type Floating
     = FloatLeft
     | FloatRight
-    | FloatRightTop
-    | FloatLeftTop
+    | FloatTopRight
+    | FloatTopLeft
 
 
 {-| -}

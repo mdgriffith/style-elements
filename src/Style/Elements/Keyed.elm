@@ -29,8 +29,8 @@ unzipKeys : List ( String, Element msg ) -> ( List (List Style.Model.StyleDefini
 unzipKeys pairs =
     let
         step ( key, el ) ( styles, keyedEls ) =
-            ( fst el :: styles
-            , ( key, snd el ) :: keyedEls
+            ( Tuple.first el :: styles
+            , ( key, Tuple.second el ) :: keyedEls
             )
     in
         List.foldr step ( [], [] ) pairs

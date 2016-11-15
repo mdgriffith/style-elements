@@ -106,15 +106,15 @@ optionalAs node styleModel variations attrs elements =
                 variations
 
         activatedVariationNames =
-            List.filter snd variationTransitions
-                |> List.map (\x -> fst <| fst x)
+            List.filter Tuple.second variationTransitions
+                |> List.map (\x -> Tuple.first <| Tuple.first x)
                 |> List.foldl (++) ""
 
         ( childrenStyles, children ) =
             List.unzip elements
 
         allStyles =
-            styleDef :: List.concat childrenStyles ++ List.map (\x -> snd (fst x)) variationTransitions
+            styleDef :: List.concat childrenStyles ++ List.map (\x -> Tuple.second (Tuple.first x)) variationTransitions
     in
         ( allStyles
         , Html.node node (Svg.Attributes.class (parentClass ++ " " ++ activatedVariationNames) :: attrs) children

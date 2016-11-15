@@ -202,7 +202,7 @@ render (Model style) =
                         { style = renderedStyle
                         , tags = restrictedTags
                         , animations = List.map renderAnimation style.animations ++ childOverrides
-                        , media = List.map (\(MediaQuery query mediaStyle) -> ( query, snd <| render mediaStyle )) style.media
+                        , media = List.map (\(MediaQuery query mediaStyle) -> ( query, Tuple.second <| render mediaStyle )) style.media
                         }
             in
                 ( classNameAndTags styleDefinition
@@ -498,7 +498,7 @@ renderAnimation (Animation { trigger, duration, easing, frames }) =
                 Transition variation ->
                     let
                         rendered =
-                            case snd <| render variation of
+                            case Tuple.second <| render variation of
                                 StyleDef { style } ->
                                     style
                     in
@@ -584,13 +584,13 @@ renderFloating floating =
             , "margin-right" => "0px !important"
             ]
 
-        FloatLeftTop ->
+        FloatTopLeft ->
             [ "float" => "left"
             , "margin-left" => "0px !important"
             , "margin-top" => "0px !important"
             ]
 
-        FloatRightTop ->
+        FloatTopRight ->
             [ "float" => "right"
             , "margin-right" => "0px !important"
             , "margin-top" => "0px !important"
@@ -619,7 +619,7 @@ renderBackgroundImage image =
 
             NoRepeat ->
                 "no-repeat"
-    , "background-position" => ((toString (fst image.position)) ++ "px " ++ (toString (snd image.position)) ++ "px")
+    , "background-position" => ((toString (Tuple.first image.position)) ++ "px " ++ (toString (Tuple.second image.position)) ++ "px")
     ]
 
 
@@ -734,8 +734,8 @@ shadowValue (Shadow shadow) =
             "inset"
           else
             ""
-        , toString (fst shadow.offset) ++ "px"
-        , toString (snd shadow.offset) ++ "px"
+        , toString (Tuple.first shadow.offset) ++ "px"
+        , toString (Tuple.second shadow.offset) ++ "px"
         , toString shadow.blur ++ "px"
         , (if shadow.kind == "text" || shadow.kind == "drop" then
             ""
@@ -776,7 +776,7 @@ renderText text =
             (\offset ->
                 "letter-spacing" => (toString offset ++ "px")
             )
-            text.characterOffset
+            text.letterOffset
         , Just <|
             case text.align of
                 AlignLeft ->

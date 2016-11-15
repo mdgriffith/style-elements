@@ -123,8 +123,8 @@ module Style
         , strike
         , underline
         , borderStyle
-        , border
-        , cornerRadius
+        , borderWidth
+        , borderRadius
         , cursor
         , zIndex
         , width
@@ -207,7 +207,7 @@ The following are convenience functions for setting these values.
 
 ## Borderstyles
 
-@docs borderStyle, borderWidth, BorderStyle, solid, dotted, dashed, cornerRadius
+@docs borderStyle, borderWidth, BorderStyle, solid, dotted, dashed, borderRadius
 
 # Layouts
 
@@ -217,6 +217,11 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 
 @docs Flow, flowUp, flowDown, flowRight, flowLeft
 
+
+@docs inline
+
+@docs float, Floating, floatLeft, floatRight, floatTopLeft, floatTopRight
+
 # Alignment
 
 @docs Alignment, alignLeft, alignRight, justify, justifyAll, alignCenter
@@ -224,19 +229,12 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 @docs VerticalAlignment, verticalCenter, verticalStretch, alignTop, alignBottom
 
 
+
 # Colors
 
 @docs colors, ColorPalette
 
 
-# Inline
-
-@docs inline
-
-
-# Float
-
-@docs float, Floating, floatLeft, floatRight, floatTopLeft, floatTopRight
 
 
 # Visibility
@@ -325,7 +323,7 @@ empty =
         , font =
             { font = "georgia"
             , size = 16
-            , characterOffset = Nothing
+            , letterOffset = Nothing
             , lineHeight = 1.7
             , align = alignLeft
             , whitespace = normal
@@ -339,7 +337,7 @@ empty =
         , height = auto
         , borderStyle = solid
         , borderWidth = all 0
-        , cornerRadius = all 0
+        , borderRadius = all 0
         , padding = all 0
         , spacing = all 0
         , float = Nothing
@@ -365,9 +363,10 @@ type alias Element msg =
     ( List Style.Model.StyleDefinition, Html.Html msg )
 
 
-{-| -}
-type alias Animation =
-    Style.Model.Animated Model
+
+--{-| -}
+--type alias Animation =
+--    Style.Model.Animated Model
 
 
 {-| -}
@@ -377,7 +376,7 @@ type alias Trigger =
 
 {-| -}
 type alias MediaQuery =
-    Style.Model.MediaQuery Model
+    ( String, Model -> Model )
 
 
 {-|
@@ -540,17 +539,21 @@ noRepeat =
 Will ignore any left spacing that it's parent has set for it.
 
 -}
-floatLeft : Floating
-floatLeft =
-    Style.Model.FloatLeft
+floatLeft : Model -> Model
+floatLeft model =
+    case model of
+        Model state ->
+            Model { state | float = Just Style.Model.FloatLeft }
 
 
 {-|
 
 -}
-floatRight : Floating
-floatRight =
-    Style.Model.FloatRight
+floatRight : Model -> Model
+floatRight model =
+    case model of
+        Model state ->
+            Model { state | float = Just Style.Model.FloatRight }
 
 
 {-| Same as floatLeft, except it will ignore any top spacing that it's parent has set for it.
@@ -558,17 +561,21 @@ floatRight =
 This is useful for floating things at the beginning of text.
 
 -}
-floatTopLeft : Floating
-floatTopLeft =
-    Style.Model.FloatLeftTop
+floatTopLeft : Model -> Model
+floatTopLeft model =
+    case model of
+        Model state ->
+            Model { state | float = Just Style.Model.FloatTopLeft }
 
 
 {-|
 
 -}
-floatTopRight : Floating
-floatTopRight =
-    Style.Model.FloatRightTop
+floatTopRight : Model -> Model
+floatTopRight model =
+    case model of
+        Model state ->
+            Model { state | float = Just Style.Model.FloatTopRight }
 
 
 {-| -}
@@ -752,19 +759,19 @@ padding s model =
 
 
 {-| -}
-border : ( Float, Float, Float, Float ) -> Model -> Model
-border s model =
+borderWidth : ( Float, Float, Float, Float ) -> Model -> Model
+borderWidth s model =
     case model of
         Model state ->
             Model { state | borderWidth = s }
 
 
 {-| -}
-cornerRadius : ( Float, Float, Float, Float ) -> Model -> Model
-cornerRadius s model =
+borderRadius : ( Float, Float, Float, Float ) -> Model -> Model
+borderRadius s model =
     case model of
         Model state ->
-            Model { state | cornerRadius = s }
+            Model { state | borderRadius = s }
 
 
 {-| -}
@@ -882,9 +889,13 @@ animations filts model =
 {-| -}
 media : List MediaQuery -> Model -> Model
 media queries model =
-    case model of
-        Model state ->
-            Model { state | media = queries }
+    let
+        renderedMediaQueries =
+            List.map (\( name, vary ) -> Style.Model.MediaQuery name (vary model)) queries
+    in
+        case model of
+            Model state ->
+                Model { state | media = renderedMediaQueries }
 
 
 {-| -}
@@ -1364,9 +1375,9 @@ sepia x =
 
 
 {-| -}
-mediaQuery : String -> Model -> MediaQuery
+mediaQuery : String -> (Model -> Model) -> MediaQuery
 mediaQuery name variation =
-    Style.Model.MediaQuery name variation
+    ( name, variation )
 
 
 {-| Create a transition by specifying a pseudo class and the target style as a Variation.  For example to make a transition on hover, you'd do the following:
@@ -1403,13 +1414,23 @@ onWith trigger { duration, easing } model =
         }
 
 
+{-| -}
+type alias Animation =
+    { duration : Time
+    , easing : String
+    , repeat : Float
+    , steps : List ( Float, Model -> Model )
+    , trigger : Trigger
+    }
+
+
 {-| Begin an animation as soon as the elment is mounted.
 -}
 animate :
     { duration : Time
     , easing : String
     , repeat : Float
-    , steps : List ( Float, Model )
+    , steps : List ( Float, Model -> Model )
     }
     -> Animation
 animate { duration, easing, repeat, steps } =
