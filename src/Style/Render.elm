@@ -96,7 +96,7 @@ render (Model style) =
                                 , Just ("cursor" => style.cursor)
                                 , Just ("padding" => render4tuplePx style.padding)
                                 , Just ("border-width" => render4tuplePx style.borderWidth)
-                                , Just ("border-radius" => render4tuplePx style.cornerRadius)
+                                , Just ("border-radius" => render4tuplePx style.borderRadius)
                                 , Just <|
                                     "border-style"
                                         => case style.borderStyle of
@@ -429,7 +429,7 @@ addClassName { tags, style, animations, media } =
 
         modes =
             List.filter (\anim -> not <| isMount anim) animations
-                |> List.map (convertAnimation name)
+                |> List.map (convertAnimation "placeholder-for-hashing")
                 |> String.concat
 
         mediaQueries =

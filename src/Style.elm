@@ -99,10 +99,7 @@ module Style
         , insetShadow
         , textShadow
         , dropShadow
-        , on
-        , onWith
         , animate
-        , animateOn
         , hover
         , focus
         , checked
@@ -141,7 +138,6 @@ module Style
         , shadows
         , transforms
         , filters
-        , animations
         , media
         , properties
         )
@@ -150,7 +146,7 @@ module Style
 
 This module is focused around composing a style.
 
-@docs Model, empty, variation
+@docs Model, empty
 
 
 # Positioning
@@ -213,7 +209,7 @@ The following are convenience functions for setting these values.
 
 Layouts affect how children are arranged.  In this library, layout is controlled by the parent element.
 
-@docs layout, Layout, textLayout, tableLayout
+@docs Layout, textLayout, tableLayout
 
 @docs Flow, flowUp, flowDown, flowRight, flowLeft
 
@@ -273,7 +269,7 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 
 # Animations
 
-@docs animations, Animation, on, onWith, animate, animateOn
+@docs Animation, animate
 
 
 ## Animation triggers.
@@ -879,14 +875,6 @@ filters filts model =
 
 
 {-| -}
-animations : List Animation -> Model -> Model
-animations filts model =
-    case model of
-        Model state ->
-            Model { state | animations = filts }
-
-
-{-| -}
 media : List MediaQuery -> Model -> Model
 media queries model =
     let
@@ -1387,14 +1375,11 @@ mediaQuery name variation =
 Defaults to duration 300, easing as "ease"
 
 -}
-on : Trigger -> Model -> Animation
-on trigger model =
-    Style.Model.Animation
-        { trigger = trigger
-        , duration = 300
-        , easing = "ease"
-        , frames = Style.Model.Transition model
-        }
+on : Trigger -> (Model -> Model) -> Model -> Model
+on trigger variation =
+    onWith trigger
+        { duration = 300, easing = "ease" }
+        variation
 
 
 {-| Set a custom duration and easing for the transition.
@@ -1404,14 +1389,18 @@ Easings are given as strings as they would be in css:
 https://developer.mozilla.org/en-US/docs/Web/CSS/animation-timing-function
 
 -}
-onWith : Trigger -> { duration : Time, easing : String } -> Model -> Animation
-onWith trigger { duration, easing } model =
-    Style.Model.Animation
-        { trigger = trigger
-        , duration = duration
-        , easing = easing
-        , frames = Style.Model.Transition model
-        }
+onWith : Trigger -> { duration : Time, easing : String } -> (Model -> Model) -> Model -> Model
+onWith trigger { duration, easing } variation (Model state) =
+    let
+        newAnim =
+            Style.Model.Animation
+                { trigger = trigger
+                , duration = duration
+                , easing = easing
+                , frames = Style.Model.Transition (variation <| Model state)
+                }
+    in
+        Model { state | animations = newAnim :: state.animations }
 
 
 {-| -}
@@ -1420,87 +1409,81 @@ type alias Animation =
     , easing : String
     , repeat : Float
     , steps : List ( Float, Model -> Model )
-    , trigger : Trigger
     }
 
 
-{-| Begin an animation as soon as the elment is mounted.
+{-| Create an animation
 -}
-animate :
-    { duration : Time
-    , easing : String
-    , repeat : Float
-    , steps : List ( Float, Model -> Model )
-    }
-    -> Animation
-animate { duration, easing, repeat, steps } =
-    Style.Model.Animation
-        { trigger = Style.Model.Mount
-        , duration = duration
-        , easing = easing
-        , frames =
-            Style.Model.Keyframes
-                { repeat = repeat
-                , steps = steps
+animate : Animation -> Model -> Model
+animate { duration, easing, repeat, steps } (Model state) =
+    let
+        newAnim =
+            Style.Model.Animation
+                { trigger = Style.Model.Mount
+                , duration = duration
+                , easing = easing
+                , frames =
+                    Style.Model.Keyframes
+                        { repeat = repeat
+                        , steps = List.map (\( time, fn ) -> ( time, fn <| Model state )) steps
+                        }
                 }
-        }
+    in
+        Model
+            { state
+                | animations = newAnim :: state.animations
+            }
 
 
-{-| Begin an animation on a trigger.
-
+{-| Add a property.  Not to be exported, `properties` is to be used instead.
 -}
-animateOn :
-    Trigger
-    -> { duration : Time
-       , easing : String
-       , repeat : Float
-       , steps : List ( Float, Model )
-       }
-    -> Animation
-animateOn trigger { duration, easing, repeat, steps } =
-    Style.Model.Animation
-        { trigger = trigger
-        , duration = duration
-        , easing = easing
-        , frames =
-            Style.Model.Keyframes
-                { repeat = repeat
-                , steps = steps
-                }
+add : ( String, String ) -> Model -> Model
+add prop (Model state) =
+    Model
+        { state
+            | properties =
+                case state.properties of
+                    Nothing ->
+                        Just [ prop ]
+
+                    Just existing ->
+                        Just (prop :: existing)
         }
 
 
 {-| -}
-hover : Trigger
+hover : (Model -> Model) -> Model -> Model
 hover =
-    Style.Model.PseudoClass ":hover"
+    on (Style.Model.PseudoClass ":hover")
 
 
 {-| -}
-focus : Trigger
+focus : (Model -> Model) -> Model -> Model
 focus =
-    Style.Model.PseudoClass ":focus"
+    on (Style.Model.PseudoClass ":focus")
 
 
 {-| -}
-checked : Trigger
+checked : (Model -> Model) -> Model -> Model
 checked =
-    Style.Model.PseudoClass ":checked"
+    on (Style.Model.PseudoClass ":checked")
 
 
 {-| -}
-selection : Trigger
+selection : (Model -> Model) -> Model -> Model
 selection =
-    Style.Model.PseudoClass "::selection"
+    on (Style.Model.PseudoClass "::selection")
 
 
-{-| -}
-after : Trigger
-after =
-    Style.Model.PseudoClass "::after"
+{-| Requires a string which will be rendered as the 'content' property
+-}
+after : String -> (Model -> Model) -> Model -> Model
+after content fn =
+    on (Style.Model.PseudoClass "::after") (fn << add ( "content", content ))
 
 
-{-| -}
-before : Trigger
-before =
-    Style.Model.PseudoClass "::before"
+{-| Requires a string which will be rendered as the 'content' property
+-}
+before : String -> (Model -> Model) -> Model -> Model
+before content fn =
+    on (Style.Model.PseudoClass "::before") (fn << add ( "content", content ))
