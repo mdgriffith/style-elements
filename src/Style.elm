@@ -21,6 +21,7 @@ module Style
         , Repeat
         , Animation
         , MediaQuery
+        , Transition
         , flowUp
         , flowDown
         , flowRight
@@ -99,6 +100,7 @@ module Style
         , textShadow
         , dropShadow
         , animate
+        , transition
         , hover
         , focus
         , checked
@@ -271,6 +273,8 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 @docs Animation, animate
 
 
+@docs Transition, transition
+
 ## Pseudo elements and classes
 
 @docs selection, after, before, hover, focus, checked
@@ -392,6 +396,12 @@ type alias BackgroundImage =
 -}
 type alias Shadow =
     Style.Model.Shadow
+
+
+{-|
+-}
+type alias Transition =
+    Style.Model.Transition
 
 
 {-|
@@ -1362,6 +1372,12 @@ sepia x =
 mediaQuery : String -> (Model -> Model) -> MediaQuery
 mediaQuery name variation =
     ( name, variation )
+
+
+{-| -}
+transition : Maybe Transition -> Model -> Model
+transition trans (Model state) =
+    Model { state | transition = trans }
 
 
 {-| -}
