@@ -1424,16 +1424,16 @@ add prop (Model state) =
 
 {-| -}
 hover : (Model -> Model) -> Model -> Model
-hover variation model =
+hover vary (Model model) =
     let
         (Model state) =
-            variation model
+            vary (Model model)
 
         clearedSubSubElements =
             Model { state | subelements = Nothing }
     in
         Model
-            { state
+            { model
                 | subelements =
                     case state.subelements of
                         Nothing ->
@@ -1446,16 +1446,16 @@ hover variation model =
 
 {-| -}
 focus : (Model -> Model) -> Model -> Model
-focus variation model =
+focus vary (Model model) =
     let
         (Model state) =
-            variation model
+            vary (Model model)
 
         clearedSubSubElements =
             Model { state | subelements = Nothing }
     in
         Model
-            { state
+            { model
                 | subelements =
                     case state.subelements of
                         Nothing ->
@@ -1468,16 +1468,16 @@ focus variation model =
 
 {-| -}
 checked : (Model -> Model) -> Model -> Model
-checked variation model =
+checked vary (Model model) =
     let
         (Model state) =
-            variation model
+            vary (Model model)
 
         clearedSubSubElements =
             Model { state | subelements = Nothing }
     in
         Model
-            { state
+            { model
                 | subelements =
                     case state.subelements of
                         Nothing ->
@@ -1490,16 +1490,16 @@ checked variation model =
 
 {-| -}
 selection : (Model -> Model) -> Model -> Model
-selection variation model =
+selection vary (Model model) =
     let
         (Model state) =
-            variation model
+            vary (Model model)
 
         clearedSubSubElements =
             Model { state | subelements = Nothing }
     in
         Model
-            { state
+            { model
                 | subelements =
                     case state.subelements of
                         Nothing ->
@@ -1513,16 +1513,16 @@ selection variation model =
 {-| Requires a string which will be rendered as the 'content' property
 -}
 after : String -> (Model -> Model) -> Model -> Model
-after content variation model =
+after content variation (Model model) =
     let
         (Model state) =
-            (variation << add ( "content", content )) model
+            (variation << add ( "content", content )) (Model model)
 
         clearedSubSubElements =
             Model { state | subelements = Nothing }
     in
         Model
-            { state
+            { model
                 | subelements =
                     case state.subelements of
                         Nothing ->
@@ -1536,16 +1536,16 @@ after content variation model =
 {-| Requires a string which will be rendered as the 'content' property
 -}
 before : String -> (Model -> Model) -> Model -> Model
-before content variation model =
+before content variation (Model model) =
     let
         (Model state) =
-            (variation << add ( "content", content )) model
+            (variation << add ( "content", content )) (Model model)
 
         clearedSubSubElements =
             Model { state | subelements = Nothing }
     in
         Model
-            { state
+            { model
                 | subelements =
                     case state.subelements of
                         Nothing ->
