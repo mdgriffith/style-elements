@@ -121,9 +121,7 @@ optionalAs node styleModel variations attrs elements =
         )
 
 
-{-| Same as `element` except it will render all collected styles into an embedded stylesheet.  This needs to be at the top of all your elements for them to render correctly.
-
-If this seems unclear, check out the examples!
+{-| Render all collected styles in an embedded stylesheet.
 
 -}
 embed : Style.Model -> List (Html.Attribute msg) -> List ( List Style.Model.StyleDefinition, Html.Html msg ) -> Html msg

@@ -542,20 +542,16 @@ Will ignore any left spacing that it's parent has set for it.
 
 -}
 floatLeft : Model -> Model
-floatLeft model =
-    case model of
-        Model state ->
-            Model { state | float = Just Style.Model.FloatLeft }
+floatLeft (Model state) =
+    Model { state | float = Just Style.Model.FloatLeft }
 
 
 {-|
 
 -}
 floatRight : Model -> Model
-floatRight model =
-    case model of
-        Model state ->
-            Model { state | float = Just Style.Model.FloatRight }
+floatRight (Model state) =
+    Model { state | float = Just Style.Model.FloatRight }
 
 
 {-| Same as floatLeft, except it will ignore any top spacing that it's parent has set for it.
@@ -564,20 +560,16 @@ This is useful for floating things at the beginning of text.
 
 -}
 floatTopLeft : Model -> Model
-floatTopLeft model =
-    case model of
-        Model state ->
-            Model { state | float = Just Style.Model.FloatTopLeft }
+floatTopLeft (Model state) =
+    Model { state | float = Just Style.Model.FloatTopLeft }
 
 
 {-|
 
 -}
 floatTopRight : Model -> Model
-floatTopRight model =
-    case model of
-        Model state ->
-            Model { state | float = Just Style.Model.FloatTopRight }
+floatTopRight (Model state) =
+    Model { state | float = Just Style.Model.FloatTopRight }
 
 
 {-| -}
@@ -642,254 +634,192 @@ auto =
 
 {-| -}
 visibility : Visibility -> Model -> Model
-visibility vis model =
-    case model of
-        Model state ->
-            Model { state | visibility = vis }
+visibility vis (Model state) =
+    Model { state | visibility = vis }
 
 
 {-| -}
 anchor : Anchor -> Model -> Model
-anchor anc model =
-    case model of
-        Model state ->
-            Model { state | anchor = anc }
+anchor anc (Model state) =
+    Model { state | anchor = anc }
 
 
 {-| -}
 relativeTo : RelativeTo -> Model -> Model
-relativeTo rel model =
-    case model of
-        Model state ->
-            Model { state | relativeTo = rel }
+relativeTo rel (Model state) =
+    Model { state | relativeTo = rel }
 
 
 {-| -}
 position : ( Float, Float ) -> Model -> Model
-position pos model =
-    case model of
-        Model state ->
-            Model { state | position = pos }
+position pos (Model state) =
+    Model { state | position = pos }
 
 
 {-| -}
 cursor : String -> Model -> Model
-cursor curs model =
-    case model of
-        Model state ->
-            Model { state | cursor = curs }
+cursor curs (Model state) =
+    Model { state | cursor = curs }
 
 
 {-| -}
 zIndex : Int -> Model -> Model
-zIndex i model =
-    case model of
-        Model state ->
-            Model { state | zIndex = Just i }
+zIndex i (Model state) =
+    Model { state | zIndex = Just i }
 
 
 {-| -}
 width : Length -> Model -> Model
-width w model =
-    case model of
-        Model state ->
-            Model { state | width = w }
+width w (Model state) =
+    Model { state | width = w }
 
 
 {-| -}
 minWidth : Length -> Model -> Model
-minWidth w model =
-    case model of
-        Model state ->
-            Model { state | minWidth = Just w }
+minWidth w (Model state) =
+    Model { state | minWidth = Just w }
 
 
 {-| -}
 maxWidth : Length -> Model -> Model
-maxWidth w model =
-    case model of
-        Model state ->
-            Model { state | maxWidth = Just w }
+maxWidth w (Model state) =
+    Model { state | maxWidth = Just w }
 
 
 {-| -}
 height : Length -> Model -> Model
-height h model =
-    case model of
-        Model state ->
-            Model { state | height = h }
+height h (Model state) =
+    Model { state | height = h }
 
 
 {-| -}
 minHeight : Length -> Model -> Model
-minHeight h model =
-    case model of
-        Model state ->
-            Model { state | minHeight = Just h }
+minHeight h (Model state) =
+    Model { state | minHeight = Just h }
 
 
 {-| -}
 maxHeight : Length -> Model -> Model
-maxHeight h model =
-    case model of
-        Model state ->
-            Model { state | maxHeight = Just h }
+maxHeight h (Model state) =
+    Model { state | maxHeight = Just h }
 
 
 {-| -}
 colors : ColorPalette -> Model -> Model
-colors palette model =
-    case model of
-        Model state ->
-            Model { state | colors = palette }
+colors palette (Model state) =
+    Model { state | colors = palette }
 
 
 {-| -}
 spacing : ( Float, Float, Float, Float ) -> Model -> Model
-spacing s model =
-    case model of
-        Model state ->
-            Model { state | spacing = s }
+spacing s (Model state) =
+    Model { state | spacing = s }
 
 
 {-| -}
 padding : ( Float, Float, Float, Float ) -> Model -> Model
-padding s model =
-    case model of
-        Model state ->
-            Model { state | padding = s }
+padding s (Model state) =
+    Model { state | padding = s }
 
 
 {-| -}
 borderWidth : ( Float, Float, Float, Float ) -> Model -> Model
-borderWidth s model =
-    case model of
-        Model state ->
-            Model { state | borderWidth = s }
+borderWidth s (Model state) =
+    Model { state | borderWidth = s }
 
 
 {-| -}
 borderRadius : ( Float, Float, Float, Float ) -> Model -> Model
-borderRadius s model =
-    case model of
-        Model state ->
-            Model { state | borderRadius = s }
+borderRadius s (Model state) =
+    Model { state | borderRadius = s }
 
 
 {-| -}
 font : Font -> Model -> Model
-font text model =
-    case model of
-        Model state ->
-            Model { state | font = text }
+font text (Model state) =
+    Model { state | font = text }
 
 
 {-| -}
 underline : Model -> Model
-underline model =
-    case model of
-        Model state ->
-            Model { state | underline = True }
+underline (Model state) =
+    Model { state | underline = True }
 
 
 {-| -}
 strike : Model -> Model
-strike model =
-    case model of
-        Model state ->
-            Model { state | strike = True }
+strike (Model state) =
+    Model { state | strike = True }
 
 
 {-| -}
 inline : Model -> Model
-inline model =
-    case model of
-        Model state ->
-            Model { state | inline = True }
+inline (Model state) =
+    Model { state | inline = True }
 
 
 {-| -}
 italicize : Model -> Model
-italicize model =
-    case model of
-        Model state ->
-            Model { state | italic = True }
+italicize (Model state) =
+    Model { state | italic = True }
 
 
 {-| -}
 bold : Model -> Model
-bold model =
-    case model of
-        Model state ->
-            Model { state | bold = Just 700 }
+bold (Model state) =
+    Model { state | bold = Just 700 }
 
 
 {-| -}
 light : Model -> Model
-light model =
-    case model of
-        Model state ->
-            Model { state | bold = Just 300 }
+light (Model state) =
+    Model { state | bold = Just 300 }
 
 
 {-| -}
 borderStyle : BorderStyle -> Model -> Model
-borderStyle style model =
-    case model of
-        Model state ->
-            Model { state | borderStyle = style }
+borderStyle style (Model state) =
+    Model { state | borderStyle = style }
 
 
 {-| -}
 float : Floating -> Model -> Model
-float floating model =
-    case model of
-        Model state ->
-            Model { state | float = Just floating }
+float floating (Model state) =
+    Model { state | float = Just floating }
 
 
 {-| -}
 backgroundImage : BackgroundImage -> Model -> Model
-backgroundImage style model =
-    case model of
-        Model state ->
-            Model { state | backgroundImage = Just style }
+backgroundImage style (Model state) =
+    Model { state | backgroundImage = Just style }
 
 
 {-| -}
 shadows : List Shadow -> Model -> Model
-shadows shades model =
-    case model of
-        Model state ->
-            Model { state | shadows = Just shades }
+shadows shades (Model state) =
+    Model { state | shadows = Just shades }
 
 
 {-| -}
 transforms : List Transform -> Model -> Model
-transforms trans model =
-    case model of
-        Model state ->
-            Model { state | transforms = Just trans }
+transforms trans (Model state) =
+    Model { state | transforms = Just trans }
 
 
 {-| -}
 filters : List Filter -> Model -> Model
-filters filts model =
-    case model of
-        Model state ->
-            Model { state | filters = Just filts }
+filters filts (Model state) =
+    Model { state | filters = Just filts }
 
 
 {-| -}
 media : List MediaQuery -> Model -> Model
-media queries model =
+media queries (Model state) =
     let
         renderedMediaQueries =
-            List.map (\( name, vary ) -> Style.Model.MediaQuery name (vary model)) queries
+            List.map (\( name, vary ) -> Style.Model.MediaQuery name (vary (Model state))) queries
     in
-        case model of
-            Model state ->
-                Model { state | media = renderedMediaQueries }
+        Model { state | media = renderedMediaQueries }
 
 
 {-| -}
@@ -906,20 +836,16 @@ Besides this, all immediate children are arranged as if they were `display: bloc
 
 -}
 textLayout : Model -> Model
-textLayout model =
-    case model of
-        Model state ->
-            Model { state | layout = Style.Model.TextLayout }
+textLayout (Model state) =
+    Model { state | layout = Style.Model.TextLayout }
 
 
 {-| This is the same as setting an element to `display:table`.
 
 -}
 tableLayout : Model -> Model
-tableLayout model =
-    case model of
-        Model state ->
-            Model { state | layout = Style.Model.TableLayout }
+tableLayout (Model state) =
+    Model { state | layout = Style.Model.TableLayout }
 
 
 {-|
