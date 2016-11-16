@@ -1,4 +1,4 @@
-module Style.Elements exposing (html, element, elementAs, optional, optionalAs, build, buildAs, svgAs)
+module Style.Elements exposing (html, element, elementAs, optional, optionalAs, embed, embedAs, svgAs)
 
 {-|
 
@@ -8,7 +8,7 @@ module Style.Elements exposing (html, element, elementAs, optional, optionalAs, 
 
 # Building the Stylesheet
 
-@docs build, buildAs
+@docs embed, embedAs
 
 -}
 
@@ -126,14 +126,14 @@ optionalAs node styleModel variations attrs elements =
 If this seems unclear, check out the examples!
 
 -}
-build : Style.Model -> List (Html.Attribute msg) -> List ( List Style.Model.StyleDefinition, Html.Html msg ) -> Html msg
-build =
-    buildAs "div"
+embed : Style.Model -> List (Html.Attribute msg) -> List ( List Style.Model.StyleDefinition, Html.Html msg ) -> Html msg
+embed =
+    embedAs "div"
 
 
 {-| -}
-buildAs : String -> Style.Model -> List (Html.Attribute msg) -> List ( List Style.Model.StyleDefinition, Html.Html msg ) -> Html msg
-buildAs node styleModel attrs elements =
+embedAs : String -> Style.Model -> List (Html.Attribute msg) -> List ( List Style.Model.StyleDefinition, Html.Html msg ) -> Html msg
+embedAs node styleModel attrs elements =
     let
         ( className, style ) =
             render styleModel
