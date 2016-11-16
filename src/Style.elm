@@ -1,6 +1,7 @@
 module Style
     exposing
         ( Model
+        , Element
         , Simple
         , ColorPalette
         , Shadow
@@ -24,6 +25,8 @@ module Style
         , Transition
         , embed
         , class
+        , element
+        , elementAs
         , flowUp
         , flowDown
         , flowRight
@@ -151,7 +154,7 @@ This module is focused around composing a style.
 
 @docs Simple, Model, empty, embed, class
 
-
+@dos Element, element, elementAs
 # Positioning
 
 The coordinates for the `position` value in the style model are x and y coordinates where right and down are the positive directions, same as the standard coordinate system for svg.
@@ -234,14 +237,9 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 @docs colors, ColorPalette
 
 
-
-
 # Visibility
 
 @docs visibility, Visibility, hidden, opacity, transparency, visible
-
-
-
 
 
 # Text/Font
@@ -290,7 +288,7 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 
 -}
 
-import Html exposing (Html)
+import Html exposing (Html, Attribute)
 import Html.Attributes
 import Time exposing (Time)
 import Color exposing (Color)
@@ -372,6 +370,28 @@ empty =
                 }
         , subelements = Nothing
         }
+
+
+type alias Element a msg =
+    { style : Model a
+    , el : List (Attribute msg) -> List (Html msg) -> Html msg
+    }
+
+
+{-| -}
+element : Model a -> Element a msg
+element model =
+    { el = (\attrs children -> Html.div (class model :: attrs) children)
+    , style = model
+    }
+
+
+{-| -}
+elementAs : String -> Model a -> Element a msg
+elementAs name model =
+    { el = (\attrs children -> Html.node name (class model :: attrs) children)
+    , style = model
+    }
 
 
 {-| Get the class name of a style.
