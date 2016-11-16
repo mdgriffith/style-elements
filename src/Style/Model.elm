@@ -6,9 +6,11 @@ import Color exposing (Color)
 import Time exposing (Time)
 
 
-type Model
+type Model class
     = Model
-        { visibility : Visibility
+        { class : Maybe class
+        , classOverride : Maybe String
+        , visibility : Visibility
         , layout : Layout
         , inline : Bool
         , float : Maybe Floating
@@ -33,8 +35,8 @@ type Model
         , shadows : Maybe (List Shadow)
         , transforms : Maybe (List Transform)
         , filters : Maybe (List Filter)
-        , animation : Maybe Animation
-        , media : List (MediaQuery Model)
+        , animation : Maybe (Animation class)
+        , media : List (MediaQuery class)
         , zIndex : Maybe Int
         , minWidth : Maybe Length
         , maxWidth : Maybe Length
@@ -42,21 +44,21 @@ type Model
         , maxHeight : Maybe Length
         , properties : Maybe (List ( String, String ))
         , transition : Maybe Transition
-        , subelements : Maybe SubElements
+        , subelements : Maybe (SubElements class)
         }
 
 
-type alias SubElements =
-    { hover : Maybe Model
-    , focus : Maybe Model
-    , checked : Maybe Model
-    , after : Maybe Model
-    , before : Maybe Model
-    , selection : Maybe Model
+type alias SubElements a =
+    { hover : Maybe (Model a)
+    , focus : Maybe (Model a)
+    , checked : Maybe (Model a)
+    , after : Maybe (Model a)
+    , before : Maybe (Model a)
+    , selection : Maybe (Model a)
     }
 
 
-emptySubElements : SubElements
+emptySubElements : SubElements a
 emptySubElements =
     { hover = Nothing
     , focus = Nothing
@@ -102,42 +104,22 @@ type alias BackgroundImage =
     }
 
 
-{-| -}
-type StyleDefinition
-    = StyleDef
-        { name : String
-        , tags : List String
-        , style : List ( String, String )
-        , children : List StyleDefinition
-        , animation : Maybe ( Style, Maybe ( String, Keyframes ) )
-        , media : List ( String, StyleDefinition )
-        }
-
-
-type alias Animation =
-    Animated Model
-
-
-type alias Style =
-    List ( String, String )
-
-
 type alias Keyframes =
     List ( Float, List ( String, String ) )
 
 
 {-| -}
-type Animated style
+type Animation a
     = Animation
         { duration : Time
         , easing : String
         , repeat : Float
-        , steps : List ( Float, style )
+        , steps : List ( Float, Model a )
         }
 
 
-type MediaQuery style
-    = MediaQuery String style
+type MediaQuery a
+    = MediaQuery String (Model a)
 
 
 {-| -}
@@ -166,8 +148,6 @@ type Filter
 
 
 {-| Floats only work if the parent has its layout set to `TextLayout`.
-
-Otherwise a warning will be logged and the float property won't be applied.
 
 -}
 type Floating

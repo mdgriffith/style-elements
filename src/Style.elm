@@ -1,7 +1,6 @@
 module Style
     exposing
         ( Model
-        , Element
         , ColorPalette
         , Shadow
         , Visibility
@@ -268,7 +267,7 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 @docs filters, Filter, filterUrl, blur, brightness, contrast, grayscale, hueRotate, invert, opacityFilter, saturate, sepia
 
 
-# Animations
+# Animations and Transitions
 
 @docs Animation, animate
 
@@ -284,16 +283,17 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 
 @docs media, MediaQuery, mediaQuery
 
-# Element
-@docs Element
 
 
 -}
 
-import Html
+import Html exposing (Html)
+import Html.Attributes
 import Time exposing (Time)
 import Color exposing (Color)
+import Set exposing (Set)
 import Style.Model exposing (Model(..), emptySubElements)
+import Style.Render
 
 
 {-| The full model for a style.
@@ -301,15 +301,22 @@ import Style.Model exposing (Model(..), emptySubElements)
 Some properties are mandatory in order to make predictable styles.
 
 -}
-type alias Model =
-    Style.Model.Model
+type alias Simple =
+    Style.Model.Model String
 
 
 {-| -}
-empty : Model
+type alias Model a =
+    Style.Model.Model a
+
+
+{-| -}
+empty : Model a
 empty =
     Model
-        { layout = Style.Model.TextLayout
+        { class = Nothing
+        , classOverride = Nothing
+        , layout = Style.Model.TextLayout
         , visibility = visible
         , relativeTo = currentPosition
         , anchor = topLeft
@@ -364,15 +371,48 @@ empty =
         }
 
 
-{-|
+class : Model a -> Html.Attribute msg
+class (Model style) =
+    Html.Attributes.class (Style.Render.getName (Model style))
+
+
+embed : List (Model a) -> Html msg
+embed styles =
+    styles
+        |> List.map Style.Render.render
+        |> uniqueBy Tuple.first
+        |> List.map Tuple.second
+        |> String.join "\n"
+        |> (\allStyles -> Html.node "style" [] [ Html.text <| allStyles ])
+
+
+{-| Drop duplicates where what is considered to be a duplicate is the result of first applying the supplied function to the elements of the list.
 -}
-type alias Element msg =
-    ( List Style.Model.StyleDefinition, Html.Html msg )
+uniqueBy : (a -> comparable) -> List a -> List a
+uniqueBy f list =
+    uniqueHelp f Set.empty list
+
+
+uniqueHelp : (a -> comparable) -> Set comparable -> List a -> List a
+uniqueHelp f existing remaining =
+    case remaining of
+        [] ->
+            []
+
+        first :: rest ->
+            let
+                computedFirst =
+                    f first
+            in
+                if Set.member computedFirst existing then
+                    uniqueHelp f existing rest
+                else
+                    first :: uniqueHelp f (Set.insert computedFirst existing) rest
 
 
 {-| -}
-type alias MediaQuery =
-    ( String, Model -> Model )
+type alias MediaQuery class =
+    ( String, Model class -> Model class )
 
 
 {-|
@@ -541,7 +581,7 @@ noRepeat =
 Will ignore any left spacing that it's parent has set for it.
 
 -}
-floatLeft : Model -> Model
+floatLeft : Model a -> Model a
 floatLeft (Model state) =
     Model { state | float = Just Style.Model.FloatLeft }
 
@@ -549,7 +589,7 @@ floatLeft (Model state) =
 {-|
 
 -}
-floatRight : Model -> Model
+floatRight : Model a -> Model a
 floatRight (Model state) =
     Model { state | float = Just Style.Model.FloatRight }
 
@@ -559,7 +599,7 @@ floatRight (Model state) =
 This is useful for floating things at the beginning of text.
 
 -}
-floatTopLeft : Model -> Model
+floatTopLeft : Model a -> Model a
 floatTopLeft (Model state) =
     Model { state | float = Just Style.Model.FloatTopLeft }
 
@@ -567,7 +607,7 @@ floatTopLeft (Model state) =
 {-|
 
 -}
-floatTopRight : Model -> Model
+floatTopRight : Model a -> Model a
 floatTopRight (Model state) =
     Model { state | float = Just Style.Model.FloatTopRight }
 
@@ -633,187 +673,187 @@ auto =
 
 
 {-| -}
-visibility : Visibility -> Model -> Model
+visibility : Visibility -> Model a -> Model a
 visibility vis (Model state) =
     Model { state | visibility = vis }
 
 
 {-| -}
-anchor : Anchor -> Model -> Model
+anchor : Anchor -> Model a -> Model a
 anchor anc (Model state) =
     Model { state | anchor = anc }
 
 
 {-| -}
-relativeTo : RelativeTo -> Model -> Model
+relativeTo : RelativeTo -> Model a -> Model a
 relativeTo rel (Model state) =
     Model { state | relativeTo = rel }
 
 
 {-| -}
-position : ( Float, Float ) -> Model -> Model
+position : ( Float, Float ) -> Model a -> Model a
 position pos (Model state) =
     Model { state | position = pos }
 
 
 {-| -}
-cursor : String -> Model -> Model
+cursor : String -> Model a -> Model a
 cursor curs (Model state) =
     Model { state | cursor = curs }
 
 
 {-| -}
-zIndex : Int -> Model -> Model
+zIndex : Int -> Model a -> Model a
 zIndex i (Model state) =
     Model { state | zIndex = Just i }
 
 
 {-| -}
-width : Length -> Model -> Model
+width : Length -> Model a -> Model a
 width w (Model state) =
     Model { state | width = w }
 
 
 {-| -}
-minWidth : Length -> Model -> Model
+minWidth : Length -> Model a -> Model a
 minWidth w (Model state) =
     Model { state | minWidth = Just w }
 
 
 {-| -}
-maxWidth : Length -> Model -> Model
+maxWidth : Length -> Model a -> Model a
 maxWidth w (Model state) =
     Model { state | maxWidth = Just w }
 
 
 {-| -}
-height : Length -> Model -> Model
+height : Length -> Model a -> Model a
 height h (Model state) =
     Model { state | height = h }
 
 
 {-| -}
-minHeight : Length -> Model -> Model
+minHeight : Length -> Model a -> Model a
 minHeight h (Model state) =
     Model { state | minHeight = Just h }
 
 
 {-| -}
-maxHeight : Length -> Model -> Model
+maxHeight : Length -> Model a -> Model a
 maxHeight h (Model state) =
     Model { state | maxHeight = Just h }
 
 
 {-| -}
-colors : ColorPalette -> Model -> Model
+colors : ColorPalette -> Model a -> Model a
 colors palette (Model state) =
     Model { state | colors = palette }
 
 
 {-| -}
-spacing : ( Float, Float, Float, Float ) -> Model -> Model
+spacing : ( Float, Float, Float, Float ) -> Model a -> Model a
 spacing s (Model state) =
     Model { state | spacing = s }
 
 
 {-| -}
-padding : ( Float, Float, Float, Float ) -> Model -> Model
+padding : ( Float, Float, Float, Float ) -> Model a -> Model a
 padding s (Model state) =
     Model { state | padding = s }
 
 
 {-| -}
-borderWidth : ( Float, Float, Float, Float ) -> Model -> Model
+borderWidth : ( Float, Float, Float, Float ) -> Model a -> Model a
 borderWidth s (Model state) =
     Model { state | borderWidth = s }
 
 
 {-| -}
-borderRadius : ( Float, Float, Float, Float ) -> Model -> Model
+borderRadius : ( Float, Float, Float, Float ) -> Model a -> Model a
 borderRadius s (Model state) =
     Model { state | borderRadius = s }
 
 
 {-| -}
-font : Font -> Model -> Model
+font : Font -> Model a -> Model a
 font text (Model state) =
     Model { state | font = text }
 
 
 {-| -}
-underline : Model -> Model
+underline : Model a -> Model a
 underline (Model state) =
     Model { state | underline = True }
 
 
 {-| -}
-strike : Model -> Model
+strike : Model a -> Model a
 strike (Model state) =
     Model { state | strike = True }
 
 
 {-| -}
-inline : Model -> Model
+inline : Model a -> Model a
 inline (Model state) =
     Model { state | inline = True }
 
 
 {-| -}
-italicize : Model -> Model
+italicize : Model a -> Model a
 italicize (Model state) =
     Model { state | italic = True }
 
 
 {-| -}
-bold : Model -> Model
+bold : Model a -> Model a
 bold (Model state) =
     Model { state | bold = Just 700 }
 
 
 {-| -}
-light : Model -> Model
+light : Model a -> Model a
 light (Model state) =
     Model { state | bold = Just 300 }
 
 
 {-| -}
-borderStyle : BorderStyle -> Model -> Model
+borderStyle : BorderStyle -> Model a -> Model a
 borderStyle style (Model state) =
     Model { state | borderStyle = style }
 
 
 {-| -}
-float : Floating -> Model -> Model
+float : Floating -> Model a -> Model a
 float floating (Model state) =
     Model { state | float = Just floating }
 
 
 {-| -}
-backgroundImage : BackgroundImage -> Model -> Model
+backgroundImage : BackgroundImage -> Model a -> Model a
 backgroundImage style (Model state) =
     Model { state | backgroundImage = Just style }
 
 
 {-| -}
-shadows : List Shadow -> Model -> Model
+shadows : List Shadow -> Model a -> Model a
 shadows shades (Model state) =
     Model { state | shadows = Just shades }
 
 
 {-| -}
-transforms : List Transform -> Model -> Model
+transforms : List Transform -> Model a -> Model a
 transforms trans (Model state) =
     Model { state | transforms = Just trans }
 
 
 {-| -}
-filters : List Filter -> Model -> Model
+filters : List Filter -> Model a -> Model a
 filters filts (Model state) =
     Model { state | filters = Just filts }
 
 
 {-| -}
-media : List MediaQuery -> Model -> Model
+media : List (MediaQuery a) -> Model a -> Model a
 media queries (Model state) =
     let
         renderedMediaQueries =
@@ -823,7 +863,7 @@ media queries (Model state) =
 
 
 {-| -}
-properties : List ( String, String ) -> Model -> Model
+properties : List ( String, String ) -> Model a -> Model a
 properties props (Model style) =
     Model { style | properties = Just props }
 
@@ -835,7 +875,7 @@ If you try to assign a float or make an element inline that is not the child of 
 Besides this, all immediate children are arranged as if they were `display: block`.
 
 -}
-textLayout : Model -> Model
+textLayout : Model a -> Model a
 textLayout (Model state) =
     Model { state | layout = Style.Model.TextLayout }
 
@@ -843,7 +883,7 @@ textLayout (Model state) =
 {-| This is the same as setting an element to `display:table`.
 
 -}
-tableLayout : Model -> Model
+tableLayout : Model a -> Model a
 tableLayout (Model state) =
     Model { state | layout = Style.Model.TableLayout }
 
@@ -860,7 +900,7 @@ type alias Flow =
 
 {-| This is a flexbox based layout
 -}
-flowUp : Flow -> Model -> Model
+flowUp : Flow -> Model a -> Model a
 flowUp { wrap, horizontal, vertical } model =
     let
         layout =
@@ -880,7 +920,7 @@ flowUp { wrap, horizontal, vertical } model =
 {-|
 
 -}
-flowDown : Flow -> Model -> Model
+flowDown : Flow -> Model a -> Model a
 flowDown { wrap, horizontal, vertical } model =
     let
         layout =
@@ -898,7 +938,7 @@ flowDown { wrap, horizontal, vertical } model =
 
 
 {-| -}
-flowRight : Flow -> Model -> Model
+flowRight : Flow -> Model a -> Model a
 flowRight { wrap, horizontal, vertical } model =
     let
         layout =
@@ -916,7 +956,7 @@ flowRight { wrap, horizontal, vertical } model =
 
 
 {-| -}
-flowLeft : Flow -> Model -> Model
+flowLeft : Flow -> Model a -> Model a
 flowLeft { wrap, horizontal, vertical } model =
     let
         layout =
@@ -1295,29 +1335,29 @@ sepia x =
 
 
 {-| -}
-mediaQuery : String -> (Model -> Model) -> MediaQuery
+mediaQuery : String -> (Style.Model.Model class -> Style.Model.Model class) -> MediaQuery class
 mediaQuery name variation =
     ( name, variation )
 
 
 {-| -}
-transition : Maybe Transition -> Model -> Model
+transition : Maybe Transition -> Model a -> Model a
 transition trans (Model state) =
     Model { state | transition = trans }
 
 
 {-| -}
-type alias Animation =
+type alias Animation class =
     { duration : Time
     , easing : String
     , repeat : Float
-    , steps : List ( Float, Model -> Model )
+    , steps : List ( Float, Style.Model.Model class -> Style.Model.Model class )
     }
 
 
 {-| Create an animation
 -}
-animate : Animation -> Model -> Model
+animate : Animation a -> Model a -> Model a
 animate { duration, easing, repeat, steps } (Model state) =
     Model
         { state
@@ -1334,7 +1374,7 @@ animate { duration, easing, repeat, steps } (Model state) =
 
 {-| Add a property.  Not to be exported, `properties` is to be used instead.
 -}
-add : ( String, String ) -> Model -> Model
+add : ( String, String ) -> Model a -> Model a
 add prop (Model state) =
     Model
         { state
@@ -1349,7 +1389,7 @@ add prop (Model state) =
 
 
 {-| -}
-hover : (Model -> Model) -> Model -> Model
+hover : (Model a -> Model a) -> Model a -> Model a
 hover vary (Model model) =
     let
         (Model state) =
@@ -1371,7 +1411,7 @@ hover vary (Model model) =
 
 
 {-| -}
-focus : (Model -> Model) -> Model -> Model
+focus : (Model a -> Model a) -> Model a -> Model a
 focus vary (Model model) =
     let
         (Model state) =
@@ -1393,7 +1433,7 @@ focus vary (Model model) =
 
 
 {-| -}
-checked : (Model -> Model) -> Model -> Model
+checked : (Model a -> Model a) -> Model a -> Model a
 checked vary (Model model) =
     let
         (Model state) =
@@ -1415,7 +1455,7 @@ checked vary (Model model) =
 
 
 {-| -}
-selection : (Model -> Model) -> Model -> Model
+selection : (Model a -> Model a) -> Model a -> Model a
 selection vary (Model model) =
     let
         (Model state) =
@@ -1438,7 +1478,7 @@ selection vary (Model model) =
 
 {-| Requires a string which will be rendered as the 'content' property
 -}
-after : String -> (Model -> Model) -> Model -> Model
+after : String -> (Model a -> Model a) -> Model a -> Model a
 after content variation (Model model) =
     let
         (Model state) =
@@ -1461,7 +1501,7 @@ after content variation (Model model) =
 
 {-| Requires a string which will be rendered as the 'content' property
 -}
-before : String -> (Model -> Model) -> Model -> Model
+before : String -> (Model a -> Model a) -> Model a -> Model a
 before content variation (Model model) =
     let
         (Model state) =

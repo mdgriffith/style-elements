@@ -1,4 +1,4 @@
-module Style.Render exposing (render, convertToCSS)
+module Style.Render exposing (render, getName)
 
 {-|
 -}
@@ -7,30 +7,20 @@ import Html
 import Html.Attributes
 import Svg.Attributes
 import Style.Model exposing (..)
-import Style
 import Color exposing (Color)
 import String
 import Char
 import Murmur3
 import Json.Encode as Json
-import Set exposing (Set)
+import String.Extra
 
 
-classNameAndTags : StyleDefinition -> String
-classNameAndTags def =
-    case def of
-        StyleDef { name, tags } ->
-            name ++ " " ++ String.join " " tags
-
-
-className : StyleDefinition -> String
-className (StyleDef { name }) =
-    name
-
-
-styleProps : StyleDefinition -> List ( String, String )
-styleProps (StyleDef { style }) =
-    style
+formatName : a -> String
+formatName class =
+    (toString class)
+        |> String.Extra.unquote
+        |> String.Extra.decapitalize
+        |> String.Extra.dasherize
 
 
 type alias Permissions =
@@ -56,11 +46,19 @@ renderPermissions perm =
     (,)
 
 
-render : Model -> ( String, StyleDefinition )
+getName : Model a -> String
+getName model =
+    Tuple.first <| render model
+
+
+render : Model a -> ( String, String )
 render (Model style) =
     let
         ( layout, childrenPermissions ) =
             renderLayout style.layout
+
+        animationAndKeyframes =
+            Maybe.map renderAnimation style.animation
 
         renderedStyle =
             let
@@ -113,6 +111,7 @@ render (Model style) =
                         , Maybe.map (\maxHeight -> "max-height" => renderLength maxHeight) style.maxHeight
                         , Maybe.map renderFilters style.filters
                         , Maybe.map renderTransforms style.transforms
+                        , Maybe.map Tuple.first animationAndKeyframes
                         , Just <| renderVisibility style.visibility
                         ]
 
@@ -136,7 +135,7 @@ render (Model style) =
             in
                 simple ++ compound
 
-        restrictedTags =
+        tags =
             let
                 floating =
                     Maybe.map (\_ -> "floating") style.float
@@ -153,63 +152,73 @@ render (Model style) =
             in
                 List.filterMap identity [ permissions, inline, floating ]
 
+        name =
+            case style.classOverride of
+                Just override ->
+                    override
+
+                Nothing ->
+                    case style.class of
+                        Just str ->
+                            formatName str
+
+                        Nothing ->
+                            let
+                                childrenSignature =
+                                    Maybe.map renderSubElementSignature style.subelements
+                                        |> Maybe.withDefault ""
+
+                                propSignature =
+                                    String.join "" <| List.map renderProp renderedStyle
+
+                                mediaSignature =
+                                    String.join "" <| List.map renderMediaQuerySignature style.media
+                            in
+                                hash (propSignature ++ childrenSignature ++ mediaSignature)
+
         childrenRestrictions =
             case style.layout of
                 TableLayout ->
-                    [ StyleDef
-                        { name = " > *:not(.inline)"
-                        , tags = []
-                        , style =
+                    String.join "\n"
+                        [ renderClass 0
+                            (name ++ " > *:not(.inline)")
                             [ "margin" => render4tuplePx style.spacing
                             , "display" => "table-row !important"
                             ]
-                        , children = []
-                        , animation = Nothing
-                        , media = []
-                        }
-                    , StyleDef
-                        { name = " > * > *"
-                        , tags = []
-                        , style =
-                            [ "display" => "table-cell !important" ]
-                        , children = []
-                        , animation = Nothing
-                        , media = []
-                        }
-                    ]
+                        , renderClass 0
+                            (name ++ " > * > *")
+                            [ ( "display", "table-cell !important" ) ]
+                        ]
 
                 _ ->
-                    [ StyleDef
-                        { name = " > *:not(.inline)"
-                        , tags = []
-                        , style =
-                            [ "margin" => render4tuplePx style.spacing
-                            ]
-                        , children = []
-                        , animation = Nothing
-                        , media = []
-                        }
-                    ]
+                    renderClass 0
+                        (name ++ " > *:not(.inline)")
+                        [ ( "margin", render4tuplePx style.spacing ) ]
 
         children =
-            case Maybe.map renderSubElements style.subelements of
+            case Maybe.map (renderSubElements name) style.subelements of
                 Nothing ->
-                    childrenRestrictions
+                    childrenRestrictions ++ "\n"
 
                 Just subs ->
                     subs ++ childrenRestrictions
 
-        styleDefinition =
-            addClassName
-                { style = renderedStyle
-                , tags = restrictedTags
-                , children = children
-                , animation = Maybe.map renderAnimation style.animation
-                , media = List.map (\(MediaQuery query mediaStyle) -> ( query, Tuple.second <| render mediaStyle )) style.media
-                }
+        mediaQueries =
+            case List.map (renderMediaQuery name) style.media of
+                [] ->
+                    ""
+
+                queries ->
+                    (String.join "\n" queries) ++ "\n"
     in
-        ( classNameAndTags styleDefinition
-        , styleDefinition
+        ( String.join " " (name :: tags)
+        , renderClass 0 name renderedStyle
+            ++ children
+            ++ (Maybe.map Tuple.second animationAndKeyframes
+                    |> Maybe.withDefault ""
+               )
+            ++ "\n"
+            ++ mediaQueries
         )
 
 
@@ -218,107 +227,76 @@ brace str =
     " {\n" ++ str ++ "\n}\n"
 
 
+type alias ClassPair =
+    ( String, List ( String, String ) )
+
+
+renderClass : Int -> String -> List ( String, String ) -> String
+renderClass indent name props =
+    name ++ brace (String.join "\n" <| List.map renderProp props) ++ "\n"
+
+
 renderProp : ( String, String ) -> String
 renderProp ( propName, propValue ) =
     "  " ++ propName ++ ": " ++ propValue ++ ";"
 
 
-renderSubElements : SubElements -> List StyleDefinition
-renderSubElements sub =
-    List.filterMap
-        (\( name, style ) ->
-            case style of
-                Nothing ->
-                    Nothing
+renderSubElementSignature : SubElements a -> String
+renderSubElementSignature sub =
+    String.join "\n" <|
+        List.filterMap
+            (\( name, style ) ->
+                case style of
+                    Nothing ->
+                        Nothing
 
-                Just s ->
-                    let
-                        (StyleDef rendered) =
-                            Tuple.second (render s)
-                    in
-                        Just <|
-                            StyleDef { rendered | name = name }
-        )
-        [ ":hover" => sub.hover
-        , ":focus" => sub.focus
-        , ":selection" => sub.selection
-        , ":focus" => sub.focus
-        , ":checked" => sub.checked
-        , ":after" => sub.after
-        , ":before" => sub.checked
-        ]
+                    Just (Model state) ->
+                        Just (Tuple.second <| render (Model { state | classOverride = Just name }))
+            )
+            [ ":hover" => sub.hover
+            , ":focus" => sub.focus
+            , ":selection" => sub.selection
+            , ":focus" => sub.focus
+            , ":checked" => sub.checked
+            , ":after" => sub.after
+            , ":before" => sub.before
+            ]
 
 
-{-|
--}
-convertAnimation : String -> ( Style, Maybe ( String, Keyframes ) ) -> String
-convertAnimation name ( style, frames ) =
+renderSubElements : String -> SubElements a -> String
+renderSubElements className sub =
+    String.join "\n" <|
+        List.filterMap
+            (\( name, style ) ->
+                case style of
+                    Nothing ->
+                        Nothing
+
+                    Just (Model state) ->
+                        Just <| Tuple.second (render (Model { state | classOverride = Just (className ++ name) }))
+            )
+            [ ":hover" => sub.hover
+            , ":focus" => sub.focus
+            , ":selection" => sub.selection
+            , ":focus" => sub.focus
+            , ":checked" => sub.checked
+            , ":after" => sub.after
+            , ":before" => sub.before
+            ]
+
+
+renderMediaQuerySignature : MediaQuery a -> String
+renderMediaQuerySignature (MediaQuery query (Model state)) =
+    query ++ (Tuple.second (render (Model { state | classOverride = Just "media-query" })))
+
+
+renderMediaQuery : String -> MediaQuery a -> String
+renderMediaQuery className (MediaQuery query (Model state)) =
     let
-        props =
-            List.map renderProp style
-                |> String.join "\n"
+        style =
+            Tuple.second (render (Model { state | classOverride = Just className }))
     in
-        "." ++ name ++ (brace props)
-
-
-convertToCSS : List StyleDefinition -> String
-convertToCSS styles =
-    let
-        convert (StyleDef { name, style, animation, children, media }) =
-            let
-                class =
-                    "." ++ name
-
-                animationProps =
-                    animation
-                        |> Maybe.map Tuple.first
-                        |> Maybe.withDefault []
-
-                props =
-                    (style ++ animationProps)
-                        |> List.map renderProp
-                        |> String.join "\n"
-
-                keyframes =
-                    animation
-                        |> Maybe.map
-                            (\( _, keyframes ) ->
-                                keyframes
-                                    |> Maybe.map (\( animName, frames ) -> convertKeyframesToCSS animName frames)
-                                    |> Maybe.withDefault ""
-                            )
-                        |> Maybe.withDefault ""
-
-                renderedChildren =
-                    convertToCSS children
-
-                mediaQueries =
-                    media
-                        |> List.map
-                            (\( query, styleVarDef ) ->
-                                let
-                                    mediaProps =
-                                        List.map renderProp (styleProps styleVarDef)
-                                            |> List.map (\prop -> "  " ++ prop)
-                                            |> String.join "\n"
-
-                                    braced =
-                                        " {\n" ++ mediaProps ++ "\n  }\n"
-                                in
-                                    "@media " ++ query ++ brace ("  " ++ class ++ braced)
-                            )
-                        |> String.join "\n"
-            in
-                class
-                    ++ (brace props)
-                    ++ renderedChildren
-                    ++ keyframes
-                    ++ mediaQueries
-    in
-        uniqueBy className styles
-            |> List.map convert
-            |> String.join "\n"
-            |> String.trim
+        "@media " ++ query ++ brace style
 
 
 convertKeyframesToCSS : String -> List ( Float, List ( String, String ) ) -> String
@@ -346,117 +324,6 @@ convertKeyframesToCSS animName frames =
         ++ "\n}\n"
 
 
-{-| Drop duplicates where what is considered to be a duplicate is the result of first applying the supplied function to the elements of the list.
--}
-uniqueBy : (a -> comparable) -> List a -> List a
-uniqueBy f list =
-    uniqueHelp f Set.empty list
-
-
-uniqueHelp : (a -> comparable) -> Set comparable -> List a -> List a
-uniqueHelp f existing remaining =
-    case remaining of
-        [] ->
-            []
-
-        first :: rest ->
-            let
-                computedFirst =
-                    f first
-            in
-                if Set.member computedFirst existing then
-                    uniqueHelp f existing rest
-                else
-                    first :: uniqueHelp f (Set.insert computedFirst existing) rest
-
-
-addClassName :
-    { animation : Maybe ( Style, Maybe ( String, Keyframes ) )
-    , style : List ( String, String )
-    , tags : List String
-    , children : List StyleDefinition
-    , media : List ( String, StyleDefinition )
-    }
-    -> StyleDefinition
-addClassName { tags, style, children, animation, media } =
-    let
-        styleString =
-            style
-                |> List.map (\( propName, value ) -> propName ++ value)
-                |> String.concat
-
-        keyframeString =
-            animation
-                |> Maybe.map
-                    (\( style, keyframes ) ->
-                        let
-                            renderedKeyframes =
-                                case keyframes of
-                                    Just ( animName, frames ) ->
-                                        Just <| convertKeyframesToCSS animName frames
-
-                                    Nothing ->
-                                        Nothing
-
-                            renderedStyle =
-                                style
-                                    |> List.map (\( name, val ) -> name ++ val)
-                                    |> String.concat
-                                    |> Just
-                        in
-                            String.concat <| List.filterMap identity [ renderedKeyframes, renderedStyle ]
-                    )
-                |> Maybe.withDefault ""
-
-        animString =
-            animation
-                |> Maybe.map (convertAnimation "placeholder-for-hashing")
-                |> Maybe.withDefault ""
-
-        childrenString =
-            convertToCSS children
-
-        mediaQueries =
-            media
-                |> List.map
-                    (\( query, styleVarDef ) ->
-                        let
-                            mediaProps =
-                                List.map renderProp (styleProps styleVarDef)
-                                    |> List.map (\prop -> "  " ++ prop)
-                                    |> String.join "\n"
-                        in
-                            query ++ mediaProps
-                    )
-                |> String.concat
-
-        name =
-            hash (styleString ++ animString ++ mediaQueries ++ childrenString ++ keyframeString)
-    in
-        StyleDef
-            { name = name
-            , tags = tags
-            , children = List.map (prependName name) children
-            , style =
-                List.map
-                    (\( pName, pValue ) ->
-                        if pName == "animation" then
-                            ( pName, "animation-" ++ name ++ " " ++ pValue )
-                        else
-                            ( pName, pValue )
-                    )
-                    style
-            , animation = animation
-            , media = media
-            }
-
-
-prependName : String -> StyleDefinition -> StyleDefinition
-prependName name (StyleDef style) =
-    StyleDef
-        { style | name = name ++ style.name }
-
-
 {-|
 
 -}
@@ -470,7 +337,7 @@ hash value =
         |> String.toLower
 
 
-renderAnimation : Animation -> ( Style.Model.Style, Maybe ( String, Style.Model.Keyframes ) )
+renderAnimation : Animation a -> ( ( String, String ), String )
 renderAnimation (Animation { duration, easing, steps, repeat }) =
     let
         ( renderedStyle, renderedFrames ) =
@@ -487,28 +354,27 @@ renderAnimation (Animation { duration, easing, steps, repeat }) =
                 ( allNames, renderedSteps ) =
                     List.unzip <|
                         List.map
-                            (\( marker, variation ) ->
+                            (\( marker, Model variation ) ->
                                 let
-                                    ( name, styleDef ) =
-                                        render variation
+                                    name =
+                                        getName (Model variation)
 
-                                    rendered =
-                                        case styleDef of
-                                            StyleDef { style } ->
-                                                style
+                                    style =
+                                        Tuple.second <| render (Model { variation | classOverride = Just (toString marker ++ "%") })
                                 in
-                                    ( name, ( marker, rendered ) )
+                                    ( name, style )
                             )
                             steps
 
                 animationName =
                     "animation-" ++ (hash <| String.concat allNames)
             in
-                ( [ "animation" => (animationName ++ " " ++ renderedDuration ++ " " ++ easing ++ " " ++ iterations) ]
-                , Just
-                    ( animationName
-                    , renderedSteps
-                    )
+                ( "animation" => (animationName ++ " " ++ renderedDuration ++ " " ++ easing ++ " " ++ iterations)
+                , "@keyframes "
+                    ++ animationName
+                    ++ " {\n"
+                    ++ (String.join "\n" renderedSteps)
+                    ++ "\n}\n"
                 )
     in
         ( renderedStyle, renderedFrames )
