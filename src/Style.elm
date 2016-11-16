@@ -1,6 +1,7 @@
 module Style
     exposing
         ( Model
+        , Simple
         , ColorPalette
         , Shadow
         , Visibility
@@ -21,6 +22,8 @@ module Style
         , Animation
         , MediaQuery
         , Transition
+        , embed
+        , class
         , flowUp
         , flowDown
         , flowRight
@@ -146,7 +149,7 @@ module Style
 
 This module is focused around composing a style.
 
-@docs Model, empty
+@docs Simple, Model, empty, embed, class
 
 
 # Positioning
@@ -371,11 +374,17 @@ empty =
         }
 
 
+{-| Get the class name of a style.
+
+This is either auto generated via a murmur3 hashof the style properties, or it's specified directly.
+-}
 class : Model a -> Html.Attribute msg
 class (Model style) =
     Html.Attributes.class (Style.Render.getName (Model style))
 
 
+{-| Embed a style sheet into your html.
+-}
 embed : List (Model a) -> Html msg
 embed styles =
     styles

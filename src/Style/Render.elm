@@ -51,6 +51,89 @@ getName model =
     Tuple.first <| render model
 
 
+renderBaseStyle : Model a -> List ( String, String )
+renderBaseStyle (Model style) =
+    let
+        ( layout, childrenPermissions ) =
+            renderLayout style.layout
+
+        animationAndKeyframes =
+            Maybe.map renderAnimation style.animation
+
+        simple =
+            List.filterMap identity
+                [ Just ("box-sizing" => "border-box")
+                , Just ("width" => renderLength style.width)
+                , Just ("height" => renderLength style.height)
+                , Just ("cursor" => style.cursor)
+                , Just ("padding" => render4tuplePx style.padding)
+                , Just ("border-width" => render4tuplePx style.borderWidth)
+                , Just ("border-radius" => render4tuplePx style.borderRadius)
+                , Just <|
+                    "border-style"
+                        => case style.borderStyle of
+                            Solid ->
+                                "solid"
+
+                            Dashed ->
+                                "dashed"
+
+                            Dotted ->
+                                "dotted"
+                , if style.italic then
+                    Just ("font-style" => "italic")
+                  else
+                    Nothing
+                , Maybe.map
+                    (\bold ->
+                        "font-weight"
+                            => toString bold
+                    )
+                    style.bold
+                , case ( style.underline, style.strike ) of
+                    ( False, False ) ->
+                        Just ("text-decoration" => "none")
+
+                    ( True, False ) ->
+                        Just ("text-decoration" => "underline")
+
+                    ( False, True ) ->
+                        Just ("text-decoration" => "line-through")
+
+                    ( True, True ) ->
+                        Just ("text-decoration" => "underline line-through")
+                , Maybe.map (\zIndex -> "z-index" => toString zIndex) style.zIndex
+                , Maybe.map (\minWidth -> "min-width" => renderLength minWidth) style.minWidth
+                , Maybe.map (\minHeight -> "min-height" => renderLength minHeight) style.minHeight
+                , Maybe.map (\maxWidth -> "max-width" => renderLength maxWidth) style.maxWidth
+                , Maybe.map (\maxHeight -> "max-height" => renderLength maxHeight) style.maxHeight
+                , Maybe.map renderFilters style.filters
+                , Maybe.map renderTransforms style.transforms
+                , Maybe.map Tuple.first animationAndKeyframes
+                , Just <| renderVisibility style.visibility
+                ]
+
+        compound =
+            List.concat <|
+                List.filterMap identity
+                    [ Just layout
+                    , Just <| renderPosition style.relativeTo style.anchor style.position
+                    , Just <| renderColorPalette style.colors
+                    , Just <| renderText style.font
+                    , Maybe.map renderBackgroundImage style.backgroundImage
+                    , Maybe.map renderFloating style.float
+                    , Maybe.map renderShadow style.shadows
+                    , Maybe.map renderTransition style.transition
+                    , if style.inline then
+                        Just [ "display" => "inline-block" ]
+                      else
+                        Nothing
+                    , style.properties
+                    ]
+    in
+        simple ++ compound
+
+
 render : Model a -> ( String, String )
 render (Model style) =
     let
@@ -61,79 +144,7 @@ render (Model style) =
             Maybe.map renderAnimation style.animation
 
         renderedStyle =
-            let
-                simple =
-                    List.filterMap identity
-                        [ Just ("box-sizing" => "border-box")
-                        , Just ("width" => renderLength style.width)
-                        , Just ("height" => renderLength style.height)
-                        , Just ("cursor" => style.cursor)
-                        , Just ("padding" => render4tuplePx style.padding)
-                        , Just ("border-width" => render4tuplePx style.borderWidth)
-                        , Just ("border-radius" => render4tuplePx style.borderRadius)
-                        , Just <|
-                            "border-style"
-                                => case style.borderStyle of
-                                    Solid ->
-                                        "solid"
-
-                                    Dashed ->
-                                        "dashed"
-
-                                    Dotted ->
-                                        "dotted"
-                        , if style.italic then
-                            Just ("font-style" => "italic")
-                          else
-                            Nothing
-                        , Maybe.map
-                            (\bold ->
-                                "font-weight"
-                                    => toString bold
-                            )
-                            style.bold
-                        , case ( style.underline, style.strike ) of
-                            ( False, False ) ->
-                                Just ("text-decoration" => "none")
-
-                            ( True, False ) ->
-                                Just ("text-decoration" => "underline")
-
-                            ( False, True ) ->
-                                Just ("text-decoration" => "line-through")
-
-                            ( True, True ) ->
-                                Just ("text-decoration" => "underline line-through")
-                        , Maybe.map (\zIndex -> "z-index" => toString zIndex) style.zIndex
-                        , Maybe.map (\minWidth -> "min-width" => renderLength minWidth) style.minWidth
-                        , Maybe.map (\minHeight -> "min-height" => renderLength minHeight) style.minHeight
-                        , Maybe.map (\maxWidth -> "max-width" => renderLength maxWidth) style.maxWidth
-                        , Maybe.map (\maxHeight -> "max-height" => renderLength maxHeight) style.maxHeight
-                        , Maybe.map renderFilters style.filters
-                        , Maybe.map renderTransforms style.transforms
-                        , Maybe.map Tuple.first animationAndKeyframes
-                        , Just <| renderVisibility style.visibility
-                        ]
-
-                compound =
-                    List.concat <|
-                        List.filterMap identity
-                            [ Just layout
-                            , Just <| renderPosition style.relativeTo style.anchor style.position
-                            , Just <| renderColorPalette style.colors
-                            , Just <| renderText style.font
-                            , Maybe.map renderBackgroundImage style.backgroundImage
-                            , Maybe.map renderFloating style.float
-                            , Maybe.map renderShadow style.shadows
-                            , Maybe.map renderTransition style.transition
-                            , if style.inline then
-                                Just [ "display" => "inline-block" ]
-                              else
-                                Nothing
-                            , style.properties
-                            ]
-            in
-                simple ++ compound
+            renderBaseStyle (Model style)
 
         tags =
             let
@@ -152,15 +163,19 @@ render (Model style) =
             in
                 List.filterMap identity [ permissions, inline, floating ]
 
-        name =
+        ( name, selector ) =
             case style.classOverride of
                 Just override ->
-                    override
+                    ( override, override )
 
                 Nothing ->
                     case style.class of
                         Just str ->
-                            formatName str
+                            let
+                                formatted =
+                                    formatName str
+                            in
+                                ( formatted, "." ++ formatted )
 
                         Nothing ->
                             let
@@ -173,38 +188,41 @@ render (Model style) =
 
                                 mediaSignature =
                                     String.join "" <| List.map renderMediaQuerySignature style.media
+
+                                hashed =
+                                    hash (propSignature ++ childrenSignature ++ mediaSignature)
                             in
-                                hash (propSignature ++ childrenSignature ++ mediaSignature)
+                                ( hashed, "." ++ hashed )
 
         childrenRestrictions =
             case style.layout of
                 TableLayout ->
                     String.join "\n"
                         [ renderClass 0
-                            (name ++ " > *:not(.inline)")
+                            (selector ++ " > *:not(.inline)")
                             [ "margin" => render4tuplePx style.spacing
                             , "display" => "table-row !important"
                             ]
                         , renderClass 0
-                            (name ++ " > * > *")
+                            (selector ++ " > * > *")
                             [ ( "display", "table-cell !important" ) ]
                         ]
 
                 _ ->
                     renderClass 0
-                        (name ++ " > *:not(.inline)")
+                        (selector ++ " > *:not(.inline)")
                         [ ( "margin", render4tuplePx style.spacing ) ]
 
         children =
-            case Maybe.map (renderSubElements name) style.subelements of
+            case Maybe.map (renderSubElements selector) style.subelements of
                 Nothing ->
-                    childrenRestrictions ++ "\n"
+                    childrenRestrictions
 
                 Just subs ->
                     subs ++ childrenRestrictions
 
         mediaQueries =
-            case List.map (renderMediaQuery name) style.media of
+            case List.map (renderMediaQuery selector) style.media of
                 [] ->
                     ""
 
@@ -212,28 +230,45 @@ render (Model style) =
                     (String.join "\n" queries) ++ "\n"
     in
         ( String.join " " (name :: tags)
-        , renderClass 0 name renderedStyle
+        , renderClass 0 selector renderedStyle
             ++ children
             ++ (Maybe.map Tuple.second animationAndKeyframes
                     |> Maybe.withDefault ""
                )
-            ++ "\n"
             ++ mediaQueries
         )
 
 
 brace : String -> String
 brace str =
-    " {\n" ++ str ++ "\n}\n"
+    " {\n" ++ str ++ "\n}"
 
 
 type alias ClassPair =
     ( String, List ( String, String ) )
 
 
+indent : Int -> String -> String
+indent x str =
+    str
+        |> String.split "\n"
+        |> List.filterMap
+            (\s ->
+                if String.isEmpty (String.trim s) then
+                    Nothing
+                else
+                    Just <| (String.repeat x " ") ++ s
+            )
+        |> String.join "\n"
+
+
 renderClass : Int -> String -> List ( String, String ) -> String
-renderClass indent name props =
-    name ++ brace (String.join "\n" <| List.map renderProp props) ++ "\n"
+renderClass x name props =
+    (name ++ brace (String.join "\n" <| List.map renderProp props) ++ "\n")
+        |> if x > 0 then
+            indent x
+           else
+            identity
 
 
 renderProp : ( String, String ) -> String
@@ -273,7 +308,7 @@ renderSubElements className sub =
                         Nothing
 
                     Just (Model state) ->
-                        Just <| Tuple.second (render (Model { state | classOverride = Just (className ++ name) }))
+                        Just <| renderClass 0 (className ++ name) (renderBaseStyle (Model state))
             )
             [ ":hover" => sub.hover
             , ":focus" => sub.focus
@@ -291,37 +326,12 @@ renderMediaQuerySignature (MediaQuery query (Model state)) =
 
 
 renderMediaQuery : String -> MediaQuery a -> String
-renderMediaQuery className (MediaQuery query (Model state)) =
+renderMediaQuery className (MediaQuery query model) =
     let
         style =
-            Tuple.second (render (Model { state | classOverride = Just className }))
+            renderClass 2 className (renderBaseStyle model)
     in
         "@media " ++ query ++ brace style
-
-
-convertKeyframesToCSS : String -> List ( Float, List ( String, String ) ) -> String
-convertKeyframesToCSS animName frames =
-    "@keyframes "
-        ++ animName
-        ++ " {\n"
-        ++ (String.join "\n" <|
-                List.map
-                    (\( marker, frame ) ->
-                        "  "
-                            ++ toString marker
-                            ++ "% {\n"
-                            ++ (String.concat <|
-                                    List.map
-                                        (\( propName, propValue ) ->
-                                            "    " ++ propName ++ ": " ++ propValue ++ ";\n"
-                                        )
-                                        frame
-                               )
-                            ++ "  }"
-                    )
-                    frames
-           )
-        ++ "\n}\n"
 
 
 {-|
@@ -354,15 +364,15 @@ renderAnimation (Animation { duration, easing, steps, repeat }) =
                 ( allNames, renderedSteps ) =
                     List.unzip <|
                         List.map
-                            (\( marker, Model variation ) ->
+                            (\( marker, model ) ->
                                 let
                                     name =
-                                        getName (Model variation)
+                                        getName model
 
                                     style =
-                                        Tuple.second <| render (Model { variation | classOverride = Just (toString marker ++ "%") })
+                                        renderClass 2 (toString marker ++ "%") (renderBaseStyle model)
                                 in
-                                    ( name, style )
+                                    ( name, style ++ "\n" )
                             )
                             steps
 
@@ -373,8 +383,8 @@ renderAnimation (Animation { duration, easing, steps, repeat }) =
                 , "@keyframes "
                     ++ animationName
                     ++ " {\n"
-                    ++ (String.join "\n" renderedSteps)
-                    ++ "\n}\n"
+                    ++ (String.join "" renderedSteps)
+                    ++ "}"
                 )
     in
         ( renderedStyle, renderedFrames )
