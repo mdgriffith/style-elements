@@ -29,18 +29,6 @@ type alias Permissions =
     }
 
 
-renderPermissions : Permissions -> String
-renderPermissions perm =
-    if not perm.floats && not perm.inline then
-        "not-floatable not-inlineable"
-    else if not perm.floats then
-        "not-floatable"
-    else if not perm.inline then
-        "not-inlineable"
-    else
-        ""
-
-
 (=>) : x -> y -> ( x, y )
 (=>) =
     (,)
@@ -152,14 +140,20 @@ render (Model style) =
                     Maybe.map (\_ -> "floating") style.float
 
                 inline =
-                    if style.inline then
-                        Just "inline"
+                    if not style.inline then
+                        Just "pos"
                     else
                         Nothing
 
                 permissions =
-                    Just <|
-                        renderPermissions childrenPermissions
+                    if not childrenPermissions.floats && not childrenPermissions.inline then
+                        Just "not-floatable not-inlineable"
+                    else if not childrenPermissions.floats then
+                        Just "not-floatable"
+                    else if not childrenPermissions.inline then
+                        Just "not-inlineable"
+                    else
+                        Nothing
             in
                 List.filterMap identity [ permissions, inline, floating ]
 
@@ -194,32 +188,18 @@ render (Model style) =
                             in
                                 ( hashed, "." ++ hashed )
 
-        childrenRestrictions =
-            case style.layout of
-                TableLayout ->
-                    String.join "\n"
-                        [ renderClass 0
-                            (selector ++ " > *:not(.inline)")
-                            [ "margin" => render4tuplePx style.spacing
-                            , "display" => "table-row !important"
-                            ]
-                        , renderClass 0
-                            (selector ++ " > * > *")
-                            [ ( "display", "table-cell !important" ) ]
-                        ]
-
-                _ ->
-                    renderClass 0
-                        (selector ++ " > *:not(.inline)")
-                        [ ( "margin", render4tuplePx style.spacing ) ]
+        childMargin =
+            renderClass 0
+                (selector ++ " > .pos")
+                [ ( "margin", render4tuplePx style.spacing ) ]
 
         children =
             case Maybe.map (renderSubElements selector) style.subelements of
                 Nothing ->
-                    childrenRestrictions
+                    childMargin
 
                 Just subs ->
-                    subs ++ childrenRestrictions
+                    childMargin ++ subs
 
         mediaQueries =
             case List.map (renderMediaQuery selector) style.media of
