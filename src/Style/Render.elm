@@ -85,8 +85,8 @@ renderBaseStyle (Model style) =
                     ( True, True ) ->
                         Just ("text-decoration" => "underline line-through")
                 , Maybe.map (\zIndex -> "z-index" => toString zIndex) style.zIndex
-                , Maybe.map renderFilters style.filters
-                , Maybe.map renderTransforms style.transforms
+                  --, Maybe.map renderFilters style.filters
+                  --, Maybe.map renderTransforms style.transforms
                 , Maybe.map Tuple.first animationAndKeyframes
                 , Just <| renderVisibility style.visibility
                 ]
@@ -98,10 +98,10 @@ renderBaseStyle (Model style) =
                     , Just <| renderPosition style.relativeTo style.anchor style.position
                     , Just <| renderColorPalette style.colors
                     , Just <| renderText style.font
-                    , Maybe.map renderBackgroundImage style.backgroundImage
+                      --, Maybe.map renderBackgroundImage style.backgroundImage
                     , Maybe.map renderFloating style.float
-                    , Maybe.map renderShadow style.shadows
-                    , Maybe.map renderTransition style.transition
+                      --, Maybe.map renderShadow style.shadows
+                      --, Maybe.map renderTransition style.transition
                     , if style.inline then
                         Just [ "display" => "inline-block" ]
                       else
@@ -113,7 +113,7 @@ renderBaseStyle (Model style) =
 
 
 type StylePoint
-    = Single String String
+    = Single ( String, String )
     | Multiple (List ( String, String ))
 
 
@@ -122,8 +122,8 @@ renderPoints points =
     List.foldr
         (\point aggregate ->
             case point of
-                Single name prop ->
-                    ( name, prop ) :: aggregate
+                Single prop ->
+                    prop :: aggregate
 
                 Multiple props ->
                     props ++ aggregate
@@ -144,13 +144,28 @@ renderProperty : Property a -> StylePoint
 renderProperty prop =
     case prop of
         Property name value ->
-            Single name value
+            Single ( name, value )
 
         Box name box ->
-            Single name (render4tuplePx box)
+            Single ( name, (render4tuplePx box) )
 
         Len name length ->
-            Single name (renderLength length)
+            Single ( name, (renderLength length) )
+
+        Filters filters ->
+            Single <| renderFilters filters
+
+        Transforms transforms ->
+            Single <| renderTransforms transforms
+
+        TransitionProperty transition ->
+            Multiple <| renderTransition transition
+
+        Shadows shadows ->
+            Multiple <| renderShadow shadows
+
+        BackgroundImageProp image ->
+            Multiple <| renderBackgroundImage image
 
 
 render : Model a -> ( String, String )

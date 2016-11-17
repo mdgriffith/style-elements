@@ -24,16 +24,19 @@ type Model class
         , strike : Bool
         , underline : Bool
         , spacing : ( Float, Float, Float, Float )
-        , borderStyle : BorderStyle
-        , backgroundImage : Maybe BackgroundImage
-        , shadows : Maybe (List Shadow)
-        , transforms : Maybe (List Transform)
-        , filters : Maybe (List Filter)
+        , borderStyle :
+            BorderStyle
+            --, backgroundImage : Maybe BackgroundImage
+            --, shadows : Maybe (List Shadow)
+            --, transforms : Maybe (List Transform)
+            --, filters : Maybe (List Filter)
         , animation : Maybe (Animation class)
         , media : List (MediaQuery class)
         , zIndex : Maybe Int
-        , properties : List (Property class)
-        , transition : Maybe Transition
+        , properties :
+            List (Property class)
+            --, transition :
+            --    Maybe Transition
         , subelements : Maybe (SubElements class)
         }
 
@@ -42,6 +45,15 @@ type Property class
     = Property String String
     | Box String ( Float, Float, Float, Float )
     | Len String Length
+    | Filters (List Filter)
+    | Transforms (List Transform)
+    | TransitionProperty Transition
+    | Shadows (List Shadow)
+    | BackgroundImageProp BackgroundImage
+
+
+
+--| SubElement String (Model a)
 
 
 type alias SubElements a =

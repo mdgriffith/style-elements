@@ -345,10 +345,6 @@ empty =
         , spacing = all 0
         , float = Nothing
         , inline = False
-        , backgroundImage = Nothing
-        , shadows = Nothing
-        , transforms = Nothing
-        , filters = Nothing
         , animation = Nothing
         , media = []
         , properties =
@@ -358,15 +354,14 @@ empty =
             , Style.Model.Box "padding" (all 0)
             , Style.Model.Box "border-width" (all 0)
             , Style.Model.Box "border-radius" (all 0)
-            ]
-        , zIndex = Nothing
-        , transition =
-            Just
+            , Style.Model.TransitionProperty
                 { property = "all"
                 , duration = 300
                 , easing = "ease-out"
                 , delay = 0
                 }
+            ]
+        , zIndex = Nothing
         , subelements = Nothing
         }
 
@@ -911,26 +906,42 @@ float floating (Model state) =
 
 {-| -}
 backgroundImage : BackgroundImage -> Model a -> Model a
-backgroundImage style (Model state) =
-    Model { state | backgroundImage = Just style }
+backgroundImage value (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.BackgroundImageProp value :: state.properties
+        }
 
 
 {-| -}
 shadows : List Shadow -> Model a -> Model a
-shadows shades (Model state) =
-    Model { state | shadows = Just shades }
+shadows value (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.Shadows value :: state.properties
+        }
 
 
 {-| -}
 transforms : List Transform -> Model a -> Model a
-transforms trans (Model state) =
-    Model { state | transforms = Just trans }
+transforms value (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.Transforms value :: state.properties
+        }
 
 
 {-| -}
 filters : List Filter -> Model a -> Model a
-filters filts (Model state) =
-    Model { state | filters = Just filts }
+filters value (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.Filters value :: state.properties
+        }
 
 
 {-| -}
@@ -1427,9 +1438,13 @@ mediaQuery name variation =
 
 
 {-| -}
-transition : Maybe Transition -> Model a -> Model a
-transition trans (Model state) =
-    Model { state | transition = trans }
+transition : Transition -> Model a -> Model a
+transition value (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.TransitionProperty value :: state.properties
+        }
 
 
 {-| -}
