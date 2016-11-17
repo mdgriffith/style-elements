@@ -24,6 +24,7 @@ module Style
         , MediaQuery
         , Transition
         , embed
+        , render
         , class
         , element
         , elementAs
@@ -152,7 +153,7 @@ module Style
 
 This module is focused around composing a style.
 
-@docs Simple, Model, empty, embed, class
+@docs Simple, Model, empty, embed, render, class
 
 @dos Element, element, elementAs
 # Positioning
@@ -399,20 +400,33 @@ elementAs name model =
 This is either auto generated via a murmur3 hashof the style properties, or it's specified directly.
 -}
 class : Model a -> Html.Attribute msg
-class (Model style) =
-    Html.Attributes.class (Style.Render.getName (Model style))
+class model =
+    Html.Attributes.class (Style.Render.getName model)
+
+
+{-| -}
+asClass : a -> Model a -> Model a
+asClass cls (Model state) =
+    Model { state | class = Just cls }
 
 
 {-| Embed a style sheet into your html.
 -}
-embed : List (Model a) -> Html msg
-embed styles =
+embed : String -> Html msg
+embed allStyles =
+    Html.node "style" [] [ Html.text <| allStyles ]
+
+
+{-| Render styles into a stylesheet
+
+-}
+render : List (Model a) -> String
+render styles =
     styles
         |> List.map Style.Render.render
         |> uniqueBy Tuple.first
         |> List.map Tuple.second
         |> String.join "\n"
-        |> (\allStyles -> Html.node "style" [] [ Html.text <| allStyles ])
 
 
 {-| Drop duplicates where what is considered to be a duplicate is the result of first applying the supplied function to the elements of the list.
