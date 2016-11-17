@@ -51,12 +51,6 @@ renderBaseStyle (Model style) =
         simple =
             List.filterMap identity
                 [ Just ("box-sizing" => "border-box")
-                , Just ("width" => renderLength style.width)
-                , Just ("height" => renderLength style.height)
-                , Just ("cursor" => style.cursor)
-                , Just ("padding" => render4tuplePx style.padding)
-                , Just ("border-width" => render4tuplePx style.borderWidth)
-                , Just ("border-radius" => render4tuplePx style.borderRadius)
                 , Just <|
                     "border-style"
                         => case style.borderStyle of
@@ -91,10 +85,6 @@ renderBaseStyle (Model style) =
                     ( True, True ) ->
                         Just ("text-decoration" => "underline line-through")
                 , Maybe.map (\zIndex -> "z-index" => toString zIndex) style.zIndex
-                , Maybe.map (\minWidth -> "min-width" => renderLength minWidth) style.minWidth
-                , Maybe.map (\minHeight -> "min-height" => renderLength minHeight) style.minHeight
-                , Maybe.map (\maxWidth -> "max-width" => renderLength maxWidth) style.maxWidth
-                , Maybe.map (\maxHeight -> "max-height" => renderLength maxHeight) style.maxHeight
                 , Maybe.map renderFilters style.filters
                 , Maybe.map renderTransforms style.transforms
                 , Maybe.map Tuple.first animationAndKeyframes
@@ -116,10 +106,51 @@ renderBaseStyle (Model style) =
                         Just [ "display" => "inline-block" ]
                       else
                         Nothing
-                    , style.properties
+                    , Just (renderPoints (List.map renderProperty style.properties))
                     ]
     in
         simple ++ compound
+
+
+type StylePoint
+    = Single String String
+    | Multiple (List ( String, String ))
+
+
+renderPoints : List StylePoint -> List ( String, String )
+renderPoints points =
+    List.foldr
+        (\point aggregate ->
+            case point of
+                Single name prop ->
+                    ( name, prop ) :: aggregate
+
+                Multiple props ->
+                    props ++ aggregate
+        )
+        []
+        points
+
+
+
+--type alias StyleDefinition =
+--    { selector : String
+--    , style : List ( String, String )
+--    , additional : List String
+--    }
+
+
+renderProperty : Property a -> StylePoint
+renderProperty prop =
+    case prop of
+        Property name value ->
+            Single name value
+
+        Box name box ->
+            Single name (render4tuplePx box)
+
+        Len name length ->
+            Single name (renderLength length)
 
 
 render : Model a -> ( String, String )

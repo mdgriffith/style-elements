@@ -17,9 +17,6 @@ type Model class
         , relativeTo : RelativeTo
         , anchor : Anchor
         , position : ( Float, Float )
-        , cursor : String
-        , width : Length
-        , height : Length
         , colors : ColorPalette
         , font : Font
         , italic : Bool
@@ -27,10 +24,7 @@ type Model class
         , strike : Bool
         , underline : Bool
         , spacing : ( Float, Float, Float, Float )
-        , padding : ( Float, Float, Float, Float )
         , borderStyle : BorderStyle
-        , borderWidth : ( Float, Float, Float, Float )
-        , borderRadius : ( Float, Float, Float, Float )
         , backgroundImage : Maybe BackgroundImage
         , shadows : Maybe (List Shadow)
         , transforms : Maybe (List Transform)
@@ -38,14 +32,16 @@ type Model class
         , animation : Maybe (Animation class)
         , media : List (MediaQuery class)
         , zIndex : Maybe Int
-        , minWidth : Maybe Length
-        , maxWidth : Maybe Length
-        , minHeight : Maybe Length
-        , maxHeight : Maybe Length
-        , properties : Maybe (List ( String, String ))
+        , properties : List (Property class)
         , transition : Maybe Transition
         , subelements : Maybe (SubElements class)
         }
+
+
+type Property class
+    = Property String String
+    | Box String ( Float, Float, Float, Float )
+    | Len String Length
 
 
 type alias SubElements a =

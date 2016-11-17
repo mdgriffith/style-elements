@@ -146,7 +146,7 @@ module Style
         , transforms
         , filters
         , media
-        , properties
+        , property
         )
 
 {-|
@@ -252,7 +252,7 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 
 @docs backgroundImage, BackgroundImage, Repeat, repeat, repeatX, repeatY, noRepeat, round, space
 
-@docs properties
+@docs property
 
 
 # Shadows
@@ -340,13 +340,8 @@ empty =
         , bold = Nothing
         , strike = False
         , underline = False
-        , cursor = "auto"
-        , width = auto
-        , height = auto
-        , borderStyle = solid
-        , borderWidth = all 0
-        , borderRadius = all 0
-        , padding = all 0
+        , borderStyle =
+            solid
         , spacing = all 0
         , float = Nothing
         , inline = False
@@ -356,12 +351,15 @@ empty =
         , filters = Nothing
         , animation = Nothing
         , media = []
-        , properties = Nothing
+        , properties =
+            [ Style.Model.Property "box-sizing" "border-box"
+            , Style.Model.Len "width" auto
+            , Style.Model.Len "height" auto
+            , Style.Model.Box "padding" (all 0)
+            , Style.Model.Box "border-width" (all 0)
+            , Style.Model.Box "border-radius" (all 0)
+            ]
         , zIndex = Nothing
-        , minWidth = Nothing
-        , maxWidth = Nothing
-        , minHeight = Nothing
-        , maxHeight = Nothing
         , transition =
             Just
                 { property = "all"
@@ -741,8 +739,12 @@ position pos (Model state) =
 
 {-| -}
 cursor : String -> Model a -> Model a
-cursor curs (Model state) =
-    Model { state | cursor = curs }
+cursor value (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.Property "cursor" value :: state.properties
+        }
 
 
 {-| -}
@@ -753,38 +755,62 @@ zIndex i (Model state) =
 
 {-| -}
 width : Length -> Model a -> Model a
-width w (Model state) =
-    Model { state | width = w }
+width value (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.Len "width" value :: state.properties
+        }
 
 
 {-| -}
 minWidth : Length -> Model a -> Model a
-minWidth w (Model state) =
-    Model { state | minWidth = Just w }
+minWidth value (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.Len "min-width" value :: state.properties
+        }
 
 
 {-| -}
 maxWidth : Length -> Model a -> Model a
-maxWidth w (Model state) =
-    Model { state | maxWidth = Just w }
+maxWidth value (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.Len "max-width" value :: state.properties
+        }
 
 
 {-| -}
 height : Length -> Model a -> Model a
-height h (Model state) =
-    Model { state | height = h }
+height value (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.Len "height" value :: state.properties
+        }
 
 
 {-| -}
 minHeight : Length -> Model a -> Model a
-minHeight h (Model state) =
-    Model { state | minHeight = Just h }
+minHeight value (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.Len "min-height" value :: state.properties
+        }
 
 
 {-| -}
 maxHeight : Length -> Model a -> Model a
-maxHeight h (Model state) =
-    Model { state | maxHeight = Just h }
+maxHeight value (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.Len "max-height" value :: state.properties
+        }
 
 
 {-| -}
@@ -801,20 +827,32 @@ spacing s (Model state) =
 
 {-| -}
 padding : ( Float, Float, Float, Float ) -> Model a -> Model a
-padding s (Model state) =
-    Model { state | padding = s }
+padding value (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.Box "padding" value :: state.properties
+        }
 
 
 {-| -}
 borderWidth : ( Float, Float, Float, Float ) -> Model a -> Model a
-borderWidth s (Model state) =
-    Model { state | borderWidth = s }
+borderWidth value (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.Box "border-width" value :: state.properties
+        }
 
 
 {-| -}
 borderRadius : ( Float, Float, Float, Float ) -> Model a -> Model a
-borderRadius s (Model state) =
-    Model { state | borderRadius = s }
+borderRadius value (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.Box "border-radius" value :: state.properties
+        }
 
 
 {-| -}
@@ -905,10 +943,15 @@ media queries (Model state) =
         Model { state | media = renderedMediaQueries }
 
 
-{-| -}
-properties : List ( String, String ) -> Model a -> Model a
-properties props (Model style) =
-    Model { style | properties = Just props }
+{-| Add a property.  Not to be exported, `properties` is to be used instead.
+-}
+property : String -> String -> Model a -> Model a
+property name value (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.Property name value :: state.properties
+        }
 
 
 {-| This is the only layout that allows for child elements to use `float` or `inline`.
@@ -1415,22 +1458,6 @@ animate { duration, easing, repeat, steps } (Model state) =
         }
 
 
-{-| Add a property.  Not to be exported, `properties` is to be used instead.
--}
-add : ( String, String ) -> Model a -> Model a
-add prop (Model state) =
-    Model
-        { state
-            | properties =
-                case state.properties of
-                    Nothing ->
-                        Just [ prop ]
-
-                    Just existing ->
-                        Just (prop :: existing)
-        }
-
-
 {-| -}
 hover : (Model a -> Model a) -> Model a -> Model a
 hover vary (Model model) =
@@ -1525,7 +1552,7 @@ after : String -> (Model a -> Model a) -> Model a -> Model a
 after content variation (Model model) =
     let
         (Model state) =
-            (variation << add ( "content", content )) (Model model)
+            (variation << property "content" content) (Model model)
 
         clearedSubSubElements =
             Model { state | subelements = Nothing }
@@ -1548,7 +1575,7 @@ before : String -> (Model a -> Model a) -> Model a -> Model a
 before content variation (Model model) =
     let
         (Model state) =
-            (variation << add ( "content", content )) (Model model)
+            (variation << property "content" content) (Model model)
 
         clearedSubSubElements =
             Model { state | subelements = Nothing }
