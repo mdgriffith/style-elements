@@ -37,6 +37,67 @@ type Property class
     | SubElement String (Model class)
 
 
+propertyName : Property a -> String
+propertyName prop =
+    case prop of
+        Property name _ ->
+            name
+
+        Box name _ ->
+            name
+
+        Spacing _ ->
+            "spacing"
+
+        LayoutProp _ ->
+            "layout"
+
+        Len name _ ->
+            name
+
+        Filters _ ->
+            "filters"
+
+        Transforms _ ->
+            "transforms"
+
+        TransitionProperty _ ->
+            "trans"
+
+        Shadows _ ->
+            "shadows"
+
+        BackgroundImageProp _ ->
+            "bg-image"
+
+        AnimationProp _ ->
+            "anim"
+
+        VisibilityProp _ ->
+            "vis"
+
+        FloatProp _ ->
+            "float"
+
+        RelProp _ ->
+            "rel"
+
+        PositionProp _ _ _ ->
+            "pos"
+
+        Colors _ ->
+            "colors"
+
+        FontProp _ ->
+            "font"
+
+        MediaQuery name _ ->
+            name
+
+        SubElement name _ ->
+            name
+
+
 type alias Transition =
     { property : String
     , duration : Time

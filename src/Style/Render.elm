@@ -1,4 +1,4 @@
-module Style.Render exposing (render, getName)
+module Style.Render exposing (render, getName, uniqueBy)
 
 {-|
 -}
@@ -7,6 +7,7 @@ import Style.Model exposing (..)
 import Murmur3
 import String.Extra
 import Color exposing (Color)
+import Set exposing (Set)
 import String
 import Char
 
@@ -104,6 +105,37 @@ type StyleIntermediate
     | SubElementIntermediate String (List ( String, String ))
 
 
+renderProperties : List (Property a) -> List StyleIntermediate
+renderProperties props =
+    props
+        |> uniqueBy propertyName
+        |> List.map renderProperty
+
+
+{-| Drop duplicates where what is considered to be a duplicate is the result of first applying the supplied function to the elements of the list.
+-}
+uniqueBy : (a -> comparable) -> List a -> List a
+uniqueBy f list =
+    uniqueHelp f Set.empty list
+
+
+uniqueHelp : (a -> comparable) -> Set comparable -> List a -> List a
+uniqueHelp f existing remaining =
+    case remaining of
+        [] ->
+            []
+
+        first :: rest ->
+            let
+                computedFirst =
+                    f first
+            in
+                if Set.member computedFirst existing then
+                    uniqueHelp f existing rest
+                else
+                    first :: uniqueHelp f (Set.insert computedFirst existing) rest
+
+
 renderProperty : Property a -> StyleIntermediate
 renderProperty prop =
     case prop of
@@ -169,7 +201,7 @@ renderProperty prop =
         MediaQuery query (Model state) ->
             let
                 intermediates =
-                    List.map renderProperty state.properties
+                    renderProperties state.properties
 
                 ( _, style, _ ) =
                     renderIntermediates "media-query" intermediates
@@ -181,7 +213,7 @@ renderProperty prop =
         SubElement el (Model state) ->
             let
                 intermediates =
-                    List.map renderProperty state.properties
+                    renderProperties state.properties
 
                 ( _, style, _ ) =
                     renderIntermediates el intermediates
@@ -201,7 +233,7 @@ render : Model a -> ( ClassName, RenderedStyle )
 render (Model model) =
     let
         intermediates =
-            List.map renderProperty model.properties
+            renderProperties model.properties
 
         ( name, selector ) =
             case model.classOverride of
@@ -225,7 +257,7 @@ render (Model model) =
                                 ( hashed, "." ++ hashed )
 
         ( tags, style, blocks ) =
-            renderIntermediates name intermediates
+            renderIntermediates selector intermediates
     in
         ( String.join " " (name :: tags)
         , renderClass 0 selector style
@@ -270,47 +302,6 @@ renderProp ( propName, propValue ) =
     "  " ++ propName ++ ": " ++ propValue ++ ";"
 
 
-
---renderSubElementSignature : SubElements a -> String
---renderSubElementSignature sub =
---    String.join "\n" <|
---        List.filterMap
---            (\( name, style ) ->
---                case style of
---                    Nothing ->
---                        Nothing
---                    Just (Model state) ->
---                        Just (Tuple.second <| render (Model { state | classOverride = Just name }))
---            )
---            [ ":hover" => sub.hover
---            , ":focus" => sub.focus
---            , ":selection" => sub.selection
---            , ":focus" => sub.focus
---            , ":checked" => sub.checked
---            , ":after" => sub.after
---            , ":before" => sub.before
---            ]
---renderSubElements : String -> SubElements a -> String
---renderSubElements className sub =
---    String.join "\n" <|
---        List.filterMap
---            (\( name, style ) ->
---                case style of
---                    Nothing ->
---                        Nothing
---                    Just (Model state) ->
---                        Just <| renderClass 0 (className ++ name) (renderBaseStyle (Model state))
---            )
---            [ ":hover" => sub.hover
---            , ":focus" => sub.focus
---            , ":selection" => sub.selection
---            , ":focus" => sub.focus
---            , ":checked" => sub.checked
---            , ":after" => sub.after
---            , ":before" => sub.before
---            ]
-
-
 {-|
 
 -}
@@ -347,7 +338,7 @@ renderAnimation (Animation { duration, easing, steps, repeat }) =
                                         getName (Model model)
 
                                     intermediates =
-                                        List.map renderProperty model.properties
+                                        renderProperties model.properties
 
                                     ( _, style, _ ) =
                                         renderIntermediates "animation" intermediates

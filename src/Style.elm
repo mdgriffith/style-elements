@@ -114,7 +114,7 @@ module Style
         , after
         , before
         , empty
-        , base
+        , foundation
         , mediaQuery
         , visibility
         , relativeTo
@@ -153,7 +153,7 @@ module Style
 
 This module is focused around composing a style.
 
-@docs Simple, Model, empty, base, embed, render, class
+@docs Simple, Model, foundation, empty, embed, render, class
 
 @docs Element, element, elementAs
 
@@ -295,7 +295,6 @@ import Html exposing (Html, Attribute)
 import Html.Attributes
 import Time exposing (Time)
 import Color exposing (Color)
-import Set exposing (Set)
 import Style.Model exposing (Model(..), Property(..), Floating(..))
 import Style.Render
 
@@ -320,8 +319,8 @@ Use this as a starting point for the majority of your styles.
 
 
 -}
-base : Model a
-base =
+foundation : Model a
+foundation =
     Model
         { class = Nothing
         , classOverride = Nothing
@@ -361,7 +360,7 @@ base =
 
 {-| This is a completely empty style, there are no default properties set.
 
-*Note!*  You should use `Style.base` for the majority of your styles.
+*Note!*  You should use `Style.foundation` for the majority of your styles.
 
 `Style.empty` is specifically for cases where you want styles that can mix nicely with each other.
 
@@ -392,9 +391,9 @@ element model =
 
 
 {-| -}
-elementAs : String -> Model a -> Element a msg
-elementAs name model =
-    { el = (\attrs children -> Html.node name (class model :: attrs) children)
+elementAs : (List (Attribute msg) -> List (Html msg) -> Html msg) -> Model a -> Element a msg
+elementAs node model =
+    { el = (\attrs children -> node (class model :: attrs) children)
     , style = model
     }
 
@@ -428,33 +427,9 @@ render : List (Model a) -> String
 render styles =
     styles
         |> List.map Style.Render.render
-        |> uniqueBy Tuple.first
+        |> Style.Render.uniqueBy Tuple.first
         |> List.map Tuple.second
         |> String.join "\n"
-
-
-{-| Drop duplicates where what is considered to be a duplicate is the result of first applying the supplied function to the elements of the list.
--}
-uniqueBy : (a -> comparable) -> List a -> List a
-uniqueBy f list =
-    uniqueHelp f Set.empty list
-
-
-uniqueHelp : (a -> comparable) -> Set comparable -> List a -> List a
-uniqueHelp f existing remaining =
-    case remaining of
-        [] ->
-            []
-
-        first :: rest ->
-            let
-                computedFirst =
-                    f first
-            in
-                if Set.member computedFirst existing then
-                    uniqueHelp f existing rest
-                else
-                    first :: uniqueHelp f (Set.insert computedFirst existing) rest
 
 
 {-| -}
@@ -821,7 +796,7 @@ zIndex i (Model state) =
     Model
         { state
             | properties =
-                Style.Model.Property "z-index" (toString zIndex) :: state.properties
+                Style.Model.Property "z-index" (toString i) :: state.properties
         }
 
 
@@ -1125,7 +1100,7 @@ type alias Flow =
     }
 
 
-{-| This is a flexbox based layout
+{-| This is a flexbox foundationd layout
 -}
 flowUp : Flow -> Model a -> Model a
 flowUp { wrap, horizontal, vertical } (Model state) =
