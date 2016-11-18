@@ -114,6 +114,7 @@ module Style
         , after
         , before
         , empty
+        , base
         , mediaQuery
         , visibility
         , relativeTo
@@ -139,7 +140,6 @@ module Style
         , maxHeight
         , padding
         , spacing
-        , float
         , inline
         , backgroundImage
         , shadows
@@ -153,9 +153,11 @@ module Style
 
 This module is focused around composing a style.
 
-@docs Simple, Model, empty, embed, render, class
+@docs Simple, Model, empty, base, embed, render, class
 
-@dos Element, element, elementAs
+@docs Element, element, elementAs
+
+
 # Positioning
 
 The coordinates for the `position` value in the style model are x and y coordinates where right and down are the positive directions, same as the standard coordinate system for svg.
@@ -223,7 +225,7 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 
 @docs inline
 
-@docs float, Floating, floatLeft, floatRight, floatTopLeft, floatTopRight
+@docs Floating, floatLeft, floatRight, floatTopLeft, floatTopRight
 
 # Alignment
 
@@ -294,7 +296,7 @@ import Html.Attributes
 import Time exposing (Time)
 import Color exposing (Color)
 import Set exposing (Set)
-import Style.Model exposing (Model(..), emptySubElements)
+import Style.Model exposing (Model(..), Property(..), Floating(..))
 import Style.Render
 
 
@@ -312,41 +314,17 @@ type alias Model a =
     Style.Model.Model a
 
 
-{-| -}
-empty : Model a
-empty =
+{-| A style that comes with a set of defaults.
+
+Use this as a starting point for the majority of your styles.
+
+
+-}
+base : Model a
+base =
     Model
         { class = Nothing
         , classOverride = Nothing
-        , layout = Style.Model.TextLayout
-        , visibility = visible
-        , relativeTo = currentPosition
-        , anchor = topLeft
-        , position = ( 0, 0 )
-        , colors =
-            { background = Color.rgba 255 255 255 0
-            , text = Color.darkCharcoal
-            , border = Color.grey
-            }
-        , font =
-            { font = "georgia"
-            , size = 16
-            , letterOffset = Nothing
-            , lineHeight = 1.7
-            , align = alignLeft
-            , whitespace = normal
-            }
-        , italic = False
-        , bold = Nothing
-        , strike = False
-        , underline = False
-        , borderStyle =
-            solid
-        , spacing = all 0
-        , float = Nothing
-        , inline = False
-        , animation = Nothing
-        , media = []
         , properties =
             [ Style.Model.Property "box-sizing" "border-box"
             , Style.Model.Len "width" auto
@@ -354,15 +332,48 @@ empty =
             , Style.Model.Box "padding" (all 0)
             , Style.Model.Box "border-width" (all 0)
             , Style.Model.Box "border-radius" (all 0)
+            , Style.Model.Spacing (all 0)
             , Style.Model.TransitionProperty
                 { property = "all"
                 , duration = 300
                 , easing = "ease-out"
                 , delay = 0
                 }
+            , Style.Model.LayoutProp Style.Model.TextLayout
+            , Style.Model.FontProp
+                { font = "georgia"
+                , size = 16
+                , letterOffset = Nothing
+                , lineHeight = 1.7
+                , align = alignLeft
+                , whitespace = normal
+                }
+            , Style.Model.Colors
+                { background = Color.rgba 255 255 255 0
+                , text = Color.darkCharcoal
+                , border = Color.grey
+                }
+            , Style.Model.PositionProp topLeft 0 0
+            , Style.Model.RelProp currentPosition
             ]
-        , zIndex = Nothing
-        , subelements = Nothing
+        }
+
+
+{-| This is a completely empty style, there are no default properties set.
+
+*Note!*  You should use `Style.base` for the majority of your styles.
+
+`Style.empty` is specifically for cases where you want styles that can mix nicely with each other.
+
+Check out the examples if that's unclear :)
+
+-}
+empty : Model a
+empty =
+    Model
+        { class = Nothing
+        , classOverride = Nothing
+        , properties = []
         }
 
 
@@ -619,7 +630,10 @@ Will ignore any left spacing that it's parent has set for it.
 -}
 floatLeft : Model a -> Model a
 floatLeft (Model state) =
-    Model { state | float = Just Style.Model.FloatLeft }
+    Model
+        { state
+            | properties = Style.Model.FloatProp Style.Model.FloatLeft :: state.properties
+        }
 
 
 {-|
@@ -627,7 +641,10 @@ floatLeft (Model state) =
 -}
 floatRight : Model a -> Model a
 floatRight (Model state) =
-    Model { state | float = Just Style.Model.FloatRight }
+    Model
+        { state
+            | properties = Style.Model.FloatProp Style.Model.FloatRight :: state.properties
+        }
 
 
 {-| Same as floatLeft, except it will ignore any top spacing that it's parent has set for it.
@@ -637,7 +654,10 @@ This is useful for floating things at the beginning of text.
 -}
 floatTopLeft : Model a -> Model a
 floatTopLeft (Model state) =
-    Model { state | float = Just Style.Model.FloatTopLeft }
+    Model
+        { state
+            | properties = Style.Model.FloatProp Style.Model.FloatTopLeft :: state.properties
+        }
 
 
 {-|
@@ -645,7 +665,10 @@ floatTopLeft (Model state) =
 -}
 floatTopRight : Model a -> Model a
 floatTopRight (Model state) =
-    Model { state | float = Just Style.Model.FloatTopRight }
+    Model
+        { state
+            | properties = Style.Model.FloatProp Style.Model.FloatTopRight :: state.properties
+        }
 
 
 {-| -}
@@ -711,25 +734,75 @@ auto =
 {-| -}
 visibility : Visibility -> Model a -> Model a
 visibility vis (Model state) =
-    Model { state | visibility = vis }
+    Model
+        { state
+            | properties =
+                Style.Model.VisibilityProp vis :: state.properties
+        }
 
 
 {-| -}
 anchor : Anchor -> Model a -> Model a
 anchor anc (Model state) =
-    Model { state | anchor = anc }
+    let
+        positioned =
+            case List.head <| List.filter (\prop -> isPosition prop) state.properties of
+                Nothing ->
+                    Style.Model.PositionProp anc 0 0
+
+                Just (Style.Model.PositionProp _ x y) ->
+                    Style.Model.PositionProp anc x y
+
+                Just _ ->
+                    Style.Model.PositionProp topLeft 0 0
+    in
+        Model
+            { state
+                | properties =
+                    positioned :: state.properties
+            }
 
 
 {-| -}
 relativeTo : RelativeTo -> Model a -> Model a
 relativeTo rel (Model state) =
-    Model { state | relativeTo = rel }
+    Model
+        { state
+            | properties =
+                Style.Model.RelProp rel :: state.properties
+        }
+
+
+isPosition : Property a -> Bool
+isPosition prop =
+    case prop of
+        Style.Model.PositionProp _ _ _ ->
+            True
+
+        _ ->
+            False
 
 
 {-| -}
 position : ( Float, Float ) -> Model a -> Model a
-position pos (Model state) =
-    Model { state | position = pos }
+position ( x, y ) (Model state) =
+    let
+        positioned =
+            case List.head <| List.filter (\prop -> isPosition prop) state.properties of
+                Nothing ->
+                    Style.Model.PositionProp topLeft x y
+
+                Just (Style.Model.PositionProp anc _ _) ->
+                    Style.Model.PositionProp anc x y
+
+                Just _ ->
+                    Style.Model.PositionProp topLeft 0 0
+    in
+        Model
+            { state
+                | properties =
+                    positioned :: state.properties
+            }
 
 
 {-| -}
@@ -745,7 +818,11 @@ cursor value (Model state) =
 {-| -}
 zIndex : Int -> Model a -> Model a
 zIndex i (Model state) =
-    Model { state | zIndex = Just i }
+    Model
+        { state
+            | properties =
+                Style.Model.Property "z-index" (toString zIndex) :: state.properties
+        }
 
 
 {-| -}
@@ -811,13 +888,21 @@ maxHeight value (Model state) =
 {-| -}
 colors : ColorPalette -> Model a -> Model a
 colors palette (Model state) =
-    Model { state | colors = palette }
+    Model
+        { state
+            | properties =
+                Style.Model.Colors palette :: state.properties
+        }
 
 
 {-| -}
 spacing : ( Float, Float, Float, Float ) -> Model a -> Model a
 spacing s (Model state) =
-    Model { state | spacing = s }
+    Model
+        { state
+            | properties =
+                Style.Model.Spacing s :: state.properties
+        }
 
 
 {-| -}
@@ -853,55 +938,82 @@ borderRadius value (Model state) =
 {-| -}
 font : Font -> Model a -> Model a
 font text (Model state) =
-    Model { state | font = text }
+    Model
+        { state
+            | properties = FontProp text :: state.properties
+        }
 
 
 {-| -}
 underline : Model a -> Model a
 underline (Model state) =
-    Model { state | underline = True }
+    Model
+        { state
+            | properties =
+                Style.Model.Property "text-decoration" "underline" :: state.properties
+        }
 
 
 {-| -}
 strike : Model a -> Model a
 strike (Model state) =
-    Model { state | strike = True }
-
-
-{-| -}
-inline : Model a -> Model a
-inline (Model state) =
-    Model { state | inline = True }
+    Model
+        { state
+            | properties =
+                Style.Model.Property "text-decoration" "line-through" :: state.properties
+        }
 
 
 {-| -}
 italicize : Model a -> Model a
 italicize (Model state) =
-    Model { state | italic = True }
+    Model
+        { state
+            | properties =
+                Style.Model.Property "font-style" "italic" :: state.properties
+        }
 
 
 {-| -}
 bold : Model a -> Model a
 bold (Model state) =
-    Model { state | bold = Just 700 }
+    Model
+        { state
+            | properties =
+                Style.Model.Property "font-weight" "700" :: state.properties
+        }
 
 
 {-| -}
 light : Model a -> Model a
 light (Model state) =
-    Model { state | bold = Just 300 }
+    Model
+        { state
+            | properties =
+                Style.Model.Property "font-weight" "300" :: state.properties
+        }
 
 
 {-| -}
 borderStyle : BorderStyle -> Model a -> Model a
-borderStyle style (Model state) =
-    Model { state | borderStyle = style }
+borderStyle bStyle (Model state) =
+    let
+        val =
+            case bStyle of
+                Style.Model.Solid ->
+                    "solid"
 
+                Style.Model.Dashed ->
+                    "dashed"
 
-{-| -}
-float : Floating -> Model a -> Model a
-float floating (Model state) =
-    Model { state | float = Just floating }
+                Style.Model.Dotted ->
+                    "dotted"
+    in
+        Model
+            { state
+                | properties =
+                    Style.Model.Property "border-style" val :: state.properties
+            }
 
 
 {-| -}
@@ -951,7 +1063,7 @@ media queries (Model state) =
         renderedMediaQueries =
             List.map (\( name, vary ) -> Style.Model.MediaQuery name (vary (Model state))) queries
     in
-        Model { state | media = renderedMediaQueries }
+        Model { state | properties = renderedMediaQueries ++ state.properties }
 
 
 {-| Add a property.  Not to be exported, `properties` is to be used instead.
@@ -965,6 +1077,16 @@ property name value (Model state) =
         }
 
 
+{-| -}
+inline : Model a -> Model a
+inline (Model state) =
+    Model
+        { state
+            | properties =
+                Style.Model.LayoutProp Style.Model.InlineLayout :: state.properties
+        }
+
+
 {-| This is the only layout that allows for child elements to use `float` or `inline`.
 
 If you try to assign a float or make an element inline that is not the child of a textLayout, the float or inline will be ignored and the element will be highlighted in red with a large warning.
@@ -974,7 +1096,11 @@ Besides this, all immediate children are arranged as if they were `display: bloc
 -}
 textLayout : Model a -> Model a
 textLayout (Model state) =
-    Model { state | layout = Style.Model.TextLayout }
+    Model
+        { state
+            | properties =
+                Style.Model.LayoutProp Style.Model.TextLayout :: state.properties
+        }
 
 
 {-| This is the same as setting an element to `display:table`.
@@ -982,7 +1108,11 @@ textLayout (Model state) =
 -}
 tableLayout : Model a -> Model a
 tableLayout (Model state) =
-    Model { state | layout = Style.Model.TableLayout }
+    Model
+        { state
+            | properties =
+                Style.Model.LayoutProp Style.Model.TableLayout :: state.properties
+        }
 
 
 {-|
@@ -998,7 +1128,7 @@ type alias Flow =
 {-| This is a flexbox based layout
 -}
 flowUp : Flow -> Model a -> Model a
-flowUp { wrap, horizontal, vertical } model =
+flowUp { wrap, horizontal, vertical } (Model state) =
     let
         layout =
             Style.Model.FlexLayout <|
@@ -1009,16 +1139,18 @@ flowUp { wrap, horizontal, vertical } model =
                     , vertical = vertical
                     }
     in
-        case model of
-            Model state ->
-                Model { state | layout = layout }
+        Model
+            { state
+                | properties =
+                    Style.Model.LayoutProp layout :: state.properties
+            }
 
 
 {-|
 
 -}
 flowDown : Flow -> Model a -> Model a
-flowDown { wrap, horizontal, vertical } model =
+flowDown { wrap, horizontal, vertical } (Model state) =
     let
         layout =
             Style.Model.FlexLayout <|
@@ -1029,14 +1161,16 @@ flowDown { wrap, horizontal, vertical } model =
                     , vertical = vertical
                     }
     in
-        case model of
-            Model state ->
-                Model { state | layout = layout }
+        Model
+            { state
+                | properties =
+                    Style.Model.LayoutProp layout :: state.properties
+            }
 
 
 {-| -}
 flowRight : Flow -> Model a -> Model a
-flowRight { wrap, horizontal, vertical } model =
+flowRight { wrap, horizontal, vertical } (Model state) =
     let
         layout =
             Style.Model.FlexLayout <|
@@ -1047,14 +1181,16 @@ flowRight { wrap, horizontal, vertical } model =
                     , vertical = vertical
                     }
     in
-        case model of
-            Model state ->
-                Model { state | layout = layout }
+        Model
+            { state
+                | properties =
+                    Style.Model.LayoutProp layout :: state.properties
+            }
 
 
 {-| -}
 flowLeft : Flow -> Model a -> Model a
-flowLeft { wrap, horizontal, vertical } model =
+flowLeft { wrap, horizontal, vertical } (Model state) =
     let
         layout =
             Style.Model.FlexLayout <|
@@ -1065,9 +1201,11 @@ flowLeft { wrap, horizontal, vertical } model =
                     , vertical = vertical
                     }
     in
-        case model of
-            Model state ->
-                Model { state | layout = layout }
+        Model
+            { state
+                | properties =
+                    Style.Model.LayoutProp layout :: state.properties
+            }
 
 
 {-| -}
@@ -1462,146 +1600,78 @@ animate : Animation a -> Model a -> Model a
 animate { duration, easing, repeat, steps } (Model state) =
     Model
         { state
-            | animation =
-                Just <|
-                    Style.Model.Animation
-                        { duration = duration
-                        , easing = easing
-                        , repeat = repeat
-                        , steps = List.map (\( time, fn ) -> ( time, fn <| Model state )) steps
-                        }
+            | properties =
+                let
+                    anim =
+                        Style.Model.AnimationProp <|
+                            Style.Model.Animation
+                                { duration = duration
+                                , easing = easing
+                                , repeat = repeat
+                                , steps = List.map (\( time, fn ) -> ( time, fn <| Model state )) steps
+                                }
+                in
+                    anim :: state.properties
         }
 
 
 {-| -}
 hover : (Model a -> Model a) -> Model a -> Model a
 hover vary (Model model) =
-    let
-        (Model state) =
-            vary (Model model)
-
-        clearedSubSubElements =
-            Model { state | subelements = Nothing }
-    in
-        Model
-            { model
-                | subelements =
-                    case state.subelements of
-                        Nothing ->
-                            Just { emptySubElements | hover = Just clearedSubSubElements }
-
-                        Just subs ->
-                            Just { subs | hover = Just clearedSubSubElements }
-            }
+    Model
+        { model
+            | properties =
+                (Style.Model.SubElement ":hover" (vary (Model model))) :: model.properties
+        }
 
 
 {-| -}
 focus : (Model a -> Model a) -> Model a -> Model a
 focus vary (Model model) =
-    let
-        (Model state) =
-            vary (Model model)
-
-        clearedSubSubElements =
-            Model { state | subelements = Nothing }
-    in
-        Model
-            { model
-                | subelements =
-                    case state.subelements of
-                        Nothing ->
-                            Just { emptySubElements | focus = Just clearedSubSubElements }
-
-                        Just subs ->
-                            Just { subs | focus = Just clearedSubSubElements }
-            }
+    Model
+        { model
+            | properties =
+                (Style.Model.SubElement ":focus" (vary (Model model))) :: model.properties
+        }
 
 
 {-| -}
 checked : (Model a -> Model a) -> Model a -> Model a
 checked vary (Model model) =
-    let
-        (Model state) =
-            vary (Model model)
-
-        clearedSubSubElements =
-            Model { state | subelements = Nothing }
-    in
-        Model
-            { model
-                | subelements =
-                    case state.subelements of
-                        Nothing ->
-                            Just { emptySubElements | checked = Just clearedSubSubElements }
-
-                        Just subs ->
-                            Just { subs | checked = Just clearedSubSubElements }
-            }
+    Model
+        { model
+            | properties =
+                (Style.Model.SubElement ":checked" (vary (Model model))) :: model.properties
+        }
 
 
 {-| -}
 selection : (Model a -> Model a) -> Model a -> Model a
 selection vary (Model model) =
-    let
-        (Model state) =
-            vary (Model model)
-
-        clearedSubSubElements =
-            Model { state | subelements = Nothing }
-    in
-        Model
-            { model
-                | subelements =
-                    case state.subelements of
-                        Nothing ->
-                            Just { emptySubElements | selection = Just clearedSubSubElements }
-
-                        Just subs ->
-                            Just { subs | selection = Just clearedSubSubElements }
-            }
+    Model
+        { model
+            | properties =
+                (Style.Model.SubElement ":selection" (vary (Model model))) :: model.properties
+        }
 
 
 {-| Requires a string which will be rendered as the 'content' property
 -}
 after : String -> (Model a -> Model a) -> Model a -> Model a
-after content variation (Model model) =
-    let
-        (Model state) =
-            (variation << property "content" content) (Model model)
-
-        clearedSubSubElements =
-            Model { state | subelements = Nothing }
-    in
-        Model
-            { model
-                | subelements =
-                    case state.subelements of
-                        Nothing ->
-                            Just { emptySubElements | after = Just clearedSubSubElements }
-
-                        Just subs ->
-                            Just { subs | after = Just clearedSubSubElements }
-            }
+after content vary (Model model) =
+    Model
+        { model
+            | properties =
+                (Style.Model.SubElement "::after" ((vary << property "content" content) (Model model))) :: model.properties
+        }
 
 
 {-| Requires a string which will be rendered as the 'content' property
 -}
 before : String -> (Model a -> Model a) -> Model a -> Model a
-before content variation (Model model) =
-    let
-        (Model state) =
-            (variation << property "content" content) (Model model)
-
-        clearedSubSubElements =
-            Model { state | subelements = Nothing }
-    in
-        Model
-            { model
-                | subelements =
-                    case state.subelements of
-                        Nothing ->
-                            Just { emptySubElements | before = Just clearedSubSubElements }
-
-                        Just subs ->
-                            Just { subs | before = Just clearedSubSubElements }
-            }
+before content vary (Model model) =
+    Model
+        { model
+            | properties =
+                (Style.Model.SubElement "::before" ((vary << property "content" content) (Model model))) :: model.properties
+        }

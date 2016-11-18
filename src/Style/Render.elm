@@ -3,16 +3,12 @@ module Style.Render exposing (render, getName)
 {-|
 -}
 
-import Html
-import Html.Attributes
-import Svg.Attributes
 import Style.Model exposing (..)
+import Murmur3
+import String.Extra
 import Color exposing (Color)
 import String
 import Char
-import Murmur3
-import Json.Encode as Json
-import String.Extra
 
 
 formatName : a -> String
@@ -39,108 +35,76 @@ getName model =
     Tuple.first <| render model
 
 
-renderBaseStyle : Model a -> List ( String, String )
-renderBaseStyle (Model style) =
-    let
-        ( layout, childrenPermissions ) =
-            renderLayout style.layout
-
-        animationAndKeyframes =
-            Maybe.map renderAnimation style.animation
-
-        simple =
-            List.filterMap identity
-                [ Just ("box-sizing" => "border-box")
-                , Just <|
-                    "border-style"
-                        => case style.borderStyle of
-                            Solid ->
-                                "solid"
-
-                            Dashed ->
-                                "dashed"
-
-                            Dotted ->
-                                "dotted"
-                , if style.italic then
-                    Just ("font-style" => "italic")
-                  else
-                    Nothing
-                , Maybe.map
-                    (\bold ->
-                        "font-weight"
-                            => toString bold
-                    )
-                    style.bold
-                , case ( style.underline, style.strike ) of
-                    ( False, False ) ->
-                        Just ("text-decoration" => "none")
-
-                    ( True, False ) ->
-                        Just ("text-decoration" => "underline")
-
-                    ( False, True ) ->
-                        Just ("text-decoration" => "line-through")
-
-                    ( True, True ) ->
-                        Just ("text-decoration" => "underline line-through")
-                , Maybe.map (\zIndex -> "z-index" => toString zIndex) style.zIndex
-                  --, Maybe.map renderFilters style.filters
-                  --, Maybe.map renderTransforms style.transforms
-                , Maybe.map Tuple.first animationAndKeyframes
-                , Just <| renderVisibility style.visibility
-                ]
-
-        compound =
-            List.concat <|
-                List.filterMap identity
-                    [ Just layout
-                    , Just <| renderPosition style.relativeTo style.anchor style.position
-                    , Just <| renderColorPalette style.colors
-                    , Just <| renderText style.font
-                      --, Maybe.map renderBackgroundImage style.backgroundImage
-                    , Maybe.map renderFloating style.float
-                      --, Maybe.map renderShadow style.shadows
-                      --, Maybe.map renderTransition style.transition
-                    , if style.inline then
-                        Just [ "display" => "inline-block" ]
-                      else
-                        Nothing
-                    , Just (renderPoints (List.map renderProperty style.properties))
-                    ]
-    in
-        simple ++ compound
+type alias Style =
+    List ( String, String )
 
 
-type StylePoint
-    = Single ( String, String )
-    | Multiple (List ( String, String ))
+type alias Tag =
+    String
 
 
-renderPoints : List StylePoint -> List ( String, String )
-renderPoints points =
+renderIntermediates : String -> List StyleIntermediate -> ( List Tag, Style, List String )
+renderIntermediates className intermediates =
     List.foldr
-        (\point aggregate ->
+        (\point ( tags, style, subStyles ) ->
             case point of
                 Single prop ->
-                    prop :: aggregate
+                    ( tags
+                    , prop :: style
+                    , subStyles
+                    )
 
                 Multiple props ->
-                    props ++ aggregate
+                    ( tags
+                    , props ++ style
+                    , subStyles
+                    )
+
+                Tagged tag props ->
+                    ( tag :: tags
+                    , props ++ style
+                    , subStyles
+                    )
+
+                AlmostStyle selector props ->
+                    ( tags
+                    , style
+                    , (renderClass 0 (className ++ selector) props) :: subStyles
+                    )
+
+                Block block props ->
+                    ( tags
+                    , props ++ style
+                    , block :: subStyles
+                    )
+
+                MediaIntermediate query props ->
+                    ( tags
+                    , style
+                    , (query ++ brace (renderClass 2 className props)) :: subStyles
+                    )
+
+                SubElementIntermediate selector props ->
+                    ( tags
+                    , style
+                    , (renderClass 0 (className ++ selector) props) :: subStyles
+                    )
         )
-        []
-        points
+        ( [], [], [] )
+        intermediates
 
 
+type StyleIntermediate
+    = Single ( String, String )
+    | Multiple (List ( String, String ))
+    | Tagged String (List ( String, String ))
+    | AlmostStyle String (List ( String, String ))
+    | Block String (List ( String, String ))
+    | MediaIntermediate String (List ( String, String ))
+    | SubElementIntermediate String (List ( String, String ))
 
---type alias StyleDefinition =
---    { selector : String
---    , style : List ( String, String )
---    , additional : List String
---    }
 
-
-renderProperty : Property a -> StylePoint
+renderProperty : Property a -> StyleIntermediate
 renderProperty prop =
     case prop of
         Property name value ->
@@ -167,49 +131,85 @@ renderProperty prop =
         BackgroundImageProp image ->
             Multiple <| renderBackgroundImage image
 
-
-render : Model a -> ( String, String )
-render (Model style) =
-    let
-        ( layout, childrenPermissions ) =
-            renderLayout style.layout
-
-        animationAndKeyframes =
-            Maybe.map renderAnimation style.animation
-
-        renderedStyle =
-            renderBaseStyle (Model style)
-
-        tags =
+        LayoutProp layout ->
             let
-                floating =
-                    Maybe.map (\_ -> "floating") style.float
-
-                inline =
-                    if not style.inline then
-                        Just "pos"
-                    else
-                        Nothing
-
-                permissions =
-                    if not childrenPermissions.floats && not childrenPermissions.inline then
-                        Just "not-floatable not-inlineable"
-                    else if not childrenPermissions.floats then
-                        Just "not-floatable"
-                    else if not childrenPermissions.inline then
-                        Just "not-inlineable"
-                    else
-                        Nothing
+                ( style, tag ) =
+                    renderLayout layout
             in
-                List.filterMap identity [ permissions, inline, floating ]
+                Tagged tag style
+
+        Spacing box ->
+            AlmostStyle " > .pos" [ ( "margin", render4tuplePx box ) ]
+
+        AnimationProp anim ->
+            let
+                ( style, keyframes ) =
+                    renderAnimation anim
+            in
+                Block keyframes [ style ]
+
+        VisibilityProp vis ->
+            Single <| renderVisibility vis
+
+        FloatProp floating ->
+            Tagged "floating" (renderFloating floating)
+
+        RelProp relTo ->
+            Single <| renderRelativeTo relTo
+
+        PositionProp anchor x y ->
+            Multiple <| renderPosition anchor ( x, y )
+
+        Colors palette ->
+            Multiple <| renderColorPalette palette
+
+        FontProp font ->
+            Multiple <| renderText font
+
+        MediaQuery query (Model state) ->
+            let
+                intermediates =
+                    List.map renderProperty state.properties
+
+                ( _, style, _ ) =
+                    renderIntermediates "media-query" intermediates
+            in
+                MediaIntermediate
+                    ("@media " ++ query)
+                    style
+
+        SubElement el (Model state) ->
+            let
+                intermediates =
+                    List.map renderProperty state.properties
+
+                ( _, style, _ ) =
+                    renderIntermediates el intermediates
+            in
+                SubElementIntermediate el style
+
+
+type alias ClassName =
+    String
+
+
+type alias RenderedStyle =
+    String
+
+
+render : Model a -> ( ClassName, RenderedStyle )
+render (Model model) =
+    let
+        intermediates =
+            List.map renderProperty model.properties
 
         ( name, selector ) =
-            case style.classOverride of
+            case model.classOverride of
                 Just override ->
                     ( override, override )
 
                 Nothing ->
-                    case style.class of
+                    case model.class of
                         Just str ->
                             let
                                 formatted =
@@ -219,49 +219,17 @@ render (Model style) =
 
                         Nothing ->
                             let
-                                childrenSignature =
-                                    Maybe.map renderSubElementSignature style.subelements
-                                        |> Maybe.withDefault ""
-
-                                propSignature =
-                                    String.join "" <| List.map renderProp renderedStyle
-
-                                mediaSignature =
-                                    String.join "" <| List.map renderMediaQuerySignature style.media
-
                                 hashed =
-                                    hash (propSignature ++ childrenSignature ++ mediaSignature)
+                                    hash (toString intermediates)
                             in
                                 ( hashed, "." ++ hashed )
 
-        childMargin =
-            renderClass 0
-                (selector ++ " > .pos")
-                [ ( "margin", render4tuplePx style.spacing ) ]
-
-        children =
-            case Maybe.map (renderSubElements selector) style.subelements of
-                Nothing ->
-                    childMargin
-
-                Just subs ->
-                    childMargin ++ subs
-
-        mediaQueries =
-            case List.map (renderMediaQuery selector) style.media of
-                [] ->
-                    ""
-
-                queries ->
-                    (String.join "\n" queries) ++ "\n"
+        ( tags, style, blocks ) =
+            renderIntermediates name intermediates
     in
         ( String.join " " (name :: tags)
-        , renderClass 0 selector renderedStyle
-            ++ children
-            ++ (Maybe.map Tuple.second animationAndKeyframes
-                    |> Maybe.withDefault ""
-               )
-            ++ mediaQueries
+        , renderClass 0 selector style
+            ++ (String.join "\n" blocks)
         )
 
 
@@ -302,62 +270,45 @@ renderProp ( propName, propValue ) =
     "  " ++ propName ++ ": " ++ propValue ++ ";"
 
 
-renderSubElementSignature : SubElements a -> String
-renderSubElementSignature sub =
-    String.join "\n" <|
-        List.filterMap
-            (\( name, style ) ->
-                case style of
-                    Nothing ->
-                        Nothing
 
-                    Just (Model state) ->
-                        Just (Tuple.second <| render (Model { state | classOverride = Just name }))
-            )
-            [ ":hover" => sub.hover
-            , ":focus" => sub.focus
-            , ":selection" => sub.selection
-            , ":focus" => sub.focus
-            , ":checked" => sub.checked
-            , ":after" => sub.after
-            , ":before" => sub.before
-            ]
-
-
-renderSubElements : String -> SubElements a -> String
-renderSubElements className sub =
-    String.join "\n" <|
-        List.filterMap
-            (\( name, style ) ->
-                case style of
-                    Nothing ->
-                        Nothing
-
-                    Just (Model state) ->
-                        Just <| renderClass 0 (className ++ name) (renderBaseStyle (Model state))
-            )
-            [ ":hover" => sub.hover
-            , ":focus" => sub.focus
-            , ":selection" => sub.selection
-            , ":focus" => sub.focus
-            , ":checked" => sub.checked
-            , ":after" => sub.after
-            , ":before" => sub.before
-            ]
-
-
-renderMediaQuerySignature : MediaQuery a -> String
-renderMediaQuerySignature (MediaQuery query (Model state)) =
-    query ++ (Tuple.second (render (Model { state | classOverride = Just "media-query" })))
-
-
-renderMediaQuery : String -> MediaQuery a -> String
-renderMediaQuery className (MediaQuery query model) =
-    let
-        style =
-            renderClass 2 className (renderBaseStyle model)
-    in
-        "@media " ++ query ++ brace style
+--renderSubElementSignature : SubElements a -> String
+--renderSubElementSignature sub =
+--    String.join "\n" <|
+--        List.filterMap
+--            (\( name, style ) ->
+--                case style of
+--                    Nothing ->
+--                        Nothing
+--                    Just (Model state) ->
+--                        Just (Tuple.second <| render (Model { state | classOverride = Just name }))
+--            )
+--            [ ":hover" => sub.hover
+--            , ":focus" => sub.focus
+--            , ":selection" => sub.selection
+--            , ":focus" => sub.focus
+--            , ":checked" => sub.checked
+--            , ":after" => sub.after
+--            , ":before" => sub.before
+--            ]
+--renderSubElements : String -> SubElements a -> String
+--renderSubElements className sub =
+--    String.join "\n" <|
+--        List.filterMap
+--            (\( name, style ) ->
+--                case style of
+--                    Nothing ->
+--                        Nothing
+--                    Just (Model state) ->
+--                        Just <| renderClass 0 (className ++ name) (renderBaseStyle (Model state))
+--            )
+--            [ ":hover" => sub.hover
+--            , ":focus" => sub.focus
+--            , ":selection" => sub.selection
+--            , ":focus" => sub.focus
+--            , ":checked" => sub.checked
+--            , ":after" => sub.after
+--            , ":before" => sub.before
+--            ]
 
 
 {-|
@@ -390,15 +341,21 @@ renderAnimation (Animation { duration, easing, steps, repeat }) =
                 ( allNames, renderedSteps ) =
                     List.unzip <|
                         List.map
-                            (\( marker, model ) ->
+                            (\( marker, Model model ) ->
                                 let
                                     name =
-                                        getName model
+                                        getName (Model model)
 
-                                    style =
-                                        renderClass 2 (toString marker ++ "%") (renderBaseStyle model)
+                                    intermediates =
+                                        List.map renderProperty model.properties
+
+                                    ( _, style, _ ) =
+                                        renderIntermediates "animation" intermediates
+
+                                    block =
+                                        renderClass 2 (toString marker ++ "%") style
                                 in
-                                    ( name, style ++ "\n" )
+                                    ( name, block ++ "\n" )
                             )
                             steps
 
@@ -701,64 +658,63 @@ renderLength l =
             "auto"
 
 
-renderPosition : RelativeTo -> Anchor -> ( Float, Float ) -> List ( String, String )
-renderPosition relativeTo anchor position =
+renderRelativeTo : RelativeTo -> ( String, String )
+renderRelativeTo relativeTo =
+    case relativeTo of
+        Screen ->
+            "position" => "fixed"
+
+        CurrentPosition ->
+            "position" => "relative"
+
+        Parent ->
+            "position" => "absolute"
+
+
+renderPosition : Anchor -> ( Float, Float ) -> List ( String, String )
+renderPosition anchor position =
     let
         ( x, y ) =
             position
-
-        relative =
-            case relativeTo of
-                Screen ->
-                    "position" => "fixed"
-
-                CurrentPosition ->
-                    "position" => "relative"
-
-                Parent ->
-                    "position" => "absolute"
     in
         case anchor of
             ( AnchorTop, AnchorLeft ) ->
-                [ relative
-                , "top" => (toString y ++ "px")
+                [ "top" => (toString y ++ "px")
                 , "left" => (toString x ++ "px")
                 ]
 
             ( AnchorTop, AnchorRight ) ->
-                [ relative
-                , "top" => (toString y ++ "px")
+                [ "top" => (toString y ++ "px")
                 , "right" => (toString (-1 * x) ++ "px")
                 ]
 
             ( AnchorBottom, AnchorLeft ) ->
-                [ relative
-                , "bottom" => (toString (-1 * y) ++ "px")
+                [ "bottom" => (toString (-1 * y) ++ "px")
                 , "left" => (toString x ++ "px")
                 ]
 
             ( AnchorBottom, AnchorRight ) ->
-                [ relative
-                , "bottom" => (toString (-1 * y) ++ "px")
+                [ "bottom" => (toString (-1 * y) ++ "px")
                 , "right" => (toString (-1 * x) ++ "px")
                 ]
 
 
-renderLayout : Layout -> ( List ( String, String ), Permissions )
+renderLayout : Layout -> ( List ( String, String ), String )
 renderLayout layout =
     case layout of
         TextLayout ->
             ( [ "display" => "block" ]
-            , { floats = True
-              , inline = True
-              }
+            , "pos"
+            )
+
+        InlineLayout ->
+            ( [ ( "display", "inline-block" ) ]
+            , ""
             )
 
         TableLayout ->
             ( [ "display" => "table", "border-collapse" => "collapse" ]
-            , { floats = False
-              , inline = False
-              }
+            , "pos not-floatable not-inlineable"
             )
 
         FlexLayout (Flexible flex) ->
@@ -904,9 +860,7 @@ renderLayout layout =
                             VStretch ->
                                 "justify-content" => "space-between"
               ]
-            , { floats = False
-              , inline = False
-              }
+            , "pos not-floatable not-inlineable"
             )
 
 
