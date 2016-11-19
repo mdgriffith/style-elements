@@ -8,11 +8,16 @@ import Time exposing (Time)
 
 type Model class
     = Model
-        { class : Maybe class
-        , classOverride : Maybe String
+        { selector : Selector
         , properties :
             List (Property class)
         }
+
+
+type Selector
+    = Exactly String
+    | Class String
+    | AutoClass
 
 
 type Property class

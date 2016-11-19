@@ -1,4 +1,4 @@
-module Style.Render exposing (render, getName, uniqueBy)
+module Style.Render exposing (render, getName, inlineError, floatError, missingError)
 
 {-|
 -}
@@ -6,93 +6,16 @@ module Style.Render exposing (render, getName, uniqueBy)
 import Style.Model exposing (..)
 import Murmur3
 import String.Extra
+import List.Extra
 import Color exposing (Color)
 import Set exposing (Set)
 import String
 import Char
 
 
-formatName : a -> String
-formatName class =
-    (toString class)
-        |> String.Extra.unquote
-        |> String.Extra.decapitalize
-        |> String.Extra.dasherize
-
-
-type alias Permissions =
-    { floats : Bool
-    , inline : Bool
-    }
-
-
 (=>) : x -> y -> ( x, y )
 (=>) =
     (,)
-
-
-getName : Model a -> String
-getName model =
-    Tuple.first <| render model
-
-
-type alias Style =
-    List ( String, String )
-
-
-type alias Tag =
-    String
-
-
-renderIntermediates : String -> List StyleIntermediate -> ( List Tag, Style, List String )
-renderIntermediates className intermediates =
-    List.foldr
-        (\point ( tags, style, subStyles ) ->
-            case point of
-                Single prop ->
-                    ( tags
-                    , prop :: style
-                    , subStyles
-                    )
-
-                Multiple props ->
-                    ( tags
-                    , props ++ style
-                    , subStyles
-                    )
-
-                Tagged tag props ->
-                    ( tag :: tags
-                    , props ++ style
-                    , subStyles
-                    )
-
-                AlmostStyle selector props ->
-                    ( tags
-                    , style
-                    , (renderClass 0 (className ++ selector) props) :: subStyles
-                    )
-
-                Block block props ->
-                    ( tags
-                    , props ++ style
-                    , block :: subStyles
-                    )
-
-                MediaIntermediate query props ->
-                    ( tags
-                    , style
-                    , (query ++ brace (renderClass 2 className props)) :: subStyles
-                    )
-
-                SubElementIntermediate selector props ->
-                    ( tags
-                    , style
-                    , (renderClass 0 (className ++ selector) props) :: subStyles
-                    )
-        )
-        ( [], [], [] )
-        intermediates
 
 
 type StyleIntermediate
@@ -105,36 +28,49 @@ type StyleIntermediate
     | SubElementIntermediate String (List ( String, String ))
 
 
+type alias Style =
+    List ( String, String )
+
+
+type alias Tag =
+    String
+
+
+render : Model a -> ( ClassName, RenderedStyle )
+render (Model model) =
+    let
+        intermediates =
+            renderProperties model.properties
+
+        hashedName =
+            hash (toString intermediates)
+
+        ( name, selector ) =
+            case model.selector of
+                AutoClass ->
+                    ( hashedName, "." ++ hashedName )
+
+                Exactly str ->
+                    ( str ++ ", " ++ hashedName, "." ++ hashedName )
+
+                Class str ->
+                    ( str ++ ", " ++ hashedName, "." ++ str )
+
+        ( tags, style, blocks ) =
+            renderIntermediates selector intermediates
+    in
+        ( String.join " " (name :: tags)
+        , cssClass 0 selector style
+            ++ (String.join "\n" blocks)
+        )
+
+
 renderProperties : List (Property a) -> List StyleIntermediate
 renderProperties props =
     props
-        |> uniqueBy propertyName
+        |> List.Extra.uniqueBy propertyName
         |> List.reverse
         |> List.map renderProperty
-
-
-{-| Drop duplicates where what is considered to be a duplicate is the result of first applying the supplied function to the elements of the list.
--}
-uniqueBy : (a -> comparable) -> List a -> List a
-uniqueBy f list =
-    uniqueHelp f Set.empty list
-
-
-uniqueHelp : (a -> comparable) -> Set comparable -> List a -> List a
-uniqueHelp f existing remaining =
-    case remaining of
-        [] ->
-            []
-
-        first :: rest ->
-            let
-                computedFirst =
-                    f first
-            in
-                if Set.member computedFirst existing then
-                    uniqueHelp f existing rest
-                else
-                    first :: uniqueHelp f (Set.insert computedFirst existing) rest
 
 
 renderProperty : Property a -> StyleIntermediate
@@ -222,98 +158,63 @@ renderProperty prop =
                 SubElementIntermediate el style
 
 
+renderIntermediates : String -> List StyleIntermediate -> ( List Tag, Style, List String )
+renderIntermediates className intermediates =
+    List.foldr
+        (\point ( tags, style, subStyles ) ->
+            case point of
+                Single prop ->
+                    ( tags
+                    , prop :: style
+                    , subStyles
+                    )
+
+                Multiple props ->
+                    ( tags
+                    , props ++ style
+                    , subStyles
+                    )
+
+                Tagged tag props ->
+                    ( tag :: tags
+                    , props ++ style
+                    , subStyles
+                    )
+
+                AlmostStyle selector props ->
+                    ( tags
+                    , style
+                    , (cssClass 0 (className ++ selector) props) :: subStyles
+                    )
+
+                Block block props ->
+                    ( tags
+                    , props ++ style
+                    , block :: subStyles
+                    )
+
+                MediaIntermediate query props ->
+                    ( tags
+                    , style
+                    , (query ++ brace (cssClass 2 className props)) :: subStyles
+                    )
+
+                SubElementIntermediate selector props ->
+                    ( tags
+                    , style
+                    , (cssClass 0 (className ++ selector) props) :: subStyles
+                    )
+        )
+        ( [], [], [] )
+        intermediates
+
+
 type alias ClassName =
     String
 
 
 type alias RenderedStyle =
     String
-
-
-render : Model a -> ( ClassName, RenderedStyle )
-render (Model model) =
-    let
-        intermediates =
-            renderProperties model.properties
-
-        ( name, selector ) =
-            case model.classOverride of
-                Just override ->
-                    ( override, override )
-
-                Nothing ->
-                    case model.class of
-                        Just str ->
-                            let
-                                formatted =
-                                    formatName str
-                            in
-                                ( formatted, "." ++ formatted )
-
-                        Nothing ->
-                            let
-                                hashed =
-                                    hash (toString intermediates)
-                            in
-                                ( hashed, "." ++ hashed )
-
-        ( tags, style, blocks ) =
-            renderIntermediates selector intermediates
-    in
-        ( String.join " " (name :: tags)
-        , renderClass 0 selector style
-            ++ (String.join "\n" blocks)
-        )
-
-
-brace : String -> String
-brace str =
-    " {\n" ++ str ++ "\n}"
-
-
-type alias ClassPair =
-    ( String, List ( String, String ) )
-
-
-indent : Int -> String -> String
-indent x str =
-    str
-        |> String.split "\n"
-        |> List.filterMap
-            (\s ->
-                if String.isEmpty (String.trim s) then
-                    Nothing
-                else
-                    Just <| (String.repeat x " ") ++ s
-            )
-        |> String.join "\n"
-
-
-renderClass : Int -> String -> List ( String, String ) -> String
-renderClass x name props =
-    (name ++ brace (String.join "\n" <| List.map renderProp props) ++ "\n")
-        |> if x > 0 then
-            indent x
-           else
-            identity
-
-
-renderProp : ( String, String ) -> String
-renderProp ( propName, propValue ) =
-    "  " ++ propName ++ ": " ++ propValue ++ ";"
-
-
-{-|
-
--}
-hash : String -> String
-hash value =
-    Murmur3.hashString 8675309 value
-        |> toString
-        |> String.toList
-        |> List.map (Char.fromCode << ((+) 65) << Result.withDefault 0 << String.toInt << String.fromChar)
-        |> String.fromList
-        |> String.toLower
 
 
 renderAnimation : Animation a -> ( ( String, String ), String )
@@ -345,7 +246,7 @@ renderAnimation (Animation { duration, easing, steps, repeat }) =
                                         renderIntermediates "animation" intermediates
 
                                     block =
-                                        renderClass 2 (toString marker ++ "%") style
+                                        cssClass 2 (toString marker ++ "%") style
                                 in
                                     ( name, block ++ "\n" )
                             )
@@ -700,8 +601,8 @@ renderLayout layout =
             )
 
         InlineLayout ->
-            ( [ ( "display", "inline-block" ) ]
-            , ""
+            ( [ "display" => "inline-block" ]
+            , "inline"
             )
 
         TableLayout ->
@@ -856,6 +757,77 @@ renderLayout layout =
             )
 
 
+
+------------------------
+-- Class Name Generation
+------------------------
+
+
+{-| -}
+formatName : a -> String
+formatName class =
+    (toString class)
+        |> String.Extra.unquote
+        |> String.Extra.decapitalize
+        |> String.Extra.dasherize
+
+
+{-| -}
+getName : Model a -> String
+getName model =
+    Tuple.first <| render model
+
+
+{-| -}
+hash : String -> String
+hash value =
+    Murmur3.hashString 8675309 value
+        |> toString
+        |> String.toList
+        |> List.map (Char.fromCode << ((+) 65) << Result.withDefault 0 << String.toInt << String.fromChar)
+        |> String.fromList
+        |> String.toLower
+
+
+
+-----------------
+-- CSS formatting
+-----------------
+
+
+brace : String -> String
+brace str =
+    " {\n" ++ str ++ "\n}"
+
+
+indent : Int -> String -> String
+indent x str =
+    str
+        |> String.split "\n"
+        |> List.filterMap
+            (\s ->
+                if String.isEmpty (String.trim s) then
+                    Nothing
+                else
+                    Just <| (String.repeat x " ") ++ s
+            )
+        |> String.join "\n"
+
+
+cssClass : Int -> String -> List ( String, String ) -> String
+cssClass x name props =
+    (name ++ brace (String.join "\n" <| List.map cssProp props) ++ "\n")
+        |> if x > 0 then
+            indent x
+           else
+            identity
+
+
+cssProp : ( String, String ) -> String
+cssProp ( propName, propValue ) =
+    "  " ++ propName ++ ": " ++ propValue ++ ";"
+
+
 clearfix : String
 clearfix =
     """
@@ -865,6 +837,23 @@ clearfix =
     clear: both;
     height: 0px;
 }
+"""
+
+
+missingError : String
+missingError =
+    """
+.missing-from-stylesheet {
+    border: 3px solid yellow; !important;
+}
+.missing-from-stylesheet::after {
+    border: 3px solid yellow; !important;
+    display: inline-block;
+    color: black;
+    background-color: yellow;
+    content: 'missing from stylesheet';
+}
+
 """
 
 
@@ -883,7 +872,7 @@ floatError =
     background-color: red;
 }
 .not-floatable > .floating:hover::after {
-    content: 'Floating Elements can only be in Text Layouts';
+    content: 'Floating elements can only be in text layouts';
 }
 """
 

@@ -3,6 +3,7 @@ module Style
         ( Model
         , Simple
         , ColorPalette
+        , StyleSheet
         , Shadow
         , Visibility
         , Alignment
@@ -25,8 +26,7 @@ module Style
         , embed
         , render
         , class
-        , element
-        , elementAs
+        , selector
         , flowUp
         , flowDown
         , flowRight
@@ -152,7 +152,7 @@ module Style
 
 This module is focused around composing a style.
 
-@docs Simple, Model, foundation, empty, embed, render, class
+@docs Simple, Model, foundation, empty, embed, render, class, selector
 
 
 # Positioning
@@ -292,6 +292,7 @@ import Html exposing (Html, Attribute)
 import Html.Attributes
 import Time exposing (Time)
 import Color exposing (Color)
+import List.Extra
 import Style.Model exposing (Model(..), Property(..), Floating(..))
 import Style.Render
 
@@ -314,13 +315,11 @@ type alias Model a =
 
 Use this as a starting point for the majority of your styles.
 
-
 -}
 foundation : Model a
 foundation =
     Model
-        { class = Nothing
-        , classOverride = Nothing
+        { selector = Style.Model.AutoClass
         , properties =
             [ Style.Model.Property "box-sizing" "border-box"
             , Style.Model.Len "width" auto
@@ -357,54 +356,148 @@ foundation =
 
 {-| This is a completely empty style, there are no default properties set.
 
-*Note!*  You should use `Style.foundation` for the majority of your styles.
+You should use `Style.foundation` for the majority of your styles.
 
 `Style.empty` is specifically for cases where you want styles that can mix nicely with each other.
 
-Check out the examples if that's unclear :)
 
 -}
 empty : Model a
 empty =
     Model
-        { class = Nothing
-        , classOverride = Nothing
+        { selector = Style.Model.AutoClass
         , properties = []
         }
 
 
-{-| Get the class name of a style.
-
-This is either auto generated via a murmur3 hashof the style properties, or it's specified directly.
--}
-class : Model a -> Html.Attribute msg
-class model =
-    Html.Attributes.class (Style.Render.getName model)
+{-| -}
+class : String -> Model a -> Model a
+class cls (Model state) =
+    Model { state | selector = Style.Model.Class cls }
 
 
 {-| -}
-asClass : a -> Model a -> Model a
-asClass cls (Model state) =
-    Model { state | class = Just cls }
+selector : String -> Model a -> Model a
+selector cls (Model state) =
+    Model { state | selector = Style.Model.Exactly cls }
 
 
 {-| Embed a style sheet into your html.
 -}
-embed : String -> Html msg
-embed allStyles =
-    Html.node "style" [] [ Html.text <| allStyles ]
+embed : StyleSheet class msg -> Html msg
+embed stylesheet =
+    Html.node "style" [] [ Html.text stylesheet.css ]
+
+
+type alias StyleSheet class msg =
+    { class : Model class -> Html.Attribute msg
+    , classList : List ( Model class, Bool ) -> Html.Attribute msg
+    , css : String
+    }
 
 
 {-| Render styles into a stylesheet
 
 -}
-render : List (Model a) -> String
+render : List (Model class) -> StyleSheet class msg
 render styles =
-    styles
-        |> List.map Style.Render.render
-        |> Style.Render.uniqueBy Tuple.first
-        |> List.map Tuple.second
-        |> String.join "\n"
+    let
+        ( names, cssStyles ) =
+            styles
+                |> List.map Style.Render.render
+                |> List.Extra.uniqueBy Tuple.first
+                |> List.unzip
+    in
+        { css = String.join "\n" cssStyles
+        , class =
+            (\model ->
+                Html.Attributes.class (Style.Render.getName model)
+            )
+        , classList =
+            (\models ->
+                models
+                    |> List.filter Tuple.second
+                    |> List.map (Style.Render.getName << Tuple.first)
+                    |> String.join " "
+                    |> Html.Attributes.class
+            )
+        }
+
+
+{-| Render styles into a stylesheet and give visual ++ console log warnings if anything is off
+-}
+debug : List (Model class) -> StyleSheet class msg
+debug styles =
+    let
+        ( names, cssStyles ) =
+            styles
+                |> List.map Style.Render.render
+                |> List.Extra.uniqueBy Tuple.first
+                |> List.unzip
+    in
+        { css =
+            (String.join "\n" cssStyles)
+                ++ Style.Render.inlineError
+                ++ Style.Render.floatError
+                ++ Style.Render.missingError
+        , class =
+            (\model ->
+                let
+                    cls =
+                        Style.Render.getName model
+
+                    withPossibleError =
+                        if not (List.member cls names) then
+                            let
+                                _ =
+                                    Debug.log "style" (cls ++ " is not in your stylesheet, so things might look weird.")
+                            in
+                                (cls ++ " missing-from-stylesheet")
+                        else
+                            cls
+                in
+                    Html.Attributes.class withPossibleError
+            )
+        , classList =
+            (\models ->
+                let
+                    optionNames =
+                        List.map
+                            (\( model, included ) ->
+                                ( Style.Render.getName model, included )
+                            )
+                            models
+
+                    missing =
+                        List.filterMap
+                            (\( option, _ ) ->
+                                if not (List.member option names) then
+                                    Just option
+                                else
+                                    Nothing
+                            )
+                            optionNames
+
+                    _ =
+                        if List.isEmpty missing then
+                            ""
+                        else if List.length missing == 1 then
+                            Debug.log "style" ((String.join ", " missing) ++ " is not in your stylesheet.")
+                        else
+                            Debug.log "style" ("the classes " ++ (String.join ", " missing) ++ " are not in your stylesheet.")
+                in
+                    optionNames
+                        |> List.filter Tuple.second
+                        |> List.map Tuple.first
+                        |> (if List.isEmpty missing then
+                                identity
+                            else
+                                (::) "missing-from-stylesheet"
+                           )
+                        |> String.join " "
+                        |> Html.Attributes.class
+            )
+        }
 
 
 {-| -}
