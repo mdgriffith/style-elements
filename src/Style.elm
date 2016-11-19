@@ -1,7 +1,6 @@
 module Style
     exposing
         ( Model
-        , Element
         , Simple
         , ColorPalette
         , Shadow
@@ -154,8 +153,6 @@ module Style
 This module is focused around composing a style.
 
 @docs Simple, Model, foundation, empty, embed, render, class
-
-@docs Element, element, elementAs
 
 
 # Positioning
@@ -374,28 +371,6 @@ empty =
         , classOverride = Nothing
         , properties = []
         }
-
-
-type alias Element a msg =
-    { style : Model a
-    , el : List (Attribute msg) -> List (Html msg) -> Html msg
-    }
-
-
-{-| -}
-element : Model a -> Element a msg
-element model =
-    { el = (\attrs children -> Html.div (class model :: attrs) children)
-    , style = model
-    }
-
-
-{-| -}
-elementAs : (List (Attribute msg) -> List (Html msg) -> Html msg) -> Model a -> Element a msg
-elementAs node model =
-    { el = (\attrs children -> node (class model :: attrs) children)
-    , style = model
-    }
 
 
 {-| Get the class name of a style.
