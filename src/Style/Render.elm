@@ -109,6 +109,7 @@ renderProperties : List (Property a) -> List StyleIntermediate
 renderProperties props =
     props
         |> uniqueBy propertyName
+        |> List.reverse
         |> List.map renderProperty
 
 
