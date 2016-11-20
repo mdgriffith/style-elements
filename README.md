@@ -1,15 +1,6 @@
-    This library is experimental.  Try it out and let me know your feedback!
+    This library is in beta
 
-# The Style Elements Library for Elm
-
-> __TLDR__: This library lets you craft styles that don't mysteriously break.
->
-> It does this by
->
-> * having required properties for each node
-> * disallowing certain properties
-> 
-> It also takes a different approach on attaching styles to html nodes.  Instead of using classes and ids, it focuses on creating collections of styled html elements that you can pull from and use to build your view.
+# Simplifying css for elm
 
 It's easy to write _valid_ CSS that is still broken and frustrating.  What if we could just make frustrating CSS styles not expressible?
 
@@ -20,12 +11,82 @@ And while we're at it, it wouldn't hurt to have built in support for `animations
 Maybe styling can actually be _fun_ now.
 
 
+#### Styling via pipes
+
+```elm
+
+import Style exposing (..)
+
+title : Style.Simple
+title =
+    Style.foundation
+        |> width (px 300)
+        |> height auto
+```
+
+#### Easy layout
+
+```elm
+
+container : Style.Simple
+container =
+    Style.foundation
+        |> flowLeft
+            { wrap = True
+            , horizontal = alignCenter
+            , vertical = alignTop
+            }
+```
+
+
+#### Animation
+
+```elm
+rotatingBox : Style.Simple
+rotatingBox =
+    Style.foundation
+        |> width (px 50)
+        |> height (px 50)
+        |> animate
+            { duration = (5 * second)
+            , easing = "linear"
+            , repeat = forever
+            , steps =
+                [ ( 0, transforms [ rotate 0 0 0 ] )
+                , ( 100, transforms [ rotate 0 0 (2 * pi) ] )
+                ]
+            }
+```
+
 ## Getting Started
 
  * [Getting Started/How it Works](https://github.com/mdgriffith/style-elements/blob/master/HowItWorks.md)
+ * [Understanding Style - Designing the Style Elements Library](http://www.mechanical-elephant.com/articles/understanding-style-composition) - an article that goes in depth on how `style-elements` works.
  * [Documentation](http://package.elm-lang.org/packages/mdgriffith/style-elements/latest)
  * Simple example: [code](https://github.com/mdgriffith/elm-style-elements-simple-example) - [demo](https://mdgriffith.github.io/style-elements/simple/)
  * Realworld example that uses animations, media queries, and palettes: [code](https://github.com/mdgriffith/elm-style-elements-complex-example) - [demo](https://mdgriffith.github.io/style-elements/realworld/)
+
+
+
+## Compared to elm-css
+
+The goal of [elm-css](https://github.com/rtfeldman/elm-css/) library is to provide access all of CSS in a typesafe way (meaning you get a beautiful compiler error if you write something incorrectly).
+
+It uses union types instead of strings to represent classes and ids.  This is inherently awesome and worth your consideration.
+
+
+The `style-elements` library instead focuses on simplifying css, making it more robust and quicker to prototype in.
+
+It does this by 
+    * removing parts of css that cause the most trouble
+    * setting smarter defaults
+    * providing clean interfaces to the good parts like `media queries`, `flex-box` and `animations`.
+
+It's meant to be a css preprocessor with css best practices built in.
+
+
+
+
 
 
 
