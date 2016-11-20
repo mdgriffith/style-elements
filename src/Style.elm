@@ -1,7 +1,6 @@
 module Style
     exposing
         ( Model
-        , Simple
         , ColorPalette
         , StyleSheet
         , Shadow
@@ -297,18 +296,9 @@ import Style.Model exposing (Model(..), Property(..), Floating(..))
 import Style.Render
 
 
-{-| The full model for a style.
-
-Some properties are mandatory in order to make predictable styles.
-
--}
-type alias Simple =
-    Style.Model.Model String
-
-
 {-| -}
-type alias Model a =
-    Style.Model.Model a
+type alias Model =
+    Style.Model.Model
 
 
 {-| A style that comes with a set of defaults.
@@ -316,7 +306,7 @@ type alias Model a =
 Use this as a starting point for the majority of your styles.
 
 -}
-foundation : Model a
+foundation : Model
 foundation =
     Model
         { selector = Style.Model.AutoClass
@@ -362,7 +352,7 @@ You should use `Style.foundation` for the majority of your styles.
 
 
 -}
-empty : Model a
+empty : Model
 empty =
     Model
         { selector = Style.Model.AutoClass
@@ -371,27 +361,27 @@ empty =
 
 
 {-| -}
-class : String -> Model a -> Model a
+class : String -> Model -> Model
 class cls (Model state) =
     Model { state | selector = Style.Model.Class cls }
 
 
 {-| -}
-selector : String -> Model a -> Model a
+selector : String -> Model -> Model
 selector cls (Model state) =
     Model { state | selector = Style.Model.Exactly cls }
 
 
 {-| Embed a style sheet into your html.
 -}
-embed : StyleSheet class msg -> Html msg
+embed : StyleSheet msg -> Html msg
 embed stylesheet =
     Html.node "style" [] [ Html.text stylesheet.css ]
 
 
-type alias StyleSheet class msg =
-    { class : Model class -> Html.Attribute msg
-    , classList : List ( Model class, Bool ) -> Html.Attribute msg
+type alias StyleSheet msg =
+    { class : Model -> Html.Attribute msg
+    , classList : List ( Model, Bool ) -> Html.Attribute msg
     , css : String
     }
 
@@ -399,7 +389,7 @@ type alias StyleSheet class msg =
 {-| Render styles into a stylesheet
 
 -}
-render : List (Model class) -> StyleSheet class msg
+render : List Model -> StyleSheet msg
 render styles =
     let
         ( names, cssStyles ) =
@@ -426,7 +416,7 @@ render styles =
 
 {-| Render styles into a stylesheet and give visual ++ console log warnings if anything is off
 -}
-debug : List (Model class) -> StyleSheet class msg
+debug : List Model -> StyleSheet msg
 debug styles =
     let
         ( names, cssStyles ) =
@@ -501,8 +491,8 @@ debug styles =
 
 
 {-| -}
-type alias MediaQuery class =
-    ( String, Model class -> Model class )
+type alias MediaQuery =
+    ( String, Model -> Model )
 
 
 {-|
@@ -671,7 +661,7 @@ noRepeat =
 Will ignore any left spacing that it's parent has set for it.
 
 -}
-floatLeft : Model a -> Model a
+floatLeft : Model -> Model
 floatLeft (Model state) =
     Model
         { state
@@ -682,7 +672,7 @@ floatLeft (Model state) =
 {-|
 
 -}
-floatRight : Model a -> Model a
+floatRight : Model -> Model
 floatRight (Model state) =
     Model
         { state
@@ -695,7 +685,7 @@ floatRight (Model state) =
 This is useful for floating things at the beginning of text.
 
 -}
-floatTopLeft : Model a -> Model a
+floatTopLeft : Model -> Model
 floatTopLeft (Model state) =
     Model
         { state
@@ -706,7 +696,7 @@ floatTopLeft (Model state) =
 {-|
 
 -}
-floatTopRight : Model a -> Model a
+floatTopRight : Model -> Model
 floatTopRight (Model state) =
     Model
         { state
@@ -775,7 +765,7 @@ auto =
 
 
 {-| -}
-visibility : Visibility -> Model a -> Model a
+visibility : Visibility -> Model -> Model
 visibility vis (Model state) =
     Model
         { state
@@ -785,7 +775,7 @@ visibility vis (Model state) =
 
 
 {-| -}
-anchor : Anchor -> Model a -> Model a
+anchor : Anchor -> Model -> Model
 anchor anc (Model state) =
     let
         positioned =
@@ -807,7 +797,7 @@ anchor anc (Model state) =
 
 
 {-| -}
-relativeTo : RelativeTo -> Model a -> Model a
+relativeTo : RelativeTo -> Model -> Model
 relativeTo rel (Model state) =
     Model
         { state
@@ -816,7 +806,7 @@ relativeTo rel (Model state) =
         }
 
 
-isPosition : Property a -> Bool
+isPosition : Property -> Bool
 isPosition prop =
     case prop of
         Style.Model.PositionProp _ _ _ ->
@@ -827,7 +817,7 @@ isPosition prop =
 
 
 {-| -}
-position : ( Float, Float ) -> Model a -> Model a
+position : ( Float, Float ) -> Model -> Model
 position ( x, y ) (Model state) =
     let
         positioned =
@@ -849,7 +839,7 @@ position ( x, y ) (Model state) =
 
 
 {-| -}
-cursor : String -> Model a -> Model a
+cursor : String -> Model -> Model
 cursor value (Model state) =
     Model
         { state
@@ -859,7 +849,7 @@ cursor value (Model state) =
 
 
 {-| -}
-zIndex : Int -> Model a -> Model a
+zIndex : Int -> Model -> Model
 zIndex i (Model state) =
     Model
         { state
@@ -869,7 +859,7 @@ zIndex i (Model state) =
 
 
 {-| -}
-width : Length -> Model a -> Model a
+width : Length -> Model -> Model
 width value (Model state) =
     Model
         { state
@@ -879,7 +869,7 @@ width value (Model state) =
 
 
 {-| -}
-minWidth : Length -> Model a -> Model a
+minWidth : Length -> Model -> Model
 minWidth value (Model state) =
     Model
         { state
@@ -889,7 +879,7 @@ minWidth value (Model state) =
 
 
 {-| -}
-maxWidth : Length -> Model a -> Model a
+maxWidth : Length -> Model -> Model
 maxWidth value (Model state) =
     Model
         { state
@@ -899,7 +889,7 @@ maxWidth value (Model state) =
 
 
 {-| -}
-height : Length -> Model a -> Model a
+height : Length -> Model -> Model
 height value (Model state) =
     Model
         { state
@@ -909,7 +899,7 @@ height value (Model state) =
 
 
 {-| -}
-minHeight : Length -> Model a -> Model a
+minHeight : Length -> Model -> Model
 minHeight value (Model state) =
     Model
         { state
@@ -919,7 +909,7 @@ minHeight value (Model state) =
 
 
 {-| -}
-maxHeight : Length -> Model a -> Model a
+maxHeight : Length -> Model -> Model
 maxHeight value (Model state) =
     Model
         { state
@@ -929,7 +919,7 @@ maxHeight value (Model state) =
 
 
 {-| -}
-colors : ColorPalette -> Model a -> Model a
+colors : ColorPalette -> Model -> Model
 colors palette (Model state) =
     Model
         { state
@@ -939,7 +929,7 @@ colors palette (Model state) =
 
 
 {-| -}
-spacing : ( Float, Float, Float, Float ) -> Model a -> Model a
+spacing : ( Float, Float, Float, Float ) -> Model -> Model
 spacing s (Model state) =
     Model
         { state
@@ -949,7 +939,7 @@ spacing s (Model state) =
 
 
 {-| -}
-padding : ( Float, Float, Float, Float ) -> Model a -> Model a
+padding : ( Float, Float, Float, Float ) -> Model -> Model
 padding value (Model state) =
     Model
         { state
@@ -959,7 +949,7 @@ padding value (Model state) =
 
 
 {-| -}
-borderWidth : ( Float, Float, Float, Float ) -> Model a -> Model a
+borderWidth : ( Float, Float, Float, Float ) -> Model -> Model
 borderWidth value (Model state) =
     Model
         { state
@@ -969,7 +959,7 @@ borderWidth value (Model state) =
 
 
 {-| -}
-borderRadius : ( Float, Float, Float, Float ) -> Model a -> Model a
+borderRadius : ( Float, Float, Float, Float ) -> Model -> Model
 borderRadius value (Model state) =
     Model
         { state
@@ -979,7 +969,7 @@ borderRadius value (Model state) =
 
 
 {-| -}
-font : Font -> Model a -> Model a
+font : Font -> Model -> Model
 font text (Model state) =
     Model
         { state
@@ -988,7 +978,7 @@ font text (Model state) =
 
 
 {-| -}
-underline : Model a -> Model a
+underline : Model -> Model
 underline (Model state) =
     Model
         { state
@@ -998,7 +988,7 @@ underline (Model state) =
 
 
 {-| -}
-strike : Model a -> Model a
+strike : Model -> Model
 strike (Model state) =
     Model
         { state
@@ -1008,7 +998,7 @@ strike (Model state) =
 
 
 {-| -}
-italicize : Model a -> Model a
+italicize : Model -> Model
 italicize (Model state) =
     Model
         { state
@@ -1018,7 +1008,7 @@ italicize (Model state) =
 
 
 {-| -}
-bold : Model a -> Model a
+bold : Model -> Model
 bold (Model state) =
     Model
         { state
@@ -1028,7 +1018,7 @@ bold (Model state) =
 
 
 {-| -}
-light : Model a -> Model a
+light : Model -> Model
 light (Model state) =
     Model
         { state
@@ -1038,7 +1028,7 @@ light (Model state) =
 
 
 {-| -}
-borderStyle : BorderStyle -> Model a -> Model a
+borderStyle : BorderStyle -> Model -> Model
 borderStyle bStyle (Model state) =
     let
         val =
@@ -1060,7 +1050,7 @@ borderStyle bStyle (Model state) =
 
 
 {-| -}
-backgroundImage : BackgroundImage -> Model a -> Model a
+backgroundImage : BackgroundImage -> Model -> Model
 backgroundImage value (Model state) =
     Model
         { state
@@ -1070,7 +1060,7 @@ backgroundImage value (Model state) =
 
 
 {-| -}
-shadows : List Shadow -> Model a -> Model a
+shadows : List Shadow -> Model -> Model
 shadows value (Model state) =
     Model
         { state
@@ -1080,7 +1070,7 @@ shadows value (Model state) =
 
 
 {-| -}
-transforms : List Transform -> Model a -> Model a
+transforms : List Transform -> Model -> Model
 transforms value (Model state) =
     Model
         { state
@@ -1090,7 +1080,7 @@ transforms value (Model state) =
 
 
 {-| -}
-filters : List Filter -> Model a -> Model a
+filters : List Filter -> Model -> Model
 filters value (Model state) =
     Model
         { state
@@ -1100,7 +1090,7 @@ filters value (Model state) =
 
 
 {-| -}
-media : List (MediaQuery a) -> Model a -> Model a
+media : List MediaQuery -> Model -> Model
 media queries (Model state) =
     let
         renderedMediaQueries =
@@ -1111,7 +1101,7 @@ media queries (Model state) =
 
 {-| Add a property.  Not to be exported, `properties` is to be used instead.
 -}
-property : String -> String -> Model a -> Model a
+property : String -> String -> Model -> Model
 property name value (Model state) =
     Model
         { state
@@ -1121,7 +1111,7 @@ property name value (Model state) =
 
 
 {-| -}
-inline : Model a -> Model a
+inline : Model -> Model
 inline (Model state) =
     Model
         { state
@@ -1137,7 +1127,7 @@ If you try to assign a float or make an element inline that is not the child of 
 Besides this, all immediate children are arranged as if they were `display: block`.
 
 -}
-textLayout : Model a -> Model a
+textLayout : Model -> Model
 textLayout (Model state) =
     Model
         { state
@@ -1149,7 +1139,7 @@ textLayout (Model state) =
 {-| This is the same as setting an element to `display:table`.
 
 -}
-tableLayout : Model a -> Model a
+tableLayout : Model -> Model
 tableLayout (Model state) =
     Model
         { state
@@ -1170,7 +1160,7 @@ type alias Flow =
 
 {-| This is a flexbox foundationd layout
 -}
-flowUp : Flow -> Model a -> Model a
+flowUp : Flow -> Model -> Model
 flowUp { wrap, horizontal, vertical } (Model state) =
     let
         layout =
@@ -1192,7 +1182,7 @@ flowUp { wrap, horizontal, vertical } (Model state) =
 {-|
 
 -}
-flowDown : Flow -> Model a -> Model a
+flowDown : Flow -> Model -> Model
 flowDown { wrap, horizontal, vertical } (Model state) =
     let
         layout =
@@ -1212,7 +1202,7 @@ flowDown { wrap, horizontal, vertical } (Model state) =
 
 
 {-| -}
-flowRight : Flow -> Model a -> Model a
+flowRight : Flow -> Model -> Model
 flowRight { wrap, horizontal, vertical } (Model state) =
     let
         layout =
@@ -1232,7 +1222,7 @@ flowRight { wrap, horizontal, vertical } (Model state) =
 
 
 {-| -}
-flowLeft : Flow -> Model a -> Model a
+flowLeft : Flow -> Model -> Model
 flowLeft { wrap, horizontal, vertical } (Model state) =
     let
         layout =
@@ -1613,13 +1603,13 @@ sepia x =
 
 
 {-| -}
-mediaQuery : String -> (Style.Model.Model class -> Style.Model.Model class) -> MediaQuery class
+mediaQuery : String -> (Style.Model.Model -> Style.Model.Model) -> MediaQuery
 mediaQuery name variation =
     ( name, variation )
 
 
 {-| -}
-transition : Transition -> Model a -> Model a
+transition : Transition -> Model -> Model
 transition value (Model state) =
     Model
         { state
@@ -1629,17 +1619,17 @@ transition value (Model state) =
 
 
 {-| -}
-type alias Animation class =
+type alias Animation =
     { duration : Time
     , easing : String
     , repeat : Float
-    , steps : List ( Float, Style.Model.Model class -> Style.Model.Model class )
+    , steps : List ( Float, Style.Model.Model -> Style.Model.Model )
     }
 
 
 {-| Create an animation
 -}
-animate : Animation a -> Model a -> Model a
+animate : Animation -> Model -> Model
 animate { duration, easing, repeat, steps } (Model state) =
     Model
         { state
@@ -1659,7 +1649,7 @@ animate { duration, easing, repeat, steps } (Model state) =
 
 
 {-| -}
-hover : (Model a -> Model a) -> Model a -> Model a
+hover : (Model -> Model) -> Model -> Model
 hover vary (Model model) =
     Model
         { model
@@ -1669,7 +1659,7 @@ hover vary (Model model) =
 
 
 {-| -}
-focus : (Model a -> Model a) -> Model a -> Model a
+focus : (Model -> Model) -> Model -> Model
 focus vary (Model model) =
     Model
         { model
@@ -1679,7 +1669,7 @@ focus vary (Model model) =
 
 
 {-| -}
-checked : (Model a -> Model a) -> Model a -> Model a
+checked : (Model -> Model) -> Model -> Model
 checked vary (Model model) =
     Model
         { model
@@ -1689,7 +1679,7 @@ checked vary (Model model) =
 
 
 {-| -}
-selection : (Model a -> Model a) -> Model a -> Model a
+selection : (Model -> Model) -> Model -> Model
 selection vary (Model model) =
     Model
         { model
@@ -1700,7 +1690,7 @@ selection vary (Model model) =
 
 {-| Requires a string which will be rendered as the 'content' property
 -}
-after : String -> (Model a -> Model a) -> Model a -> Model a
+after : String -> (Model -> Model) -> Model -> Model
 after content vary (Model model) =
     Model
         { model
@@ -1711,7 +1701,7 @@ after content vary (Model model) =
 
 {-| Requires a string which will be rendered as the 'content' property
 -}
-before : String -> (Model a -> Model a) -> Model a -> Model a
+before : String -> (Model -> Model) -> Model -> Model
 before content vary (Model model) =
     Model
         { model

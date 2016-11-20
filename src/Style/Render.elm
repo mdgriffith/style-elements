@@ -36,7 +36,7 @@ type alias Tag =
     String
 
 
-render : Model a -> ( ClassName, RenderedStyle )
+render : Model -> ( ClassName, RenderedStyle )
 render (Model model) =
     let
         intermediates =
@@ -65,7 +65,7 @@ render (Model model) =
         )
 
 
-renderProperties : List (Property a) -> List StyleIntermediate
+renderProperties : List Property -> List StyleIntermediate
 renderProperties props =
     props
         |> List.Extra.uniqueBy propertyName
@@ -73,7 +73,7 @@ renderProperties props =
         |> List.map renderProperty
 
 
-renderProperty : Property a -> StyleIntermediate
+renderProperty : Property -> StyleIntermediate
 renderProperty prop =
     case prop of
         Property name value ->
@@ -217,7 +217,7 @@ type alias RenderedStyle =
     String
 
 
-renderAnimation : Animation a -> ( ( String, String ), String )
+renderAnimation : Animation -> ( ( String, String ), String )
 renderAnimation (Animation { duration, easing, steps, repeat }) =
     let
         ( renderedStyle, renderedFrames ) =
@@ -773,7 +773,7 @@ formatName class =
 
 
 {-| -}
-getName : Model a -> String
+getName : Model -> String
 getName model =
     Tuple.first <| render model
 

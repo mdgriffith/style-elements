@@ -6,11 +6,11 @@ import Color exposing (Color)
 import Time exposing (Time)
 
 
-type Model class
+type Model
     = Model
         { selector : Selector
         , properties :
-            List (Property class)
+            List Property
         }
 
 
@@ -20,7 +20,7 @@ type Selector
     | AutoClass
 
 
-type Property class
+type Property
     = Property String String
     | Box String ( Float, Float, Float, Float )
     | Spacing ( Float, Float, Float, Float )
@@ -31,18 +31,18 @@ type Property class
     | TransitionProperty Transition
     | Shadows (List Shadow)
     | BackgroundImageProp BackgroundImage
-    | AnimationProp (Animation class)
+    | AnimationProp Animation
     | VisibilityProp Visibility
     | FloatProp Floating
     | RelProp RelativeTo
     | PositionProp Anchor Float Float
     | Colors ColorPalette
     | FontProp Font
-    | MediaQuery String (Model class)
-    | SubElement String (Model class)
+    | MediaQuery String Model
+    | SubElement String Model
 
 
-propertyName : Property a -> String
+propertyName : Property -> String
 propertyName prop =
     case prop of
         Property name _ ->
@@ -143,12 +143,12 @@ type alias Keyframes =
 
 
 {-| -}
-type Animation a
+type Animation
     = Animation
         { duration : Time
         , easing : String
         , repeat : Float
-        , steps : List ( Float, Model a )
+        , steps : List ( Float, Model )
         }
 
 
