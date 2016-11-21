@@ -42,6 +42,16 @@ type Property
     | SubElement String Model
 
 
+isFont : Property -> Bool
+isFont prop =
+    case prop of
+        FontProp _ ->
+            True
+
+        _ ->
+            False
+
+
 propertyName : Property -> String
 propertyName prop =
     case prop of

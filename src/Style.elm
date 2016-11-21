@@ -22,8 +22,10 @@ module Style
         , Animation
         , MediaQuery
         , Transition
+        , Option
         , embed
         , render
+        , renderWith
         , class
         , selector
         , flowUp
@@ -145,6 +147,9 @@ module Style
         , filters
         , media
         , property
+        , autoImportGoogleFonts
+        , importCSS
+        , importUrl
         )
 
 {-|
@@ -152,6 +157,10 @@ module Style
 This module is focused around composing a style.
 
 @docs Simple, Model, foundation, empty, embed, render, class, selector
+
+## Rendering Options
+
+@docs Option, importCSS, importUrl, autoImportGoogleFonts
 
 
 # Positioning
@@ -292,6 +301,7 @@ import Html.Attributes
 import Time exposing (Time)
 import Color exposing (Color)
 import List.Extra
+import String.Extra
 import Style.Model exposing (Model(..), Property(..), Floating(..))
 import Style.Render
 
@@ -412,6 +422,109 @@ render styles =
                     |> Html.Attributes.class
             )
         }
+
+
+type Option
+    = AutoImportGoogleFonts
+    | Import String
+    | ImportUrl String
+
+
+
+--| BaseStyle
+
+
+{-| An attempt will be made to import all non-standard webfonts that are in your styles.
+-}
+autoImportGoogleFonts : Option
+autoImportGoogleFonts =
+    AutoImportGoogleFonts
+
+
+{-|
+-}
+importCSS : String -> Option
+importCSS =
+    Import
+
+
+{-|
+-}
+importUrl : String -> Option
+importUrl =
+    ImportUrl
+
+
+isWebfont : String -> Bool
+isWebfont str =
+    List.member (String.toLower str)
+        [ "arial"
+        , "sans-serif"
+        , "serif"
+        , "courier"
+        , "times"
+        , "times new roman"
+        , "verdana"
+        , "tahoma"
+        , "georgia"
+        , "helvetica"
+        ]
+
+
+getFontNames : Model -> List String
+getFontNames (Model model) =
+    let
+        getFonts prop =
+            case prop of
+                Style.Model.FontProp f ->
+                    f.font
+                        |> String.split ","
+                        |> List.map (String.Extra.replace "'" "" << String.Extra.unquote << String.Extra.replace " " "+" << String.trim)
+
+                _ ->
+                    []
+    in
+        model.properties
+            |> List.filter Style.Model.isFont
+            |> List.concatMap getFonts
+
+
+{-| -}
+renderWith : List Option -> List Model -> StyleSheet msg
+renderWith adds styles =
+    let
+        _ =
+            List.map (\s -> Debug.log "foundfonts" (getFontNames s)) styles
+
+        renderAdd add =
+            case add of
+                AutoImportGoogleFonts ->
+                    styles
+                        |> List.concatMap getFontNames
+                        |> List.Extra.uniqueBy identity
+                        |> List.filter (not << isWebfont)
+                        |> String.join "|"
+                        |> (\family -> "@import url('https://fonts.googleapis.com/css?family=" ++ family ++ "');")
+
+                Import str ->
+                    "@import " ++ str ++ ";"
+
+                ImportUrl str ->
+                    "@import url('" ++ str ++ "');"
+
+        --BaseStyle ->
+        --    ""
+        rendered =
+            render styles
+    in
+        case List.map renderAdd adds of
+            [] ->
+                rendered
+
+            rules ->
+                { rendered
+                    | css = String.join "\n" rules ++ "\n\n" ++ rendered.css
+                }
 
 
 {-| Render styles into a stylesheet and give visual ++ console log warnings if anything is off
