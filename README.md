@@ -58,6 +58,8 @@ rotatingBox =
             }
 ```
 
+
+
 ## Getting Started
 
  * [Getting Started/How it Works](https://github.com/mdgriffith/style-elements/blob/master/HowItWorks.md)
@@ -70,9 +72,7 @@ rotatingBox =
 
 ## Compared to elm-css
 
-The goal of [elm-css](https://github.com/rtfeldman/elm-css/) library is to provide access all of CSS in a typesafe way (meaning you get a beautiful compiler error if you write something incorrectly).
-
-It uses union types instead of strings to represent classes and ids.  This is inherently awesome and worth your consideration.
+The goal of [elm-css](https://github.com/rtfeldman/elm-css/) library is to provide access all of CSS in a typesafe way (meaning you get a beautiful compiler error if you write something incorrectly).  Part of the advantage comes from useing union types instead of strings to represent classes and ids.  This is inherently awesome and worth your consideration.
 
 
 The `style-elements` library instead focuses on simplifying css, making it more robust and quicker to prototype in.
@@ -82,7 +82,9 @@ It does this by
     * setting smarter defaults
     * providing clean interfaces to the good parts like `media queries`, `flex-box` and `animations`.
 
-It's meant to be a css preprocessor with css best practices built in.
+It's meant to be a css preprocessor with css best practices built in, however this means that you have to understand and buy-in to what the `style-elements` library believes are best practices.
+
+This is covered in [Understanding Style - Designing the Style Elements Library](http://www.mechanical-elephant.com/articles/understanding-style-composition).
 
 
 

@@ -3,10 +3,10 @@
 
 First, check out the examples
 
+ * [Understanding Style - Designing the Style Elements Library](http://www.mechanical-elephant.com/articles/understanding-style-composition) - an article that goes in depth on how `style-elements` works.
+ * [Documentation](http://package.elm-lang.org/packages/mdgriffith/style-elements/latest)
  * Simple example: [code](https://github.com/mdgriffith/elm-style-elements-simple-example) - [demo](https://mdgriffith.github.io/style-elements/simple/)
  * Realworld example that uses animations, media queries, and palettes: [code](https://github.com/mdgriffith/elm-style-elements-complex-example) - [demo](https://mdgriffith.github.io/style-elements/realworld/)
- * Documentation (Unpublished for the moment, will be published soon)
-
 
 ## Style Crafting
 
