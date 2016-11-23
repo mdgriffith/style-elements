@@ -17,7 +17,7 @@ module Style
         , Font
         , Whitespace
         , Anchor
-        , RelativeTo
+        , PositionParent
         , Repeat
         , Animation
         , MediaQuery
@@ -117,9 +117,7 @@ module Style
         , foundation
         , mediaQuery
         , visibility
-        , relativeTo
-        , anchor
-        , position
+        , positionBy
         , colors
         , font
         , italicize
@@ -169,11 +167,10 @@ The coordinates for the `position` value in the style model are x and y coordina
 
 These coordinates are always rendered in pixels.
 
-@docs position
+@docs topLeft, topRight, bottomLeft, bottomRight
 
-@docs relativeTo, RelativeTo, parent, currentPosition, screen
+@docs positionBy, PositionParent, parent, currentPosition, screen
 
-@docs anchor, Anchor, topLeft, topRight, bottomLeft, bottomRight
 
 
 # Width/Height
@@ -493,9 +490,6 @@ getFontNames (Model model) =
 renderWith : List Option -> List Model -> StyleSheet msg
 renderWith adds styles =
     let
-        _ =
-            List.map (\s -> Debug.log "foundfonts" (getFontNames s)) styles
-
         renderAdd add =
             case add of
                 AutoImportGoogleFonts ->
@@ -512,8 +506,6 @@ renderWith adds styles =
                 ImportUrl str ->
                     "@import url('" ++ str ++ "');"
 
-        --BaseStyle ->
-        --    ""
         rendered =
             render styles
     in
@@ -699,8 +691,8 @@ type alias Anchor =
 
 {-|
 -}
-type alias RelativeTo =
-    Style.Model.RelativeTo
+type alias PositionParent =
+    Style.Model.PositionParent
 
 
 {-|
@@ -818,48 +810,6 @@ floatTopRight (Model state) =
 
 
 {-| -}
-screen : RelativeTo
-screen =
-    Style.Model.Screen
-
-
-{-| -}
-parent : RelativeTo
-parent =
-    Style.Model.Parent
-
-
-{-| -}
-currentPosition : RelativeTo
-currentPosition =
-    Style.Model.CurrentPosition
-
-
-{-| -}
-topLeft : Anchor
-topLeft =
-    Style.Model.AnchorTop => Style.Model.AnchorLeft
-
-
-{-| -}
-topRight : Anchor
-topRight =
-    Style.Model.AnchorTop => Style.Model.AnchorRight
-
-
-{-| -}
-bottomLeft : Anchor
-bottomLeft =
-    Style.Model.AnchorBottom => Style.Model.AnchorLeft
-
-
-{-| -}
-bottomRight : Anchor
-bottomRight =
-    Style.Model.AnchorBottom => Style.Model.AnchorRight
-
-
-{-| -}
 px : Float -> Length
 px x =
     Style.Model.Px x
@@ -888,30 +838,26 @@ visibility vis (Model state) =
 
 
 {-| -}
-anchor : Anchor -> Model -> Model
-anchor anc (Model state) =
-    let
-        positioned =
-            case List.head <| List.filter (\prop -> isPosition prop) state.properties of
-                Nothing ->
-                    Style.Model.PositionProp anc 0 0
-
-                Just (Style.Model.PositionProp _ x y) ->
-                    Style.Model.PositionProp anc x y
-
-                Just _ ->
-                    Style.Model.PositionProp topLeft 0 0
-    in
-        Model
-            { state
-                | properties =
-                    positioned :: state.properties
-            }
+screen : PositionParent
+screen =
+    Style.Model.Screen
 
 
 {-| -}
-relativeTo : RelativeTo -> Model -> Model
-relativeTo rel (Model state) =
+parent : PositionParent
+parent =
+    Style.Model.Parent
+
+
+{-| -}
+currentPosition : PositionParent
+currentPosition =
+    Style.Model.CurrentPosition
+
+
+{-| -}
+positionBy : PositionParent -> Model -> Model
+positionBy rel (Model state) =
     Model
         { state
             | properties =
@@ -919,35 +865,63 @@ relativeTo rel (Model state) =
         }
 
 
-isPosition : Property -> Bool
-isPosition prop =
-    case prop of
-        Style.Model.PositionProp _ _ _ ->
-            True
-
-        _ ->
-            False
-
-
 {-| -}
-position : ( Float, Float ) -> Model -> Model
-position ( x, y ) (Model state) =
+topLeft : Int -> Int -> Model -> Model
+topLeft x y (Model state) =
     let
-        positioned =
-            case List.head <| List.filter (\prop -> isPosition prop) state.properties of
-                Nothing ->
-                    Style.Model.PositionProp topLeft x y
-
-                Just (Style.Model.PositionProp anc _ _) ->
-                    Style.Model.PositionProp anc x y
-
-                Just _ ->
-                    Style.Model.PositionProp topLeft 0 0
+        anchor =
+            Style.Model.AnchorTop => Style.Model.AnchorLeft
     in
         Model
             { state
                 | properties =
-                    positioned :: state.properties
+                    Style.Model.PositionProp anchor x y
+                        :: state.properties
+            }
+
+
+{-| -}
+topRight : Int -> Int -> Model -> Model
+topRight x y (Model state) =
+    let
+        anchor =
+            Style.Model.AnchorTop => Style.Model.AnchorRight
+    in
+        Model
+            { state
+                | properties =
+                    Style.Model.PositionProp anchor x y
+                        :: state.properties
+            }
+
+
+{-| -}
+bottomLeft : Int -> Int -> Model -> Model
+bottomLeft x y (Model state) =
+    let
+        anchor =
+            Style.Model.AnchorBottom => Style.Model.AnchorLeft
+    in
+        Model
+            { state
+                | properties =
+                    Style.Model.PositionProp anchor x y
+                        :: state.properties
+            }
+
+
+{-| -}
+bottomRight : Int -> Int -> Model -> Model
+bottomRight x y (Model state) =
+    let
+        anchor =
+            Style.Model.AnchorBottom => Style.Model.AnchorRight
+    in
+        Model
+            { state
+                | properties =
+                    Style.Model.PositionProp anchor x y
+                        :: state.properties
             }
 
 

@@ -34,7 +34,7 @@ type Property
     | AnimationProp Animation
     | VisibilityProp Visibility
     | FloatProp Floating
-    | RelProp RelativeTo
+    | RelProp PositionParent
     | PositionProp Anchor Float Float
     | Colors ColorPalette
     | FontProp Font
@@ -204,7 +204,7 @@ type alias Anchor =
 
 {-|
 -}
-type RelativeTo
+type PositionParent
     = Screen
     | CurrentPosition
     | Parent
