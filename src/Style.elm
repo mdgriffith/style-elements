@@ -382,9 +382,9 @@ selector cls (Model state) =
 
 {-| Embed a style sheet into your html.
 -}
-embed : StyleSheet msg -> Html msg
-embed stylesheet =
-    Html.node "style" [] [ Html.text stylesheet.css ]
+embed : List (StyleSheet msg) -> Html msg
+embed stylesheets =
+    Html.node "style" [] [ Html.text (String.join "\n" <| List.map .css stylesheets) ]
 
 
 type alias StyleSheet msg =
