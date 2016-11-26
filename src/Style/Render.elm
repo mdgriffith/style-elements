@@ -1,4 +1,4 @@
-module Style.Render exposing (render, renderInline getName, inlineError, floatError, missingError)
+module Style.Render exposing (render, renderInline, getName, inlineError, floatError, missingError)
 
 {-|
 -}
@@ -36,8 +36,7 @@ type alias Tag =
     String
 
 
-
-renderInline : Model -> List (String, String)
+renderInline : Model -> List ( String, String )
 renderInline (Model model) =
     let
         intermediates =
@@ -47,6 +46,7 @@ renderInline (Model model) =
             renderIntermediates "rendered-inline" intermediates
     in
         style
+
 
 render : Model -> ( ClassName, RenderedStyle )
 render (Model model) =
