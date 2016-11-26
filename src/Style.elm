@@ -26,6 +26,8 @@ module Style
         , embed
         , render
         , renderWith
+        , debug
+        , debugWith
         , class
         , selector
         , flowUp
@@ -115,7 +117,6 @@ module Style
         , before
         , empty
         , foundation
-        , mediaQuery
         , visibility
         , positionBy
         , colors
@@ -287,7 +288,7 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 
 # Media Queries
 
-@docs media, MediaQuery, mediaQuery
+@docs media, MediaQuery
 
 
 
@@ -301,6 +302,7 @@ import List.Extra
 import String.Extra
 import Style.Model exposing (Model(..), Property(..), Floating(..))
 import Style.Render
+import Style.Media
 
 
 {-| -}
@@ -313,10 +315,10 @@ type alias Model =
 Use this as a starting point for the majority of your styles.
 
 -}
-foundation : Model
-foundation =
+foundation : class -> Model class
+foundation class =
     Model
-        { selector = Style.Model.AutoClass
+        { selector = Style.Model.Class class
         , properties =
             [ Style.Model.Property "box-sizing" "border-box"
             , Style.Model.Len "width" auto
@@ -345,7 +347,7 @@ foundation =
                 , text = Color.darkCharcoal
                 , border = Color.grey
                 }
-            , Style.Model.PositionProp topLeft 0 0
+            , Style.Model.PositionProp ( Style.Model.AnchorTop, Style.Model.AnchorLeft ) 0 0
             , Style.Model.RelProp currentPosition
             ]
         }
@@ -359,10 +361,10 @@ You should use `Style.foundation` for the majority of your styles.
 
 
 -}
-empty : Model
-empty =
+empty : class -> Model class
+empty class =
     Model
-        { selector = Style.Model.AutoClass
+        { selector = Style.Model.Class class
         , properties = []
         }
 
@@ -596,8 +598,36 @@ debug styles =
 
 
 {-| -}
-type alias MediaQuery =
-    ( String, Model -> Model )
+debugWith : List Option -> List Model -> StyleSheet msg
+debugWith adds styles =
+    let
+        renderAdd add =
+            case add of
+                AutoImportGoogleFonts ->
+                    styles
+                        |> List.concatMap getFontNames
+                        |> List.Extra.uniqueBy identity
+                        |> List.filter (not << isWebfont)
+                        |> String.join "|"
+                        |> (\family -> "@import url('https://fonts.googleapis.com/css?family=" ++ family ++ "');")
+
+                Import str ->
+                    "@import " ++ str ++ ";"
+
+                ImportUrl str ->
+                    "@import url('" ++ str ++ "');"
+
+        rendered =
+            debug styles
+    in
+        case List.map renderAdd adds of
+            [] ->
+                rendered
+
+            rules ->
+                { rendered
+                    | css = String.join "\n" rules ++ "\n\n" ++ rendered.css
+                }
 
 
 {-|
@@ -866,7 +896,7 @@ positionBy rel (Model state) =
 
 
 {-| -}
-topLeft : Int -> Int -> Model -> Model
+topLeft : Float -> Float -> Model -> Model
 topLeft x y (Model state) =
     let
         anchor =
@@ -881,7 +911,7 @@ topLeft x y (Model state) =
 
 
 {-| -}
-topRight : Int -> Int -> Model -> Model
+topRight : Float -> Float -> Model -> Model
 topRight x y (Model state) =
     let
         anchor =
@@ -896,7 +926,7 @@ topRight x y (Model state) =
 
 
 {-| -}
-bottomLeft : Int -> Int -> Model -> Model
+bottomLeft : Float -> Float -> Model -> Model
 bottomLeft x y (Model state) =
     let
         anchor =
@@ -911,7 +941,7 @@ bottomLeft x y (Model state) =
 
 
 {-| -}
-bottomRight : Int -> Int -> Model -> Model
+bottomRight : Float -> Float -> Model -> Model
 bottomRight x y (Model state) =
     let
         anchor =
@@ -1177,7 +1207,7 @@ filters value (Model state) =
 
 
 {-| -}
-media : List MediaQuery -> Model -> Model
+media : List Style.Media.Query -> Model -> Model
 media queries (Model state) =
     let
         renderedMediaQueries =
@@ -1687,12 +1717,6 @@ saturate x =
 sepia : Float -> Filter
 sepia x =
     Style.Model.Sepia x
-
-
-{-| -}
-mediaQuery : String -> (Style.Model.Model -> Style.Model.Model) -> MediaQuery
-mediaQuery name variation =
-    ( name, variation )
 
 
 {-| -}

@@ -1,4 +1,4 @@
-module Style.Render exposing (render, getName, inlineError, floatError, missingError)
+module Style.Render exposing (render, renderInline getName, inlineError, floatError, missingError)
 
 {-|
 -}
@@ -35,6 +35,18 @@ type alias Style =
 type alias Tag =
     String
 
+
+
+renderInline : Model -> List (String, String)
+renderInline (Model model) =
+    let
+        intermediates =
+            renderProperties model.properties
+
+        ( tags, style, blocks ) =
+            renderIntermediates "rendered-inline" intermediates
+    in
+        style
 
 render : Model -> ( ClassName, RenderedStyle )
 render (Model model) =
@@ -124,7 +136,7 @@ renderProperty prop =
             Tagged "floating" (renderFloating floating)
 
         RelProp relTo ->
-            Single <| renderRelativeTo relTo
+            Single <| renderPositionBy relTo
 
         PositionProp anchor x y ->
             Multiple <| renderPosition anchor ( x, y )
@@ -551,8 +563,8 @@ renderLength l =
             "auto"
 
 
-renderRelativeTo : RelativeTo -> ( String, String )
-renderRelativeTo relativeTo =
+renderPositionBy : PositionParent -> ( String, String )
+renderPositionBy relativeTo =
     case relativeTo of
         Screen ->
             "position" => "fixed"

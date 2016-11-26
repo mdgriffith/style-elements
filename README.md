@@ -27,7 +27,6 @@ title =
 #### Easy layout
 
 ```elm
-
 container : Style.Model
 container =
     Style.foundation
@@ -38,10 +37,10 @@ container =
             }
 ```
 
-
 #### Animation
 
 ```elm
+
 rotatingBox : Style.Model
 rotatingBox =
     Style.foundation
@@ -58,6 +57,43 @@ rotatingBox =
             }
 ```
 
+#### Media Queries
+
+
+```elm
+
+import Style.Media
+
+mediaQueryExample : Style.Model
+mediaQueryExample =
+    let
+        paintRed : Style.Model -> Style.Model
+        paintRed model =
+            model
+                |> colors palette.red
+
+        makeBordered : Style.Model -> Style.Model
+        makeBordered model =
+            model
+                |> borderWidth (all 5)
+                |> borderRadius (all 15)
+    in
+        base
+            |> width (px 180)
+            |> height (px 180)
+            |> padding (all 20)
+            |> colors palette.blue
+            |> flowRight
+                { wrap = True
+                , horizontal = alignCenter
+                , vertical = verticalCenter
+                }
+            |> media
+                [ Style.Media.phoneOnly paintRed
+                , Style.Media.tabletOnly makeBordered
+                ]
+
+```
 
 
 ## Getting Started
@@ -69,7 +105,7 @@ rotatingBox =
 
 #### Basic Introduction
 
-__Building a style__
+__Building a stylesheet__
 
 `Style.foundation` is your starting point, it has a number of default properties already set.  Think of it like a built-in css reset.
 
@@ -77,21 +113,19 @@ __Building a style__
 
 import Style exposing (..)
 
-title : Style.Model
-title =
-    Style.foundation
-        |> width (px 300)
-        |> height auto
-```
-
-
-__Put that style in a stylesheet__
-
-```elm
 
 stylesheet : Style.StyleSheet msg
 stylesheet =
-    Style.render [ title ]
+    Style.render
+        [ Title 
+            |> Style.foundation
+            |> width (px 300)
+            |> height auto
+        , Title 
+            |> Style.foundation
+            |> width (px 300)
+            |> height auto
+        ]
 
 ```
 
@@ -102,7 +136,8 @@ view : Model -> Html msg
 view model =
     div []
         [ Style.embed stylesheet
-        , div [ stylesheet.class title ] []
+        , div [ stylesheet.class Title ] [ text "Hello!"]
+        , div [ stylesheet.class Title ] [ text "Hello!"]
         ]
 ```
 
@@ -114,14 +149,14 @@ You can set a class to a style if you want, but if you don't then a class is aut
 
 ## Compared to elm-css
 
-The goal of [elm-css](https://github.com/rtfeldman/elm-css/) library is to provide access all of CSS in a typesafe way (meaning you get a beautiful compiler error if you write something incorrectly).  Part of the advantage comes from useing union types instead of strings to represent classes and ids.  This is inherently awesome and worth your consideration.
+The goal of [elm-css](https://github.com/rtfeldman/elm-css/) library is to provide access all of CSS in a typesafe way (meaning you get a beautiful compiler error if you write something incorrectly).  Part of the advantage comes from using union types instead of strings to represent classes and ids.  This is inherently awesome and worth your consideration.
 
 
 The `style-elements` library instead focuses on simplifying css, making it more robust and quicker to prototype in.
 
 It does this by 
     * removing parts of css that cause the most trouble
-    * setting smarter defaults
+    * setting defaults
     * providing clean interfaces to the good parts like `media queries`, `flex-box` and `animations`.
 
 It's meant to be a css preprocessor with css best practices built in, however this means that you have to understand and buy-in to what the `style-elements` library believes are best practices.
