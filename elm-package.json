@@ -9,8 +9,7 @@
     "exposed-modules": [
         "Style",
         "Style.Font",
-        "Style.Media",
-        "Style.Elements"
+        "Style.Media"
     ],
     "dependencies": {
         "elm-lang/core": "5.0.0 <= v < 6.0.0",
