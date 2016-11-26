@@ -20,7 +20,6 @@ module Style
         , PositionParent
         , Repeat
         , Animation
-        , MediaQuery
         , Transition
         , Option
         , embed
@@ -288,7 +287,7 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 
 # Media Queries
 
-@docs media, MediaQuery
+@docs media
 
 
 
@@ -315,10 +314,10 @@ type alias Model =
 Use this as a starting point for the majority of your styles.
 
 -}
-foundation : class -> Model class
-foundation class =
+foundation : Model
+foundation =
     Model
-        { selector = Style.Model.Class class
+        { selector = Style.Model.AutoClass
         , properties =
             [ Style.Model.Property "box-sizing" "border-box"
             , Style.Model.Len "width" auto
@@ -361,10 +360,10 @@ You should use `Style.foundation` for the majority of your styles.
 
 
 -}
-empty : class -> Model class
-empty class =
+empty : Model
+empty =
     Model
-        { selector = Style.Model.Class class
+        { selector = Style.Model.AutoClass
         , properties = []
         }
 
@@ -1206,7 +1205,9 @@ filters value (Model state) =
         }
 
 
-{-| -}
+{-| Media Queries are created in the Style.Media module.
+
+-}
 media : List Style.Media.Query -> Model -> Model
 media queries (Model state) =
     let

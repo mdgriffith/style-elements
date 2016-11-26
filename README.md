@@ -90,7 +90,7 @@ mediaQueryExample =
                 }
             |> media
                 [ Style.Media.phoneOnly paintRed
-                , Style.Media.tabletOnly makeBordered
+                , Style.Media.tabletPortraitOnly makeBordered
                 ]
 
 ```
