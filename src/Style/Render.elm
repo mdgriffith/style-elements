@@ -26,6 +26,7 @@ type StyleIntermediate
     | Block String (List ( String, String ))
     | MediaIntermediate String (List ( String, String ))
     | SubElementIntermediate String (List ( String, String ))
+    | Intermediates (List StyleIntermediate)
 
 
 type alias Style =
@@ -90,6 +91,9 @@ renderProperty prop =
     case prop of
         Property name value ->
             Single ( name, value )
+
+        Mix props ->
+            Intermediates (List.map renderProperty props)
 
         Box name box ->
             Single ( name, (render4tuplePx box) )
@@ -216,6 +220,16 @@ renderIntermediates className intermediates =
                     , style
                     , (cssClass 0 (className ++ selector) props) :: subStyles
                     )
+
+                Intermediates subIntermediates ->
+                    let
+                        ( childTags, childStyles, childSubstyles ) =
+                            renderIntermediates className subIntermediates
+                    in
+                        ( tags ++ childTags
+                        , style ++ childStyles
+                        , subStyles ++ childSubstyles
+                        )
         )
         ( [], [], [] )
         intermediates
@@ -480,47 +494,10 @@ render4tuplePx ( a, b, c, d ) =
 
 renderText : Font -> List ( String, String )
 renderText text =
-    List.filterMap identity
-        [ Just ("font-family" => text.font)
-        , Just ("font-size" => (toString text.size ++ "px"))
-        , Just ("line-height" => (toString (text.size * text.lineHeight) ++ "px"))
-        , case text.whitespace of
-            Normal ->
-                Just ("white-space" => "normal")
-
-            Pre ->
-                Just ("white-space" => "pre")
-
-            PreWrap ->
-                Just ("white-space" => "pre-wrap")
-
-            PreLine ->
-                Just ("white-space" => "pre-line")
-
-            NoWrap ->
-                Just ("white-space" => "no-wrap")
-        , Maybe.map
-            (\offset ->
-                "letter-spacing" => (toString offset ++ "px")
-            )
-            text.letterOffset
-        , Just <|
-            case text.align of
-                AlignLeft ->
-                    "text-align" => "left"
-
-                AlignRight ->
-                    "text-align" => "right"
-
-                AlignCenter ->
-                    "text-align" => "center"
-
-                Justify ->
-                    "text-align" => "justify"
-
-                JustifyAll ->
-                    "text-align" => "justify-all"
-        ]
+    [ "font-family" => text.font
+    , "font-size" => (toString text.size ++ "px")
+    , "line-height" => (toString (text.size * text.lineHeight) ++ "px")
+    ]
 
 
 colorToString : Color -> String

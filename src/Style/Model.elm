@@ -22,6 +22,7 @@ type Selector class
 
 type Property
     = Property String String
+    | Mix (List Property)
     | Box String ( Float, Float, Float, Float )
     | Spacing ( Float, Float, Float, Float )
     | LayoutProp Layout
@@ -57,6 +58,9 @@ propertyName prop =
     case prop of
         Property name _ ->
             name
+
+        Mix props ->
+            String.join "" <| List.map propertyName props
 
         Box name _ ->
             name
@@ -125,9 +129,6 @@ type alias Font =
     { font : String
     , size : Float
     , lineHeight : Float
-    , letterOffset : Maybe Float
-    , align : Alignment
-    , whitespace : Whitespace
     }
 
 

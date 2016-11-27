@@ -120,6 +120,9 @@ module Style
         , backgroundColor
         , borderColor
         , font
+        , textAlign
+        , whitespace
+        , letterOffset
         , italicize
         , bold
         , light
@@ -144,6 +147,7 @@ module Style
         , transforms
         , filters
         , property
+        , mix
         , autoImportGoogleFonts
         , importCSS
         , importUrl
@@ -248,14 +252,14 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 
 # Text/Font
 
-@docs font, Font, Whitespace, normal, pre, preLine, preWrap, noWrap, italicize, bold, light, strike, underline, cursor
+@docs font, Font, textAlign, letterOffset, whitespace, Whitespace, normal, pre, preLine, preWrap, noWrap, italicize, bold, light, strike, underline, cursor
 
 
 # Background Images
 
 @docs backgroundImage, BackgroundImage, Repeat, repeat, repeatX, repeatY, noRepeat, round, space
 
-@docs property
+@docs property, mix
 
 
 # Shadows
@@ -294,7 +298,7 @@ import Time exposing (Time)
 import Color exposing (Color)
 import List.Extra
 import String.Extra
-import Style.Model exposing (Model(..), Property(..), Floating(..))
+import Style.Model exposing (Model(..), Property(..), Floating(..), Whitespace(..), Alignment(..))
 import Style.Render
 import Style.Media
 
@@ -969,6 +973,52 @@ font text =
 
 
 {-| -}
+letterOffset : Float -> Property
+letterOffset offset =
+    Property "letter-offset" (toString offset ++ "px")
+
+
+{-| -}
+textAlign : Alignment -> Property
+textAlign alignment =
+    case alignment of
+        AlignLeft ->
+            Property "text-align" "left"
+
+        AlignRight ->
+            Property "text-align" "right"
+
+        AlignCenter ->
+            Property "text-align" "center"
+
+        Justify ->
+            Property "text-align" "justify"
+
+        JustifyAll ->
+            Property "text-align" "justify-all"
+
+
+{-| -}
+whitespace : Whitespace -> Property
+whitespace ws =
+    case ws of
+        Normal ->
+            Property "white-space" "normal"
+
+        Pre ->
+            Property "white-space" "pre"
+
+        PreWrap ->
+            Property "white-space" "pre-wrap"
+
+        PreLine ->
+            Property "white-space" "pre-line"
+
+        NoWrap ->
+            Property "white-space" "no-wrap"
+
+
+{-| -}
 underline : Property
 underline =
     Property "text-decoration" "underline"
@@ -1038,6 +1088,12 @@ transforms value =
 filters : List Filter -> Property
 filters value =
     Filters value
+
+
+{-| -}
+mix : List Property -> Property
+mix =
+    Mix
 
 
 {-| Add a property.  Not to be exported, `properties` is to be used instead.
