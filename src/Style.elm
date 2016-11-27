@@ -1,6 +1,7 @@
 module Style
     exposing
         ( Model
+        , Property
         , ColorPalette
         , StyleSheet
         , Shadow
@@ -22,6 +23,7 @@ module Style
         , Animation
         , Transition
         , Option
+        , foundation
         , embed
         , render
         , renderWith
@@ -114,8 +116,6 @@ module Style
         , selection
         , after
         , before
-        , empty
-        , foundation
         , visibility
         , positionBy
         , colors
@@ -143,7 +143,6 @@ module Style
         , shadows
         , transforms
         , filters
-        , media
         , property
         , autoImportGoogleFonts
         , importCSS
@@ -154,7 +153,7 @@ module Style
 
 This module is focused around composing a style.
 
-@docs Simple, Model, foundation, empty, embed, render, class, selector
+@docs Model, Property, class, embed, render, renderWith, debug, debugWith, selector, foundation
 
 ## Rendering Options
 
@@ -305,91 +304,70 @@ import Style.Media
 
 
 {-| -}
-type alias Model =
-    Style.Model.Model
+type alias Model class =
+    Style.Model.Model class
 
 
-{-| A style that comes with a set of defaults.
+type alias Property =
+    Style.Model.Property
 
-Use this as a starting point for the majority of your styles.
+
+{-|
+
+Sets the following defaults:
+
+    box-sizing: border-box
+    display: block
+    position: relative
+    top: 0
+    left: 0
 
 -}
-foundation : Model
+foundation : List Property
 foundation =
+    [ Style.Model.Property "box-sizing" "border-box"
+    , Style.Model.LayoutProp Style.Model.TextLayout
+    , Style.Model.PositionProp ( Style.Model.AnchorTop, Style.Model.AnchorLeft ) 0 0
+    , Style.Model.RelProp currentPosition
+    ]
+
+
+{-|
+-}
+class : class -> List Property -> Model class
+class cls props =
     Model
-        { selector = Style.Model.AutoClass
+        { selector = Style.Model.Class cls
+        , properties =
+            foundation ++ props
+        }
+
+
+{-| -}
+selector : String -> List Property -> Model class
+selector sel props =
+    Model
+        { selector = Style.Model.Exactly sel
         , properties =
             [ Style.Model.Property "box-sizing" "border-box"
-            , Style.Model.Len "width" auto
-            , Style.Model.Len "height" auto
-            , Style.Model.Box "padding" (all 0)
-            , Style.Model.Box "border-width" (all 0)
-            , Style.Model.Box "border-radius" (all 0)
-            , Style.Model.Spacing (all 0)
-            , Style.Model.TransitionProperty
-                { property = "all"
-                , duration = 300
-                , easing = "ease-out"
-                , delay = 0
-                }
             , Style.Model.LayoutProp Style.Model.TextLayout
-            , Style.Model.FontProp
-                { font = "georgia"
-                , size = 16
-                , letterOffset = Nothing
-                , lineHeight = 1.7
-                , align = alignLeft
-                , whitespace = normal
-                }
-            , Style.Model.Colors
-                { background = Color.rgba 255 255 255 0
-                , text = Color.darkCharcoal
-                , border = Color.grey
-                }
             , Style.Model.PositionProp ( Style.Model.AnchorTop, Style.Model.AnchorLeft ) 0 0
             , Style.Model.RelProp currentPosition
             ]
+                ++ props
         }
-
-
-{-| This is a completely empty style, there are no default properties set.
-
-You should use `Style.foundation` for the majority of your styles.
-
-`Style.empty` is specifically for cases where you want styles that can mix nicely with each other.
-
-
--}
-empty : Model
-empty =
-    Model
-        { selector = Style.Model.AutoClass
-        , properties = []
-        }
-
-
-{-| -}
-class : String -> Model -> Model
-class cls (Model state) =
-    Model { state | selector = Style.Model.Class cls }
-
-
-{-| -}
-selector : String -> Model -> Model
-selector cls (Model state) =
-    Model { state | selector = Style.Model.Exactly cls }
 
 
 {-| Embed a style sheet into your html.
 -}
-embed : List (StyleSheet msg) -> Html msg
-embed stylesheets =
-    Html.node "style" [] [ Html.text (String.join "\n" <| List.map .css stylesheets) ]
+embed : StyleSheet class msg -> Html msg
+embed stylesheet =
+    Html.node "style" [] [ Html.text stylesheet.css ]
 
 
-type alias StyleSheet msg =
-    { class : Model -> Html.Attribute msg
-    , classList : List ( Model, Bool ) -> Html.Attribute msg
+type alias StyleSheet class msg =
+    { class : class -> Html.Attribute msg
+    , classList : List ( class, Bool ) -> Html.Attribute msg
     , css : String
     }
 
@@ -397,7 +375,7 @@ type alias StyleSheet msg =
 {-| Render styles into a stylesheet
 
 -}
-render : List Model -> StyleSheet msg
+render : List (Model class) -> StyleSheet class msg
 render styles =
     let
         ( names, cssStyles ) =
@@ -408,14 +386,14 @@ render styles =
     in
         { css = String.join "\n" cssStyles
         , class =
-            (\model ->
-                Html.Attributes.class (Style.Render.getName model)
+            (\cls ->
+                Html.Attributes.class (Style.Render.formatName cls)
             )
         , classList =
-            (\models ->
-                models
+            (\classes ->
+                classes
                     |> List.filter Tuple.second
-                    |> List.map (Style.Render.getName << Tuple.first)
+                    |> List.map Style.Render.formatName
                     |> String.join " "
                     |> Html.Attributes.class
             )
@@ -426,10 +404,6 @@ type Option
     = AutoImportGoogleFonts
     | Import String
     | ImportUrl String
-
-
-
---| BaseStyle
 
 
 {-| An attempt will be made to import all non-standard webfonts that are in your styles.
@@ -469,7 +443,7 @@ isWebfont str =
         ]
 
 
-getFontNames : Model -> List String
+getFontNames : Model class -> List String
 getFontNames (Model model) =
     let
         getFonts prop =
@@ -488,7 +462,7 @@ getFontNames (Model model) =
 
 
 {-| -}
-renderWith : List Option -> List Model -> StyleSheet msg
+renderWith : List Option -> List (Model class) -> StyleSheet class msg
 renderWith adds styles =
     let
         renderAdd add =
@@ -522,7 +496,7 @@ renderWith adds styles =
 
 {-| Render styles into a stylesheet and give visual ++ console log warnings if anything is off
 -}
-debug : List Model -> StyleSheet msg
+debug : List (Model class) -> StyleSheet class msg
 debug styles =
     let
         ( names, cssStyles ) =
@@ -537,10 +511,10 @@ debug styles =
                 ++ Style.Render.floatError
                 ++ Style.Render.missingError
         , class =
-            (\model ->
+            (\name ->
                 let
                     cls =
-                        Style.Render.getName model
+                        Style.Render.formatName name
 
                     withPossibleError =
                         if not (List.member cls names) then
@@ -555,14 +529,14 @@ debug styles =
                     Html.Attributes.class withPossibleError
             )
         , classList =
-            (\models ->
+            (\classes ->
                 let
                     optionNames =
                         List.map
-                            (\( model, included ) ->
-                                ( Style.Render.getName model, included )
+                            (\( name, included ) ->
+                                ( Style.Render.formatName name, included )
                             )
-                            models
+                            classes
 
                     missing =
                         List.filterMap
@@ -597,7 +571,7 @@ debug styles =
 
 
 {-| -}
-debugWith : List Option -> List Model -> StyleSheet msg
+debugWith : List Option -> List (Model class) -> StyleSheet class msg
 debugWith adds styles =
     let
         renderAdd add =
@@ -795,23 +769,17 @@ noRepeat =
 Will ignore any left spacing that it's parent has set for it.
 
 -}
-floatLeft : Model -> Model
-floatLeft (Model state) =
-    Model
-        { state
-            | properties = Style.Model.FloatProp Style.Model.FloatLeft :: state.properties
-        }
+floatLeft : Property
+floatLeft =
+    FloatProp Style.Model.FloatLeft
 
 
 {-|
 
 -}
-floatRight : Model -> Model
-floatRight (Model state) =
-    Model
-        { state
-            | properties = Style.Model.FloatProp Style.Model.FloatRight :: state.properties
-        }
+floatRight : Property
+floatRight =
+    FloatProp Style.Model.FloatRight
 
 
 {-| Same as floatLeft, except it will ignore any top spacing that it's parent has set for it.
@@ -819,23 +787,17 @@ floatRight (Model state) =
 This is useful for floating things at the beginning of text.
 
 -}
-floatTopLeft : Model -> Model
-floatTopLeft (Model state) =
-    Model
-        { state
-            | properties = Style.Model.FloatProp Style.Model.FloatTopLeft :: state.properties
-        }
+floatTopLeft : Property
+floatTopLeft =
+    FloatProp Style.Model.FloatTopLeft
 
 
 {-|
 
 -}
-floatTopRight : Model -> Model
-floatTopRight (Model state) =
-    Model
-        { state
-            | properties = Style.Model.FloatProp Style.Model.FloatTopRight :: state.properties
-        }
+floatTopRight : Property
+floatTopRight =
+    FloatProp Style.Model.FloatTopRight
 
 
 {-| -}
@@ -857,13 +819,9 @@ auto =
 
 
 {-| -}
-visibility : Visibility -> Model -> Model
-visibility vis (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.VisibilityProp vis :: state.properties
-        }
+visibility : Visibility -> Property
+visibility vis =
+    Style.Model.VisibilityProp vis
 
 
 {-| -}
@@ -885,267 +843,168 @@ currentPosition =
 
 
 {-| -}
-positionBy : PositionParent -> Model -> Model
-positionBy rel (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.RelProp rel :: state.properties
-        }
+positionBy : PositionParent -> Property
+positionBy =
+    Style.Model.RelProp
 
 
 {-| -}
-topLeft : Float -> Float -> Model -> Model
-topLeft x y (Model state) =
+topLeft : Float -> Float -> Property
+topLeft x y =
     let
         anchor =
             Style.Model.AnchorTop => Style.Model.AnchorLeft
     in
-        Model
-            { state
-                | properties =
-                    Style.Model.PositionProp anchor x y
-                        :: state.properties
-            }
+        PositionProp anchor x y
 
 
 {-| -}
-topRight : Float -> Float -> Model -> Model
-topRight x y (Model state) =
+topRight : Float -> Float -> Property
+topRight x y =
     let
         anchor =
             Style.Model.AnchorTop => Style.Model.AnchorRight
     in
-        Model
-            { state
-                | properties =
-                    Style.Model.PositionProp anchor x y
-                        :: state.properties
-            }
+        PositionProp anchor x y
 
 
 {-| -}
-bottomLeft : Float -> Float -> Model -> Model
-bottomLeft x y (Model state) =
+bottomLeft : Float -> Float -> Property
+bottomLeft x y =
     let
         anchor =
             Style.Model.AnchorBottom => Style.Model.AnchorLeft
     in
-        Model
-            { state
-                | properties =
-                    Style.Model.PositionProp anchor x y
-                        :: state.properties
-            }
+        PositionProp anchor x y
 
 
 {-| -}
-bottomRight : Float -> Float -> Model -> Model
-bottomRight x y (Model state) =
+bottomRight : Float -> Float -> Property
+bottomRight x y =
     let
         anchor =
             Style.Model.AnchorBottom => Style.Model.AnchorRight
     in
-        Model
-            { state
-                | properties =
-                    Style.Model.PositionProp anchor x y
-                        :: state.properties
-            }
+        PositionProp anchor x y
 
 
 {-| -}
-cursor : String -> Model -> Model
-cursor value (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Property "cursor" value :: state.properties
-        }
+cursor : String -> Property
+cursor value =
+    Property "cursor" value
 
 
 {-| -}
-zIndex : Int -> Model -> Model
-zIndex i (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Property "z-index" (toString i) :: state.properties
-        }
+zIndex : Int -> Property
+zIndex i =
+    Property "z-index" (toString i)
 
 
 {-| -}
-width : Length -> Model -> Model
-width value (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Len "width" value :: state.properties
-        }
+width : Length -> Property
+width value =
+    Len "width" value
 
 
 {-| -}
-minWidth : Length -> Model -> Model
-minWidth value (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Len "min-width" value :: state.properties
-        }
+minWidth : Length -> Property
+minWidth value =
+    Len "min-width" value
 
 
 {-| -}
-maxWidth : Length -> Model -> Model
-maxWidth value (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Len "max-width" value :: state.properties
-        }
+maxWidth : Length -> Property
+maxWidth value =
+    Len "max-width" value
 
 
 {-| -}
-height : Length -> Model -> Model
-height value (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Len "height" value :: state.properties
-        }
+height : Length -> Property
+height value =
+    Len "height" value
 
 
 {-| -}
-minHeight : Length -> Model -> Model
-minHeight value (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Len "min-height" value :: state.properties
-        }
+minHeight : Length -> Property
+minHeight value =
+    Len "min-height" value
 
 
 {-| -}
-maxHeight : Length -> Model -> Model
-maxHeight value (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Len "max-height" value :: state.properties
-        }
+maxHeight : Length -> Property
+maxHeight value =
+    Len "max-height" value
 
 
 {-| -}
-colors : ColorPalette -> Model -> Model
-colors palette (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Colors palette :: state.properties
-        }
+colors : ColorPalette -> Property
+colors palette =
+    Colors palette
 
 
 {-| -}
-spacing : ( Float, Float, Float, Float ) -> Model -> Model
-spacing s (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Spacing s :: state.properties
-        }
+spacing : ( Float, Float, Float, Float ) -> Property
+spacing s =
+    Spacing s
 
 
 {-| -}
-padding : ( Float, Float, Float, Float ) -> Model -> Model
-padding value (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Box "padding" value :: state.properties
-        }
+padding : ( Float, Float, Float, Float ) -> Property
+padding value =
+    Box "padding" value
 
 
 {-| -}
-borderWidth : ( Float, Float, Float, Float ) -> Model -> Model
-borderWidth value (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Box "border-width" value :: state.properties
-        }
+borderWidth : ( Float, Float, Float, Float ) -> Property
+borderWidth value =
+    Box "border-width" value
 
 
 {-| -}
-borderRadius : ( Float, Float, Float, Float ) -> Model -> Model
-borderRadius value (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Box "border-radius" value :: state.properties
-        }
+borderRadius : ( Float, Float, Float, Float ) -> Property
+borderRadius value =
+    Box "border-radius" value
 
 
 {-| -}
-font : Font -> Model -> Model
-font text (Model state) =
-    Model
-        { state
-            | properties = FontProp text :: state.properties
-        }
+font : Font -> Property
+font text =
+    FontProp text
 
 
 {-| -}
-underline : Model -> Model
-underline (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Property "text-decoration" "underline" :: state.properties
-        }
+underline : Property
+underline =
+    Property "text-decoration" "underline"
 
 
 {-| -}
-strike : Model -> Model
-strike (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Property "text-decoration" "line-through" :: state.properties
-        }
+strike : Property
+strike =
+    Property "text-decoration" "line-through"
 
 
 {-| -}
-italicize : Model -> Model
-italicize (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Property "font-style" "italic" :: state.properties
-        }
+italicize : Property
+italicize =
+    Property "font-style" "italic"
 
 
 {-| -}
-bold : Model -> Model
-bold (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Property "font-weight" "700" :: state.properties
-        }
+bold : Property
+bold =
+    Property "font-weight" "700"
 
 
 {-| -}
-light : Model -> Model
-light (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Property "font-weight" "300" :: state.properties
-        }
+light : Property
+light =
+    Property "font-weight" "300"
 
 
 {-| -}
-borderStyle : BorderStyle -> Model -> Model
-borderStyle bStyle (Model state) =
+borderStyle : BorderStyle -> Property
+borderStyle bStyle =
     let
         val =
             case bStyle of
@@ -1158,84 +1017,44 @@ borderStyle bStyle (Model state) =
                 Style.Model.Dotted ->
                     "dotted"
     in
-        Model
-            { state
-                | properties =
-                    Style.Model.Property "border-style" val :: state.properties
-            }
+        Style.Model.Property "border-style" val
 
 
 {-| -}
-backgroundImage : BackgroundImage -> Model -> Model
-backgroundImage value (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.BackgroundImageProp value :: state.properties
-        }
+backgroundImage : BackgroundImage -> Property
+backgroundImage value =
+    BackgroundImageProp value
 
 
 {-| -}
-shadows : List Shadow -> Model -> Model
-shadows value (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Shadows value :: state.properties
-        }
+shadows : List Shadow -> Property
+shadows value =
+    Shadows value
 
 
 {-| -}
-transforms : List Transform -> Model -> Model
-transforms value (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Transforms value :: state.properties
-        }
+transforms : List Transform -> Property
+transforms value =
+    Transforms value
 
 
 {-| -}
-filters : List Filter -> Model -> Model
-filters value (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Filters value :: state.properties
-        }
-
-
-{-| Media Queries are created in the Style.Media module.
-
--}
-media : List Style.Media.Query -> Model -> Model
-media queries (Model state) =
-    let
-        renderedMediaQueries =
-            List.map (\( name, vary ) -> Style.Model.MediaQuery name (vary (Model state))) queries
-    in
-        Model { state | properties = renderedMediaQueries ++ state.properties }
+filters : List Filter -> Property
+filters value =
+    Filters value
 
 
 {-| Add a property.  Not to be exported, `properties` is to be used instead.
 -}
-property : String -> String -> Model -> Model
-property name value (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.Property name value :: state.properties
-        }
+property : String -> String -> Property
+property name value =
+    Property name value
 
 
 {-| -}
-inline : Model -> Model
-inline (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.LayoutProp Style.Model.InlineLayout :: state.properties
-        }
+inline : Property
+inline =
+    LayoutProp Style.Model.InlineLayout
 
 
 {-| This is the only layout that allows for child elements to use `float` or `inline`.
@@ -1245,25 +1064,17 @@ If you try to assign a float or make an element inline that is not the child of 
 Besides this, all immediate children are arranged as if they were `display: block`.
 
 -}
-textLayout : Model -> Model
-textLayout (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.LayoutProp Style.Model.TextLayout :: state.properties
-        }
+textLayout : Property
+textLayout =
+    LayoutProp Style.Model.TextLayout
 
 
 {-| This is the same as setting an element to `display:table`.
 
 -}
-tableLayout : Model -> Model
-tableLayout (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.LayoutProp Style.Model.TableLayout :: state.properties
-        }
+tableLayout : Property
+tableLayout =
+    LayoutProp Style.Model.TableLayout
 
 
 {-|
@@ -1278,8 +1089,8 @@ type alias Flow =
 
 {-| This is a flexbox foundationd layout
 -}
-flowUp : Flow -> Model -> Model
-flowUp { wrap, horizontal, vertical } (Model state) =
+flowUp : Flow -> Property
+flowUp { wrap, horizontal, vertical } =
     let
         layout =
             Style.Model.FlexLayout <|
@@ -1290,18 +1101,14 @@ flowUp { wrap, horizontal, vertical } (Model state) =
                     , vertical = vertical
                     }
     in
-        Model
-            { state
-                | properties =
-                    Style.Model.LayoutProp layout :: state.properties
-            }
+        LayoutProp layout
 
 
 {-|
 
 -}
-flowDown : Flow -> Model -> Model
-flowDown { wrap, horizontal, vertical } (Model state) =
+flowDown : Flow -> Property
+flowDown { wrap, horizontal, vertical } =
     let
         layout =
             Style.Model.FlexLayout <|
@@ -1312,16 +1119,12 @@ flowDown { wrap, horizontal, vertical } (Model state) =
                     , vertical = vertical
                     }
     in
-        Model
-            { state
-                | properties =
-                    Style.Model.LayoutProp layout :: state.properties
-            }
+        LayoutProp layout
 
 
 {-| -}
-flowRight : Flow -> Model -> Model
-flowRight { wrap, horizontal, vertical } (Model state) =
+flowRight : Flow -> Property
+flowRight { wrap, horizontal, vertical } =
     let
         layout =
             Style.Model.FlexLayout <|
@@ -1332,16 +1135,12 @@ flowRight { wrap, horizontal, vertical } (Model state) =
                     , vertical = vertical
                     }
     in
-        Model
-            { state
-                | properties =
-                    Style.Model.LayoutProp layout :: state.properties
-            }
+        LayoutProp layout
 
 
 {-| -}
-flowLeft : Flow -> Model -> Model
-flowLeft { wrap, horizontal, vertical } (Model state) =
+flowLeft : Flow -> Property
+flowLeft { wrap, horizontal, vertical } =
     let
         layout =
             Style.Model.FlexLayout <|
@@ -1352,11 +1151,7 @@ flowLeft { wrap, horizontal, vertical } (Model state) =
                     , vertical = vertical
                     }
     in
-        Model
-            { state
-                | properties =
-                    Style.Model.LayoutProp layout :: state.properties
-            }
+        LayoutProp layout
 
 
 {-| -}
@@ -1721,13 +1516,9 @@ sepia x =
 
 
 {-| -}
-transition : Transition -> Model -> Model
-transition value (Model state) =
-    Model
-        { state
-            | properties =
-                Style.Model.TransitionProperty value :: state.properties
-        }
+transition : Transition -> Property
+transition value =
+    Style.Model.TransitionProperty value
 
 
 {-| -}
@@ -1735,88 +1526,56 @@ type alias Animation =
     { duration : Time
     , easing : String
     , repeat : Float
-    , steps : List ( Float, Style.Model.Model -> Style.Model.Model )
+    , steps : List ( Float, List Property )
     }
 
 
 {-| Create an animation
 -}
-animate : Animation -> Model -> Model
-animate { duration, easing, repeat, steps } (Model state) =
-    Model
-        { state
-            | properties =
-                let
-                    anim =
-                        Style.Model.AnimationProp <|
-                            Style.Model.Animation
-                                { duration = duration
-                                , easing = easing
-                                , repeat = repeat
-                                , steps = List.map (\( time, fn ) -> ( time, fn <| Model state )) steps
-                                }
-                in
-                    anim :: state.properties
-        }
+animate : Animation -> Property
+animate { duration, easing, repeat, steps } =
+    Style.Model.AnimationProp <|
+        Style.Model.Animation
+            { duration = duration
+            , easing = easing
+            , repeat = repeat
+            , steps = steps
+            }
 
 
 {-| -}
-hover : (Model -> Model) -> Model -> Model
-hover vary (Model model) =
-    Model
-        { model
-            | properties =
-                (Style.Model.SubElement ":hover" (vary (Model model))) :: model.properties
-        }
+hover : List Property -> Property
+hover props =
+    Style.Model.SubElement ":hover" props
 
 
 {-| -}
-focus : (Model -> Model) -> Model -> Model
-focus vary (Model model) =
-    Model
-        { model
-            | properties =
-                (Style.Model.SubElement ":focus" (vary (Model model))) :: model.properties
-        }
+focus : List Property -> Property
+focus props =
+    Style.Model.SubElement ":focus" props
 
 
 {-| -}
-checked : (Model -> Model) -> Model -> Model
-checked vary (Model model) =
-    Model
-        { model
-            | properties =
-                (Style.Model.SubElement ":checked" (vary (Model model))) :: model.properties
-        }
+checked : List Property -> Property
+checked props =
+    Style.Model.SubElement ":checked" props
 
 
 {-| -}
-selection : (Model -> Model) -> Model -> Model
-selection vary (Model model) =
-    Model
-        { model
-            | properties =
-                (Style.Model.SubElement ":selection" (vary (Model model))) :: model.properties
-        }
+selection : List Property -> Property
+selection props =
+    Style.Model.SubElement ":selection" props
 
 
 {-| Requires a string which will be rendered as the 'content' property
 -}
-after : String -> (Model -> Model) -> Model -> Model
-after content vary (Model model) =
-    Model
-        { model
-            | properties =
-                (Style.Model.SubElement "::after" ((vary << property "content" content) (Model model))) :: model.properties
-        }
+after : String -> List Property -> Property
+after content props =
+    Style.Model.SubElement "::after" (property "content" content :: props)
 
 
 {-| Requires a string which will be rendered as the 'content' property
 -}
-before : String -> (Model -> Model) -> Model -> Model
-before content vary (Model model) =
-    Model
-        { model
-            | properties =
-                (Style.Model.SubElement "::before" ((vary << property "content" content) (Model model))) :: model.properties
-        }
+before : String -> List Property -> Property
+before content props =
+    Style.Model.SubElement "::before" (property "content" content :: props)

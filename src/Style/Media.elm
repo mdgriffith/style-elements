@@ -1,7 +1,6 @@
 module Style.Media
     exposing
-        ( Query
-        , query
+        ( query
         , phoneOnly
         , tabletPortraitUp
         , tabletPortraitOnly
@@ -21,63 +20,58 @@ Taken from the following article: https://medium.freecodecamp.com/the-100-correc
 
 -}
 
-import Style.Model exposing (Model)
+import Style.Model exposing (Model, Property)
 
 
 {-| -}
-type alias Query =
-    ( String, Model -> Model )
+query : String -> List Property -> Property
+query =
+    Style.Model.MediaQuery
 
 
 {-| -}
-query : String -> (Model -> Model) -> Query
-query name variation =
-    ( name, variation )
-
-
-{-| -}
-phoneOnly : (Model -> Model) -> Query
+phoneOnly : List Property -> Property
 phoneOnly =
     query "(max-width: 599px)"
 
 
 {-| -}
-tabletPortraitUp : (Model -> Model) -> Query
+tabletPortraitUp : List Property -> Property
 tabletPortraitUp =
     query "(min-width: 600px)"
 
 
 {-| -}
-tabletPortraitOnly : (Model -> Model) -> Query
+tabletPortraitOnly : List Property -> Property
 tabletPortraitOnly =
     query "(min-width: 600px) and (max-width: 899px)"
 
 
 {-| -}
-tabletLandscapeUp : (Model -> Model) -> Query
+tabletLandscapeUp : List Property -> Property
 tabletLandscapeUp =
     query "(min-width: 900px)"
 
 
 {-| -}
-tabletLandscapeOnly : (Model -> Model) -> Query
+tabletLandscapeOnly : List Property -> Property
 tabletLandscapeOnly =
     query "(min-width: 900px) and (max-width: 1199px)"
 
 
 {-| -}
-desktopUp : (Model -> Model) -> Query
+desktopUp : List Property -> Property
 desktopUp =
     query "(min-width: 1200px)"
 
 
 {-| -}
-desktopOnly : (Model -> Model) -> Query
+desktopOnly : List Property -> Property
 desktopOnly =
     query "(min-width: 1200px) and (max-width: 1799px)"
 
 
 {-| -}
-bigDesktopUp : (Model -> Model) -> Query
+bigDesktopUp : List Property -> Property
 bigDesktopUp =
     query "(min-width: 1800px)"

@@ -6,17 +6,17 @@ import Color exposing (Color)
 import Time exposing (Time)
 
 
-type Model
+type Model class
     = Model
-        { selector : Selector
+        { selector : Selector class
         , properties :
             List Property
         }
 
 
-type Selector
+type Selector class
     = Exactly String
-    | Class String
+    | Class class
     | AutoClass
 
 
@@ -38,8 +38,8 @@ type Property
     | PositionProp Anchor Float Float
     | Colors ColorPalette
     | FontProp Font
-    | MediaQuery String Model
-    | SubElement String Model
+    | MediaQuery String (List Property)
+    | SubElement String (List Property)
 
 
 isFont : Property -> Bool
@@ -158,7 +158,7 @@ type Animation
         { duration : Time
         , easing : String
         , repeat : Float
-        , steps : List ( Float, Model )
+        , steps : List ( Float, List Property )
         }
 
 

@@ -1,4 +1,4 @@
-module Style.Render exposing (render, renderInline, getName, inlineError, floatError, missingError)
+module Style.Render exposing (render, renderInline, getName, formatName, inlineError, floatError, missingError)
 
 {-|
 -}
@@ -36,7 +36,7 @@ type alias Tag =
     String
 
 
-renderInline : Model -> List ( String, String )
+renderInline : Model class -> List ( String, String )
 renderInline (Model model) =
     let
         intermediates =
@@ -48,7 +48,7 @@ renderInline (Model model) =
         style
 
 
-render : Model -> ( ClassName, RenderedStyle )
+render : Model class -> ( ClassName, RenderedStyle )
 render (Model model) =
     let
         intermediates =
@@ -63,10 +63,10 @@ render (Model model) =
                     ( hashedName, "." ++ hashedName )
 
                 Exactly str ->
-                    ( str ++ ", " ++ hashedName, "." ++ hashedName )
+                    ( str ++ " " ++ hashedName, "." ++ hashedName )
 
                 Class str ->
-                    ( str ++ ", " ++ hashedName, "." ++ str )
+                    ( formatName str ++ " " ++ hashedName, "." ++ formatName str )
 
         ( tags, style, blocks ) =
             renderIntermediates selector intermediates
@@ -147,10 +147,10 @@ renderProperty prop =
         FontProp font ->
             Multiple <| renderText font
 
-        MediaQuery query (Model state) ->
+        MediaQuery query props ->
             let
                 intermediates =
-                    renderProperties state.properties
+                    renderProperties props
 
                 ( _, style, _ ) =
                     renderIntermediates "media-query" intermediates
@@ -159,10 +159,10 @@ renderProperty prop =
                     ("@media " ++ query)
                     style
 
-        SubElement el (Model state) ->
+        SubElement el props ->
             let
                 intermediates =
-                    renderProperties state.properties
+                    renderProperties props
 
                 ( _, style, _ ) =
                     renderIntermediates el intermediates
@@ -246,13 +246,13 @@ renderAnimation (Animation { duration, easing, steps, repeat }) =
                 ( allNames, renderedSteps ) =
                     List.unzip <|
                         List.map
-                            (\( marker, Model model ) ->
+                            (\( marker, properties ) ->
                                 let
-                                    name =
-                                        getName (Model model)
-
                                     intermediates =
-                                        renderProperties model.properties
+                                        renderProperties properties
+
+                                    name =
+                                        hash (toString intermediates)
 
                                     ( _, style, _ ) =
                                         renderIntermediates "animation" intermediates
@@ -785,7 +785,7 @@ formatName class =
 
 
 {-| -}
-getName : Model -> String
+getName : Model class -> String
 getName model =
     Tuple.first <| render model
 
