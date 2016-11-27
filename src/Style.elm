@@ -17,7 +17,6 @@ module Style
         , Layout
         , Font
         , Whitespace
-        , Anchor
         , PositionParent
         , Repeat
         , Animation
@@ -153,7 +152,7 @@ module Style
 
 This module is focused around composing a style.
 
-@docs Model, Property, class, embed, render, renderWith, debug, debugWith, selector, foundation
+@docs Model, Property, StyleSheet, embed, render, renderWith, debug, debugWith, class, selector, foundation
 
 ## Rendering Options
 
@@ -284,10 +283,6 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 @docs selection, after, before, hover, focus, checked
 
 
-# Media Queries
-
-@docs media
-
 
 
 -}
@@ -308,6 +303,7 @@ type alias Model class =
     Style.Model.Model class
 
 
+{-| -}
 type alias Property =
     Style.Model.Property
 
@@ -365,6 +361,7 @@ embed stylesheet =
     Html.node "style" [] [ Html.text stylesheet.css ]
 
 
+{-| -}
 type alias StyleSheet class msg =
     { class : class -> Html.Attribute msg
     , classList : List ( class, Bool ) -> Html.Attribute msg
@@ -400,6 +397,7 @@ render styles =
         }
 
 
+{-| -}
 type Option
     = AutoImportGoogleFonts
     | Import String
@@ -684,12 +682,6 @@ type alias Length =
 -}
 type alias Floating =
     Style.Model.Floating
-
-
-{-|
--}
-type alias Anchor =
-    Style.Model.Anchor
 
 
 {-|
