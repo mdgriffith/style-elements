@@ -60,9 +60,6 @@ create family =
             { font = family
             , size = 16
             , lineHeight = 1.7
-            , letterOffset = Nothing
-            , align = Style.alignLeft
-            , whitespace = Style.normal
             }
     in
         { gigantic =

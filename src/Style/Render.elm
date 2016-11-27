@@ -1,4 +1,4 @@
-module Style.Render exposing (render, renderInline, getName, formatName, inlineError, floatError, missingError)
+module Style.Render exposing (render, renderInline, find, getName, formatName, inlineError, floatError, missingError)
 
 {-|
 -}
@@ -49,6 +49,24 @@ renderInline (Model model) =
         style
 
 
+find : class -> List (Model class) -> Maybe (Model class)
+find cls models =
+    List.head <|
+        List.filterMap
+            (\(Model state) ->
+                case state.selector of
+                    Class found ->
+                        if cls == found then
+                            Just (Model state)
+                        else
+                            Nothing
+
+                    _ ->
+                        Nothing
+            )
+            models
+
+
 render : Model class -> ( ClassName, RenderedStyle )
 render (Model model) =
     let
@@ -81,6 +99,7 @@ render (Model model) =
 renderProperties : List Property -> List StyleIntermediate
 renderProperties props =
     props
+        |> List.reverse
         |> List.Extra.uniqueBy propertyName
         |> List.reverse
         |> List.map renderProperty

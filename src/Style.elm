@@ -389,7 +389,12 @@ render styles =
         { css = String.join "\n" cssStyles
         , class =
             (\cls ->
-                Html.Attributes.class (Style.Render.formatName cls)
+                case Style.Render.find cls styles of
+                    Nothing ->
+                        Html.Attributes.class "missing-from-stylesheet"
+
+                    Just style ->
+                        Html.Attributes.class (Style.Render.getName style)
             )
         , classList =
             (\classes ->
