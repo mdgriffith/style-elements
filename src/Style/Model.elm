@@ -36,7 +36,7 @@ type Property
     | FloatProp Floating
     | RelProp PositionParent
     | PositionProp Anchor Float Float
-    | Colors ColorPalette
+    | ColorProp String Color
     | FontProp Font
     | MediaQuery String (List Property)
     | SubElement String (List Property)
@@ -100,8 +100,8 @@ propertyName prop =
         PositionProp _ _ _ ->
             "pos"
 
-        Colors _ ->
-            "colors"
+        ColorProp name _ ->
+            name
 
         FontProp _ ->
             "font"
@@ -128,15 +128,6 @@ type alias Font =
     , letterOffset : Maybe Float
     , align : Alignment
     , whitespace : Whitespace
-    }
-
-
-{-|
--}
-type alias ColorPalette =
-    { background : Color
-    , text : Color
-    , border : Color
     }
 
 

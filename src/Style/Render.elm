@@ -141,8 +141,8 @@ renderProperty prop =
         PositionProp anchor x y ->
             Multiple <| renderPosition anchor ( x, y )
 
-        Colors palette ->
-            Multiple <| renderColorPalette palette
+        ColorProp name color ->
+            Single <| renderColor name color
 
         FontProp font ->
             Multiple <| renderText font
@@ -540,14 +540,9 @@ colorToString color =
             ++ ")"
 
 
-renderColorPalette : ColorPalette -> List ( String, String )
-renderColorPalette { text, background, border } =
-    [ "border-color" => colorToString border
-    , "color" => colorToString text
-    , "background-color" => colorToString background
-    , "fill" => colorToString background
-    , "stroke" => colorToString border
-    ]
+renderColor : String -> Color -> ( String, String )
+renderColor name color =
+    name => (colorToString color)
 
 
 renderLength : Length -> String

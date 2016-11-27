@@ -2,7 +2,6 @@ module Style
     exposing
         ( Model
         , Property
-        , ColorPalette
         , StyleSheet
         , Shadow
         , Visibility
@@ -117,7 +116,9 @@ module Style
         , before
         , visibility
         , positionBy
-        , colors
+        , textColor
+        , backgroundColor
+        , borderColor
         , font
         , italicize
         , bold
@@ -237,7 +238,7 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 
 # Colors
 
-@docs colors, ColorPalette
+@docs textColor, backgroundColor, borderColor
 
 
 # Visibility
@@ -601,15 +602,6 @@ debugWith adds styles =
                 }
 
 
-{-|
--}
-type alias ColorPalette =
-    { background : Color
-    , text : Color
-    , border : Color
-    }
-
-
 {-| -}
 type alias BackgroundImage =
     { src : String
@@ -929,9 +921,21 @@ maxHeight value =
 
 
 {-| -}
-colors : ColorPalette -> Property
-colors palette =
-    Colors palette
+textColor : Color -> Property
+textColor color =
+    ColorProp "color" color
+
+
+{-| -}
+backgroundColor : Color -> Property
+backgroundColor color =
+    ColorProp "background-color" color
+
+
+{-| -}
+borderColor : Color -> Property
+borderColor color =
+    ColorProp "border-color" color
 
 
 {-| -}
