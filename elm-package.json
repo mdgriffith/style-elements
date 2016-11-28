@@ -8,8 +8,6 @@
     ],
     "exposed-modules": [
         "Style",
-        "Style.Font",
-        "Style.Color",
         "Style.Media"
     ],
     "dependencies": {
@@ -18,8 +16,7 @@
         "elm-lang/svg": "2.0.0 <= v < 3.0.0",
         "Skinney/murmur3": "2.0.4 <= v < 3.0.0",
         "elm-community/string-extra": "1.1.1 <= v < 2.0.0",
-        "elm-community/list-extra": "4.0.0 <= v < 5.0.0",
-        "mdgriffith/elm-color-mixing": "1.0.4 <= v < 2.0.0"
+        "elm-community/list-extra": "4.0.0 <= v < 5.0.0"
     },
     "elm-version": "0.18.0 <= v < 0.19.0"
 }
