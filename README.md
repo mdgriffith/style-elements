@@ -2,15 +2,9 @@
 
 # Simplifying css for elm
 
-It's easy to write _valid_ CSS that is still broken and frustrating.  What if we could just make frustrating CSS styles not expressible?
-
-That's the aim of `style-elements` library. To give you the tools to write styles that are intuitive and robust, while still being productive and expressive.  To make styles that don't break.
+The aim of `style-elements` library is to give you the tools to write styles that are intuitive and robust, while still being productive and expressive.  To make styles that don't break.
 
 And while we're at it, it wouldn't hurt to have built in support for `animations`, `transitions`, and `media queries` too.
-
-Maybe styling can actually be _fun_ now.
-
-
 
 
 #### Create a stylesheet
@@ -110,9 +104,7 @@ import Color
  * Realworld example that uses animations, media queries, and palettes: [code](https://github.com/mdgriffith/elm-style-elements-complex-example) - [demo](https://mdgriffith.github.io/style-elements/realworld/)
 
 
-#### Basic Introduction
-
-__Building a stylesheet__
+#### Building a stylesheet
 
 `Style.foundation` is your starting point, it has a number of default properties already set.  Think of it like a built-in css reset.
 
@@ -140,7 +132,7 @@ stylesheet =
 
 ```
 
-__Embed that stylesheet in your view and use it to render a style class__
+#### Embed that stylesheet in your view and use it to render a style class
 
 ```elm
 view : Model -> Html msg
@@ -152,10 +144,6 @@ view model =
         ]
 ```
 
-
-
-
-
 ## Compared to elm-css
 
 The goal of [elm-css](https://github.com/rtfeldman/elm-css/) library is to provide access _all_ of CSS in a typesafe way.  This is awesome and incredibly impressive.
@@ -164,6 +152,7 @@ The goal of [elm-css](https://github.com/rtfeldman/elm-css/) library is to provi
 The `style-elements` focuses on simplifying css.
 
 It does this by 
+
     * removing parts of css that cause the most trouble
     * limiting available properties without limiting functionality (i.e. trying to make the CSS language smaller)
     * setting defaults
