@@ -34,6 +34,7 @@ type Class
     | Nav
     | Container
 
+stylesheet : StyleSheet Class msg
 stylesheet =
     Style.render
         [ class Title
@@ -44,10 +45,10 @@ stylesheet =
             [ width (percent 100)
             , height (px 70)
             ]
-
         ]
-
 ```
+
+This looks a _lot_ like elm-css.  That's because using union types and lists to represent style is generally a really good idea.
 
 #### Easy layout
 
@@ -119,8 +120,6 @@ import Color
 
 
 #### Building a stylesheet
-
-`Style.foundation` is your starting point, it has a number of default properties already set.  Think of it like a built-in css reset.
 
 ```elm
 
