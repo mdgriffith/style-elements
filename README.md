@@ -153,10 +153,10 @@ The `style-elements` focuses on simplifying css.
 
 It does this by 
 
-    * removing parts of css that cause the most trouble
-    * limiting available properties without limiting functionality (i.e. trying to make the CSS language smaller)
-    * setting defaults
-    * providing clean interfaces to the good parts like `media queries`, `flex-box` and `animations`.
+ * removing parts of css that cause the most trouble
+ * limiting available properties without limiting functionality (i.e. trying to make the CSS language smaller)
+ * setting defaults
+ * providing clean interfaces to the good parts like `media queries`, `flex-box` and `animations`.
 
 It's meant to be a css preprocessor with css best practices built in.
 
