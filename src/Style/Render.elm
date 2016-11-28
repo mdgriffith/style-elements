@@ -82,10 +82,14 @@ render (Model model) =
                     ( hashedName, "." ++ hashedName )
 
                 Exactly str ->
-                    ( str ++ " " ++ hashedName, "." ++ hashedName )
+                    ( "", str )
 
                 Class str ->
-                    ( formatName str ++ " " ++ hashedName, "." ++ formatName str )
+                    let
+                        formatted =
+                            formatName str
+                    in
+                        ( formatted, "." ++ formatted )
 
         ( tags, style, blocks ) =
             renderIntermediates selector intermediates

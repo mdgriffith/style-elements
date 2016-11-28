@@ -25,8 +25,6 @@ module Style
         , embed
         , render
         , renderWith
-        , debug
-        , debugWith
         , class
         , selector
         , flowUp
@@ -155,17 +153,18 @@ module Style
         , importCSS
         , importUrl
         , base
+        , debug
         )
 
 {-|
 
 This module is focused around composing a style.
 
-@docs Model, Property, StyleSheet, embed, render, renderWith, debug, debugWith, class, selector, foundation
+@docs Model, Property, StyleSheet, embed, render, renderWith, class, selector, foundation
 
 ## Rendering Options
 
-@docs Option, base, importCSS, importUrl, autoImportGoogleFonts
+@docs Option, debug, base, importCSS, importUrl, autoImportGoogleFonts
 
 
 # Positioning
@@ -388,6 +387,7 @@ type Option
     | Import String
     | ImportUrl String
     | BaseStyle (List Property)
+    | DebugStyles
 
 
 {-| An attempt will be made to import all non-standard webfonts that are in your styles.
@@ -416,6 +416,16 @@ importUrl =
 base : List Property -> Option
 base =
     BaseStyle
+
+
+{-| Log a warning if a style is missing from a style sheet.
+
+Also shows a visual warning if a style uses float or inline in a table layout orflow/flex layout.
+
+-}
+debug : Option
+debug =
+    DebugStyles
 
 
 isWebfont : String -> Bool
@@ -495,6 +505,9 @@ renderWith opts styles =
                 )
                 styles
 
+        debug =
+            List.any (\x -> x == DebugStyles) opts
+
         renderAdd add =
             case add of
                 AutoImportGoogleFonts ->
@@ -521,6 +534,9 @@ renderWith opts styles =
                 BaseStyle _ ->
                     Nothing
 
+                DebugStyles ->
+                    Just (Style.Render.inlineError ++ Style.Render.floatError)
+
         renderStyle styles =
             let
                 ( names, cssStyles ) =
@@ -534,18 +550,47 @@ renderWith opts styles =
                     (\cls ->
                         case Style.Render.find cls styles of
                             Nothing ->
-                                Html.Attributes.class "missing-from-stylesheet"
+                                if debug then
+                                    let
+                                        _ =
+                                            Debug.log "style" (toString cls ++ " is not in your stylesheet.")
+                                    in
+                                        Html.Attributes.class (Style.Render.formatName cls)
+                                else
+                                    Html.Attributes.class (Style.Render.formatName cls)
 
                             Just style ->
                                 Html.Attributes.class (Style.Render.getName style)
                     )
                 , classList =
                     (\classes ->
-                        classes
-                            |> List.filter Tuple.second
-                            |> List.map Style.Render.formatName
-                            |> String.join " "
-                            |> Html.Attributes.class
+                        let
+                            found =
+                                List.map
+                                    (\( cls, include ) ->
+                                        ( cls, include, Style.Render.find cls styles )
+                                    )
+                                    classes
+                        in
+                            found
+                                |> List.filterMap
+                                    (\( name, include, foundStyle ) ->
+                                        case foundStyle of
+                                            Nothing ->
+                                                let
+                                                    _ =
+                                                        Debug.log "style" (toString name ++ " is not in your stylesheet.")
+                                                in
+                                                    Nothing
+
+                                            Just style ->
+                                                if include then
+                                                    Just (Style.Render.getName style)
+                                                else
+                                                    Nothing
+                                    )
+                                |> String.join " "
+                                |> Html.Attributes.class
                     )
                 }
 
@@ -560,88 +605,6 @@ renderWith opts styles =
                 { rendered
                     | css = String.join "\n" rules ++ "\n\n" ++ rendered.css
                 }
-
-
-{-| Render styles into a stylesheet and give visual ++ console log warnings if anything is off
--}
-debug : List (Model class) -> StyleSheet class msg
-debug styles =
-    let
-        ( names, cssStyles ) =
-            styles
-                |> List.map Style.Render.render
-                |> List.Extra.uniqueBy Tuple.first
-                |> List.unzip
-    in
-        { css =
-            (String.join "\n" cssStyles)
-                ++ Style.Render.inlineError
-                ++ Style.Render.floatError
-                ++ Style.Render.missingError
-        , class =
-            (\name ->
-                let
-                    cls =
-                        Style.Render.formatName name
-
-                    withPossibleError =
-                        if not (List.member cls names) then
-                            let
-                                _ =
-                                    Debug.log "style" (cls ++ " is not in your stylesheet, so things might look weird.")
-                            in
-                                (cls ++ " missing-from-stylesheet")
-                        else
-                            cls
-                in
-                    Html.Attributes.class withPossibleError
-            )
-        , classList =
-            (\classes ->
-                let
-                    optionNames =
-                        List.map
-                            (\( name, included ) ->
-                                ( Style.Render.formatName name, included )
-                            )
-                            classes
-
-                    missing =
-                        List.filterMap
-                            (\( option, _ ) ->
-                                if not (List.member option names) then
-                                    Just option
-                                else
-                                    Nothing
-                            )
-                            optionNames
-
-                    _ =
-                        if List.isEmpty missing then
-                            ""
-                        else if List.length missing == 1 then
-                            Debug.log "style" ((String.join ", " missing) ++ " is not in your stylesheet.")
-                        else
-                            Debug.log "style" ("the classes " ++ (String.join ", " missing) ++ " are not in your stylesheet.")
-                in
-                    optionNames
-                        |> List.filter Tuple.second
-                        |> List.map Tuple.first
-                        |> (if List.isEmpty missing then
-                                identity
-                            else
-                                (::) "missing-from-stylesheet"
-                           )
-                        |> String.join " "
-                        |> Html.Attributes.class
-            )
-        }
-
-
-{-| -}
-debugWith : List Option -> List (Model class) -> StyleSheet class msg
-debugWith adds styles =
-    renderWith adds styles
 
 
 {-| -}
