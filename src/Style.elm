@@ -20,6 +20,7 @@ module Style
         , Animation
         , Transition
         , Option
+        , Border
         , foundation
         , embed
         , render
@@ -129,6 +130,7 @@ module Style
         , light
         , strike
         , underline
+        , border
         , borderStyle
         , borderWidth
         , borderRadius
@@ -163,14 +165,16 @@ This module is focused around composing a style.
 
 ## Rendering Options
 
-@docs Option, importCSS, importUrl, autoImportGoogleFonts
+@docs Option, base, importCSS, importUrl, autoImportGoogleFonts
 
 
 # Positioning
 
-The coordinates for the `position` value in the style model are x and y coordinates where right and down are the positive directions, same as the standard coordinate system for svg.
+The coordinates for position always have the same coordinate system, right and down are the positive directions, same as the standard coordinate system for svg.
 
 These coordinates are always rendered in pixels.
+
+The name of the position property refers on which corner of the css box to start at.
 
 @docs topLeft, topRight, bottomLeft, bottomRight
 
@@ -186,6 +190,8 @@ These coordinates are always rendered in pixels.
 
 Most values in this library have one set of units to the library that are required to be used.
 
+This is to encourage relative units to be expressed in terms of your elm code instead of relying on DOM hierarchy.
+
 However, `width` and `height` values can be pixels, percent, or auto.
 
 @docs percent, px, auto
@@ -193,7 +199,7 @@ However, `width` and `height` values can be pixels, percent, or auto.
 
 # A Note on Padding and Margins
 
-In CSS `padding` and `margin` are interesting when you have a parent and a child element.  You now have two ways of specifying the spacing of the child element within the parent.  Either the `margin` on the child or the `padding` on the parent.  This causes anxiety in the developer.
+With `padding` and `margin` you have two ways of specifying the spacing of the child element within the parent.  Either the `margin` on the child or the `padding` on the parent.
 
 In the effort of having only one good way to accomplish something, we only allow the `padding` property to be set.
 
@@ -219,11 +225,11 @@ The following are convenience functions for setting these values.
 
 ## Borderstyles
 
-@docs borderStyle, borderWidth, BorderStyle, solid, dotted, dashed, borderRadius
+@docs Border, border, borderStyle, BorderStyle, borderWidth, solid, dotted, dashed, borderRadius
 
 # Layouts
 
-Layouts affect how children are arranged.  In this library, layout is controlled by the parent element.
+Layouts affect how child elements are arranged.
 
 @docs Layout, textLayout, tableLayout
 
@@ -239,7 +245,6 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 @docs Alignment, alignLeft, alignRight, justify, justifyAll, alignCenter
 
 @docs VerticalAlignment, verticalCenter, verticalStretch, alignTop, alignBottom
-
 
 
 # Colors
@@ -406,7 +411,7 @@ importUrl =
     ImportUrl
 
 
-{-|
+{-| Set a base style.  All classes in this stylesheet will start with these properties.
 -}
 base : List Property -> Option
 base =
@@ -962,6 +967,24 @@ backgroundColor color =
 
 
 {-| -}
+type alias Border =
+    { width : ( Float, Float, Float, Float )
+    , style : BorderStyle
+    , color : Color
+    }
+
+
+{-| -}
+border : Border -> Property
+border { width, color, style } =
+    Mix
+        [ borderColor color
+        , borderWidth width
+        , borderStyle style
+        ]
+
+
+{-| -}
 borderColor : Color -> Property
 borderColor color =
     ColorProp "border-color" color
@@ -1005,7 +1028,8 @@ fontsize size =
     Property "font-size" (toString size ++ "px")
 
 
-{-| -}
+{-| Given as unitless lineheight.
+-}
 lineHeight : Float -> Property
 lineHeight size =
     Property "line-height" (toString size)
@@ -1142,7 +1166,11 @@ property name value =
     Property name value
 
 
-{-| -}
+{-| Render an element as 'inline-block'.
+
+This element will no longer be affected by 'spacing'
+
+-}
 inline : Property
 inline =
     LayoutProp Style.Model.InlineLayout
@@ -1150,7 +1178,9 @@ inline =
 
 {-| This is the only layout that allows for child elements to use `float` or `inline`.
 
-If you try to assign a float or make an element inline that is not the child of a textLayout, the float or inline will be ignored and the element will be highlighted in red with a large warning.
+If you try to assign a float or make an element inline that is not the child of a textLayout, the float or inline will be ignored.
+
+If you use Style.debug instead of Style.render, the element will be highlighted in red with a large warning.
 
 Besides this, all immediate children are arranged as if they were `display: block`.
 
