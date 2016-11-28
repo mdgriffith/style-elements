@@ -38,19 +38,8 @@ type Property
     | RelProp PositionParent
     | PositionProp Anchor Float Float
     | ColorProp String Color
-    | FontProp Font
     | MediaQuery String (List Property)
     | SubElement String (List Property)
-
-
-isFont : Property -> Bool
-isFont prop =
-    case prop of
-        FontProp _ ->
-            True
-
-        _ ->
-            False
 
 
 propertyName : Property -> String
@@ -107,9 +96,6 @@ propertyName prop =
         ColorProp name _ ->
             name
 
-        FontProp _ ->
-            "font"
-
         MediaQuery name _ ->
             name
 
@@ -122,13 +108,6 @@ type alias Transition =
     , duration : Time
     , easing : String
     , delay : Time
-    }
-
-
-type alias Font =
-    { font : String
-    , size : Float
-    , lineHeight : Float
     }
 
 

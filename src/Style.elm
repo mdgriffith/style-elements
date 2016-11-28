@@ -14,7 +14,6 @@ module Style
         , BorderStyle
         , Flow
         , Layout
-        , Font
         , Whitespace
         , PositionParent
         , Repeat
@@ -120,6 +119,8 @@ module Style
         , backgroundColor
         , borderColor
         , font
+        , fontsize
+        , lineHeight
         , textAlign
         , whitespace
         , letterOffset
@@ -151,6 +152,7 @@ module Style
         , autoImportGoogleFonts
         , importCSS
         , importUrl
+        , base
         )
 
 {-|
@@ -252,7 +254,7 @@ Layouts affect how children are arranged.  In this library, layout is controlled
 
 # Text/Font
 
-@docs font, Font, textAlign, letterOffset, whitespace, Whitespace, normal, pre, preLine, preWrap, noWrap, italicize, bold, light, strike, underline, cursor
+@docs font, fontsize, lineHeight, textAlign, letterOffset, whitespace, Whitespace, normal, pre, preLine, preWrap, noWrap, italicize, bold, light, strike, underline, cursor
 
 
 # Background Images
@@ -339,8 +341,7 @@ class : class -> List Property -> Model class
 class cls props =
     Model
         { selector = Style.Model.Class cls
-        , properties =
-            foundation ++ props
+        , properties = props
         }
 
 
@@ -349,13 +350,7 @@ selector : String -> List Property -> Model class
 selector sel props =
     Model
         { selector = Style.Model.Exactly sel
-        , properties =
-            [ Style.Model.Property "box-sizing" "border-box"
-            , Style.Model.LayoutProp Style.Model.TextLayout
-            , Style.Model.PositionProp ( Style.Model.AnchorTop, Style.Model.AnchorLeft ) 0 0
-            , Style.Model.RelProp currentPosition
-            ]
-                ++ props
+        , properties = props
         }
 
 
@@ -379,32 +374,7 @@ type alias StyleSheet class msg =
 -}
 render : List (Model class) -> StyleSheet class msg
 render styles =
-    let
-        ( names, cssStyles ) =
-            styles
-                |> List.map Style.Render.render
-                |> List.Extra.uniqueBy Tuple.first
-                |> List.unzip
-    in
-        { css = String.join "\n" cssStyles
-        , class =
-            (\cls ->
-                case Style.Render.find cls styles of
-                    Nothing ->
-                        Html.Attributes.class "missing-from-stylesheet"
-
-                    Just style ->
-                        Html.Attributes.class (Style.Render.getName style)
-            )
-        , classList =
-            (\classes ->
-                classes
-                    |> List.filter Tuple.second
-                    |> List.map Style.Render.formatName
-                    |> String.join " "
-                    |> Html.Attributes.class
-            )
-        }
+    renderWith [] styles
 
 
 {-| -}
@@ -412,6 +382,7 @@ type Option
     = AutoImportGoogleFonts
     | Import String
     | ImportUrl String
+    | BaseStyle (List Property)
 
 
 {-| An attempt will be made to import all non-standard webfonts that are in your styles.
@@ -435,6 +406,13 @@ importUrl =
     ImportUrl
 
 
+{-|
+-}
+base : List Property -> Option
+base =
+    BaseStyle
+
+
 isWebfont : String -> Bool
 isWebfont str =
     List.member (String.toLower str)
@@ -456,43 +434,120 @@ getFontNames (Model model) =
     let
         getFonts prop =
             case prop of
-                Style.Model.FontProp f ->
-                    f.font
-                        |> String.split ","
-                        |> List.map (String.Extra.replace "'" "" << String.Extra.unquote << String.Extra.replace " " "+" << String.trim)
+                Style.Model.Property name family ->
+                    if name == "font-family" then
+                        family
+                            |> String.split ","
+                            |> List.map (String.Extra.replace "'" "" << String.Extra.unquote << String.Extra.replace " " "+" << String.trim)
+                            |> Just
+                    else
+                        Nothing
 
                 _ ->
-                    []
+                    Nothing
     in
         model.properties
-            |> List.filter Style.Model.isFont
-            |> List.concatMap getFonts
+            |> List.filterMap getFonts
+            |> List.concat
+
+
+flatten : List Property -> List Property
+flatten props =
+    List.concatMap
+        (\prop ->
+            case prop of
+                Mix mixins ->
+                    mixins
+
+                other ->
+                    [ other ]
+        )
+        props
 
 
 {-| -}
 renderWith : List Option -> List (Model class) -> StyleSheet class msg
-renderWith adds styles =
+renderWith opts styles =
     let
+        forBase opt =
+            case opt of
+                BaseStyle style ->
+                    Just style
+
+                _ ->
+                    Nothing
+
+        base =
+            opts
+                |> List.filterMap forBase
+                |> List.head
+                |> Maybe.withDefault foundation
+
+        basedStyles =
+            List.map
+                (\(Model state) ->
+                    Model { state | properties = flatten (base ++ state.properties) }
+                )
+                styles
+
         renderAdd add =
             case add of
                 AutoImportGoogleFonts ->
-                    styles
+                    basedStyles
                         |> List.concatMap getFontNames
                         |> List.Extra.uniqueBy identity
                         |> List.filter (not << isWebfont)
                         |> String.join "|"
-                        |> (\family -> "@import url('https://fonts.googleapis.com/css?family=" ++ family ++ "');")
+                        |> (\family ->
+                                case family of
+                                    "" ->
+                                        Nothing
+
+                                    _ ->
+                                        Just ("@import url('https://fonts.googleapis.com/css?family=" ++ family ++ "');")
+                           )
 
                 Import str ->
-                    "@import " ++ str ++ ";"
+                    Just ("@import " ++ str ++ ";")
 
                 ImportUrl str ->
-                    "@import url('" ++ str ++ "');"
+                    Just ("@import url('" ++ str ++ "');")
+
+                BaseStyle _ ->
+                    Nothing
+
+        renderStyle styles =
+            let
+                ( names, cssStyles ) =
+                    styles
+                        |> List.map Style.Render.render
+                        |> List.Extra.uniqueBy Tuple.first
+                        |> List.unzip
+            in
+                { css = String.join "\n" cssStyles
+                , class =
+                    (\cls ->
+                        case Style.Render.find cls styles of
+                            Nothing ->
+                                Html.Attributes.class "missing-from-stylesheet"
+
+                            Just style ->
+                                Html.Attributes.class (Style.Render.getName style)
+                    )
+                , classList =
+                    (\classes ->
+                        classes
+                            |> List.filter Tuple.second
+                            |> List.map Style.Render.formatName
+                            |> String.join " "
+                            |> Html.Attributes.class
+                    )
+                }
 
         rendered =
-            render styles
+            renderStyle basedStyles
     in
-        case List.map renderAdd adds of
+        case List.filterMap renderAdd opts of
             [] ->
                 rendered
 
@@ -581,34 +636,7 @@ debug styles =
 {-| -}
 debugWith : List Option -> List (Model class) -> StyleSheet class msg
 debugWith adds styles =
-    let
-        renderAdd add =
-            case add of
-                AutoImportGoogleFonts ->
-                    styles
-                        |> List.concatMap getFontNames
-                        |> List.Extra.uniqueBy identity
-                        |> List.filter (not << isWebfont)
-                        |> String.join "|"
-                        |> (\family -> "@import url('https://fonts.googleapis.com/css?family=" ++ family ++ "');")
-
-                Import str ->
-                    "@import " ++ str ++ ";"
-
-                ImportUrl str ->
-                    "@import url('" ++ str ++ "');"
-
-        rendered =
-            debug styles
-    in
-        case List.map renderAdd adds of
-            [] ->
-                rendered
-
-            rules ->
-                { rendered
-                    | css = String.join "\n" rules ++ "\n\n" ++ rendered.css
-                }
+    renderWith adds styles
 
 
 {-| -}
@@ -695,14 +723,6 @@ type alias PositionParent =
 -}
 type alias Repeat =
     Style.Model.Repeat
-
-
-{-| All values are given in 'px' units except for lineHeight which is given in proportion to the fontsize.
-
-So, a fontsize of 16 and a lineHeight of 1 means that the lineheight is going to be 16px.
--}
-type alias Font =
-    Style.Model.Font
 
 
 {-| -}
@@ -948,18 +968,6 @@ borderColor color =
 
 
 {-| -}
-spacing : ( Float, Float, Float, Float ) -> Property
-spacing s =
-    Spacing s
-
-
-{-| -}
-padding : ( Float, Float, Float, Float ) -> Property
-padding value =
-    Box "padding" value
-
-
-{-| -}
 borderWidth : ( Float, Float, Float, Float ) -> Property
 borderWidth value =
     Box "border-width" value
@@ -972,9 +980,35 @@ borderRadius value =
 
 
 {-| -}
-font : Font -> Property
-font text =
-    FontProp text
+spacing : ( Float, Float, Float, Float ) -> Property
+spacing s =
+    Spacing s
+
+
+{-| -}
+padding : ( Float, Float, Float, Float ) -> Property
+padding value =
+    Box "padding" value
+
+
+{-| Set font-family
+-}
+font : String -> Property
+font family =
+    Property "font-family" family
+
+
+{-| Set font-size.  Only px allowed.
+-}
+fontsize : Float -> Property
+fontsize size =
+    Property "font-size" (toString size ++ "px")
+
+
+{-| -}
+lineHeight : Float -> Property
+lineHeight size =
+    Property "line-height" (toString size)
 
 
 {-| -}

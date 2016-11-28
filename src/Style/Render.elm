@@ -167,9 +167,6 @@ renderProperty prop =
         ColorProp name color ->
             Single <| renderColor name color
 
-        FontProp font ->
-            Multiple <| renderText font
-
         MediaQuery query props ->
             let
                 intermediates =
@@ -509,14 +506,6 @@ shadowValue (Shadow shadow) =
 render4tuplePx : ( Float, Float, Float, Float ) -> String
 render4tuplePx ( a, b, c, d ) =
     toString a ++ "px " ++ toString b ++ "px " ++ toString c ++ "px " ++ toString d ++ "px"
-
-
-renderText : Font -> List ( String, String )
-renderText text =
-    [ "font-family" => text.font
-    , "font-size" => (toString text.size ++ "px")
-    , "line-height" => (toString (text.size * text.lineHeight) ++ "px")
-    ]
 
 
 colorToString : Color -> String
