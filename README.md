@@ -6,6 +6,21 @@ The aim of `style-elements` library is to give you the tools to write styles tha
 
 And while we're at it, it wouldn't hurt to have built in support for `animations`, `transitions`, and `media queries` too.
 
+## Compared to elm-css
+
+The goal of [elm-css](https://github.com/rtfeldman/elm-css/) library is to provide access _all_ of CSS in a typesafe way.  This is awesome and incredibly impressive.
+
+The `style-elements` focuses on simplifying css.
+
+It does this by 
+
+ * removing parts of css that cause the most trouble
+ * limiting available properties without limiting functionality (i.e. trying to make the CSS language smaller)
+ * setting defaults
+ * providing clean interfaces to the good parts like `media queries`, `flex-box` and `animations`.
+
+It's meant to be a css preprocessor with css best practices built in.
+
 
 #### Create a stylesheet
 
@@ -100,7 +115,6 @@ import Color
 ## Getting Started
 
  * [Documentation](http://package.elm-lang.org/packages/mdgriffith/style-elements/latest)
- * Simple example: [code](https://github.com/mdgriffith/elm-style-elements-simple-example) - [demo](https://mdgriffith.github.io/style-elements/simple/)
  * Realworld example that uses animations, media queries, and palettes: [code](https://github.com/mdgriffith/elm-style-elements-complex-example) - [demo](https://mdgriffith.github.io/style-elements/realworld/)
 
 
@@ -143,25 +157,6 @@ view model =
         , div [ stylesheet.class Title ] [ text "Hello!"]
         ]
 ```
-
-## Compared to elm-css
-
-The goal of [elm-css](https://github.com/rtfeldman/elm-css/) library is to provide access _all_ of CSS in a typesafe way.  This is awesome and incredibly impressive.
-
-
-The `style-elements` focuses on simplifying css.
-
-It does this by 
-
- * removing parts of css that cause the most trouble
- * limiting available properties without limiting functionality (i.e. trying to make the CSS language smaller)
- * setting defaults
- * providing clean interfaces to the good parts like `media queries`, `flex-box` and `animations`.
-
-It's meant to be a css preprocessor with css best practices built in.
-
-
-
 
 
 
