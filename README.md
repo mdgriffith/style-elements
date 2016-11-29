@@ -50,17 +50,59 @@ stylesheet =
 
 This looks a _lot_ like elm-css.  That's because using union types and lists to represent style is generally a really good idea.
 
+It rendered as you'd expect, though the `style-elements` library also includes `display:block`, `position:relative`, `left:0;`, `top:0`, and `box-sizing:border-box` as default properties. You can remove or add to the defaults as you'd like.
+
+```css
+.title {
+  display: block;
+  position: relative;
+  top: 0px;
+  left: 0px;
+  box-sizing: border-box;
+  width: 300px;
+  height: auto;
+}
+.nav {
+  display: block;
+  position: relative;
+  top: 0px;
+  left: 0px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 70px;
+}
+```
+
+
 #### Easy layout
 
 ```elm
     class Container 
-        [ flowLeft
+        [ flowRight
             { wrap = True
             , horizontal = alignCenter
             , vertical = alignTop
             }
         ]
 ```
+
+generates the following css
+
+```css
+.container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+```
+
+It's much easier to think about flex-box in terms of horizontal and vertical alignment, than in `justify-content`, and `align-items`, which change orientation depending on `flex-direction`.
+
+Also, `row` is a direction?
+
 
 #### Animation
 
@@ -80,6 +122,29 @@ This looks a _lot_ like elm-css.  That's because using union types and lists to 
             }
         ]
 ```
+
+generates this css
+
+
+```css
+
+.rotating-box {
+  animation: animation-cjdbgdbchi 5000ms linear infinite;
+}
+@keyframes animation-cjdbgdbchi {
+  0% {
+    transform: rotateX(0rad) rotateY(0rad) rotateZ(0rad);
+  }
+  100% {
+    transform: rotateX(0rad) rotateY(0rad) rotateZ(6.283185307179586rad);
+  }
+}
+
+
+```
+
+An animation name is generated using a murmur3 hash of the animation properties.  One less name you have to come up with!
+
 
 #### Media Queries
 
@@ -108,9 +173,9 @@ import Color
             , borderRadius (all 15)
             ]
         ]
-
-
 ```
+
+The `style-elements` library comes with some standard media queries built in.  How often do these things change anyway?
 
 
 ## Getting Started
@@ -120,6 +185,8 @@ import Color
 
 
 #### Building a stylesheet
+
+The `Style` module is intended to be imported unqualified, so it's recommended to put your styles in their own `.elm` file.
 
 ```elm
 
@@ -152,11 +219,57 @@ view : Model -> Html msg
 view model =
     div []
         [ Style.embed stylesheet
-        , div [ stylesheet.class Title ] [ text "Hello!"]
+        , div [ stylesheet.class Nav ] 
+            [ a [href "/profile"] [text "My Profile"]
+            ]
         , div [ stylesheet.class Title ] [ text "Hello!"]
         ]
 ```
 
 
+## More Advanced!
 
+In addition to `render`, there is the `renderWith` function which allows you to set options for your stylesheet.
+
+
+#### Auto import google fonts
+
+Setting this option will automatically try to import any non-standard webfonts in yor stylesheet from the google fonts library.
+
+One less step for you.
+
+```elm
+stylesheet : Stylesheet Class msg
+stylesheet =
+    Style.renderWith [ Style.autoImportGoogleFonts ]
+        [ class Title
+            [ width (px 300)
+            , height auto
+            ]
+        , class Nav
+            [ width (percent 100)
+            , height (px 70)
+            ]
+
+        ]
+```
+
+#### Debug
+
+While we try to catch most of our errors as compile-time error messages, we can't quite get them all.  Adding `Style.debug` to the `renderWith` options will log some errors and cause some other errors to show up graphically on your page.
+
+The errors are
+
+__Style missing from style-sheet__ - If you try to render a class of a style that is not in your stylesheet, an error will be logged.
+
+__Improper float or inline__ - In this library `float` and `inline` elements are only allowed in a `textLayout`(this is the standard layout that renders with `display:block`.)  Float and inline should only be used in text situations, not for page layout.  Page layout should be handled by the `flex-box` functions, `flowRight`, `flowLeft`, `flowUp`, and `flowDown`.
+
+If an element is floated or inlined incorrectly, debug mode will highlight it in yellow on your page and add a text error.
+
+
+#### Base
+
+Remember when I said `style-elements` had some default properties?  Well you can change them by adding `Style.base yourListofDefaultProperties` to your rendering options.
+
+The standard default properties are available as `Style.foundation` and it's highly recommended you use them.
 
