@@ -22,7 +22,7 @@ It does this by
 It's meant to be a css preprocessor with css best practices built in.
 
 
-#### Create a stylesheet
+## Create a stylesheet
 
 ```elm
 
@@ -74,7 +74,7 @@ It rendered as you'd expect, though the `style-elements` library also includes `
 ```
 
 
-#### Easy layout
+## Easy layout
 
 ```elm
     class Container 
@@ -104,7 +104,7 @@ It's much easier to think about flex-box in terms of horizontal and vertical ali
 Also, `row` is a direction?
 
 
-#### Animation
+## Animation
 
 ```elm
 
@@ -146,7 +146,7 @@ generates this css
 An animation name is generated using a murmur3 hash of the animation properties.  One less name you have to come up with!
 
 
-#### Media Queries
+## Media Queries
 
 ```elm
 
@@ -178,13 +178,13 @@ import Color
 The `style-elements` library comes with some standard media queries built in.  How often do these things change anyway?
 
 
-## Getting Started
+# Getting Started
 
  * [Documentation](http://package.elm-lang.org/packages/mdgriffith/style-elements/latest)
  * Realworld example that uses animations, media queries, and palettes: [code](https://github.com/mdgriffith/elm-style-elements-complex-example) - [demo](https://mdgriffith.github.io/style-elements/realworld/)
 
 
-#### Building a stylesheet
+## Building a stylesheet
 
 The `Style` module is intended to be imported unqualified, so it's recommended to put your styles in their own `.elm` file.
 
@@ -212,7 +212,7 @@ stylesheet =
 
 ```
 
-#### Embed that stylesheet in your view and use it to render a style class
+## Embed that stylesheet in your view and use it to render a style class
 
 ```elm
 view : Model -> Html msg
@@ -227,12 +227,12 @@ view model =
 ```
 
 
-## More Advanced!
+# More Advanced!
 
 In addition to `render`, there is the `renderWith` function which allows you to set options for your stylesheet.
 
 
-#### Auto import google fonts
+## Auto import google fonts
 
 Setting this option will automatically try to import any non-standard webfonts in yor stylesheet from the google fonts library.
 
@@ -254,7 +254,7 @@ stylesheet =
         ]
 ```
 
-#### Debug
+## Debug
 
 While we try to catch most of our errors as compile-time error messages, we can't quite get them all.  Adding `Style.debug` to the `renderWith` options will log some errors and cause some other errors to show up graphically on your page.
 
@@ -267,7 +267,7 @@ __Improper float or inline__ - In this library `float` and `inline` elements are
 If an element is floated or inlined incorrectly, debug mode will highlight it in yellow on your page and add a text error.
 
 
-#### Base
+## Base
 
 Remember when I said `style-elements` had some default properties?  Well you can change them by adding `Style.base yourListofDefaultProperties` to your rendering options.
 
