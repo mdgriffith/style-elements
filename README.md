@@ -143,7 +143,9 @@ generates this css
 
 ```
 
-An animation name is generated using a murmur3 hash of the animation properties.  One less name you have to come up with!
+An animation name is generated using a murmur3 hash of the animation properties.
+
+One less name you have to come up with!
 
 
 ## Media Queries
@@ -175,7 +177,9 @@ import Color
         ]
 ```
 
-The `style-elements` library comes with some standard media queries built in.  How often do these things change anyway?
+The `style-elements` library comes with some standard media queries built in.
+
+How often do these things change anyway?
 
 
 # Getting Started
@@ -260,11 +264,13 @@ While we try to catch most of our errors as compile-time error messages, we can'
 
 The errors are
 
->  * __Style missing from style-sheet__ - If you try to render a class of a style that is not in your stylesheet, an error will be logged.
+>  __Style missing from style-sheet__ - If you try to render a class of a style that is not in your stylesheet, an error will be logged.
 > 
->  * __Improper float or inline__ - In this library `float` and `inline` elements are only allowed in a `textLayout`(this is the standard layout that renders with `display:block`.)  Float and inline should only be used in text situations, not for page layout.  Page layout should be handled by the `flex-box` functions, `flowRight`, `flowLeft`, `flowUp`, and `flowDown`.
-
-> If an element is floated or inlined incorrectly, debug mode will highlight it in yellow on your page and add a text error.
+>  __Improper float or inline__ - In this library `float` and `inline` elements are only allowed in a `textLayout`(this is the standard layout that renders with `display:block`.)  Float and inline should only be used in text situations, not for page layout.  
+>
+>  Page layout should be handled by the `flex-box` functions, `flowRight`, `flowLeft`, `flowUp`, and `flowDown`.
+>
+>  If an element is floated or inlined incorrectly, debug mode will highlight it in yellow on your page and add a text error.
 
 
 ## Base
