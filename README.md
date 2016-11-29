@@ -212,7 +212,7 @@ stylesheet =
 
 ```
 
-## Embed that stylesheet in your view and use it to render a style class
+Embed that stylesheet in your view and use it to render a style class
 
 ```elm
 view : Model -> Html msg
@@ -260,11 +260,11 @@ While we try to catch most of our errors as compile-time error messages, we can'
 
 The errors are
 
-__Style missing from style-sheet__ - If you try to render a class of a style that is not in your stylesheet, an error will be logged.
+>  * __Style missing from style-sheet__ - If you try to render a class of a style that is not in your stylesheet, an error will be logged.
+> 
+>  * __Improper float or inline__ - In this library `float` and `inline` elements are only allowed in a `textLayout`(this is the standard layout that renders with `display:block`.)  Float and inline should only be used in text situations, not for page layout.  Page layout should be handled by the `flex-box` functions, `flowRight`, `flowLeft`, `flowUp`, and `flowDown`.
 
-__Improper float or inline__ - In this library `float` and `inline` elements are only allowed in a `textLayout`(this is the standard layout that renders with `display:block`.)  Float and inline should only be used in text situations, not for page layout.  Page layout should be handled by the `flex-box` functions, `flowRight`, `flowLeft`, `flowUp`, and `flowDown`.
-
-If an element is floated or inlined incorrectly, debug mode will highlight it in yellow on your page and add a text error.
+> If an element is floated or inlined incorrectly, debug mode will highlight it in yellow on your page and add a text error.
 
 
 ## Base
