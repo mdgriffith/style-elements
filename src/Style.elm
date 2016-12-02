@@ -160,11 +160,21 @@ module Style
 
 This module is focused around composing a style.
 
-@docs Model, Property, StyleSheet, embed, render, renderWith, class, selector, foundation
+@docs Model, Property
+
+# Rendering
+
+We use `render` to create a style sheet and `embed` to embed it in our view.
+
+@docs render, renderWith, StyleSheet, embed
 
 ## Rendering Options
 
-@docs Option, debug, base, importCSS, importUrl, autoImportGoogleFonts
+@docs Option, importCSS, importUrl, debug, base, foundation, autoImportGoogleFonts
+
+# Creating Styles
+
+@docs class, selector
 
 
 # Positioning
@@ -309,12 +319,18 @@ import Style.Render
 import Style.Media
 
 
-{-| -}
+{-| A style model which keeps of a list of style properties and the class for a given style.
+
+The `class` type variable is the type you use to write your css classes.
+
+-}
 type alias Model class =
     Style.Model.Model class
 
 
-{-| -}
+{-| This type represents any style property.  The Model has a list of these.
+
+-}
 type alias Property =
     Style.Model.Property
 
@@ -339,7 +355,7 @@ foundation =
     ]
 
 
-{-|
+{-| Set the class for a given style.  You should use a union type!
 -}
 class : class -> List Property -> Model class
 class cls props =
@@ -349,7 +365,11 @@ class cls props =
         }
 
 
-{-| -}
+{-| You can set a raw css selector instead of a class.
+
+It's highly recommended not to do this unless absolutely necessary.
+
+-}
 selector : String -> List Property -> Model class
 selector sel props =
     Model
@@ -365,7 +385,9 @@ embed stylesheet =
     Html.node "style" [] [ Html.text stylesheet.css ]
 
 
-{-| -}
+{-| The stylesheet contains the rendered css as a string, and two functions to lookup
+
+-}
 type alias StyleSheet class msg =
     { class : class -> Html.Attribute msg
     , classList : List ( class, Bool ) -> Html.Attribute msg
@@ -381,7 +403,8 @@ render styles =
     renderWith [] styles
 
 
-{-| -}
+{-| A style rendering option to be used with `renderWith`
+-}
 type Option
     = AutoImportGoogleFonts
     | Import String
@@ -391,6 +414,22 @@ type Option
 
 
 {-| An attempt will be made to import all non-standard webfonts that are in your styles.
+
+If a font is not in the following list, then it will try to import it from google fonts.
+
+    [ "arial"
+    , "sans-serif"
+    , "serif"
+    , "courier"
+    , "times"
+    , "times new roman"
+    , "verdana"
+    , "tahoma"
+    , "georgia"
+    , "helvetica"
+    ]
+
+
 -}
 autoImportGoogleFonts : Option
 autoImportGoogleFonts =
@@ -480,7 +519,8 @@ flatten props =
         props
 
 
-{-| -}
+{-| Render a stylesheet with options
+-}
 renderWith : List Option -> List (Model class) -> StyleSheet class msg
 renderWith opts styles =
     let
