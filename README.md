@@ -75,6 +75,8 @@ It rendered as you'd expect, though the `style-elements` library also includes `
 
 Each class automatically gets the hash of it's style properties appended to the classname.  This means you get automatic namespacing!
 
+Don't worry, you won't have to type out the hash in order to use the style, the library will do that for you as you'll see in the __Getting Started__ section.
+
 
 ## Easy layout
 
