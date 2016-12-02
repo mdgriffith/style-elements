@@ -53,7 +53,7 @@ This looks a _lot_ like elm-css.  That's because using union types and lists to 
 It rendered as you'd expect, though the `style-elements` library also includes `display:block`, `position:relative`, `left:0;`, `top:0`, and `box-sizing:border-box` as default properties. You can remove or add to the defaults as you'd like.
 
 ```css
-.title {
+.title-cjdbfgdfgs {
   display: block;
   position: relative;
   top: 0px;
@@ -62,7 +62,7 @@ It rendered as you'd expect, though the `style-elements` library also includes `
   width: 300px;
   height: auto;
 }
-.nav {
+.nav-jgdkdbabsb {
   display: block;
   position: relative;
   top: 0px;
@@ -72,6 +72,8 @@ It rendered as you'd expect, though the `style-elements` library also includes `
   height: 70px;
 }
 ```
+
+Each class automatically gets the hash of it's style properties appended to the classname.  This means you get automatic namespacing!
 
 
 ## Easy layout
@@ -89,7 +91,7 @@ It rendered as you'd expect, though the `style-elements` library also includes `
 generates the following css
 
 ```css
-.container {
+.container-bhabgdar {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -128,7 +130,7 @@ generates this css
 
 ```css
 
-.rotating-box {
+.rotating-box-fhghfhda {
   animation: animation-cjdbgdbchi 5000ms linear infinite;
 }
 @keyframes animation-cjdbgdbchi {
