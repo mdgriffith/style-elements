@@ -87,7 +87,7 @@ render (Model model) =
                 Class str ->
                     let
                         formatted =
-                            formatName str
+                            formatName str ++ "-" ++ hashedName
                     in
                         ( formatted, "." ++ formatted )
 
