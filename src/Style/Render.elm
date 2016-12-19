@@ -609,10 +609,10 @@ renderLayout layout =
         FlexLayout (Flexible flex) ->
             ( [ "display" => "flex"
               , case flex.go of
-                    Right ->
+                    GoRight ->
                         "flex-direction" => "row"
 
-                    Left ->
+                    GoLeft ->
                         "flex-direction" => "row-reverse"
 
                     Down ->
@@ -625,128 +625,125 @@ renderLayout layout =
                 else
                     "flex-wrap" => "nowrap"
               , case flex.go of
-                    Right ->
+                    GoRight ->
                         case flex.horizontal of
-                            AlignLeft ->
+                            Other Left ->
                                 "justify-content" => "flex-start"
 
-                            AlignRight ->
+                            Other Right ->
                                 "justify-content" => "flex-end"
 
-                            AlignCenter ->
+                            Center ->
                                 "justify-content" => "center"
 
-                            Justify ->
+                            Stretch ->
                                 "justify-content" => "space-between"
 
-                            JustifyAll ->
-                                "justify-content" => "space-between"
-
-                    Left ->
+                    -- TODO
+                    --Stretch ->
+                    --    "justify-content" => "space-between"
+                    GoLeft ->
                         case flex.horizontal of
-                            AlignLeft ->
+                            Other Left ->
                                 "justify-content" => "flex-end"
 
-                            AlignRight ->
+                            Other Right ->
                                 "justify-content" => "flex-start"
 
-                            AlignCenter ->
+                            Center ->
                                 "justify-content" => "center"
 
-                            Justify ->
+                            Stretch ->
                                 "justify-content" => "space-between"
 
-                            JustifyAll ->
-                                "justify-content" => "space-between"
-
+                    --JustifyAll ->
+                    --    "justify-content" => "space-between"
                     Down ->
                         case flex.horizontal of
-                            AlignLeft ->
+                            Other Left ->
                                 "align-items" => "flex-start"
 
-                            AlignRight ->
+                            Other Right ->
                                 "align-items" => "flex-end"
 
-                            AlignCenter ->
+                            Center ->
                                 "align-items" => "center"
 
-                            Justify ->
+                            Stretch ->
                                 "align-items" => "stretch"
 
-                            JustifyAll ->
-                                "align-items" => "stretch"
-
+                    --JustifyAll ->
+                    --    "align-items" => "stretch"
                     Up ->
                         case flex.horizontal of
-                            AlignLeft ->
+                            Other Left ->
                                 "align-items" => "flex-start"
 
-                            AlignRight ->
+                            Other Right ->
                                 "align-items" => "flex-end"
 
-                            AlignCenter ->
+                            Center ->
                                 "align-items" => "center"
 
-                            Justify ->
+                            Stretch ->
                                 "align-items" => "stretch"
-
-                            JustifyAll ->
-                                "align-items" => "stretch"
+                --JustifyAll ->
+                --    "align-items" => "stretch"
               , case flex.go of
-                    Right ->
+                    GoRight ->
                         case flex.vertical of
-                            AlignTop ->
+                            Other Top ->
                                 "align-items" => "flex-start"
 
-                            AlignBottom ->
+                            Other Bottom ->
                                 "align-items" => "flex-end"
 
-                            VCenter ->
+                            Center ->
                                 "align-items" => "center"
 
-                            VStretch ->
+                            Stretch ->
                                 "align-items" => "stretch"
 
-                    Left ->
+                    GoLeft ->
                         case flex.vertical of
-                            AlignTop ->
+                            Other Top ->
                                 "align-items" => "flex-start"
 
-                            AlignBottom ->
+                            Other Bottom ->
                                 "align-items" => "flex-end"
 
-                            VCenter ->
+                            Center ->
                                 "align-items" => "center"
 
-                            VStretch ->
+                            Stretch ->
                                 "align-items" => "stretch"
 
                     Down ->
                         case flex.vertical of
-                            AlignTop ->
+                            Other Top ->
                                 "justify-content" => "flex-start"
 
-                            AlignBottom ->
+                            Other Bottom ->
                                 "justify-content" => "flex-end"
 
-                            VCenter ->
+                            Center ->
                                 "justify-content" => "center"
 
-                            VStretch ->
+                            Stretch ->
                                 "justify-content" => "space-between"
 
                     Up ->
                         case flex.vertical of
-                            AlignTop ->
+                            Other Top ->
                                 "justify-content" => "flex-end"
 
-                            AlignBottom ->
+                            Other Bottom ->
                                 "justify-content" => "flex-start"
 
-                            VCenter ->
+                            Center ->
                                 "justify-content" => "center"
 
-                            VStretch ->
+                            Stretch ->
                                 "justify-content" => "space-between"
               ]
             , "pos not-floatable not-inlineable"

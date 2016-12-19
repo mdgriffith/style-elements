@@ -213,34 +213,33 @@ type Flexible
     = Flexible
         { go : Direction
         , wrap : Bool
-        , horizontal : Alignment
-        , vertical : VerticalAlignment
+        , horizontal : Centerable Horizontal
+        , vertical : Centerable Vertical
         }
 
 
 {-| -}
 type Direction
     = Up
-    | Right
+    | GoRight
     | Down
-    | Left
+    | GoLeft
 
 
-{-| -}
-type VerticalAlignment
-    = AlignTop
-    | AlignBottom
-    | VCenter
-    | VStretch
+type Centerable thing
+    = Center
+    | Stretch
+    | Other thing
 
 
-{-| -}
-type Alignment
-    = AlignLeft
-    | AlignRight
-    | AlignCenter
-    | Justify
-    | JustifyAll
+type Vertical
+    = Top
+    | Bottom
+
+
+type Horizontal
+    = Left
+    | Right
 
 
 {-| -}

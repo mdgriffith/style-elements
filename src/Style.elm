@@ -5,8 +5,8 @@ module Style
         , StyleSheet
         , Shadow
         , Visibility
-        , Alignment
-        , VerticalAlignment
+        , Vertical
+        , Horizontal
         , BackgroundImage
         , Transform
         , Filter
@@ -51,15 +51,14 @@ module Style
         , preWrap
         , preLine
         , noWrap
-        , alignLeft
-        , alignRight
         , justify
         , justifyAll
-        , alignCenter
-        , verticalCenter
-        , verticalStretch
+        , center
+        , stretch
         , alignTop
         , alignBottom
+        , alignLeft
+        , alignRight
         , topLeft
         , bottomRight
         , topRight
@@ -251,9 +250,9 @@ Layouts affect how child elements are arranged.
 
 # Alignment
 
-@docs Alignment, alignLeft, alignRight, justify, justifyAll, alignCenter
+@docs Horizontal, alignLeft, alignRight, center, stretch, justify, justifyAll
 
-@docs VerticalAlignment, verticalCenter, verticalStretch, alignTop, alignBottom
+@docs Vertical, alignTop, alignBottom
 
 
 # Colors
@@ -314,7 +313,7 @@ import Time exposing (Time)
 import Color exposing (Color)
 import List.Extra
 import String.Extra
-import Style.Model exposing (Model(..), Property(..), Floating(..), Whitespace(..), Alignment(..))
+import Style.Model exposing (Model(..), Property(..), Floating(..), Whitespace(..), Centerable(..), Vertical(..), Horizontal(..))
 import Style.Render
 import Style.Media
 
@@ -675,14 +674,14 @@ type alias Visibility =
 
 {-|
 -}
-type alias Alignment =
-    Style.Model.Alignment
+type alias Horizontal =
+    Style.Model.Horizontal
 
 
 {-|
 -}
-type alias VerticalAlignment =
-    Style.Model.VerticalAlignment
+type alias Vertical =
+    Style.Model.Vertical
 
 
 {-|
@@ -1045,23 +1044,25 @@ letterOffset offset =
 
 
 {-| -}
-textAlign : Alignment -> Property
+textAlign : Centerable Horizontal -> Property
 textAlign alignment =
     case alignment of
-        AlignLeft ->
+        Other Left ->
             Property "text-align" "left"
 
-        AlignRight ->
+        Other Right ->
             Property "text-align" "right"
 
-        AlignCenter ->
+        Center ->
             Property "text-align" "center"
 
-        Justify ->
+        Stretch ->
             Property "text-align" "justify"
 
-        JustifyAll ->
-            Property "text-align" "justify-all"
+
+
+--JustifyAll ->
+--    Property "text-align" "justify-all"
 
 
 {-| -}
@@ -1162,7 +1163,7 @@ mix =
     Mix
 
 
-{-| Add a property.  Not to be exported, `properties` is to be used instead.
+{-| Add a custom property.
 -}
 property : String -> String -> Property
 property name value =
@@ -1206,8 +1207,8 @@ tableLayout =
 -}
 type alias Flow =
     { wrap : Bool
-    , horizontal : Alignment
-    , vertical : VerticalAlignment
+    , horizontal : Centerable Horizontal
+    , vertical : Centerable Vertical
     }
 
 
@@ -1253,7 +1254,7 @@ flowRight { wrap, horizontal, vertical } =
         layout =
             Style.Model.FlexLayout <|
                 Style.Model.Flexible
-                    { go = Style.Model.Right
+                    { go = Style.Model.GoRight
                     , wrap = wrap
                     , horizontal = horizontal
                     , vertical = vertical
@@ -1269,7 +1270,7 @@ flowLeft { wrap, horizontal, vertical } =
         layout =
             Style.Model.FlexLayout <|
                 Style.Model.Flexible
-                    { go = Style.Model.Left
+                    { go = Style.Model.GoLeft
                     , wrap = wrap
                     , horizontal = horizontal
                     , vertical = vertical
@@ -1309,57 +1310,53 @@ noWrap =
 
 
 {-| -}
-alignTop : VerticalAlignment
+alignTop : Centerable Vertical
 alignTop =
-    Style.Model.AlignTop
+    Other Top
 
 
 {-| -}
-alignBottom : VerticalAlignment
+alignBottom : Centerable Vertical
 alignBottom =
-    Style.Model.AlignBottom
+    Other Bottom
+
+
+{-|
+-}
+center : Centerable a
+center =
+    Center
+
+
+{-|
+-}
+stretch : Centerable a
+stretch =
+    Stretch
 
 
 {-| -}
-verticalStretch : VerticalAlignment
-verticalStretch =
-    Style.Model.VStretch
-
-
-{-| -}
-verticalCenter : VerticalAlignment
-verticalCenter =
-    Style.Model.VCenter
-
-
-{-| -}
-justify : Alignment
+justify : Centerable a
 justify =
-    Style.Model.Justify
+    stretch
 
 
 {-| -}
-justifyAll : Alignment
+justifyAll : Centerable a
 justifyAll =
-    Style.Model.JustifyAll
+    stretch
 
 
 {-| -}
-alignLeft : Alignment
+alignLeft : Centerable Horizontal
 alignLeft =
-    Style.Model.AlignLeft
+    Other Left
 
 
 {-| -}
-alignRight : Alignment
+alignRight : Centerable Horizontal
 alignRight =
-    Style.Model.AlignRight
-
-
-{-| -}
-alignCenter : Alignment
-alignCenter =
-    Style.Model.AlignCenter
+    Other Right
 
 
 {-| -}
