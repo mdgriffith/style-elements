@@ -870,7 +870,7 @@ positionBy =
 
 {-| -}
 topLeft : Float -> Float -> Property
-topLeft x y =
+topLeft y x =
     let
         anchor =
             Style.Model.AnchorTop => Style.Model.AnchorLeft
@@ -880,7 +880,7 @@ topLeft x y =
 
 {-| -}
 topRight : Float -> Float -> Property
-topRight x y =
+topRight y x =
     let
         anchor =
             Style.Model.AnchorTop => Style.Model.AnchorRight
@@ -890,7 +890,7 @@ topRight x y =
 
 {-| -}
 bottomLeft : Float -> Float -> Property
-bottomLeft x y =
+bottomLeft y x =
     let
         anchor =
             Style.Model.AnchorBottom => Style.Model.AnchorLeft
@@ -900,7 +900,7 @@ bottomLeft x y =
 
 {-| -}
 bottomRight : Float -> Float -> Property
-bottomRight x y =
+bottomRight y x =
     let
         anchor =
             Style.Model.AnchorBottom => Style.Model.AnchorRight
