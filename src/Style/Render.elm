@@ -73,13 +73,14 @@ render (Model model) =
         intermediates =
             renderProperties model.properties
 
-        hashedName =
-            hash (toString intermediates)
-
         ( name, selector ) =
             case model.selector of
                 AutoClass ->
-                    ( hashedName, "." ++ hashedName )
+                    let
+                        hashedName =
+                            hash (toString intermediates)
+                    in
+                        ( hashedName, "." ++ hashedName )
 
                 Exactly str ->
                     ( "", str )
@@ -87,7 +88,7 @@ render (Model model) =
                 Class str ->
                     let
                         formatted =
-                            formatName str ++ "-" ++ hashedName
+                            formatName str
                     in
                         ( formatted, "." ++ formatted )
 
