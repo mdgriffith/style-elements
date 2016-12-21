@@ -1,4 +1,4 @@
-module Style.Render exposing (render, findStyle, getName, formatName, inlineError, floatError, missingError)
+module Style.Render exposing (render, findStyle, findLayout, getName, formatName, inlineError, floatError, missingError)
 
 {-|
 -}
@@ -56,6 +56,29 @@ findStyle cls models =
             (\model ->
                 case model of
                     StyleModel state ->
+                        case state.selector of
+                            Class found ->
+                                if cls == found then
+                                    Just model
+                                else
+                                    Nothing
+
+                            _ ->
+                                Nothing
+
+                    _ ->
+                        Nothing
+            )
+            models
+
+
+findLayout : layoutClass -> List (Model class layoutClass) -> Maybe (Model class layoutClass)
+findLayout cls models =
+    List.head <|
+        List.filterMap
+            (\model ->
+                case model of
+                    LayoutModel state ->
                         case state.selector of
                             Class found ->
                                 if cls == found then

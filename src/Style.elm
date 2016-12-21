@@ -395,7 +395,7 @@ selector sel props =
 
 {-| Embed a style sheet into your html.
 -}
-embed : StyleSheet class msg -> Html msg
+embed : StyleSheet class layoutClass msg -> Html msg
 embed stylesheet =
     Html.node "style" [] [ Html.text stylesheet.css ]
 
@@ -403,11 +403,12 @@ embed stylesheet =
 {-| The stylesheet contains the rendered css as a string, and two functions to lookup
 
 -}
-type alias StyleSheet class msg =
+type alias StyleSheet class layoutClass msg =
     { class : class -> Html.Attribute msg
     , classList :
         List ( class, Bool ) -> Html.Attribute msg
-        --, layout : positionClass -> Html.Attribute msg
+    , layout :
+        layoutClass -> Html.Attribute msg
         --, position : positionClass -> Html.Attribute msg
     , css : String
     }
@@ -416,7 +417,7 @@ type alias StyleSheet class msg =
 {-| Render styles into a stylesheet
 
 -}
-render : List (Model class layoutClass) -> StyleSheet class msg
+render : List (Model class layoutClass) -> StyleSheet class layoutClass msg
 render styles =
     renderWith [] styles
 
@@ -548,7 +549,7 @@ flatten props =
 
 {-| Render a stylesheet with options
 -}
-renderWith : List Option -> List (Model class layoutClass) -> StyleSheet class msg
+renderWith : List Option -> List (Model class layoutClass) -> StyleSheet class layoutClass msg
 renderWith opts styles =
     let
         forBase opt =
@@ -635,6 +636,22 @@ renderWith opts styles =
                         |> List.unzip
             in
                 { css = String.join "\n" cssStyles
+                , layout =
+                    (\layoutCls ->
+                        case Style.Render.findLayout layoutCls styles of
+                            Nothing ->
+                                if debug then
+                                    let
+                                        _ =
+                                            Debug.log "style" ("The layout, " ++ toString layoutCls ++ ", is not in your stylesheet.")
+                                    in
+                                        Html.Attributes.class (Style.Render.formatName layoutCls)
+                                else
+                                    Html.Attributes.class (Style.Render.formatName layoutCls)
+
+                            Just style ->
+                                Html.Attributes.class (Style.Render.getName style)
+                    )
                 , class =
                     (\cls ->
                         case Style.Render.findStyle cls styles of
