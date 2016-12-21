@@ -380,6 +380,16 @@ class cls props =
         }
 
 
+{-| Set the class for a given style.  You should use a union type!
+-}
+layout : layoutClass -> List LayoutProperty -> Model class layoutClass
+layout cls props =
+    LayoutModel
+        { selector = Style.Model.Class cls
+        , properties = props
+        }
+
+
 {-| You can set a raw css selector instead of a class.
 
 It's highly recommended not to do this unless absolutely necessary.
