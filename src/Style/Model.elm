@@ -6,11 +6,16 @@ import Color exposing (Color)
 import Time exposing (Time)
 
 
-type Model class
-    = Model
+type Model class layoutClass
+    = StyleModel
         { selector : Selector class
         , properties :
             List Property
+        }
+    | LayoutModel
+        { selector : Selector layoutClass
+        , properties :
+            List LayoutProperty
         }
 
 
@@ -24,8 +29,6 @@ type Property
     = Property String String
     | Mix (List Property)
     | Box String ( Float, Float, Float, Float )
-    | Spacing ( Float, Float, Float, Float )
-    | LayoutProp Layout
     | Len String Length
     | Filters (List Filter)
     | Transforms (List Transform)
@@ -34,12 +37,22 @@ type Property
     | BackgroundImageProp BackgroundImage
     | AnimationProp Animation
     | VisibilityProp Visibility
-    | FloatProp Floating
-    | RelProp PositionParent
-    | PositionProp Anchor Float Float
     | ColorProp String Color
     | MediaQuery String (List Property)
     | SubElement String (List Property)
+    | PositionProp Anchor Float Float
+    | RelProp PositionParent
+    | FloatProp Floating
+
+
+layoutPropertyName : LayoutProperty -> String
+layoutPropertyName layoutProp =
+    case layoutProp of
+        Spacing _ ->
+            "spacing"
+
+        LayoutProp _ ->
+            "layout"
 
 
 propertyName : Property -> String
@@ -53,12 +66,6 @@ propertyName prop =
 
         Box name _ ->
             name
-
-        Spacing _ ->
-            "spacing"
-
-        LayoutProp _ ->
-            "layout"
 
         Len name _ ->
             name
@@ -198,6 +205,12 @@ type Length
     = Px Float
     | Percent Float
     | Auto
+
+
+{-| -}
+type LayoutProperty
+    = Spacing ( Float, Float, Float, Float )
+    | LayoutProp Layout
 
 
 {-| -}

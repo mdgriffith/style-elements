@@ -1,4 +1,4 @@
-module Style.Render exposing (render, renderInline, find, getName, formatName, inlineError, floatError, missingError)
+module Style.Render exposing (render, findStyle, getName, formatName, inlineError, floatError, missingError)
 
 {-|
 -}
@@ -37,29 +37,34 @@ type alias Tag =
     String
 
 
-renderInline : Model class -> List ( String, String )
-renderInline (Model model) =
-    let
-        intermediates =
-            renderProperties model.properties
 
-        ( tags, style, blocks ) =
-            renderIntermediates "rendered-inline" intermediates
-    in
-        style
+--renderInline : Model class -> List ( String, String )
+--renderInline (Model model) =
+--    let
+--        intermediates =
+--            renderProperties model.properties
+--        ( tags, style, blocks ) =
+--            renderIntermediates "rendered-inline" intermediates
+--    in
+--        style
 
 
-find : class -> List (Model class) -> Maybe (Model class)
-find cls models =
+findStyle : class -> List (Model class layoutClass) -> Maybe (Model class layoutClass)
+findStyle cls models =
     List.head <|
         List.filterMap
-            (\(Model state) ->
-                case state.selector of
-                    Class found ->
-                        if cls == found then
-                            Just (Model state)
-                        else
-                            Nothing
+            (\model ->
+                case model of
+                    StyleModel state ->
+                        case state.selector of
+                            Class found ->
+                                if cls == found then
+                                    Just model
+                                else
+                                    Nothing
+
+                            _ ->
+                                Nothing
 
                     _ ->
                         Nothing
@@ -67,30 +72,56 @@ find cls models =
             models
 
 
-render : Model class -> ( ClassName, RenderedStyle )
-render (Model model) =
+render : Model class layoutClass -> ( ClassName, RenderedStyle )
+render model =
     let
         intermediates =
-            renderProperties model.properties
+            case model of
+                StyleModel model ->
+                    renderProperties model.properties
+
+                LayoutModel model ->
+                    renderLayoutProperties model.properties
 
         ( name, selector ) =
-            case model.selector of
-                AutoClass ->
-                    let
-                        hashedName =
-                            hash (toString intermediates)
-                    in
-                        ( hashedName, "." ++ hashedName )
+            case model of
+                StyleModel model ->
+                    case model.selector of
+                        AutoClass ->
+                            let
+                                hashedName =
+                                    hash (toString intermediates)
+                            in
+                                ( hashedName, "." ++ hashedName )
 
-                Exactly str ->
-                    ( "", str )
+                        Exactly str ->
+                            ( "", str )
 
-                Class str ->
-                    let
-                        formatted =
-                            formatName str
-                    in
-                        ( formatted, "." ++ formatted )
+                        Class str ->
+                            let
+                                formatted =
+                                    formatName str
+                            in
+                                ( formatted, "." ++ formatted )
+
+                LayoutModel model ->
+                    case model.selector of
+                        AutoClass ->
+                            let
+                                hashedName =
+                                    hash (toString intermediates)
+                            in
+                                ( hashedName, "." ++ hashedName )
+
+                        Exactly str ->
+                            ( "", str )
+
+                        Class str ->
+                            let
+                                formatted =
+                                    formatName str
+                            in
+                                ( formatted, "." ++ formatted )
 
         ( tags, style, blocks ) =
             renderIntermediates selector intermediates
@@ -108,6 +139,27 @@ renderProperties props =
         |> List.Extra.uniqueBy propertyName
         |> List.reverse
         |> List.map renderProperty
+
+
+renderLayoutProperties : List LayoutProperty -> List StyleIntermediate
+renderLayoutProperties layouts =
+    layouts
+        |> List.reverse
+        |> List.Extra.uniqueBy layoutPropertyName
+        |> List.reverse
+        |> List.map
+            (\layoutProp ->
+                case layoutProp of
+                    LayoutProp layout ->
+                        let
+                            ( style, tag ) =
+                                renderLayout layout
+                        in
+                            Tagged tag style
+
+                    Spacing box ->
+                        AlmostStyle " > .pos" [ ( "margin", render4tuplePx box ) ]
+            )
 
 
 renderProperty : Property -> StyleIntermediate
@@ -139,16 +191,6 @@ renderProperty prop =
 
         BackgroundImageProp image ->
             Multiple <| renderBackgroundImage image
-
-        LayoutProp layout ->
-            let
-                ( style, tag ) =
-                    renderLayout layout
-            in
-                Tagged tag style
-
-        Spacing box ->
-            AlmostStyle " > .pos" [ ( "margin", render4tuplePx box ) ]
 
         AnimationProp anim ->
             let
@@ -767,7 +809,7 @@ formatName class =
 
 
 {-| -}
-getName : Model class -> String
+getName : Model class layoutClass -> String
 getName model =
     Tuple.first <| render model
 
@@ -820,6 +862,18 @@ cssClass x name props =
 cssProp : ( String, String ) -> String
 cssProp ( propName, propValue ) =
     "  " ++ propName ++ ": " ++ propValue ++ ";"
+
+
+reset : String
+reset =
+    """
+* {
+    all: initial;
+    display: block;
+    position: relative;
+}
+
+"""
 
 
 clearfix : String

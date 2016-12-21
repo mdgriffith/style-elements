@@ -313,7 +313,7 @@ import Time exposing (Time)
 import Color exposing (Color)
 import List.Extra
 import String.Extra
-import Style.Model exposing (Model(..), Property(..), Floating(..), Whitespace(..), Centerable(..), Vertical(..), Horizontal(..))
+import Style.Model exposing (Model(..), Property(..), LayoutProperty(..), Floating(..), Whitespace(..), Centerable(..), Vertical(..), Horizontal(..))
 import Style.Render
 import Style.Media
 
@@ -323,8 +323,8 @@ import Style.Media
 The `class` type variable is the type you use to write your css classes.
 
 -}
-type alias Model class =
-    Style.Model.Model class
+type alias Model class layoutClass =
+    Style.Model.Model class layoutClass
 
 
 {-| This type represents any style property.  The Model has a list of these.
@@ -348,17 +348,33 @@ Sets the following defaults:
 foundation : List Property
 foundation =
     [ Style.Model.Property "box-sizing" "border-box"
-    , Style.Model.LayoutProp Style.Model.TextLayout
     , Style.Model.PositionProp ( Style.Model.AnchorTop, Style.Model.AnchorLeft ) 0 0
     , Style.Model.RelProp currentPosition
     ]
 
 
+{-|
+
+Sets the following defaults:
+
+    box-sizing: border-box
+    display: block
+    position: relative
+    top: 0
+    left: 0
+
+-}
+layoutFoundation : List LayoutProperty
+layoutFoundation =
+    [ Style.Model.LayoutProp Style.Model.TextLayout
+    ]
+
+
 {-| Set the class for a given style.  You should use a union type!
 -}
-class : class -> List Property -> Model class
+class : class -> List Property -> Model class layoutClass
 class cls props =
-    Model
+    StyleModel
         { selector = Style.Model.Class cls
         , properties = props
         }
@@ -369,9 +385,9 @@ class cls props =
 It's highly recommended not to do this unless absolutely necessary.
 
 -}
-selector : String -> List Property -> Model class
+selector : String -> List Property -> Model class layoutClass
 selector sel props =
-    Model
+    StyleModel
         { selector = Style.Model.Exactly sel
         , properties = props
         }
@@ -389,7 +405,10 @@ embed stylesheet =
 -}
 type alias StyleSheet class msg =
     { class : class -> Html.Attribute msg
-    , classList : List ( class, Bool ) -> Html.Attribute msg
+    , classList :
+        List ( class, Bool ) -> Html.Attribute msg
+        --, layout : positionClass -> Html.Attribute msg
+        --, position : positionClass -> Html.Attribute msg
     , css : String
     }
 
@@ -397,7 +416,7 @@ type alias StyleSheet class msg =
 {-| Render styles into a stylesheet
 
 -}
-render : List (Model class) -> StyleSheet class msg
+render : List (Model class layoutClass) -> StyleSheet class msg
 render styles =
     renderWith [] styles
 
@@ -482,9 +501,17 @@ isWebfont str =
         ]
 
 
-getFontNames : Model class -> List String
-getFontNames (Model model) =
+getFontNames : Model class layoutClass -> List String
+getFontNames state =
     let
+        styleProperties stylemodel =
+            case stylemodel of
+                StyleModel model ->
+                    model.properties
+
+                LayoutModel _ ->
+                    []
+
         getFonts prop =
             case prop of
                 Style.Model.Property name family ->
@@ -499,7 +526,8 @@ getFontNames (Model model) =
                 _ ->
                     Nothing
     in
-        model.properties
+        state
+            |> styleProperties
             |> List.filterMap getFonts
             |> List.concat
 
@@ -520,7 +548,7 @@ flatten props =
 
 {-| Render a stylesheet with options
 -}
-renderWith : List Option -> List (Model class) -> StyleSheet class msg
+renderWith : List Option -> List (Model class layoutClass) -> StyleSheet class msg
 renderWith opts styles =
     let
         forBase opt =
@@ -531,16 +559,38 @@ renderWith opts styles =
                 _ ->
                     Nothing
 
+        forLayoutBase opt =
+            case opt of
+                _ ->
+                    Nothing
+
         base =
             opts
                 |> List.filterMap forBase
                 |> List.head
                 |> Maybe.withDefault foundation
 
+        layoutBase =
+            opts
+                |> List.filterMap forLayoutBase
+                |> List.head
+                |> Maybe.withDefault layoutFoundation
+
         basedStyles =
             List.map
-                (\(Model state) ->
-                    Model { state | properties = flatten (base ++ state.properties) }
+                (\model ->
+                    case model of
+                        StyleModel state ->
+                            StyleModel
+                                { state
+                                    | properties = flatten (base ++ state.properties)
+                                }
+
+                        LayoutModel state ->
+                            LayoutModel
+                                { state
+                                    | properties = layoutBase ++ state.properties
+                                }
                 )
                 styles
 
@@ -587,7 +637,7 @@ renderWith opts styles =
                 { css = String.join "\n" cssStyles
                 , class =
                     (\cls ->
-                        case Style.Render.find cls styles of
+                        case Style.Render.findStyle cls styles of
                             Nothing ->
                                 if debug then
                                     let
@@ -607,7 +657,7 @@ renderWith opts styles =
                             found =
                                 List.map
                                     (\( cls, include ) ->
-                                        ( cls, include, Style.Render.find cls styles )
+                                        ( cls, include, Style.Render.findStyle cls styles )
                                     )
                                     classes
                         in
@@ -1005,7 +1055,7 @@ borderRadius value =
 
 
 {-| -}
-spacing : ( Float, Float, Float, Float ) -> Property
+spacing : ( Float, Float, Float, Float ) -> LayoutProperty
 spacing s =
     Spacing s
 
@@ -1175,7 +1225,7 @@ property name value =
 This element will no longer be affected by 'spacing'
 
 -}
-inline : Property
+inline : LayoutProperty
 inline =
     LayoutProp Style.Model.InlineLayout
 
@@ -1189,7 +1239,7 @@ If you use Style.debug instead of Style.render, the element will be highlighted 
 Besides this, all immediate children are arranged as if they were `display: block`.
 
 -}
-textLayout : Property
+textLayout : LayoutProperty
 textLayout =
     LayoutProp Style.Model.TextLayout
 
@@ -1197,7 +1247,7 @@ textLayout =
 {-| This is the same as setting an element to `display:table`.
 
 -}
-tableLayout : Property
+tableLayout : LayoutProperty
 tableLayout =
     LayoutProp Style.Model.TableLayout
 
@@ -1214,7 +1264,7 @@ type alias Flow =
 
 {-| This is a flexbox foundationd layout
 -}
-flowUp : Flow -> Property
+flowUp : Flow -> LayoutProperty
 flowUp { wrap, horizontal, vertical } =
     let
         layout =
@@ -1232,7 +1282,7 @@ flowUp { wrap, horizontal, vertical } =
 {-|
 
 -}
-flowDown : Flow -> Property
+flowDown : Flow -> LayoutProperty
 flowDown { wrap, horizontal, vertical } =
     let
         layout =
@@ -1248,7 +1298,7 @@ flowDown { wrap, horizontal, vertical } =
 
 
 {-| -}
-flowRight : Flow -> Property
+flowRight : Flow -> LayoutProperty
 flowRight { wrap, horizontal, vertical } =
     let
         layout =
@@ -1264,7 +1314,7 @@ flowRight { wrap, horizontal, vertical } =
 
 
 {-| -}
-flowLeft : Flow -> Property
+flowLeft : Flow -> LayoutProperty
 flowLeft { wrap, horizontal, vertical } =
     let
         layout =
