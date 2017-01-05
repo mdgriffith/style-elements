@@ -313,7 +313,7 @@ import Time exposing (Time)
 import Color exposing (Color)
 import List.Extra
 import String.Extra
-import Style.Model exposing (Model(..), Property(..), LayoutProperty(..), Floating(..), Whitespace(..), Centerable(..), Vertical(..), Horizontal(..))
+import Style.Model exposing (Model(..), Property(..), LayoutProperty(..), PositionProperty(..), Floating(..), Whitespace(..), Centerable(..), Vertical(..), Horizontal(..))
 import Style.Render
 import Style.Media
 
@@ -323,8 +323,8 @@ import Style.Media
 The `class` type variable is the type you use to write your css classes.
 
 -}
-type alias Model class layoutClass variation =
-    Style.Model.Model class layoutClass variation
+type alias Model class layoutClass positionClass variation =
+    Style.Model.Model class layoutClass positionClass variation
 
 
 {-| This type represents any style property.  The Model has a list of these.
@@ -348,7 +348,12 @@ Sets the following defaults:
 foundation : List (Property variation)
 foundation =
     [ Style.Model.Property "box-sizing" "border-box"
-    , Style.Model.PositionProp ( Style.Model.AnchorTop, Style.Model.AnchorLeft ) 0 0
+    ]
+
+
+positionFoundation : List PositionProperty
+positionFoundation =
+    [ Style.Model.PositionProp ( Style.Model.AnchorTop, Style.Model.AnchorLeft ) 0 0
     , Style.Model.RelProp currentPosition
     ]
 
@@ -372,7 +377,7 @@ layoutFoundation =
 
 {-| Set the class for a given style.  You should use a union type!
 -}
-class : class -> List (Property variation) -> Model class layoutClass variation
+class : class -> List (Property variation) -> Model class layoutClass positionClass variation
 class cls props =
     StyleModel
         { selector = Style.Model.Class cls
@@ -382,7 +387,7 @@ class cls props =
 
 {-| Set the class for a given style.  You should use a union type!
 -}
-layout : layoutClass -> List LayoutProperty -> Model class layoutClass variation
+layout : layoutClass -> List LayoutProperty -> Model class layoutClass positionClass variation
 layout cls props =
     LayoutModel
         { selector = Style.Model.Class cls
@@ -395,7 +400,7 @@ layout cls props =
 It's highly recommended not to do this unless absolutely necessary.
 
 -}
-selector : String -> List (Property variation) -> Model class layoutClass variation
+selector : String -> List (Property variation) -> Model class layoutClass positionClass variation
 selector sel props =
     StyleModel
         { selector = Style.Model.Exactly sel
@@ -427,7 +432,7 @@ type alias StyleSheet class layoutClass msg =
 {-| Render styles into a stylesheet
 
 -}
-render : List (Model class layoutClass variation) -> StyleSheet class layoutClass msg
+render : List (Model class layoutClass positionClass variation) -> StyleSheet class layoutClass msg
 render styles =
     renderWith [] styles
 
@@ -512,7 +517,7 @@ isWebfont str =
         ]
 
 
-getFontNames : Model class layoutClass variation -> List String
+getFontNames : Model class layoutClass positionClass variation -> List String
 getFontNames state =
     let
         styleProperties stylemodel =
@@ -520,7 +525,7 @@ getFontNames state =
                 StyleModel model ->
                     model.properties
 
-                LayoutModel _ ->
+                _ ->
                     []
 
         getFonts prop =
@@ -559,7 +564,7 @@ flatten props =
 
 {-| Render a stylesheet with options
 -}
-renderWith : List (Option variation) -> List (Model class layoutClass variation) -> StyleSheet class layoutClass msg
+renderWith : List (Option variation) -> List (Model class layoutClass positionClass variation) -> StyleSheet class layoutClass msg
 renderWith opts styles =
     let
         forBase opt =
@@ -571,6 +576,11 @@ renderWith opts styles =
                     Nothing
 
         forLayoutBase opt =
+            case opt of
+                _ ->
+                    Nothing
+
+        forPositionBase opt =
             case opt of
                 _ ->
                     Nothing
@@ -587,6 +597,12 @@ renderWith opts styles =
                 |> List.head
                 |> Maybe.withDefault layoutFoundation
 
+        positionBase =
+            opts
+                |> List.filterMap forPositionBase
+                |> List.head
+                |> Maybe.withDefault positionFoundation
+
         basedStyles =
             List.map
                 (\model ->
@@ -601,6 +617,12 @@ renderWith opts styles =
                             LayoutModel
                                 { state
                                     | properties = layoutBase ++ state.properties
+                                }
+
+                        PositionModel state ->
+                            PositionModel
+                                { state
+                                    | properties = positionBase ++ state.properties
                                 }
                 )
                 styles
@@ -866,7 +888,7 @@ noRepeat =
 Will ignore any left spacing that it's parent has set for it.
 
 -}
-floatLeft : Property variation
+floatLeft : PositionProperty
 floatLeft =
     FloatProp Style.Model.FloatLeft
 
@@ -874,7 +896,7 @@ floatLeft =
 {-|
 
 -}
-floatRight : Property variation
+floatRight : PositionProperty
 floatRight =
     FloatProp Style.Model.FloatRight
 
@@ -884,7 +906,7 @@ floatRight =
 This is useful for floating things at the beginning of text.
 
 -}
-floatTopLeft : Property variation
+floatTopLeft : PositionProperty
 floatTopLeft =
     FloatProp Style.Model.FloatTopLeft
 
@@ -892,7 +914,7 @@ floatTopLeft =
 {-|
 
 -}
-floatTopRight : Property variation
+floatTopRight : PositionProperty
 floatTopRight =
     FloatProp Style.Model.FloatTopRight
 
@@ -940,13 +962,13 @@ currentPosition =
 
 
 {-| -}
-positionBy : PositionParent -> Property variation
+positionBy : PositionParent -> PositionProperty
 positionBy =
     Style.Model.RelProp
 
 
 {-| -}
-topLeft : Float -> Float -> Property variation
+topLeft : Float -> Float -> PositionProperty
 topLeft y x =
     let
         anchor =
@@ -956,7 +978,7 @@ topLeft y x =
 
 
 {-| -}
-topRight : Float -> Float -> Property variation
+topRight : Float -> Float -> PositionProperty
 topRight y x =
     let
         anchor =
@@ -966,7 +988,7 @@ topRight y x =
 
 
 {-| -}
-bottomLeft : Float -> Float -> Property variation
+bottomLeft : Float -> Float -> PositionProperty
 bottomLeft y x =
     let
         anchor =
@@ -976,7 +998,7 @@ bottomLeft y x =
 
 
 {-| -}
-bottomRight : Float -> Float -> Property variation
+bottomRight : Float -> Float -> PositionProperty
 bottomRight y x =
     let
         anchor =

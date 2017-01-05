@@ -50,7 +50,7 @@ type alias Tag =
 --        style
 
 
-findStyle : class -> List (Model class layoutClass variation) -> Maybe (Model class layoutClass variation)
+findStyle : class -> List (Model class layoutClass positionClass variation) -> Maybe (Model class layoutClass positionClass variation)
 findStyle cls models =
     List.head <|
         List.filterMap
@@ -73,7 +73,7 @@ findStyle cls models =
             models
 
 
-findLayout : layoutClass -> List (Model class layoutClass variation) -> Maybe (Model class layoutClass variation)
+findLayout : layoutClass -> List (Model class layoutClass positionClass variation) -> Maybe (Model class layoutClass positionClass variation)
 findLayout cls models =
     List.head <|
         List.filterMap
@@ -96,7 +96,7 @@ findLayout cls models =
             models
 
 
-render : Model class layoutClass variation -> ( ClassName, RenderedStyle )
+render : Model class layoutClass positionClass variation -> ( ClassName, RenderedStyle )
 render model =
     let
         intermediates =
@@ -107,9 +107,31 @@ render model =
                 LayoutModel model ->
                     renderLayoutProperties model.properties
 
+                PositionModel model ->
+                    renderPositionProperties model.properties
+
         ( name, selector ) =
             case model of
                 StyleModel model ->
+                    case model.selector of
+                        AutoClass ->
+                            let
+                                hashedName =
+                                    hash (toString intermediates)
+                            in
+                                ( hashedName, "." ++ hashedName )
+
+                        Exactly str ->
+                            ( "", str )
+
+                        Class str ->
+                            let
+                                formatted =
+                                    formatName str
+                            in
+                                ( formatted, "." ++ formatted )
+
+                PositionModel model ->
                     case model.selector of
                         AutoClass ->
                             let
@@ -165,6 +187,15 @@ renderProperties props =
         |> List.map renderProperty
 
 
+renderPositionProperties : List PositionProperty -> List StyleIntermediate
+renderPositionProperties props =
+    props
+        |> List.reverse
+        |> List.Extra.uniqueBy positionPropertyName
+        |> List.reverse
+        |> List.map renderPositionProperty
+
+
 renderLayoutProperties : List LayoutProperty -> List StyleIntermediate
 renderLayoutProperties layouts =
     layouts
@@ -184,6 +215,19 @@ renderLayoutProperties layouts =
                     Spacing box ->
                         AlmostStyle " > .pos" [ ( "margin", render4tuplePx box ) ]
             )
+
+
+renderPositionProperty : PositionProperty -> StyleIntermediate
+renderPositionProperty prop =
+    case prop of
+        FloatProp floating ->
+            Tagged "floating" (renderFloating floating)
+
+        RelProp relTo ->
+            Single <| renderPositionBy relTo
+
+        PositionProp anchor x y ->
+            Multiple <| renderPosition anchor ( x, y )
 
 
 renderProperty : Property variation -> StyleIntermediate
@@ -225,15 +269,6 @@ renderProperty prop =
 
         VisibilityProp vis ->
             Single <| renderVisibility vis
-
-        FloatProp floating ->
-            Tagged "floating" (renderFloating floating)
-
-        RelProp relTo ->
-            Single <| renderPositionBy relTo
-
-        PositionProp anchor x y ->
-            Multiple <| renderPosition anchor ( x, y )
 
         ColorProp name color ->
             Single <| renderColor name color
@@ -849,7 +884,7 @@ formatName class =
 
 
 {-| -}
-getName : Model class layoutClass variation -> String
+getName : Model class layoutClass positionClass variation -> String
 getName model =
     Tuple.first <| render model
 

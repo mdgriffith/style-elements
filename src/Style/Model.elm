@@ -6,7 +6,7 @@ import Color exposing (Color)
 import Time exposing (Time)
 
 
-type Model class layoutClass variation
+type Model class layoutClass positionClass variation
     = StyleModel
         { selector : Selector class
         , properties : List (Property variation)
@@ -14,6 +14,10 @@ type Model class layoutClass variation
     | LayoutModel
         { selector : Selector layoutClass
         , properties : List LayoutProperty
+        }
+    | PositionModel
+        { selector : Selector positionClass
+        , properties : List PositionProperty
         }
 
 
@@ -44,16 +48,13 @@ type Property variation
     | ColorProp String Color
     | MediaQuery String (List (Property variation))
     | SubElement String (List (Property variation))
-    | PositionProp Anchor Float Float
-    | RelProp PositionParent
-    | FloatProp Floating
     | Variation variation (List (Property variation))
 
 
-
---type PositionProperty variation
---    =
---    |
+type PositionProperty
+    = PositionProp Anchor Float Float
+    | RelProp PositionParent
+    | FloatProp Floating
 
 
 {-| -}
@@ -154,15 +155,6 @@ propertyName prop =
         VisibilityProp _ ->
             "vis"
 
-        FloatProp _ ->
-            "float"
-
-        RelProp _ ->
-            "rel"
-
-        PositionProp _ _ _ ->
-            "pos"
-
         ColorProp name _ ->
             name
 
@@ -174,6 +166,19 @@ propertyName prop =
 
         Variation name _ ->
             toString name
+
+
+positionPropertyName : PositionProperty -> String
+positionPropertyName prop =
+    case prop of
+        FloatProp _ ->
+            "float"
+
+        RelProp _ ->
+            "rel"
+
+        PositionProp _ _ _ ->
+            "pos"
 
 
 type alias Transition =
