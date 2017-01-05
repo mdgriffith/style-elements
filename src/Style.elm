@@ -410,7 +410,7 @@ selector sel props =
 
 {-| Embed a style sheet into your html.
 -}
-embed : StyleSheet class layoutClass msg -> Html msg
+embed : StyleSheet class layoutClass positionClass variation msg -> Html msg
 embed stylesheet =
     Html.node "style" [] [ Html.text stylesheet.css ]
 
@@ -418,13 +418,11 @@ embed stylesheet =
 {-| The stylesheet contains the rendered css as a string, and two functions to lookup
 
 -}
-type alias StyleSheet class layoutClass msg =
-    { class : class -> Html.Attribute msg
-    , classList :
-        List ( class, Bool ) -> Html.Attribute msg
-    , layout :
-        layoutClass -> Html.Attribute msg
-        --, position : positionClass -> Html.Attribute msg
+type alias StyleSheet class layoutClass positionClass variation msg =
+    { style : class -> Html.Attribute msg
+    , styleVariation : class -> List ( variation, Bool ) -> Html.Attribute msg
+    , layout : layoutClass -> Html.Attribute msg
+    , position : positionClass -> Html.Attribute msg
     , css : String
     }
 
@@ -432,7 +430,7 @@ type alias StyleSheet class layoutClass msg =
 {-| Render styles into a stylesheet
 
 -}
-render : List (Model class layoutClass positionClass variation) -> StyleSheet class layoutClass msg
+render : List (Model class layoutClass positionClass variation) -> StyleSheet class layoutClass positionClass variation msg
 render styles =
     renderWith [] styles
 
@@ -564,7 +562,7 @@ flatten props =
 
 {-| Render a stylesheet with options
 -}
-renderWith : List (Option variation) -> List (Model class layoutClass positionClass variation) -> StyleSheet class layoutClass msg
+renderWith : List (Option variation) -> List (Model class layoutClass positionClass variation) -> StyleSheet class layoutClass positionClass variation msg
 renderWith opts styles =
     let
         forBase opt =
@@ -684,7 +682,23 @@ renderWith opts styles =
                             Just style ->
                                 Html.Attributes.class (Style.Render.getName style)
                     )
-                , class =
+                , position =
+                    (\positionCls ->
+                        case Style.Render.findPosition positionCls styles of
+                            Nothing ->
+                                if debug then
+                                    let
+                                        _ =
+                                            Debug.log "style" ("The position model, " ++ toString positionCls ++ ", is not in your stylesheet.")
+                                    in
+                                        Html.Attributes.class (Style.Render.formatName positionCls)
+                                else
+                                    Html.Attributes.class (Style.Render.formatName positionCls)
+
+                            Just style ->
+                                Html.Attributes.class (Style.Render.getName style)
+                    )
+                , style =
                     (\cls ->
                         case Style.Render.findStyle cls styles of
                             Nothing ->
@@ -700,33 +714,44 @@ renderWith opts styles =
                             Just style ->
                                 Html.Attributes.class (Style.Render.getName style)
                     )
-                , classList =
-                    (\classes ->
+                , styleVariation =
+                    (\baseClass variations ->
                         let
-                            found =
-                                List.map
-                                    (\( cls, include ) ->
-                                        ( cls, include, Style.Render.findStyle cls styles )
-                                    )
-                                    classes
+                            foundBase =
+                                Style.Render.findStyle baseClass styles
                         in
-                            found
-                                |> List.filterMap
-                                    (\( name, include, foundStyle ) ->
+                            foundBase
+                                |> (\foundStyle ->
                                         case foundStyle of
                                             Nothing ->
                                                 let
                                                     _ =
-                                                        Debug.log "style" (toString name ++ " is not in your stylesheet.")
+                                                        Debug.log "style" (toString baseClass ++ " is not in your stylesheet.")
                                                 in
-                                                    Nothing
+                                                    []
 
                                             Just style ->
-                                                if include then
-                                                    Just (Style.Render.getName style)
-                                                else
-                                                    Nothing
-                                    )
+                                                let
+                                                    confirmed =
+                                                        Style.Render.verifyVariations style (List.map Tuple.first variations)
+
+                                                    variationNames =
+                                                        variations
+                                                            |> List.filter Tuple.second
+                                                            |> List.map (Tuple.first >> Style.Render.variationName)
+
+                                                    _ =
+                                                        confirmed
+                                                            |> List.filter (not << Tuple.second)
+                                                            |> List.map
+                                                                ((\notFoundVariation ->
+                                                                    Debug.log "style" ("The " ++ toString notFoundVariation ++ " variation can't be found for the " ++ toString baseClass ++ " style!")
+                                                                 )
+                                                                    << Tuple.first
+                                                                )
+                                                in
+                                                    Style.Render.getName style :: variationNames
+                                   )
                                 |> String.join " "
                                 |> Html.Attributes.class
                     )

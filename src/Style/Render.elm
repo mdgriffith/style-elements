@@ -1,4 +1,4 @@
-module Style.Render exposing (render, findStyle, findLayout, getName, formatName, inlineError, floatError, missingError)
+module Style.Render exposing (render, findStyle, findLayout, findPosition, getName, formatName, variationName, verifyVariations, inlineError, floatError, missingError)
 
 {-|
 -}
@@ -50,6 +50,30 @@ type alias Tag =
 --        style
 
 
+verifyVariations : Model class layoutClass positionClass variation -> List variation -> List ( variation, Bool )
+verifyVariations model variations =
+    let
+        verify var =
+            case model of
+                StyleModel { properties } ->
+                    ( var
+                    , List.any (matchVariation var) properties
+                    )
+
+                _ ->
+                    ( var, False )
+
+        matchVariation var prop =
+            case prop of
+                Variation found _ ->
+                    found == var
+
+                _ ->
+                    False
+    in
+        List.map verify variations
+
+
 findStyle : class -> List (Model class layoutClass positionClass variation) -> Maybe (Model class layoutClass positionClass variation)
 findStyle cls models =
     List.head <|
@@ -80,6 +104,29 @@ findLayout cls models =
             (\model ->
                 case model of
                     LayoutModel state ->
+                        case state.selector of
+                            Class found ->
+                                if cls == found then
+                                    Just model
+                                else
+                                    Nothing
+
+                            _ ->
+                                Nothing
+
+                    _ ->
+                        Nothing
+            )
+            models
+
+
+findPosition : positionClass -> List (Model class layoutClass positionClass variation) -> Maybe (Model class layoutClass positionClass variation)
+findPosition cls models =
+    List.head <|
+        List.filterMap
+            (\model ->
+                case model of
+                    PositionModel state ->
                         case state.selector of
                             Class found ->
                                 if cls == found then
@@ -303,7 +350,7 @@ renderProperty prop =
                 ( _, style, _ ) =
                     renderIntermediates "variation" intermediates
             in
-                StyleVariation (formatName class ++ "-variation") style
+                StyleVariation (variationName class) style
 
 
 renderIntermediates : String -> List StyleIntermediate -> ( List Tag, Style, List String )
@@ -887,6 +934,12 @@ formatName class =
 getName : Model class layoutClass positionClass variation -> String
 getName model =
     Tuple.first <| render model
+
+
+{-| -}
+variationName : a -> String
+variationName class =
+    formatName class ++ "-variation"
 
 
 {-| -}
