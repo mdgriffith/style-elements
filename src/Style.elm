@@ -323,15 +323,15 @@ import Style.Media
 The `class` type variable is the type you use to write your css classes.
 
 -}
-type alias Model class layoutClass =
-    Style.Model.Model class layoutClass
+type alias Model class layoutClass variation =
+    Style.Model.Model class layoutClass variation
 
 
 {-| This type represents any style property.  The Model has a list of these.
 
 -}
-type alias Property =
-    Style.Model.Property
+type alias Property variation =
+    Style.Model.Property variation
 
 
 {-|
@@ -345,7 +345,7 @@ Sets the following defaults:
     left: 0
 
 -}
-foundation : List Property
+foundation : List (Property variation)
 foundation =
     [ Style.Model.Property "box-sizing" "border-box"
     , Style.Model.PositionProp ( Style.Model.AnchorTop, Style.Model.AnchorLeft ) 0 0
@@ -372,7 +372,7 @@ layoutFoundation =
 
 {-| Set the class for a given style.  You should use a union type!
 -}
-class : class -> List Property -> Model class layoutClass
+class : class -> List (Property variation) -> Model class layoutClass variation
 class cls props =
     StyleModel
         { selector = Style.Model.Class cls
@@ -382,7 +382,7 @@ class cls props =
 
 {-| Set the class for a given style.  You should use a union type!
 -}
-layout : layoutClass -> List LayoutProperty -> Model class layoutClass
+layout : layoutClass -> List LayoutProperty -> Model class layoutClass variation
 layout cls props =
     LayoutModel
         { selector = Style.Model.Class cls
@@ -395,7 +395,7 @@ layout cls props =
 It's highly recommended not to do this unless absolutely necessary.
 
 -}
-selector : String -> List Property -> Model class layoutClass
+selector : String -> List (Property variation) -> Model class layoutClass variation
 selector sel props =
     StyleModel
         { selector = Style.Model.Exactly sel
@@ -427,18 +427,18 @@ type alias StyleSheet class layoutClass msg =
 {-| Render styles into a stylesheet
 
 -}
-render : List (Model class layoutClass) -> StyleSheet class layoutClass msg
+render : List (Model class layoutClass variation) -> StyleSheet class layoutClass msg
 render styles =
     renderWith [] styles
 
 
 {-| A style rendering option to be used with `renderWith`
 -}
-type Option
+type Option variation
     = AutoImportGoogleFonts
     | Import String
     | ImportUrl String
-    | BaseStyle (List Property)
+    | BaseStyle (List (Property variation))
     | DebugStyles
 
 
@@ -460,28 +460,28 @@ If a font is not in the following list, then it will try to import it from googl
 
 
 -}
-autoImportGoogleFonts : Option
+autoImportGoogleFonts : Option variation
 autoImportGoogleFonts =
     AutoImportGoogleFonts
 
 
 {-|
 -}
-importCSS : String -> Option
+importCSS : String -> Option variation
 importCSS =
     Import
 
 
 {-|
 -}
-importUrl : String -> Option
+importUrl : String -> Option variation
 importUrl =
     ImportUrl
 
 
 {-| Set a base style.  All classes in this stylesheet will start with these properties.
 -}
-base : List Property -> Option
+base : List (Property variation) -> Option variation
 base =
     BaseStyle
 
@@ -491,7 +491,7 @@ base =
 Also shows a visual warning if a style uses float or inline in a table layout orflow/flex layout.
 
 -}
-debug : Option
+debug : Option variation
 debug =
     DebugStyles
 
@@ -512,7 +512,7 @@ isWebfont str =
         ]
 
 
-getFontNames : Model class layoutClass -> List String
+getFontNames : Model class layoutClass variation -> List String
 getFontNames state =
     let
         styleProperties stylemodel =
@@ -543,7 +543,7 @@ getFontNames state =
             |> List.concat
 
 
-flatten : List Property -> List Property
+flatten : List (Property variation) -> List (Property variation)
 flatten props =
     List.concatMap
         (\prop ->
@@ -559,7 +559,7 @@ flatten props =
 
 {-| Render a stylesheet with options
 -}
-renderWith : List Option -> List (Model class layoutClass) -> StyleSheet class layoutClass msg
+renderWith : List (Option variation) -> List (Model class layoutClass variation) -> StyleSheet class layoutClass msg
 renderWith opts styles =
     let
         forBase opt =
@@ -866,7 +866,7 @@ noRepeat =
 Will ignore any left spacing that it's parent has set for it.
 
 -}
-floatLeft : Property
+floatLeft : Property variation
 floatLeft =
     FloatProp Style.Model.FloatLeft
 
@@ -874,7 +874,7 @@ floatLeft =
 {-|
 
 -}
-floatRight : Property
+floatRight : Property variation
 floatRight =
     FloatProp Style.Model.FloatRight
 
@@ -884,7 +884,7 @@ floatRight =
 This is useful for floating things at the beginning of text.
 
 -}
-floatTopLeft : Property
+floatTopLeft : Property variation
 floatTopLeft =
     FloatProp Style.Model.FloatTopLeft
 
@@ -892,7 +892,7 @@ floatTopLeft =
 {-|
 
 -}
-floatTopRight : Property
+floatTopRight : Property variation
 floatTopRight =
     FloatProp Style.Model.FloatTopRight
 
@@ -916,7 +916,7 @@ auto =
 
 
 {-| -}
-visibility : Visibility -> Property
+visibility : Visibility -> Property variation
 visibility vis =
     Style.Model.VisibilityProp vis
 
@@ -940,13 +940,13 @@ currentPosition =
 
 
 {-| -}
-positionBy : PositionParent -> Property
+positionBy : PositionParent -> Property variation
 positionBy =
     Style.Model.RelProp
 
 
 {-| -}
-topLeft : Float -> Float -> Property
+topLeft : Float -> Float -> Property variation
 topLeft y x =
     let
         anchor =
@@ -956,7 +956,7 @@ topLeft y x =
 
 
 {-| -}
-topRight : Float -> Float -> Property
+topRight : Float -> Float -> Property variation
 topRight y x =
     let
         anchor =
@@ -966,7 +966,7 @@ topRight y x =
 
 
 {-| -}
-bottomLeft : Float -> Float -> Property
+bottomLeft : Float -> Float -> Property variation
 bottomLeft y x =
     let
         anchor =
@@ -976,7 +976,7 @@ bottomLeft y x =
 
 
 {-| -}
-bottomRight : Float -> Float -> Property
+bottomRight : Float -> Float -> Property variation
 bottomRight y x =
     let
         anchor =
@@ -986,61 +986,61 @@ bottomRight y x =
 
 
 {-| -}
-cursor : String -> Property
+cursor : String -> Property variation
 cursor value =
     Property "cursor" value
 
 
 {-| -}
-zIndex : Int -> Property
+zIndex : Int -> Property variation
 zIndex i =
     Property "z-index" (toString i)
 
 
 {-| -}
-width : Length -> Property
+width : Length -> Property variation
 width value =
     Len "width" value
 
 
 {-| -}
-minWidth : Length -> Property
+minWidth : Length -> Property variation
 minWidth value =
     Len "min-width" value
 
 
 {-| -}
-maxWidth : Length -> Property
+maxWidth : Length -> Property variation
 maxWidth value =
     Len "max-width" value
 
 
 {-| -}
-height : Length -> Property
+height : Length -> Property variation
 height value =
     Len "height" value
 
 
 {-| -}
-minHeight : Length -> Property
+minHeight : Length -> Property variation
 minHeight value =
     Len "min-height" value
 
 
 {-| -}
-maxHeight : Length -> Property
+maxHeight : Length -> Property variation
 maxHeight value =
     Len "max-height" value
 
 
 {-| -}
-textColor : Color -> Property
+textColor : Color -> Property variation
 textColor color =
     ColorProp "color" color
 
 
 {-| -}
-backgroundColor : Color -> Property
+backgroundColor : Color -> Property variation
 backgroundColor color =
     ColorProp "background-color" color
 
@@ -1054,7 +1054,7 @@ type alias Border =
 
 
 {-| -}
-border : Border -> Property
+border : Border -> Property variation
 border { width, color, style } =
     Mix
         [ borderColor color
@@ -1064,19 +1064,19 @@ border { width, color, style } =
 
 
 {-| -}
-borderColor : Color -> Property
+borderColor : Color -> Property variation
 borderColor color =
     ColorProp "border-color" color
 
 
 {-| -}
-borderWidth : ( Float, Float, Float, Float ) -> Property
+borderWidth : ( Float, Float, Float, Float ) -> Property variation
 borderWidth value =
     Box "border-width" value
 
 
 {-| -}
-borderRadius : ( Float, Float, Float, Float ) -> Property
+borderRadius : ( Float, Float, Float, Float ) -> Property variation
 borderRadius value =
     Box "border-radius" value
 
@@ -1088,40 +1088,40 @@ spacing s =
 
 
 {-| -}
-padding : ( Float, Float, Float, Float ) -> Property
+padding : ( Float, Float, Float, Float ) -> Property variation
 padding value =
     Box "padding" value
 
 
 {-| Set font-family
 -}
-font : String -> Property
+font : String -> Property variation
 font family =
     Property "font-family" family
 
 
 {-| Set font-size.  Only px allowed.
 -}
-fontsize : Float -> Property
+fontsize : Float -> Property variation
 fontsize size =
     Property "font-size" (toString size ++ "px")
 
 
 {-| Given as unitless lineheight.
 -}
-lineHeight : Float -> Property
+lineHeight : Float -> Property variation
 lineHeight size =
     Property "line-height" (toString size)
 
 
 {-| -}
-letterOffset : Float -> Property
+letterOffset : Float -> Property variation
 letterOffset offset =
     Property "letter-offset" (toString offset ++ "px")
 
 
 {-| -}
-textAlign : Centerable Horizontal -> Property
+textAlign : Centerable Horizontal -> Property variation
 textAlign alignment =
     case alignment of
         Other Left ->
@@ -1143,7 +1143,7 @@ textAlign alignment =
 
 
 {-| -}
-whitespace : Whitespace -> Property
+whitespace : Whitespace -> Property variation
 whitespace ws =
     case ws of
         Normal ->
@@ -1163,37 +1163,37 @@ whitespace ws =
 
 
 {-| -}
-underline : Property
+underline : Property variation
 underline =
     Property "text-decoration" "underline"
 
 
 {-| -}
-strike : Property
+strike : Property variation
 strike =
     Property "text-decoration" "line-through"
 
 
 {-| -}
-italicize : Property
+italicize : Property variation
 italicize =
     Property "font-style" "italic"
 
 
 {-| -}
-bold : Property
+bold : Property variation
 bold =
     Property "font-weight" "700"
 
 
 {-| -}
-light : Property
+light : Property variation
 light =
     Property "font-weight" "300"
 
 
 {-| -}
-borderStyle : BorderStyle -> Property
+borderStyle : BorderStyle -> Property variation
 borderStyle bStyle =
     let
         val =
@@ -1211,38 +1211,38 @@ borderStyle bStyle =
 
 
 {-| -}
-backgroundImage : BackgroundImage -> Property
+backgroundImage : BackgroundImage -> Property variation
 backgroundImage value =
     BackgroundImageProp value
 
 
 {-| -}
-shadows : List Shadow -> Property
+shadows : List Shadow -> Property variation
 shadows value =
     Shadows value
 
 
 {-| -}
-transforms : List Transform -> Property
+transforms : List Transform -> Property variation
 transforms value =
     Transforms value
 
 
 {-| -}
-filters : List Filter -> Property
+filters : List Filter -> Property variation
 filters value =
     Filters value
 
 
 {-| -}
-mix : List Property -> Property
+mix : List (Property variation) -> Property variation
 mix =
     Mix
 
 
 {-| Add a custom property.
 -}
-property : String -> String -> Property
+property : String -> String -> Property variation
 property name value =
     Property name value
 
@@ -1714,23 +1714,23 @@ sepia x =
 
 
 {-| -}
-transition : Transition -> Property
+transition : Transition -> Property variation
 transition value =
     Style.Model.TransitionProperty value
 
 
 {-| -}
-type alias Animation =
+type alias Animation prop =
     { duration : Time
     , easing : String
     , repeat : Float
-    , steps : List ( Float, List Property )
+    , steps : List ( Float, List prop )
     }
 
 
 {-| Create an animation
 -}
-animate : Animation -> Property
+animate : Animation (Property variation) -> Property variation
 animate { duration, easing, repeat, steps } =
     Style.Model.AnimationProp <|
         Style.Model.Animation
@@ -1742,38 +1742,38 @@ animate { duration, easing, repeat, steps } =
 
 
 {-| -}
-hover : List Property -> Property
+hover : List (Property variation) -> Property variation
 hover props =
     Style.Model.SubElement ":hover" props
 
 
 {-| -}
-focus : List Property -> Property
+focus : List (Property variation) -> Property variation
 focus props =
     Style.Model.SubElement ":focus" props
 
 
 {-| -}
-checked : List Property -> Property
+checked : List (Property variation) -> Property variation
 checked props =
     Style.Model.SubElement ":checked" props
 
 
 {-| -}
-selection : List Property -> Property
+selection : List (Property variation) -> Property variation
 selection props =
     Style.Model.SubElement ":selection" props
 
 
 {-| Requires a string which will be rendered as the 'content' property
 -}
-after : String -> List Property -> Property
+after : String -> List (Property variation) -> Property variation
 after content props =
     Style.Model.SubElement "::after" (property "content" content :: props)
 
 
 {-| Requires a string which will be rendered as the 'content' property
 -}
-before : String -> List Property -> Property
+before : String -> List (Property variation) -> Property variation
 before content props =
     Style.Model.SubElement "::before" (property "content" content :: props)

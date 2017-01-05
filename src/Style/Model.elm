@@ -6,16 +6,14 @@ import Color exposing (Color)
 import Time exposing (Time)
 
 
-type Model class layoutClass
+type Model class layoutClass variation
     = StyleModel
         { selector : Selector class
-        , properties :
-            List Property
+        , properties : List (Property variation)
         }
     | LayoutModel
         { selector : Selector layoutClass
-        , properties :
-            List LayoutProperty
+        , properties : List LayoutProperty
         }
 
 
@@ -25,9 +23,15 @@ type Selector class
     | AutoClass
 
 
-type Property
+
+--variation : class -> List (Property class) -> Property class
+--layoutVariation : class -> List (LayoutProperty class) -> LayoutProperty class
+--positionVariation : class -> List (Property class) -> Property class
+
+
+type Property variation
     = Property String String
-    | Mix (List Property)
+    | Mix (List (Property variation))
     | Box String ( Float, Float, Float, Float )
     | Len String Length
     | Filters (List Filter)
@@ -35,14 +39,73 @@ type Property
     | TransitionProperty Transition
     | Shadows (List Shadow)
     | BackgroundImageProp BackgroundImage
-    | AnimationProp Animation
+    | AnimationProp (Animation (Property variation))
     | VisibilityProp Visibility
     | ColorProp String Color
-    | MediaQuery String (List Property)
-    | SubElement String (List Property)
+    | MediaQuery String (List (Property variation))
+    | SubElement String (List (Property variation))
     | PositionProp Anchor Float Float
     | RelProp PositionParent
     | FloatProp Floating
+    | Variation variation (List (Property variation))
+
+
+
+--type PositionProperty variation
+--    =
+--    |
+
+
+{-| -}
+type LayoutProperty
+    = Spacing ( Float, Float, Float, Float )
+    | LayoutProp Layout
+
+
+
+--| LayoutVariation variation
+
+
+{-| -}
+type Layout
+    = FlexLayout Flexible
+    | TextLayout
+    | TableLayout
+    | InlineLayout
+
+
+{-| -}
+type Flexible
+    = Flexible
+        { go : Direction
+        , wrap : Bool
+        , horizontal : Centerable Horizontal
+        , vertical : Centerable Vertical
+        }
+
+
+{-| -}
+type Direction
+    = Up
+    | GoRight
+    | Down
+    | GoLeft
+
+
+type Centerable thing
+    = Center
+    | Stretch
+    | Other thing
+
+
+type Vertical
+    = Top
+    | Bottom
+
+
+type Horizontal
+    = Left
+    | Right
 
 
 layoutPropertyName : LayoutProperty -> String
@@ -55,7 +118,7 @@ layoutPropertyName layoutProp =
             "layout"
 
 
-propertyName : Property -> String
+propertyName : Property variation -> String
 propertyName prop =
     case prop of
         Property name _ ->
@@ -109,6 +172,9 @@ propertyName prop =
         SubElement name _ ->
             name
 
+        Variation name _ ->
+            toString name
+
 
 type alias Transition =
     { property : String
@@ -131,12 +197,12 @@ type alias Keyframes =
 
 
 {-| -}
-type Animation
+type Animation prop
     = Animation
         { duration : Time
         , easing : String
         , repeat : Float
-        , steps : List ( Float, List Property )
+        , steps : List ( Float, List prop )
         }
 
 
@@ -205,54 +271,6 @@ type Length
     = Px Float
     | Percent Float
     | Auto
-
-
-{-| -}
-type LayoutProperty
-    = Spacing ( Float, Float, Float, Float )
-    | LayoutProp Layout
-
-
-{-| -}
-type Layout
-    = FlexLayout Flexible
-    | TextLayout
-    | TableLayout
-    | InlineLayout
-
-
-{-| -}
-type Flexible
-    = Flexible
-        { go : Direction
-        , wrap : Bool
-        , horizontal : Centerable Horizontal
-        , vertical : Centerable Vertical
-        }
-
-
-{-| -}
-type Direction
-    = Up
-    | GoRight
-    | Down
-    | GoLeft
-
-
-type Centerable thing
-    = Center
-    | Stretch
-    | Other thing
-
-
-type Vertical
-    = Top
-    | Bottom
-
-
-type Horizontal
-    = Left
-    | Right
 
 
 {-| -}

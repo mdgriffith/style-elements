@@ -27,6 +27,7 @@ type StyleIntermediate
     | MediaIntermediate String (List ( String, String ))
     | SubElementIntermediate String (List ( String, String ))
     | Intermediates (List StyleIntermediate)
+    | StyleVariation String (List ( String, String ))
 
 
 type alias Style =
@@ -49,7 +50,7 @@ type alias Tag =
 --        style
 
 
-findStyle : class -> List (Model class layoutClass) -> Maybe (Model class layoutClass)
+findStyle : class -> List (Model class layoutClass variation) -> Maybe (Model class layoutClass variation)
 findStyle cls models =
     List.head <|
         List.filterMap
@@ -72,7 +73,7 @@ findStyle cls models =
             models
 
 
-findLayout : layoutClass -> List (Model class layoutClass) -> Maybe (Model class layoutClass)
+findLayout : layoutClass -> List (Model class layoutClass variation) -> Maybe (Model class layoutClass variation)
 findLayout cls models =
     List.head <|
         List.filterMap
@@ -95,7 +96,7 @@ findLayout cls models =
             models
 
 
-render : Model class layoutClass -> ( ClassName, RenderedStyle )
+render : Model class layoutClass variation -> ( ClassName, RenderedStyle )
 render model =
     let
         intermediates =
@@ -155,7 +156,7 @@ render model =
         )
 
 
-renderProperties : List Property -> List StyleIntermediate
+renderProperties : List (Property variation) -> List StyleIntermediate
 renderProperties props =
     props
         |> List.reverse
@@ -185,7 +186,7 @@ renderLayoutProperties layouts =
             )
 
 
-renderProperty : Property -> StyleIntermediate
+renderProperty : Property variation -> StyleIntermediate
 renderProperty prop =
     case prop of
         Property name value ->
@@ -259,6 +260,16 @@ renderProperty prop =
             in
                 SubElementIntermediate el style
 
+        Variation class props ->
+            let
+                intermediates =
+                    renderProperties props
+
+                ( _, style, _ ) =
+                    renderIntermediates "variation" intermediates
+            in
+                StyleVariation (formatName class ++ "-variation") style
+
 
 renderIntermediates : String -> List StyleIntermediate -> ( List Tag, Style, List String )
 renderIntermediates className intermediates =
@@ -307,6 +318,12 @@ renderIntermediates className intermediates =
                     , (cssClass 0 (className ++ selector) props) :: subStyles
                     )
 
+                StyleVariation name props ->
+                    ( tags
+                    , style
+                    , (cssClass 0 name props) :: subStyles
+                    )
+
                 Intermediates subIntermediates ->
                     let
                         ( childTags, childStyles, childSubstyles ) =
@@ -329,7 +346,7 @@ type alias RenderedStyle =
     String
 
 
-renderAnimation : Animation -> ( ( String, String ), String )
+renderAnimation : Animation (Property variation) -> ( ( String, String ), String )
 renderAnimation (Animation { duration, easing, steps, repeat }) =
     let
         ( renderedStyle, renderedFrames ) =
@@ -832,7 +849,7 @@ formatName class =
 
 
 {-| -}
-getName : Model class layoutClass -> String
+getName : Model class layoutClass variation -> String
 getName model =
     Tuple.first <| render model
 
