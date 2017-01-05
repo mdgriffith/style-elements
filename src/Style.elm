@@ -354,7 +354,7 @@ foundation =
     ]
 
 
-positionFoundation : List PositionProperty
+positionFoundation : List (PositionProperty variation)
 positionFoundation =
     [ Style.Model.PositionProp ( Style.Model.AnchorTop, Style.Model.AnchorLeft ) 0 0
     , Style.Model.RelProp currentPosition
@@ -372,7 +372,7 @@ Sets the following defaults:
     left: 0
 
 -}
-layoutFoundation : List LayoutProperty
+layoutFoundation : List (LayoutProperty variation)
 layoutFoundation =
     [ Style.Model.LayoutProp Style.Model.TextLayout
     ]
@@ -390,7 +390,7 @@ class cls props =
 
 {-| Set the class for a layout.  You should use a union type!
 -}
-layout : layoutClass -> List LayoutProperty -> Model class layoutClass positionClass variation
+layout : layoutClass -> List (LayoutProperty variation) -> Model class layoutClass positionClass variation
 layout cls props =
     LayoutModel
         { selector = Style.Model.Class cls
@@ -400,7 +400,7 @@ layout cls props =
 
 {-| Set the class for a layout.  You should use a union type!
 -}
-position : positionClass -> List PositionProperty -> Model class layoutClass positionClass variation
+position : positionClass -> List (PositionProperty variation) -> Model class layoutClass positionClass variation
 position cls props =
     PositionModel
         { selector = Style.Model.Class cls
@@ -415,9 +415,14 @@ variation cls props =
     Style.Model.Variation cls props
 
 
+layoutVariation : class -> List (LayoutProperty class) -> LayoutProperty class
+layoutVariation cls props =
+    Style.Model.LayoutVariation cls props
 
---layoutVariation : class -> List (LayoutProperty class) -> LayoutProperty class
---positionVariation : class -> List (Property class) -> Property class
+
+positionVariation : class -> List (PositionProperty class) -> PositionProperty class
+positionVariation cls props =
+    Style.Model.PositionVariation cls props
 
 
 {-| You can set a raw css selector instead of a class.
@@ -938,7 +943,7 @@ noRepeat =
 Will ignore any left spacing that it's parent has set for it.
 
 -}
-floatLeft : PositionProperty
+floatLeft : PositionProperty variation
 floatLeft =
     FloatProp Style.Model.FloatLeft
 
@@ -946,7 +951,7 @@ floatLeft =
 {-|
 
 -}
-floatRight : PositionProperty
+floatRight : PositionProperty variation
 floatRight =
     FloatProp Style.Model.FloatRight
 
@@ -956,7 +961,7 @@ floatRight =
 This is useful for floating things at the beginning of text.
 
 -}
-floatTopLeft : PositionProperty
+floatTopLeft : PositionProperty variation
 floatTopLeft =
     FloatProp Style.Model.FloatTopLeft
 
@@ -964,7 +969,7 @@ floatTopLeft =
 {-|
 
 -}
-floatTopRight : PositionProperty
+floatTopRight : PositionProperty variation
 floatTopRight =
     FloatProp Style.Model.FloatTopRight
 
@@ -1012,13 +1017,13 @@ currentPosition =
 
 
 {-| -}
-positionBy : PositionParent -> PositionProperty
+positionBy : PositionParent -> PositionProperty variation
 positionBy =
     Style.Model.RelProp
 
 
 {-| -}
-topLeft : Float -> Float -> PositionProperty
+topLeft : Float -> Float -> PositionProperty variation
 topLeft y x =
     let
         anchor =
@@ -1028,7 +1033,7 @@ topLeft y x =
 
 
 {-| -}
-topRight : Float -> Float -> PositionProperty
+topRight : Float -> Float -> PositionProperty variation
 topRight y x =
     let
         anchor =
@@ -1038,7 +1043,7 @@ topRight y x =
 
 
 {-| -}
-bottomLeft : Float -> Float -> PositionProperty
+bottomLeft : Float -> Float -> PositionProperty variation
 bottomLeft y x =
     let
         anchor =
@@ -1048,7 +1053,7 @@ bottomLeft y x =
 
 
 {-| -}
-bottomRight : Float -> Float -> PositionProperty
+bottomRight : Float -> Float -> PositionProperty variation
 bottomRight y x =
     let
         anchor =
@@ -1154,7 +1159,7 @@ borderRadius value =
 
 
 {-| -}
-spacing : ( Float, Float, Float, Float ) -> LayoutProperty
+spacing : ( Float, Float, Float, Float ) -> LayoutProperty variation
 spacing s =
     Spacing s
 
@@ -1324,7 +1329,7 @@ property name value =
 This element will no longer be affected by 'spacing'
 
 -}
-inline : LayoutProperty
+inline : LayoutProperty variation
 inline =
     LayoutProp Style.Model.InlineLayout
 
@@ -1338,7 +1343,7 @@ If you use Style.debug instead of Style.render, the element will be highlighted 
 Besides this, all immediate children are arranged as if they were `display: block`.
 
 -}
-textLayout : LayoutProperty
+textLayout : LayoutProperty variation
 textLayout =
     LayoutProp Style.Model.TextLayout
 
@@ -1346,7 +1351,7 @@ textLayout =
 {-| This is the same as setting an element to `display:table`.
 
 -}
-tableLayout : LayoutProperty
+tableLayout : LayoutProperty variation
 tableLayout =
     LayoutProp Style.Model.TableLayout
 
@@ -1363,7 +1368,7 @@ type alias Flow =
 
 {-| This is a flexbox foundationd layout
 -}
-flowUp : Flow -> LayoutProperty
+flowUp : Flow -> LayoutProperty variation
 flowUp { wrap, horizontal, vertical } =
     let
         layout =
@@ -1381,7 +1386,7 @@ flowUp { wrap, horizontal, vertical } =
 {-|
 
 -}
-flowDown : Flow -> LayoutProperty
+flowDown : Flow -> LayoutProperty variation
 flowDown { wrap, horizontal, vertical } =
     let
         layout =
@@ -1397,7 +1402,7 @@ flowDown { wrap, horizontal, vertical } =
 
 
 {-| -}
-flowRight : Flow -> LayoutProperty
+flowRight : Flow -> LayoutProperty variation
 flowRight { wrap, horizontal, vertical } =
     let
         layout =
@@ -1413,7 +1418,7 @@ flowRight { wrap, horizontal, vertical } =
 
 
 {-| -}
-flowLeft : Flow -> LayoutProperty
+flowLeft : Flow -> LayoutProperty variation
 flowLeft { wrap, horizontal, vertical } =
     let
         layout =

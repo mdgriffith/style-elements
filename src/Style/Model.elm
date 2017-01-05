@@ -13,11 +13,11 @@ type Model class layoutClass positionClass variation
         }
     | LayoutModel
         { selector : Selector layoutClass
-        , properties : List LayoutProperty
+        , properties : List (LayoutProperty variation)
         }
     | PositionModel
         { selector : Selector positionClass
-        , properties : List PositionProperty
+        , properties : List (PositionProperty variation)
         }
 
 
@@ -45,16 +45,18 @@ type Property variation
     | Variation variation (List (Property variation))
 
 
-type PositionProperty
+type PositionProperty variation
     = PositionProp Anchor Float Float
     | RelProp PositionParent
     | FloatProp Floating
+    | PositionVariation variation (List (PositionProperty variation))
 
 
 {-| -}
-type LayoutProperty
+type LayoutProperty variation
     = Spacing ( Float, Float, Float, Float )
     | LayoutProp Layout
+    | LayoutVariation variation (List (LayoutProperty variation))
 
 
 
@@ -103,7 +105,7 @@ type Horizontal
     | Right
 
 
-layoutPropertyName : LayoutProperty -> String
+layoutPropertyName : LayoutProperty variation -> String
 layoutPropertyName layoutProp =
     case layoutProp of
         Spacing _ ->
@@ -111,6 +113,9 @@ layoutPropertyName layoutProp =
 
         LayoutProp _ ->
             "layout"
+
+        LayoutVariation cls _ ->
+            toString cls
 
 
 propertyName : Property variation -> String
@@ -162,7 +167,7 @@ propertyName prop =
             toString name
 
 
-positionPropertyName : PositionProperty -> String
+positionPropertyName : PositionProperty variation -> String
 positionPropertyName prop =
     case prop of
         FloatProp _ ->
@@ -173,6 +178,9 @@ positionPropertyName prop =
 
         PositionProp _ _ _ ->
             "pos"
+
+        PositionVariation class _ ->
+            toString class
 
 
 type alias Transition =

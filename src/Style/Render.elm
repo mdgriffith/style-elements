@@ -234,7 +234,7 @@ renderProperties props =
         |> List.map renderProperty
 
 
-renderPositionProperties : List PositionProperty -> List StyleIntermediate
+renderPositionProperties : List (PositionProperty variation) -> List StyleIntermediate
 renderPositionProperties props =
     props
         |> List.reverse
@@ -243,7 +243,7 @@ renderPositionProperties props =
         |> List.map renderPositionProperty
 
 
-renderLayoutProperties : List LayoutProperty -> List StyleIntermediate
+renderLayoutProperties : List (LayoutProperty variation) -> List StyleIntermediate
 renderLayoutProperties layouts =
     layouts
         |> List.reverse
@@ -261,10 +261,20 @@ renderLayoutProperties layouts =
 
                     Spacing box ->
                         AlmostStyle " > .pos" [ ( "margin", render4tuplePx box ) ]
+
+                    LayoutVariation class props ->
+                        let
+                            intermediates =
+                                renderLayoutProperties props
+
+                            ( _, style, _ ) =
+                                renderIntermediates "variation" intermediates
+                        in
+                            StyleVariation (variationName class) style
             )
 
 
-renderPositionProperty : PositionProperty -> StyleIntermediate
+renderPositionProperty : PositionProperty variation -> StyleIntermediate
 renderPositionProperty prop =
     case prop of
         FloatProp floating ->
@@ -275,6 +285,16 @@ renderPositionProperty prop =
 
         PositionProp anchor x y ->
             Multiple <| renderPosition anchor ( x, y )
+
+        PositionVariation class props ->
+            let
+                intermediates =
+                    renderPositionProperties props
+
+                ( _, style, _ ) =
+                    renderIntermediates "variation" intermediates
+            in
+                StyleVariation (variationName class) style
 
 
 renderProperty : Property variation -> StyleIntermediate
