@@ -27,12 +27,6 @@ type Selector class
     | AutoClass
 
 
-
---variation : class -> List (Property class) -> Property class
---layoutVariation : class -> List (LayoutProperty class) -> LayoutProperty class
---positionVariation : class -> List (Property class) -> Property class
-
-
 type Property variation
     = Property String String
     | Mix (List (Property variation))

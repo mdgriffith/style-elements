@@ -26,6 +26,9 @@ module Style
         , render
         , renderWith
         , class
+        , layout
+        , position
+        , variation
         , selector
         , flowUp
         , flowDown
@@ -173,7 +176,7 @@ We use `render` to create a style sheet and `embed` to embed it in our view.
 
 # Creating Styles
 
-@docs class, selector
+@docs class, layout, position, variation, selector
 
 
 # Positioning
@@ -385,7 +388,7 @@ class cls props =
         }
 
 
-{-| Set the class for a given style.  You should use a union type!
+{-| Set the class for a layout.  You should use a union type!
 -}
 layout : layoutClass -> List LayoutProperty -> Model class layoutClass positionClass variation
 layout cls props =
@@ -393,6 +396,28 @@ layout cls props =
         { selector = Style.Model.Class cls
         , properties = props
         }
+
+
+{-| Set the class for a layout.  You should use a union type!
+-}
+position : positionClass -> List PositionProperty -> Model class layoutClass positionClass variation
+position cls props =
+    PositionModel
+        { selector = Style.Model.Class cls
+        , properties = props
+        }
+
+
+{-| Set the class for a variation.  You should use a union type!
+-}
+variation : class -> List (Property class) -> Property class
+variation cls props =
+    Style.Model.Variation cls props
+
+
+
+--layoutVariation : class -> List (LayoutProperty class) -> LayoutProperty class
+--positionVariation : class -> List (Property class) -> Property class
 
 
 {-| You can set a raw css selector instead of a class.
