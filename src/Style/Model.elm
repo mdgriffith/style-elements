@@ -6,10 +6,10 @@ import Color exposing (Color)
 import Time exposing (Time)
 
 
-type Model class layoutClass positionClass variation
+type Model class layoutClass positionClass variation animation
     = StyleModel
         { selector : Selector class
-        , properties : List (Property variation)
+        , properties : List (Property animation variation)
         }
     | LayoutModel
         { selector : Selector layoutClass
@@ -27,9 +27,9 @@ type Selector class
     | AutoClass
 
 
-type Property variation
+type Property animation variation
     = Property String String
-    | Mix (List (Property variation))
+    | Mix (List (Property animation variation))
     | Box String ( Float, Float, Float, Float )
     | Len String Length
     | Filters (List Filter)
@@ -37,18 +37,23 @@ type Property variation
     | TransitionProperty Transition
     | Shadows (List Shadow)
     | BackgroundImageProp BackgroundImage
-    | AnimationProp (Animation (Property variation))
     | VisibilityProp Visibility
     | ColorProp String Color
-    | MediaQuery String (List (Property variation))
-    | SubElement String (List (Property variation))
-    | Variation variation (List (Property variation))
+    | MediaQuery String (List (Property animation variation))
+    | SubElement String (List (Property animation variation))
+    | Variation variation (List (Property animation variation))
+    | AnimationProp (Animation (Property animation variation))
+
+
+
+--| DynamicAnimation animation (StyleAnimation.Messenger.State msg)
 
 
 type PositionProperty variation
     = PositionProp Anchor Float Float
     | RelProp PositionParent
     | FloatProp Floating
+    | Inline
     | PositionVariation variation (List (PositionProperty variation))
 
 
@@ -59,16 +64,11 @@ type LayoutProperty variation
     | LayoutVariation variation (List (LayoutProperty variation))
 
 
-
---| LayoutVariation variation
-
-
 {-| -}
 type Layout
     = FlexLayout Flexible
     | TextLayout
     | TableLayout
-    | InlineLayout
 
 
 {-| -}
@@ -118,7 +118,7 @@ layoutPropertyName layoutProp =
             toString cls
 
 
-propertyName : Property variation -> String
+propertyName : Property animation variation -> String
 propertyName prop =
     case prop of
         Property name _ ->
@@ -178,6 +178,9 @@ positionPropertyName prop =
 
         PositionProp _ _ _ ->
             "pos"
+
+        Inline ->
+            "inline"
 
         PositionVariation class _ ->
             toString class

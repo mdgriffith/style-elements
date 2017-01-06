@@ -50,7 +50,7 @@ type alias Tag =
 --        style
 
 
-verifyVariations : Model class layoutClass positionClass variation -> List variation -> List ( variation, Bool )
+verifyVariations : Model class layoutClass positionClass variation animation -> List variation -> List ( variation, Bool )
 verifyVariations model variations =
     let
         verify var =
@@ -74,7 +74,7 @@ verifyVariations model variations =
         List.map verify variations
 
 
-findStyle : class -> List (Model class layoutClass positionClass variation) -> Maybe (Model class layoutClass positionClass variation)
+findStyle : class -> List (Model class layoutClass positionClass variation animation) -> Maybe (Model class layoutClass positionClass variation animation)
 findStyle cls models =
     List.head <|
         List.filterMap
@@ -97,7 +97,7 @@ findStyle cls models =
             models
 
 
-findLayout : layoutClass -> List (Model class layoutClass positionClass variation) -> Maybe (Model class layoutClass positionClass variation)
+findLayout : layoutClass -> List (Model class layoutClass positionClass variation animation) -> Maybe (Model class layoutClass positionClass variation animation)
 findLayout cls models =
     List.head <|
         List.filterMap
@@ -120,7 +120,7 @@ findLayout cls models =
             models
 
 
-findPosition : positionClass -> List (Model class layoutClass positionClass variation) -> Maybe (Model class layoutClass positionClass variation)
+findPosition : positionClass -> List (Model class layoutClass positionClass variation animation) -> Maybe (Model class layoutClass positionClass variation animation)
 findPosition cls models =
     List.head <|
         List.filterMap
@@ -143,7 +143,7 @@ findPosition cls models =
             models
 
 
-render : Model class layoutClass positionClass variation -> ( ClassName, RenderedStyle )
+render : Model class layoutClass positionClass variation animation -> ( ClassName, RenderedStyle )
 render model =
     let
         intermediates =
@@ -225,7 +225,7 @@ render model =
         )
 
 
-renderProperties : List (Property variation) -> List StyleIntermediate
+renderProperties : List (Property animation variation) -> List StyleIntermediate
 renderProperties props =
     props
         |> List.reverse
@@ -286,6 +286,9 @@ renderPositionProperty prop =
         PositionProp anchor x y ->
             Multiple <| renderPosition anchor ( x, y )
 
+        Inline ->
+            Tagged "inline" [ "display" => "inline-block" ]
+
         PositionVariation class props ->
             let
                 intermediates =
@@ -297,7 +300,7 @@ renderPositionProperty prop =
                 StyleVariation (variationName class) style
 
 
-renderProperty : Property variation -> StyleIntermediate
+renderProperty : Property animation variation -> StyleIntermediate
 renderProperty prop =
     case prop of
         Property name value ->
@@ -448,7 +451,7 @@ type alias RenderedStyle =
     String
 
 
-renderAnimation : Animation (Property variation) -> ( ( String, String ), String )
+renderAnimation : Animation (Property animation variation) -> ( ( String, String ), String )
 renderAnimation (Animation { duration, easing, steps, repeat }) =
     let
         ( renderedStyle, renderedFrames ) =
@@ -781,11 +784,6 @@ renderLayout layout =
             , "pos"
             )
 
-        InlineLayout ->
-            ( [ "display" => "inline-block" ]
-            , "inline"
-            )
-
         TableLayout ->
             ( [ "display" => "table", "border-collapse" => "collapse" ]
             , "pos not-floatable not-inlineable"
@@ -951,7 +949,7 @@ formatName class =
 
 
 {-| -}
-getName : Model class layoutClass positionClass variation -> String
+getName : Model class layoutClass positionClass variation animation -> String
 getName model =
     Tuple.first <| render model
 
