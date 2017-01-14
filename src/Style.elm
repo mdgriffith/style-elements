@@ -326,15 +326,15 @@ import Style.Media
 The `class` type variable is the type you use to write your css classes.
 
 -}
-type alias Model class layoutClass positionClass variation animation =
-    Style.Model.Model class layoutClass positionClass variation animation
+type alias Model class layoutClass positionClass variation animation msg =
+    Style.Model.Model class layoutClass positionClass variation animation msg
 
 
 {-| This type represents any style property.  The Model has a list of these.
 
 -}
-type alias Property animation variation =
-    Style.Model.Property animation variation
+type alias Property animation variation msg =
+    Style.Model.Property animation variation msg
 
 
 {-|
@@ -348,7 +348,7 @@ Sets the following defaults:
     left: 0
 
 -}
-foundation : List (Property animation variation)
+foundation : List (Property animation variation msg)
 foundation =
     [ Style.Model.Property "box-sizing" "border-box"
     ]
@@ -380,7 +380,7 @@ layoutFoundation =
 
 {-| Set the class for a given style.  You should use a union type!
 -}
-class : class -> List (Property animation variation) -> Model class layoutClass positionClass variation animation
+class : class -> List (Property animation variation msg) -> Model class layoutClass positionClass variation animation msg
 class cls props =
     StyleModel
         { selector = Style.Model.Class cls
@@ -390,7 +390,7 @@ class cls props =
 
 {-| Set the class for a layout.  You should use a union type!
 -}
-layout : layoutClass -> List (LayoutProperty variation) -> Model class layoutClass positionClass variation animation
+layout : layoutClass -> List (LayoutProperty variation) -> Model class layoutClass positionClass variation animation msg
 layout cls props =
     LayoutModel
         { selector = Style.Model.Class cls
@@ -400,7 +400,7 @@ layout cls props =
 
 {-| Set the class for a layout.  You should use a union type!
 -}
-position : positionClass -> List (PositionProperty variation) -> Model class layoutClass positionClass variation animation
+position : positionClass -> List (PositionProperty variation) -> Model class layoutClass positionClass variation animation msg
 position cls props =
     PositionModel
         { selector = Style.Model.Class cls
@@ -410,7 +410,7 @@ position cls props =
 
 {-| Set the class for a variation.  You should use a union type!
 -}
-variation : class -> List (Property animation class) -> Property animation class
+variation : class -> List (Property animation class msg) -> Property animation class msg
 variation cls props =
     Style.Model.Variation cls props
 
@@ -430,7 +430,7 @@ positionVariation cls props =
 It's highly recommended not to do this unless absolutely necessary.
 
 -}
-selector : String -> List (Property animation variation) -> Model class layoutClass positionClass variation animation
+selector : String -> List (Property animation variation msg) -> Model class layoutClass positionClass variation animation msg
 selector sel props =
     StyleModel
         { selector = Style.Model.Exactly sel
@@ -460,18 +460,18 @@ type alias StyleSheet class layoutClass positionClass variation msg =
 {-| Render styles into a stylesheet
 
 -}
-render : List (Model class layoutClass positionClass variation animation) -> StyleSheet class layoutClass positionClass variation msg
+render : List (Model class layoutClass positionClass variation animation msg) -> StyleSheet class layoutClass positionClass variation msg
 render styles =
     renderWith [] styles
 
 
 {-| A style rendering option to be used with `renderWith`
 -}
-type Option animation variation
+type Option animation variation msg
     = AutoImportGoogleFonts
     | Import String
     | ImportUrl String
-    | BaseStyle (List (Property animation variation))
+    | BaseStyle (List (Property animation variation msg))
     | DebugStyles
 
 
@@ -493,28 +493,28 @@ If a font is not in the following list, then it will try to import it from googl
 
 
 -}
-autoImportGoogleFonts : Option animation variation
+autoImportGoogleFonts : Option animation variation msg
 autoImportGoogleFonts =
     AutoImportGoogleFonts
 
 
 {-|
 -}
-importCSS : String -> Option animation variation
+importCSS : String -> Option animation variation msg
 importCSS =
     Import
 
 
 {-|
 -}
-importUrl : String -> Option animation variation
+importUrl : String -> Option animation variation msg
 importUrl =
     ImportUrl
 
 
 {-| Set a base style.  All classes in this stylesheet will start with these properties.
 -}
-base : List (Property animation variation) -> Option animation variation
+base : List (Property animation variation msg) -> Option animation variation msg
 base =
     BaseStyle
 
@@ -524,7 +524,7 @@ base =
 Also shows a visual warning if a style uses float or inline in a table layout orflow/flex layout.
 
 -}
-debug : Option animation variation
+debug : Option animation variation msg
 debug =
     DebugStyles
 
@@ -545,7 +545,7 @@ isWebfont str =
         ]
 
 
-getFontNames : Model class layoutClass positionClass variation animation -> List String
+getFontNames : Model class layoutClass positionClass variation animation msg -> List String
 getFontNames state =
     let
         styleProperties stylemodel =
@@ -576,7 +576,7 @@ getFontNames state =
             |> List.concat
 
 
-flatten : List (Property animation variation) -> List (Property animation variation)
+flatten : List (Property animation variation msg) -> List (Property animation variation msg)
 flatten props =
     List.concatMap
         (\prop ->
@@ -592,7 +592,7 @@ flatten props =
 
 {-| Render a stylesheet with options
 -}
-renderWith : List (Option animation variation) -> List (Model class layoutClass positionClass variation animation) -> StyleSheet class layoutClass positionClass variation msg
+renderWith : List (Option animation variation msg) -> List (Model class layoutClass positionClass variation animation msg) -> StyleSheet class layoutClass positionClass variation msg
 renderWith opts styles =
     let
         forBase opt =
@@ -993,7 +993,7 @@ auto =
 
 
 {-| -}
-visibility : Visibility -> Property animation variation
+visibility : Visibility -> Property animation variation msg
 visibility vis =
     Style.Model.VisibilityProp vis
 
@@ -1063,61 +1063,61 @@ bottomRight y x =
 
 
 {-| -}
-cursor : String -> Property animation variation
+cursor : String -> Property animation variation msg
 cursor value =
     Property "cursor" value
 
 
 {-| -}
-zIndex : Int -> Property animation variation
+zIndex : Int -> Property animation variation msg
 zIndex i =
     Property "z-index" (toString i)
 
 
 {-| -}
-width : Length -> Property animation variation
+width : Length -> Property animation variation msg
 width value =
     Len "width" value
 
 
 {-| -}
-minWidth : Length -> Property animation variation
+minWidth : Length -> Property animation variation msg
 minWidth value =
     Len "min-width" value
 
 
 {-| -}
-maxWidth : Length -> Property animation variation
+maxWidth : Length -> Property animation variation msg
 maxWidth value =
     Len "max-width" value
 
 
 {-| -}
-height : Length -> Property animation variation
+height : Length -> Property animation variation msg
 height value =
     Len "height" value
 
 
 {-| -}
-minHeight : Length -> Property animation variation
+minHeight : Length -> Property animation variation msg
 minHeight value =
     Len "min-height" value
 
 
 {-| -}
-maxHeight : Length -> Property animation variation
+maxHeight : Length -> Property animation variation msg
 maxHeight value =
     Len "max-height" value
 
 
 {-| -}
-textColor : Color -> Property animation variation
+textColor : Color -> Property animation variation msg
 textColor color =
     ColorProp "color" color
 
 
 {-| -}
-backgroundColor : Color -> Property animation variation
+backgroundColor : Color -> Property animation variation msg
 backgroundColor color =
     ColorProp "background-color" color
 
@@ -1131,7 +1131,7 @@ type alias Border =
 
 
 {-| -}
-border : Border -> Property animation variation
+border : Border -> Property animation variation msg
 border { width, color, style } =
     Mix
         [ borderColor color
@@ -1141,19 +1141,19 @@ border { width, color, style } =
 
 
 {-| -}
-borderColor : Color -> Property animation variation
+borderColor : Color -> Property animation variation msg
 borderColor color =
     ColorProp "border-color" color
 
 
 {-| -}
-borderWidth : ( Float, Float, Float, Float ) -> Property animation variation
+borderWidth : ( Float, Float, Float, Float ) -> Property animation variation msg
 borderWidth value =
     Box "border-width" value
 
 
 {-| -}
-borderRadius : ( Float, Float, Float, Float ) -> Property animation variation
+borderRadius : ( Float, Float, Float, Float ) -> Property animation variation msg
 borderRadius value =
     Box "border-radius" value
 
@@ -1165,40 +1165,40 @@ spacing s =
 
 
 {-| -}
-padding : ( Float, Float, Float, Float ) -> Property animation variation
+padding : ( Float, Float, Float, Float ) -> Property animation variation msg
 padding value =
     Box "padding" value
 
 
 {-| Set font-family
 -}
-font : String -> Property animation variation
+font : String -> Property animation variation msg
 font family =
     Property "font-family" family
 
 
 {-| Set font-size.  Only px allowed.
 -}
-fontsize : Float -> Property animation variation
+fontsize : Float -> Property animation variation msg
 fontsize size =
     Property "font-size" (toString size ++ "px")
 
 
 {-| Given as unitless lineheight.
 -}
-lineHeight : Float -> Property animation variation
+lineHeight : Float -> Property animation variation msg
 lineHeight size =
     Property "line-height" (toString size)
 
 
 {-| -}
-letterOffset : Float -> Property animation variation
+letterOffset : Float -> Property animation variation msg
 letterOffset offset =
     Property "letter-offset" (toString offset ++ "px")
 
 
 {-| -}
-textAlign : Centerable Horizontal -> Property animation variation
+textAlign : Centerable Horizontal -> Property animation variation msg
 textAlign alignment =
     case alignment of
         Other Left ->
@@ -1220,7 +1220,7 @@ textAlign alignment =
 
 
 {-| -}
-whitespace : Whitespace -> Property animation variation
+whitespace : Whitespace -> Property animation variation msg
 whitespace ws =
     case ws of
         Normal ->
@@ -1240,37 +1240,37 @@ whitespace ws =
 
 
 {-| -}
-underline : Property animation variation
+underline : Property animation variation msg
 underline =
     Property "text-decoration" "underline"
 
 
 {-| -}
-strike : Property animation variation
+strike : Property animation variation msg
 strike =
     Property "text-decoration" "line-through"
 
 
 {-| -}
-italicize : Property animation variation
+italicize : Property animation variation msg
 italicize =
     Property "font-style" "italic"
 
 
 {-| -}
-bold : Property animation variation
+bold : Property animation variation msg
 bold =
     Property "font-weight" "700"
 
 
 {-| -}
-light : Property animation variation
+light : Property animation variation msg
 light =
     Property "font-weight" "300"
 
 
 {-| -}
-borderStyle : BorderStyle -> Property animation variation
+borderStyle : BorderStyle -> Property animation variation msg
 borderStyle bStyle =
     let
         val =
@@ -1288,38 +1288,38 @@ borderStyle bStyle =
 
 
 {-| -}
-backgroundImage : BackgroundImage -> Property animation variation
+backgroundImage : BackgroundImage -> Property animation variation msg
 backgroundImage value =
     BackgroundImageProp value
 
 
 {-| -}
-shadows : List Shadow -> Property animation variation
+shadows : List Shadow -> Property animation variation msg
 shadows value =
     Shadows value
 
 
 {-| -}
-transforms : List Transform -> Property animation variation
+transforms : List Transform -> Property animation variation msg
 transforms value =
     Transforms value
 
 
 {-| -}
-filters : List Filter -> Property animation variation
+filters : List Filter -> Property animation variation msg
 filters value =
     Filters value
 
 
 {-| -}
-mix : List (Property animation variation) -> Property animation variation
+mix : List (Property animation variation msg) -> Property animation variation msg
 mix =
     Mix
 
 
 {-| Add a custom property.
 -}
-property : String -> String -> Property animation variation
+property : String -> String -> Property animation variation msg
 property name value =
     Property name value
 
@@ -1791,7 +1791,7 @@ sepia x =
 
 
 {-| -}
-transition : Transition -> Property animation variation
+transition : Transition -> Property animation variation msg
 transition value =
     Style.Model.TransitionProperty value
 
@@ -1807,7 +1807,7 @@ type alias Animation prop =
 
 {-| Create an animation
 -}
-animate : Animation (Property animation variation) -> Property animation variation
+animate : Animation (Property animation variation msg) -> Property animation variation msg
 animate { duration, easing, repeat, steps } =
     Style.Model.AnimationProp <|
         Style.Model.Animation
@@ -1819,38 +1819,38 @@ animate { duration, easing, repeat, steps } =
 
 
 {-| -}
-hover : List (Property animation variation) -> Property animation variation
+hover : List (Property animation variation msg) -> Property animation variation msg
 hover props =
     Style.Model.SubElement ":hover" props
 
 
 {-| -}
-focus : List (Property animation variation) -> Property animation variation
+focus : List (Property animation variation msg) -> Property animation variation msg
 focus props =
     Style.Model.SubElement ":focus" props
 
 
 {-| -}
-checked : List (Property animation variation) -> Property animation variation
+checked : List (Property animation variation msg) -> Property animation variation msg
 checked props =
     Style.Model.SubElement ":checked" props
 
 
 {-| -}
-selection : List (Property animation variation) -> Property animation variation
+selection : List (Property animation variation msg) -> Property animation variation msg
 selection props =
     Style.Model.SubElement ":selection" props
 
 
 {-| Requires a string which will be rendered as the 'content' property
 -}
-after : String -> List (Property animation variation) -> Property animation variation
+after : String -> List (Property animation variation msg) -> Property animation variation msg
 after content props =
     Style.Model.SubElement "::after" (property "content" content :: props)
 
 
 {-| Requires a string which will be rendered as the 'content' property
 -}
-before : String -> List (Property animation variation) -> Property animation variation
+before : String -> List (Property animation variation msg) -> Property animation variation msg
 before content props =
     Style.Model.SubElement "::before" (property "content" content :: props)

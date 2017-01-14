@@ -5,15 +5,13 @@ module Style.Animation exposing (..)
 -}
 
 import Style.Model
-import Animation as StyleAnimation
+import Animation
 import Animation.Messenger
 
 
---subscription : (StyleAnimation.Msg -> msg) -> StyleSheet class layoutClass positionClass variation msg -> Sub msg
---subscription =
---    Debug.crash
---type Animation name prop msg
---    = Animation name (Anim.Messenger.State msg)
+--subscription : (Animation.Msg -> msg) -> StyleSheet class layoutClass positionClass variation msg -> Sub msg
+--subscription toMsg stylesheet =
+--    Animation.subscription toMsg (animationStates stylesheet)
 
 
 animation : animation -> List Step -> Property animation variation msg

@@ -4,12 +4,13 @@ module Style.Model exposing (..)
 
 import Color exposing (Color)
 import Time exposing (Time)
+import Animation.Messenger
 
 
-type Model class layoutClass positionClass variation animation
+type Model class layoutClass positionClass variation animation msg
     = StyleModel
         { selector : Selector class
-        , properties : List (Property animation variation)
+        , properties : List (Property animation variation msg)
         }
     | LayoutModel
         { selector : Selector layoutClass
@@ -27,9 +28,9 @@ type Selector class
     | AutoClass
 
 
-type Property animation variation
+type Property animation variation msg
     = Property String String
-    | Mix (List (Property animation variation))
+    | Mix (List (Property animation variation msg))
     | Box String ( Float, Float, Float, Float )
     | Len String Length
     | Filters (List Filter)
@@ -39,14 +40,11 @@ type Property animation variation
     | BackgroundImageProp BackgroundImage
     | VisibilityProp Visibility
     | ColorProp String Color
-    | MediaQuery String (List (Property animation variation))
-    | SubElement String (List (Property animation variation))
-    | Variation variation (List (Property animation variation))
-    | AnimationProp (Animation (Property animation variation))
-
-
-
---| DynamicAnimation animation (StyleAnimation.Messenger.State msg)
+    | MediaQuery String (List (Property animation variation msg))
+    | SubElement String (List (Property animation variation msg))
+    | Variation variation (List (Property animation variation msg))
+    | AnimationProp (Animation (Property animation variation msg))
+    | DynamicAnimation animation (Animation.Messenger.State msg)
 
 
 type PositionProperty variation
@@ -118,7 +116,7 @@ layoutPropertyName layoutProp =
             toString cls
 
 
-propertyName : Property animation variation -> String
+propertyName : Property animation variation msg -> String
 propertyName prop =
     case prop of
         Property name _ ->
@@ -164,6 +162,9 @@ propertyName prop =
             name
 
         Variation name _ ->
+            toString name
+
+        DynamicAnimation name _ ->
             toString name
 
 
