@@ -152,10 +152,10 @@ render model =
                     renderProperties model.properties
 
                 LayoutModel model ->
-                    renderLayoutProperties model.properties
+                    renderProperties model.properties
 
                 PositionModel model ->
-                    renderPositionProperties model.properties
+                    renderProperties model.properties
 
         ( name, selector ) =
             case model of
@@ -211,72 +211,6 @@ renderProperties props =
         |> List.Extra.uniqueBy propertyName
         |> List.reverse
         |> List.map renderProperty
-
-
-renderPositionProperties : List (PositionProperty variation) -> List StyleIntermediate
-renderPositionProperties props =
-    props
-        |> List.reverse
-        |> List.Extra.uniqueBy positionPropertyName
-        |> List.reverse
-        |> List.map renderPositionProperty
-
-
-renderLayoutProperties : List (LayoutProperty variation) -> List StyleIntermediate
-renderLayoutProperties layouts =
-    layouts
-        |> List.reverse
-        |> List.Extra.uniqueBy layoutPropertyName
-        |> List.reverse
-        |> List.map
-            (\layoutProp ->
-                case layoutProp of
-                    LayoutProp layout ->
-                        let
-                            ( style, tag ) =
-                                renderLayout layout
-                        in
-                            Tagged tag style
-
-                    Spacing box ->
-                        AlmostStyle " > .pos" [ ( "margin", render4tuplePx box ) ]
-
-                    LayoutVariation class props ->
-                        let
-                            intermediates =
-                                renderLayoutProperties props
-
-                            ( _, style, _ ) =
-                                renderIntermediates "variation" intermediates
-                        in
-                            StyleVariation (variationName class) style
-            )
-
-
-renderPositionProperty : PositionProperty variation -> StyleIntermediate
-renderPositionProperty prop =
-    case prop of
-        FloatProp floating ->
-            Tagged "floating" (renderFloating floating)
-
-        RelProp relTo ->
-            Single <| renderPositionBy relTo
-
-        PositionProp anchor x y ->
-            Multiple <| renderPosition anchor ( x, y )
-
-        Inline ->
-            Tagged "inline" [ "display" => "inline-block" ]
-
-        PositionVariation class props ->
-            let
-                intermediates =
-                    renderPositionProperties props
-
-                ( _, style, _ ) =
-                    renderIntermediates "variation" intermediates
-            in
-                StyleVariation (variationName class) style
 
 
 renderProperty : Property animation variation msg -> StyleIntermediate
@@ -356,6 +290,28 @@ renderProperty prop =
 
         DynamicAnimation class props ->
             Single ( "invalid", "invalid" )
+
+        LayoutProp layout ->
+            let
+                ( style, tag ) =
+                    renderLayout layout
+            in
+                Tagged tag style
+
+        Spacing box ->
+            AlmostStyle " > .pos" [ ( "margin", render4tuplePx box ) ]
+
+        FloatProp floating ->
+            Tagged "floating" (renderFloating floating)
+
+        RelProp relTo ->
+            Single <| renderPositionBy relTo
+
+        Position anchor x y ->
+            Multiple <| renderPosition anchor ( x, y )
+
+        Inline ->
+            Tagged "inline" [ "display" => "inline-block" ]
 
 
 renderIntermediates : String -> List StyleIntermediate -> ( List Tag, Style, List String )

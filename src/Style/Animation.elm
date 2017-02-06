@@ -1,12 +1,15 @@
-module Style.Animation exposing (..)
+module Style.Animation exposing (to, set, loop, repeat, send)
 
 {-|
 
+
+@docs to, set, loop, repeat, send
 -}
 
-import Style.Model
-import Animation
+import Style.Model exposing (..)
+import Animation exposing (px, percent, rad)
 import Animation.Messenger
+import Time exposing (Time)
 
 
 --subscription : (Animation.Msg -> msg) -> StyleSheet class layoutClass positionClass variation msg -> Sub msg
@@ -14,35 +17,85 @@ import Animation.Messenger
 --    Animation.subscription toMsg (animationStates stylesheet)
 
 
-animation : animation -> List Step -> Property animation variation msg
+{-| -}
+animation : animation -> List (Animation.Messenger.Step msg) -> Property animation variation msg
 animation name anim =
-    Style.Model.DynamicAnimation name (StyleAnimation.interrupt anim)
+    Style.Model.DynamicAnimation name (Animation.interrupt anim)
+
+
+{-|
+-}
+to : List (Property animation variation msg) -> Animation.Messenger.Step msg
+to props =
+    props
+        |> List.filterMap convert
+        |> List.concat
+        |> Animation.to
+
+
+{-|
+-}
+set : List (Property animation variation msg) -> Animation.Messenger.Step msg
+set props =
+    props
+        |> List.filterMap convert
+        |> List.concat
+        |> Animation.set
+
+
+{-|
+-}
+loop : List (Animation.Messenger.Step msg) -> Animation.Messenger.Step msg
+loop =
+    Animation.loop
+
+
+{-|
+-}
+repeat : Int -> List (Animation.Messenger.Step msg) -> Animation.Messenger.Step msg
+repeat =
+    Animation.repeat
+
+
+wait : Time -> Animation.Messenger.Step msg
+wait =
+    Animation.wait
 
 
 
---to : List prop -> Step prop
---to props =
---    StyleAnimation.to
---        (List.map convert props)
---set : List prop -> Step prop
---loop : Int -> Int
---repeat : Int -> Int
---wait : Int -> Int
 --update : Int -> Int
---send : msg -> Step msg
+
+
+{-| -}
+send : msg -> Animation.Messenger.Step msg
+send msg =
+    Animation.Messenger.send msg
+
+
+
 --start : name -> Model class layoutClass positionClass variation -> Model class layoutClass positionClass variation
 --stop : name -> name
 --reset : name -> name
 
 
-convert : Style.Model.Property variation -> Maybe (List StyleAnimation.Property)
+{-|
+-}
+convert : Style.Model.Property animation variation msg -> Maybe (List Animation.Property)
 convert prop =
     case prop of
         Property name val ->
-            Just [ StyleAnimation.exactly name val ]
+            Just [ Animation.exactly name val ]
 
         Mix props ->
-            Nothing
+            case props of
+                [] ->
+                    Nothing
+
+                _ ->
+                    props
+                        |> List.filterMap convert
+                        |> List.concat
+                        |> Just
 
         Box name val ->
             if name == "border-width" then
@@ -51,10 +104,10 @@ convert prop =
                         val
                 in
                     Just
-                        [ StyleAnimation.borderLeftWidth (px left)
-                        , StyleAnimation.borderTopWidth (px top)
-                        , StyleAnimation.borderBottomWidth (px bottom)
-                        , StyleAnimation.borderRightWidth (px right)
+                        [ Animation.borderLeftWidth (px left)
+                        , Animation.borderTopWidth (px top)
+                        , Animation.borderBottomWidth (px bottom)
+                        , Animation.borderRightWidth (px right)
                         ]
             else if name == "padding" then
                 let
@@ -62,27 +115,43 @@ convert prop =
                         val
                 in
                     Just
-                        [ StyleAnimation.paddingLeft (px left)
-                        , StyleAnimation.paddingTop (px top)
-                        , StyleAnimation.paddingBottom (px bottom)
-                        , StyleAnimation.paddingRight (px right)
+                        [ Animation.paddingLeft (px left)
+                        , Animation.paddingTop (px top)
+                        , Animation.paddingBottom (px bottom)
+                        , Animation.paddingRight (px right)
                         ]
             else
                 Nothing
 
-        Len name value ->
+        Len name length ->
             if name == "width" then
-                Just [ StyleAnimation.width (px value) ]
-            else if name == "min-width" then
-                Just [ StyleAnimation.minWidth (px value) ]
-            else if name == "max-width" then
-                Just [ StyleAnimation.maxWidth (px value) ]
+                case length of
+                    Px value ->
+                        Just [ Animation.width (px value) ]
+
+                    Percent value ->
+                        Just [ Animation.width (percent value) ]
+
+                    Auto ->
+                        Nothing
+                --else if name == "min-width" then
+                --    Just [ Animation.minWidth (px value) ]
+                --else if name == "max-width" then
+                --    Just [ Animation.maxWidth (px value) ]
             else if name == "height" then
-                Just [ StyleAnimation.height (px value) ]
-            else if name == "min-height" then
-                Just [ StyleAnimation.minHeight (px value) ]
-            else if name == "max-height" then
-                Just [ StyleAnimation.maxHeight (px value) ]
+                case length of
+                    Px value ->
+                        Just [ Animation.height (px value) ]
+
+                    Percent value ->
+                        Just [ Animation.height (percent value) ]
+
+                    Auto ->
+                        Nothing
+                --else if name == "min-height" then
+                --    Just [ Animation.minHeight (px value) ]
+                --else if name == "max-height" then
+                --    Just [ Animation.maxHeight (px value) ]
             else
                 Nothing
 
@@ -95,35 +164,35 @@ convert prop =
                                 Nothing
 
                             Blur x ->
-                                Just <| StyleAnimation.blur x
+                                Just <| Animation.blur (px x)
 
                             Brightness x ->
-                                Just <| StyleAnimation.brightness x
+                                Just <| Animation.brightness x
 
                             Contrast x ->
-                                Just <| StyleAnimation.contrast x
+                                Just <| Animation.contrast x
 
                             Grayscale x ->
-                                Just <| StyleAnimation.grayscale x
+                                Just <| Animation.grayscale x
 
                             HueRotate x ->
-                                Just <| StyleAnimation.hueRotate (StyleAnimation.rad x)
+                                Just <| Animation.hueRotate (Animation.rad x)
 
                             Invert x ->
-                                Just <| StyleAnimation.invert x
+                                Just <| Animation.invert x
 
                             Opacity x ->
-                                Just <| StyleAnimation.opacity x
+                                Just <| Animation.opacity x
 
                             Saturate x ->
-                                Just <| StyleAnimation.saturate x
+                                Just <| Animation.saturate x
 
                             Sepia x ->
-                                Just <| StyleAnimation.sepia x
+                                Just <| Animation.sepia x
 
-                            DropShadow shadow ->
+                            DropShadow (Shadow shadow) ->
                                 Just <|
-                                    StyleAnimation.dropShadow
+                                    Animation.dropShadow
                                         { offsetX = Tuple.first shadow.offset
                                         , offsetY = Tuple.second shadow.offset
                                         , size = shadow.size
@@ -139,13 +208,13 @@ convert prop =
                     (\transform ->
                         case transform of
                             Translate x y z ->
-                                StyleAnimation.translate3d x y z
+                                Animation.translate3d (px x) (px y) (px z)
 
                             Rotate x y z ->
-                                StyleAnimation.rotate3d x y z
+                                Animation.rotate3d (rad x) (rad y) (rad z)
 
                             Scale x y z ->
-                                StyleAnimation.scale3d x y z
+                                Animation.scale3d x y z
                     )
                     transforms
 
@@ -155,10 +224,10 @@ convert prop =
         Shadows shadows ->
             Just <|
                 List.filterMap
-                    (\shadow ->
+                    (\(Shadow shadow) ->
                         if shadow.kind == "box" then
                             Just <|
-                                StyleAnimation.shadow
+                                Animation.shadow
                                     { offsetX = Tuple.first shadow.offset
                                     , offsetY = Tuple.second shadow.offset
                                     , size = shadow.size
@@ -167,7 +236,7 @@ convert prop =
                                     }
                         else if shadow.kind == "inset" then
                             Just <|
-                                StyleAnimation.insetShadow
+                                Animation.insetShadow
                                     { offsetX = Tuple.first shadow.offset
                                     , offsetY = Tuple.second shadow.offset
                                     , size = shadow.size
@@ -176,7 +245,7 @@ convert prop =
                                     }
                         else if shadow.kind == "text" then
                             Just <|
-                                StyleAnimation.textShadow
+                                Animation.textShadow
                                     { offsetX = Tuple.first shadow.offset
                                     , offsetY = Tuple.second shadow.offset
                                     , size = shadow.size
@@ -185,7 +254,7 @@ convert prop =
                                     }
                         else if shadow.kind == "drop" then
                             Just <|
-                                StyleAnimation.dropShadow
+                                Animation.dropShadow
                                     { offsetX = Tuple.first shadow.offset
                                     , offsetY = Tuple.second shadow.offset
                                     , size = shadow.size
@@ -206,18 +275,18 @@ convert prop =
         VisibilityProp vis ->
             case vis of
                 Transparent transparency ->
-                    Just [ StyleAnimation.opacity (1 - transparency) ]
+                    Just [ Animation.opacity (1 - transparency) ]
 
                 Hidden ->
-                    Just [ StyleAnimation.display StyleAnimation.none ]
+                    Just [ Animation.display Animation.none ]
 
         ColorProp name value ->
             if name == "color" then
-                Just [ StyleAnimation.color value ]
+                Just [ Animation.color value ]
             else if name == "background-color" then
-                Just [ StyleAnimation.backgroundColor value ]
+                Just [ Animation.backgroundColor value ]
             else if name == "border-color" then
-                Just [ StyleAnimation.borderColor value ]
+                Just [ Animation.borderColor value ]
             else
                 Nothing
 
@@ -230,9 +299,30 @@ convert prop =
         Variation name _ ->
             Nothing
 
+        Position anchor x y ->
+            Nothing
+
+        LayoutProp layout ->
+            Nothing
+
+        Spacing _ ->
+            Nothing
+
+        DynamicAnimation name anim ->
+            Nothing
+
+        FloatProp _ ->
+            Nothing
+
+        RelProp _ ->
+            Nothing
+
+        Inline ->
+            Nothing
 
 
---convertPositionProp : Style.Model.PositionProperty variation -> StyleAnimation.Property
+
+--convertPositionProp : Style.Model.PositionProperty variation -> Animation.Property
 --convertPositionProp prop =
 --    case prop of
 --        PositionProp anchor x y ->

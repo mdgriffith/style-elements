@@ -350,14 +350,14 @@ Sets the following defaults:
 -}
 foundation : List (Property animation variation msg)
 foundation =
-    [ Style.Model.Property "box-sizing" "border-box"
+    [ (Style.Model.Property "box-sizing" "border-box")
     ]
 
 
-positionFoundation : List (PositionProperty variation)
+positionFoundation : List (PositionProperty animation variation msg)
 positionFoundation =
-    [ Style.Model.PositionProp ( Style.Model.AnchorTop, Style.Model.AnchorLeft ) 0 0
-    , Style.Model.RelProp currentPosition
+    [ topLeft 0 0
+    , positionBy currentPosition
     ]
 
 
@@ -372,9 +372,9 @@ Sets the following defaults:
     left: 0
 
 -}
-layoutFoundation : List (LayoutProperty variation)
+layoutFoundation : List (LayoutProperty animation variation msg)
 layoutFoundation =
-    [ Style.Model.LayoutProp Style.Model.TextLayout
+    [ textLayout
     ]
 
 
@@ -390,21 +390,21 @@ class cls props =
 
 {-| Set the class for a layout.  You should use a union type!
 -}
-layout : layoutClass -> List (LayoutProperty variation) -> Model class layoutClass positionClass variation animation msg
+layout : layoutClass -> List (LayoutProperty animation variation msg) -> Model class layoutClass positionClass variation animation msg
 layout cls props =
     LayoutModel
         { selector = Style.Model.Class cls
-        , properties = props
+        , properties = List.map Style.Model.layoutToProperty props
         }
 
 
 {-| Set the class for a layout.  You should use a union type!
 -}
-position : positionClass -> List (PositionProperty variation) -> Model class layoutClass positionClass variation animation msg
+position : positionClass -> List (PositionProperty animation variation msg) -> Model class layoutClass positionClass variation animation msg
 position cls props =
     PositionModel
         { selector = Style.Model.Class cls
-        , properties = props
+        , properties = List.map Style.Model.positionToProperty props
         }
 
 
@@ -413,16 +413,6 @@ position cls props =
 variation : class -> List (Property animation class msg) -> Property animation class msg
 variation cls props =
     Style.Model.Variation cls props
-
-
-layoutVariation : class -> List (LayoutProperty class) -> LayoutProperty class
-layoutVariation cls props =
-    Style.Model.LayoutVariation cls props
-
-
-positionVariation : class -> List (PositionProperty class) -> PositionProperty class
-positionVariation cls props =
-    Style.Model.PositionVariation cls props
 
 
 {-| You can set a raw css selector instead of a class.
@@ -624,12 +614,14 @@ renderWith opts styles =
                 |> List.filterMap forLayoutBase
                 |> List.head
                 |> Maybe.withDefault layoutFoundation
+                |> List.map Style.Model.layoutToProperty
 
         positionBase =
             opts
                 |> List.filterMap forPositionBase
                 |> List.head
                 |> Maybe.withDefault positionFoundation
+                |> List.map Style.Model.positionToProperty
 
         basedStyles =
             List.map
@@ -943,17 +935,17 @@ noRepeat =
 Will ignore any left spacing that it's parent has set for it.
 
 -}
-floatLeft : PositionProperty variation
+floatLeft : PositionProperty animation variation msg
 floatLeft =
-    FloatProp Style.Model.FloatLeft
+    PositionProp (FloatProp Style.Model.FloatLeft)
 
 
 {-|
 
 -}
-floatRight : PositionProperty variation
+floatRight : PositionProperty animation variation msg
 floatRight =
-    FloatProp Style.Model.FloatRight
+    PositionProp (FloatProp Style.Model.FloatRight)
 
 
 {-| Same as floatLeft, except it will ignore any top spacing that it's parent has set for it.
@@ -961,17 +953,17 @@ floatRight =
 This is useful for floating things at the beginning of text.
 
 -}
-floatTopLeft : PositionProperty variation
+floatTopLeft : PositionProperty animation variation msg
 floatTopLeft =
-    FloatProp Style.Model.FloatTopLeft
+    PositionProp (FloatProp Style.Model.FloatTopLeft)
 
 
 {-|
 
 -}
-floatTopRight : PositionProperty variation
+floatTopRight : PositionProperty animation variation msg
 floatTopRight =
-    FloatProp Style.Model.FloatTopRight
+    PositionProp (FloatProp Style.Model.FloatTopRight)
 
 
 {-| -}
@@ -995,7 +987,7 @@ auto =
 {-| -}
 visibility : Visibility -> Property animation variation msg
 visibility vis =
-    Style.Model.VisibilityProp vis
+    (Style.Model.VisibilityProp vis)
 
 
 {-| -}
@@ -1017,55 +1009,55 @@ currentPosition =
 
 
 {-| -}
-positionBy : PositionParent -> PositionProperty variation
-positionBy =
-    Style.Model.RelProp
+positionBy : PositionParent -> PositionProperty animation variation msg
+positionBy parent =
+    PositionProp (Style.Model.RelProp parent)
 
 
 {-| -}
-topLeft : Float -> Float -> PositionProperty variation
+topLeft : Float -> Float -> PositionProperty animation variation msg
 topLeft y x =
     let
         anchor =
             Style.Model.AnchorTop => Style.Model.AnchorLeft
     in
-        PositionProp anchor x y
+        PositionProp (Position anchor x y)
 
 
 {-| -}
-topRight : Float -> Float -> PositionProperty variation
+topRight : Float -> Float -> PositionProperty animation variation msg
 topRight y x =
     let
         anchor =
             Style.Model.AnchorTop => Style.Model.AnchorRight
     in
-        PositionProp anchor x y
+        PositionProp (Position anchor x y)
 
 
 {-| -}
-bottomLeft : Float -> Float -> PositionProperty variation
+bottomLeft : Float -> Float -> PositionProperty animation variation msg
 bottomLeft y x =
     let
         anchor =
             Style.Model.AnchorBottom => Style.Model.AnchorLeft
     in
-        PositionProp anchor x y
+        PositionProp (Position anchor x y)
 
 
 {-| -}
-bottomRight : Float -> Float -> PositionProperty variation
+bottomRight : Float -> Float -> PositionProperty animation variation msg
 bottomRight y x =
     let
         anchor =
             Style.Model.AnchorBottom => Style.Model.AnchorRight
     in
-        PositionProp anchor x y
+        PositionProp (Position anchor x y)
 
 
 {-| -}
 cursor : String -> Property animation variation msg
 cursor value =
-    Property "cursor" value
+    (Property "cursor" value)
 
 
 {-| -}
@@ -1083,43 +1075,43 @@ width value =
 {-| -}
 minWidth : Length -> Property animation variation msg
 minWidth value =
-    Len "min-width" value
+    (Len "min-width" value)
 
 
 {-| -}
 maxWidth : Length -> Property animation variation msg
 maxWidth value =
-    Len "max-width" value
+    (Len "max-width" value)
 
 
 {-| -}
 height : Length -> Property animation variation msg
 height value =
-    Len "height" value
+    (Len "height" value)
 
 
 {-| -}
 minHeight : Length -> Property animation variation msg
 minHeight value =
-    Len "min-height" value
+    (Len "min-height" value)
 
 
 {-| -}
 maxHeight : Length -> Property animation variation msg
 maxHeight value =
-    Len "max-height" value
+    (Len "max-height" value)
 
 
 {-| -}
 textColor : Color -> Property animation variation msg
 textColor color =
-    ColorProp "color" color
+    (ColorProp "color" color)
 
 
 {-| -}
 backgroundColor : Color -> Property animation variation msg
 backgroundColor color =
-    ColorProp "background-color" color
+    (ColorProp "background-color" color)
 
 
 {-| -}
@@ -1143,31 +1135,31 @@ border { width, color, style } =
 {-| -}
 borderColor : Color -> Property animation variation msg
 borderColor color =
-    ColorProp "border-color" color
+    (ColorProp "border-color" color)
 
 
 {-| -}
 borderWidth : ( Float, Float, Float, Float ) -> Property animation variation msg
 borderWidth value =
-    Box "border-width" value
+    (Box "border-width" value)
 
 
 {-| -}
 borderRadius : ( Float, Float, Float, Float ) -> Property animation variation msg
 borderRadius value =
-    Box "border-radius" value
+    (Box "border-radius" value)
 
 
 {-| -}
-spacing : ( Float, Float, Float, Float ) -> LayoutProperty variation
+spacing : ( Float, Float, Float, Float ) -> LayoutProperty animation variation msg
 spacing s =
-    Spacing s
+    LayoutProperty (Spacing s)
 
 
 {-| -}
 padding : ( Float, Float, Float, Float ) -> Property animation variation msg
 padding value =
-    Box "padding" value
+    (Box "padding" value)
 
 
 {-| Set font-family
@@ -1284,7 +1276,7 @@ borderStyle bStyle =
                 Style.Model.Dotted ->
                     "dotted"
     in
-        Style.Model.Property "border-style" val
+        Property "border-style" val
 
 
 {-| -}
@@ -1317,6 +1309,18 @@ mix =
     Mix
 
 
+{-| -}
+withLayout : List (LayoutProperty animation variation msg) -> Property animation variation msg
+withLayout layoutProps =
+    mix (List.map Style.Model.layoutToProperty layoutProps)
+
+
+{-| -}
+withPosition : List (PositionProperty animation variation msg) -> Property animation variation msg
+withPosition positionProps =
+    mix (List.map Style.Model.positionToProperty positionProps)
+
+
 {-| Add a custom property.
 -}
 property : String -> String -> Property animation variation msg
@@ -1329,9 +1333,9 @@ property name value =
 This element will no longer be affected by 'spacing'
 
 -}
-inline : PositionProperty variation
+inline : PositionProperty animation variation msg
 inline =
-    Style.Model.Inline
+    PositionProp Style.Model.Inline
 
 
 {-| This is the only layout that allows for child elements to use `float` or `inline`.
@@ -1343,17 +1347,17 @@ If you use Style.debug instead of Style.render, the element will be highlighted 
 Besides this, all immediate children are arranged as if they were `display: block`.
 
 -}
-textLayout : LayoutProperty variation
+textLayout : LayoutProperty animation variation msg
 textLayout =
-    LayoutProp Style.Model.TextLayout
+    LayoutProperty (LayoutProp Style.Model.TextLayout)
 
 
 {-| This is the same as setting an element to `display:table`.
 
 -}
-tableLayout : LayoutProperty variation
+tableLayout : LayoutProperty animation variation msg
 tableLayout =
-    LayoutProp Style.Model.TableLayout
+    LayoutProperty (LayoutProp Style.Model.TableLayout)
 
 
 {-|
@@ -1366,9 +1370,9 @@ type alias Flow =
     }
 
 
-{-| This is a flexbox foundationd layout
+{-| This is a flexbox based layout
 -}
-flowUp : Flow -> LayoutProperty variation
+flowUp : Flow -> LayoutProperty animation variation msg
 flowUp { wrap, horizontal, vertical } =
     let
         layout =
@@ -1380,13 +1384,13 @@ flowUp { wrap, horizontal, vertical } =
                     , vertical = vertical
                     }
     in
-        LayoutProp layout
+        LayoutProperty (LayoutProp layout)
 
 
 {-|
 
 -}
-flowDown : Flow -> LayoutProperty variation
+flowDown : Flow -> LayoutProperty animation variation msg
 flowDown { wrap, horizontal, vertical } =
     let
         layout =
@@ -1398,11 +1402,11 @@ flowDown { wrap, horizontal, vertical } =
                     , vertical = vertical
                     }
     in
-        LayoutProp layout
+        LayoutProperty (LayoutProp layout)
 
 
 {-| -}
-flowRight : Flow -> LayoutProperty variation
+flowRight : Flow -> LayoutProperty animation variation msg
 flowRight { wrap, horizontal, vertical } =
     let
         layout =
@@ -1414,11 +1418,11 @@ flowRight { wrap, horizontal, vertical } =
                     , vertical = vertical
                     }
     in
-        LayoutProp layout
+        LayoutProperty (LayoutProp layout)
 
 
 {-| -}
-flowLeft : Flow -> LayoutProperty variation
+flowLeft : Flow -> LayoutProperty animation variation msg
 flowLeft { wrap, horizontal, vertical } =
     let
         layout =
@@ -1430,7 +1434,7 @@ flowLeft { wrap, horizontal, vertical } =
                     , vertical = vertical
                     }
     in
-        LayoutProp layout
+        LayoutProperty (LayoutProp layout)
 
 
 {-| -}

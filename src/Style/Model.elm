@@ -14,18 +14,17 @@ type Model class layoutClass positionClass variation animation msg
         }
     | LayoutModel
         { selector : Selector layoutClass
-        , properties : List (LayoutProperty variation)
+        , properties : List (Property animation variation msg)
         }
     | PositionModel
         { selector : Selector positionClass
-        , properties : List (PositionProperty variation)
+        , properties : List (Property animation variation msg)
         }
 
 
 type Selector class
     = Exactly String
     | Class class
-    | AutoClass
 
 
 type Property animation variation msg
@@ -44,22 +43,31 @@ type Property animation variation msg
     | SubElement String (List (Property animation variation msg))
     | Variation variation (List (Property animation variation msg))
     | AnimationProp (Animation (Property animation variation msg))
-    | DynamicAnimation animation (Animation.Messenger.State msg)
-
-
-type PositionProperty variation
-    = PositionProp Anchor Float Float
+    | DynamicAnimation animation (Animation.Messenger.State msg -> Animation.Messenger.State msg)
+    | Spacing ( Float, Float, Float, Float )
+    | LayoutProp Layout
+    | Position Anchor Float Float
     | RelProp PositionParent
     | FloatProp Floating
     | Inline
-    | PositionVariation variation (List (PositionProperty variation))
 
 
-{-| -}
-type LayoutProperty variation
-    = Spacing ( Float, Float, Float, Float )
-    | LayoutProp Layout
-    | LayoutVariation variation (List (LayoutProperty variation))
+type LayoutProperty animation variation msg
+    = LayoutProperty (Property animation variation msg)
+
+
+layoutToProperty : LayoutProperty animation variation msg -> Property animation variation msg
+layoutToProperty (LayoutProperty prop) =
+    prop
+
+
+type PositionProperty animation variation msg
+    = PositionProp (Property animation variation msg)
+
+
+positionToProperty : PositionProperty animation variation msg -> Property animation variation msg
+positionToProperty (PositionProp prop) =
+    prop
 
 
 {-| -}
@@ -103,22 +111,15 @@ type Horizontal
     | Right
 
 
-layoutPropertyName : LayoutProperty variation -> String
-layoutPropertyName layoutProp =
-    case layoutProp of
+propertyName : Property animation variation msg -> String
+propertyName prop =
+    case prop of
         Spacing _ ->
             "spacing"
 
         LayoutProp _ ->
             "layout"
 
-        LayoutVariation cls _ ->
-            toString cls
-
-
-propertyName : Property animation variation msg -> String
-propertyName prop =
-    case prop of
         Property name _ ->
             name
 
@@ -167,24 +168,17 @@ propertyName prop =
         DynamicAnimation name _ ->
             toString name
 
-
-positionPropertyName : PositionProperty variation -> String
-positionPropertyName prop =
-    case prop of
         FloatProp _ ->
             "float"
 
         RelProp _ ->
             "rel"
 
-        PositionProp _ _ _ ->
+        Position _ _ _ ->
             "pos"
 
         Inline ->
             "inline"
-
-        PositionVariation class _ ->
-            toString class
 
 
 type alias Transition =
