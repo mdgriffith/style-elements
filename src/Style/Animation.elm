@@ -4,6 +4,19 @@ module Style.Animation exposing (to, set, loop, repeat, send)
 
 
 @docs to, set, loop, repeat, send
+
+
+
+
+
+Performance considerations.
+
+    * Rendering embedded stylesheet.  Use lazy.  Underlying string never changes once rendered
+    * Only inline styles are passed around.
+    * Existing styles need to be queried if animations can be added.  For initial style state.
+    * class is the main index for style state
+
+
 -}
 
 import Style.Model exposing (..)
