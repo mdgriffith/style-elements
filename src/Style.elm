@@ -25,10 +25,12 @@ module Style
         , embed
         , render
         , renderWith
-        , class
+        , style
         , layout
         , position
         , variation
+        , withPosition
+        , withLayout
         , selector
         , flowUp
         , flowDown
@@ -124,7 +126,7 @@ module Style
         , lineHeight
         , textAlign
         , whitespace
-        , letterOffset
+        , letterSpacing
         , italicize
         , bold
         , light
@@ -176,7 +178,7 @@ We use `render` to create a style sheet and `embed` to embed it in our view.
 
 # Creating Styles
 
-@docs class, layout, position, variation, selector
+@docs style, layout, position, variation, selector
 
 
 # Positioning
@@ -270,7 +272,7 @@ Layouts affect how child elements are arranged.
 
 # Text/Font
 
-@docs font, fontsize, lineHeight, textAlign, letterOffset, whitespace, Whitespace, normal, pre, preLine, preWrap, noWrap, italicize, bold, light, strike, underline, cursor
+@docs font, fontsize, lineHeight, textAlign, letterSpacing, whitespace, Whitespace, normal, pre, preLine, preWrap, noWrap, italicize, bold, light, strike, underline, cursor
 
 
 # Background Images
@@ -306,7 +308,7 @@ Layouts affect how child elements are arranged.
 @docs selection, after, before, hover, focus, checked
 
 
-
+@docs withPosition, withLayout
 
 -}
 
@@ -380,8 +382,8 @@ layoutFoundation =
 
 {-| Set the class for a given style.  You should use a union type!
 -}
-class : class -> List (Property animation variation msg) -> Model class layoutClass positionClass variation animation msg
-class cls props =
+style : class -> List (Property animation variation msg) -> Model class layoutClass positionClass variation animation msg
+style cls props =
     StyleModel
         { selector = Style.Model.Class cls
         , properties = props
@@ -1184,9 +1186,9 @@ lineHeight size =
 
 
 {-| -}
-letterOffset : Float -> Property animation variation msg
-letterOffset offset =
-    Property "letter-offset" (toString offset ++ "px")
+letterSpacing : Float -> Property animation variation msg
+letterSpacing offset =
+    Property "letter-spacing" (toString offset ++ "px")
 
 
 {-| -}
