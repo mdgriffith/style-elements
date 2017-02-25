@@ -38,6 +38,21 @@ type alias Tag =
     String
 
 
+clearfix : StyleIntermediate
+clearfix =
+    Intermediates
+        [ SubElementIntermediate ":before"
+            [ "content" => "\" \""
+            , "display" => "table"
+            ]
+        , SubElementIntermediate ":after"
+            [ "content" => "\" \""
+            , "display" => "table"
+            , "clear" => "both"
+            ]
+        ]
+
+
 
 --renderInline : Model class -> List ( String, String )
 --renderInline (Model model) =
@@ -299,7 +314,18 @@ renderProperty prop =
                 Tagged tag style
 
         Spacing box ->
-            AlmostStyle " > .pos" [ ( "margin", render4tuplePx box ) ]
+            Intermediates
+                [ AlmostStyle " > *"
+                    [ "margin" => render4tuplePx (adjustSpacing box)
+                    ]
+                  --, AlmostStyle " > .full-width"
+                  --    [ "margin" => "0px -{outer-x-padding}"
+                  --    , "width" => "100%"
+                  --    ]
+                  --, Multiple
+                  --    [ "margin" => toString outerPadding
+                  --    ]
+                ]
 
         FloatProp floating ->
             Tagged "floating" (renderFloating floating)
@@ -633,6 +659,19 @@ shadowValue (Shadow shadow) =
         ]
 
 
+{-| This is a fudge-factor for dealing with margin collapse.
+Spacing is defined as the spaces between all items.
+Vertical items will have their margins.
+-}
+adjustSpacing : ( Float, Float, Float, Float ) -> ( Float, Float, Float, Float )
+adjustSpacing ( t, r, b, l ) =
+    ( t / 2
+    , r / 2
+    , b / 2
+    , l / 2
+    )
+
+
 render4tuplePx : ( Float, Float, Float, Float ) -> String
 render4tuplePx ( a, b, c, d ) =
     toString a ++ "px " ++ toString b ++ "px " ++ toString c ++ "px " ++ toString d ++ "px"
@@ -960,16 +999,20 @@ reset =
 """
 
 
-clearfix : String
-clearfix =
-    """
-.floating:after {
-    visibility: hidden;
-    display: block;
-    clear: both;
-    height: 0px;
-}
-"""
+
+--clearfix : String
+--clearfix =
+--    """
+--.floating:after {
+--    visibility: hidden;
+--    display: block;
+--    clear: both;
+--    height: 0px;
+--}
+
+
+
+--"""
 
 
 missingError : String
