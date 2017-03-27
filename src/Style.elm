@@ -120,7 +120,6 @@ module Style
         , positionBy
         , textColor
         , backgroundColor
-        , borderColor
         , font
         , fontsize
         , lineHeight
@@ -132,10 +131,6 @@ module Style
         , light
         , strike
         , underline
-        , border
-        , borderStyle
-        , borderWidth
-        , borderRadius
         , cursor
         , zIndex
         , width
@@ -417,19 +412,6 @@ variation cls props =
     Style.Model.Variation cls props
 
 
-{-| You can set a raw css selector instead of a class.
-
-It's highly recommended not to do this unless absolutely necessary.
-
--}
-selector : String -> List (Property animation variation msg) -> Model class layoutClass positionClass variation animation msg
-selector sel props =
-    StyleModel
-        { selector = Style.Model.Exactly sel
-        , properties = props
-        }
-
-
 {-| Embed a style sheet into your html.
 -}
 embed : StyleSheet class layoutClass positionClass variation msg -> Html msg
@@ -455,70 +437,6 @@ type alias StyleSheet class layoutClass positionClass variation msg =
 render : List (Model class layoutClass positionClass variation animation msg) -> StyleSheet class layoutClass positionClass variation msg
 render styles =
     renderWith [] styles
-
-
-{-| A style rendering option to be used with `renderWith`
--}
-type Option animation variation msg
-    = AutoImportGoogleFonts
-    | Import String
-    | ImportUrl String
-    | BaseStyle (List (Property animation variation msg))
-    | DebugStyles
-
-
-{-| An attempt will be made to import all non-standard webfonts that are in your styles.
-
-If a font is not in the following list, then it will try to import it from google fonts.
-
-    [ "arial"
-    , "sans-serif"
-    , "serif"
-    , "courier"
-    , "times"
-    , "times new roman"
-    , "verdana"
-    , "tahoma"
-    , "georgia"
-    , "helvetica"
-    ]
-
-
--}
-autoImportGoogleFonts : Option animation variation msg
-autoImportGoogleFonts =
-    AutoImportGoogleFonts
-
-
-{-|
--}
-importCSS : String -> Option animation variation msg
-importCSS =
-    Import
-
-
-{-|
--}
-importUrl : String -> Option animation variation msg
-importUrl =
-    ImportUrl
-
-
-{-| Set a base style.  All classes in this stylesheet will start with these properties.
--}
-base : List (Property animation variation msg) -> Option animation variation msg
-base =
-    BaseStyle
-
-
-{-| Log a warning if a style is missing from a style sheet.
-
-Also shows a visual warning if a style uses float or inline in a table layout orflow/flex layout.
-
--}
-debug : Option animation variation msg
-debug =
-    DebugStyles
 
 
 isWebfont : String -> Bool
@@ -566,20 +484,6 @@ getFontNames state =
             |> styleProperties
             |> List.filterMap getFonts
             |> List.concat
-
-
-flatten : List (Property animation variation msg) -> List (Property animation variation msg)
-flatten props =
-    List.concatMap
-        (\prop ->
-            case prop of
-                Mix mixins ->
-                    mixins
-
-                other ->
-                    [ other ]
-        )
-        props
 
 
 {-| Render a stylesheet with options
@@ -794,14 +698,6 @@ renderWith opts styles =
                 }
 
 
-{-| -}
-type alias BackgroundImage =
-    { src : String
-    , position : ( Float, Float )
-    , repeat : Repeat
-    }
-
-
 {-|
 -}
 type alias Shadow =
@@ -897,78 +793,6 @@ type alias Filter =
 
 
 {-| -}
-repeatX : Repeat
-repeatX =
-    Style.Model.RepeatX
-
-
-{-| -}
-repeatY : Repeat
-repeatY =
-    Style.Model.RepeatY
-
-
-{-| -}
-repeat : Repeat
-repeat =
-    Style.Model.Repeat
-
-
-{-| -}
-space : Repeat
-space =
-    Style.Model.Space
-
-
-{-| -}
-round : Repeat
-round =
-    Style.Model.Round
-
-
-{-| -}
-noRepeat : Repeat
-noRepeat =
-    Style.Model.NoRepeat
-
-
-{-| Float something to the left.  Only valid in textLayouts.
-
-Will ignore any left spacing that it's parent has set for it.
-
--}
-floatLeft : PositionProperty animation variation msg
-floatLeft =
-    PositionProp (FloatProp Style.Model.FloatLeft)
-
-
-{-|
-
--}
-floatRight : PositionProperty animation variation msg
-floatRight =
-    PositionProp (FloatProp Style.Model.FloatRight)
-
-
-{-| Same as floatLeft, except it will ignore any top spacing that it's parent has set for it.
-
-This is useful for floating things at the beginning of text.
-
--}
-floatTopLeft : PositionProperty animation variation msg
-floatTopLeft =
-    PositionProp (FloatProp Style.Model.FloatTopLeft)
-
-
-{-|
-
--}
-floatTopRight : PositionProperty animation variation msg
-floatTopRight =
-    PositionProp (FloatProp Style.Model.FloatTopRight)
-
-
-{-| -}
 px : Float -> Length
 px x =
     Style.Model.Px x
@@ -993,79 +817,9 @@ visibility vis =
 
 
 {-| -}
-screen : PositionParent
-screen =
-    Style.Model.Screen
-
-
-{-| -}
-parent : PositionParent
-parent =
-    Style.Model.Parent
-
-
-{-| -}
-currentPosition : PositionParent
-currentPosition =
-    Style.Model.CurrentPosition
-
-
-{-| -}
-positionBy : PositionParent -> PositionProperty animation variation msg
-positionBy parent =
-    PositionProp (Style.Model.RelProp parent)
-
-
-{-| -}
-topLeft : Float -> Float -> PositionProperty animation variation msg
-topLeft y x =
-    let
-        anchor =
-            Style.Model.AnchorTop => Style.Model.AnchorLeft
-    in
-        PositionProp (Position anchor x y)
-
-
-{-| -}
-topRight : Float -> Float -> PositionProperty animation variation msg
-topRight y x =
-    let
-        anchor =
-            Style.Model.AnchorTop => Style.Model.AnchorRight
-    in
-        PositionProp (Position anchor x y)
-
-
-{-| -}
-bottomLeft : Float -> Float -> PositionProperty animation variation msg
-bottomLeft y x =
-    let
-        anchor =
-            Style.Model.AnchorBottom => Style.Model.AnchorLeft
-    in
-        PositionProp (Position anchor x y)
-
-
-{-| -}
-bottomRight : Float -> Float -> PositionProperty animation variation msg
-bottomRight y x =
-    let
-        anchor =
-            Style.Model.AnchorBottom => Style.Model.AnchorRight
-    in
-        PositionProp (Position anchor x y)
-
-
-{-| -}
 cursor : String -> Property animation variation msg
 cursor value =
     (Property "cursor" value)
-
-
-{-| -}
-zIndex : Int -> Property animation variation msg
-zIndex i =
-    Property "z-index" (toString i)
 
 
 {-| -}
@@ -1105,186 +859,9 @@ maxHeight value =
 
 
 {-| -}
-textColor : Color -> Property animation variation msg
-textColor color =
-    (ColorProp "color" color)
-
-
-{-| -}
-backgroundColor : Color -> Property animation variation msg
-backgroundColor color =
-    (ColorProp "background-color" color)
-
-
-{-| -}
-type alias Border =
-    { width : ( Float, Float, Float, Float )
-    , style : BorderStyle
-    , color : Color
-    }
-
-
-{-| -}
-border : Border -> Property animation variation msg
-border { width, color, style } =
-    Mix
-        [ borderColor color
-        , borderWidth width
-        , borderStyle style
-        ]
-
-
-{-| -}
-borderColor : Color -> Property animation variation msg
-borderColor color =
-    (ColorProp "border-color" color)
-
-
-{-| -}
-borderWidth : ( Float, Float, Float, Float ) -> Property animation variation msg
-borderWidth value =
-    (Box "border-width" value)
-
-
-{-| -}
-borderRadius : ( Float, Float, Float, Float ) -> Property animation variation msg
-borderRadius value =
-    (Box "border-radius" value)
-
-
-{-| -}
-spacing : ( Float, Float, Float, Float ) -> LayoutProperty animation variation msg
-spacing s =
-    LayoutProperty (Spacing s)
-
-
-{-| -}
 padding : ( Float, Float, Float, Float ) -> Property animation variation msg
 padding value =
     (Box "padding" value)
-
-
-{-| Set font-family
--}
-font : String -> Property animation variation msg
-font family =
-    Property "font-family" family
-
-
-{-| Set font-size.  Only px allowed.
--}
-fontsize : Float -> Property animation variation msg
-fontsize size =
-    Property "font-size" (toString size ++ "px")
-
-
-{-| Given as unitless lineheight.
--}
-lineHeight : Float -> Property animation variation msg
-lineHeight size =
-    Property "line-height" (toString size)
-
-
-{-| -}
-letterSpacing : Float -> Property animation variation msg
-letterSpacing offset =
-    Property "letter-spacing" (toString offset ++ "px")
-
-
-{-| -}
-textAlign : Centerable Horizontal -> Property animation variation msg
-textAlign alignment =
-    case alignment of
-        Other Left ->
-            Property "text-align" "left"
-
-        Other Right ->
-            Property "text-align" "right"
-
-        Center ->
-            Property "text-align" "center"
-
-        Stretch ->
-            Property "text-align" "justify"
-
-
-
---JustifyAll ->
---    Property "text-align" "justify-all"
-
-
-{-| -}
-whitespace : Whitespace -> Property animation variation msg
-whitespace ws =
-    case ws of
-        Normal ->
-            Property "white-space" "normal"
-
-        Pre ->
-            Property "white-space" "pre"
-
-        PreWrap ->
-            Property "white-space" "pre-wrap"
-
-        PreLine ->
-            Property "white-space" "pre-line"
-
-        NoWrap ->
-            Property "white-space" "no-wrap"
-
-
-{-| -}
-underline : Property animation variation msg
-underline =
-    Property "text-decoration" "underline"
-
-
-{-| -}
-strike : Property animation variation msg
-strike =
-    Property "text-decoration" "line-through"
-
-
-{-| -}
-italicize : Property animation variation msg
-italicize =
-    Property "font-style" "italic"
-
-
-{-| -}
-bold : Property animation variation msg
-bold =
-    Property "font-weight" "700"
-
-
-{-| -}
-light : Property animation variation msg
-light =
-    Property "font-weight" "300"
-
-
-{-| -}
-borderStyle : BorderStyle -> Property animation variation msg
-borderStyle bStyle =
-    let
-        val =
-            case bStyle of
-                Style.Model.Solid ->
-                    "solid"
-
-                Style.Model.Dashed ->
-                    "dashed"
-
-                Style.Model.Dotted ->
-                    "dotted"
-    in
-        Property "border-style" val
-
-
-{-| -}
-backgroundImage : BackgroundImage -> Property animation variation msg
-backgroundImage value =
-    BackgroundImageProp value
 
 
 {-| -}
@@ -1305,168 +882,11 @@ filters value =
     Filters value
 
 
-{-| -}
-mix : List (Property animation variation msg) -> Property animation variation msg
-mix =
-    Mix
-
-
-{-| -}
-withLayout : List (LayoutProperty animation variation msg) -> Property animation variation msg
-withLayout layoutProps =
-    mix (List.map Style.Model.layoutToProperty layoutProps)
-
-
-{-| -}
-withPosition : List (PositionProperty animation variation msg) -> Property animation variation msg
-withPosition positionProps =
-    mix (List.map Style.Model.positionToProperty positionProps)
-
-
 {-| Add a custom property.
 -}
 property : String -> String -> Property animation variation msg
 property name value =
     Property name value
-
-
-{-| Render an element as 'inline-block'.
-
-This element will no longer be affected by 'spacing'
-
--}
-inline : PositionProperty animation variation msg
-inline =
-    PositionProp Style.Model.Inline
-
-
-{-| This is the only layout that allows for child elements to use `float` or `inline`.
-
-If you try to assign a float or make an element inline that is not the child of a textLayout, the float or inline will be ignored.
-
-If you use Style.debug instead of Style.render, the element will be highlighted in red with a large warning.
-
-Besides this, all immediate children are arranged as if they were `display: block`.
-
--}
-textLayout : LayoutProperty animation variation msg
-textLayout =
-    LayoutProperty (LayoutProp Style.Model.TextLayout)
-
-
-{-| This is the same as setting an element to `display:table`.
-
--}
-tableLayout : LayoutProperty animation variation msg
-tableLayout =
-    LayoutProperty (LayoutProp Style.Model.TableLayout)
-
-
-{-|
-
--}
-type alias Flow =
-    { wrap : Bool
-    , horizontal : Centerable Horizontal
-    , vertical : Centerable Vertical
-    }
-
-
-{-| This is a flexbox based layout
--}
-flowUp : Flow -> LayoutProperty animation variation msg
-flowUp { wrap, horizontal, vertical } =
-    let
-        layout =
-            Style.Model.FlexLayout <|
-                Style.Model.Flexible
-                    { go = Style.Model.Up
-                    , wrap = wrap
-                    , horizontal = horizontal
-                    , vertical = vertical
-                    }
-    in
-        LayoutProperty (LayoutProp layout)
-
-
-{-|
-
--}
-flowDown : Flow -> LayoutProperty animation variation msg
-flowDown { wrap, horizontal, vertical } =
-    let
-        layout =
-            Style.Model.FlexLayout <|
-                Style.Model.Flexible
-                    { go = Style.Model.Down
-                    , wrap = wrap
-                    , horizontal = horizontal
-                    , vertical = vertical
-                    }
-    in
-        LayoutProperty (LayoutProp layout)
-
-
-{-| -}
-flowRight : Flow -> LayoutProperty animation variation msg
-flowRight { wrap, horizontal, vertical } =
-    let
-        layout =
-            Style.Model.FlexLayout <|
-                Style.Model.Flexible
-                    { go = Style.Model.GoRight
-                    , wrap = wrap
-                    , horizontal = horizontal
-                    , vertical = vertical
-                    }
-    in
-        LayoutProperty (LayoutProp layout)
-
-
-{-| -}
-flowLeft : Flow -> LayoutProperty animation variation msg
-flowLeft { wrap, horizontal, vertical } =
-    let
-        layout =
-            Style.Model.FlexLayout <|
-                Style.Model.Flexible
-                    { go = Style.Model.GoLeft
-                    , wrap = wrap
-                    , horizontal = horizontal
-                    , vertical = vertical
-                    }
-    in
-        LayoutProperty (LayoutProp layout)
-
-
-{-| -}
-normal : Whitespace
-normal =
-    Style.Model.Normal
-
-
-{-| -}
-pre : Whitespace
-pre =
-    Style.Model.Pre
-
-
-{-| -}
-preWrap : Whitespace
-preWrap =
-    Style.Model.PreWrap
-
-
-{-| -}
-preLine : Whitespace
-preLine =
-    Style.Model.PreLine
-
-
-{-| -}
-noWrap : Whitespace
-noWrap =
-    Style.Model.NoWrap
 
 
 {-| -}
@@ -1597,24 +1017,6 @@ allButBottom x =
     ( x, x, 0, x )
 
 
-{-| -}
-solid : BorderStyle
-solid =
-    Style.Model.Solid
-
-
-{-| -}
-dashed : BorderStyle
-dashed =
-    Style.Model.Dashed
-
-
-{-| -}
-dotted : BorderStyle
-dotted =
-    Style.Model.Dotted
-
-
 {-| Same as "display:none"
 -}
 hidden : Visibility
@@ -1641,159 +1043,6 @@ transparency x =
 opacity : Float -> Visibility
 opacity x =
     Style.Model.Transparent (1.0 - x)
-
-
-{-| -}
-shadow :
-    { offset : ( Float, Float )
-    , size : Float
-    , blur : Float
-    , color : Color.Color
-    }
-    -> Shadow
-shadow { offset, size, blur, color } =
-    Style.Model.Shadow
-        { kind = "box"
-        , offset = offset
-        , size = size
-        , blur = blur
-        , color = color
-        }
-
-
-{-| -}
-insetShadow :
-    { offset : ( Float, Float )
-    , size : Float
-    , blur : Float
-    , color : Color.Color
-    }
-    -> Shadow
-insetShadow { offset, blur, color, size } =
-    Style.Model.Shadow
-        { kind = "inset"
-        , offset = offset
-        , size = size
-        , blur = blur
-        , color = color
-        }
-
-
-{-| -}
-textShadow :
-    { offset : ( Float, Float )
-    , blur : Float
-    , color : Color.Color
-    }
-    -> Shadow
-textShadow { offset, blur, color } =
-    Style.Model.Shadow
-        { kind = "text"
-        , offset = offset
-        , size = 0
-        , blur = blur
-        , color = color
-        }
-
-
-{-|
--}
-dropShadow :
-    { offset : ( Float, Float )
-    , blur : Float
-    , color : Color.Color
-    }
-    -> Shadow
-dropShadow { offset, blur, color } =
-    Style.Model.Shadow
-        { kind = "drop"
-        , offset = offset
-        , size = 0
-        , blur = blur
-        , color = color
-        }
-
-
-{-| Units always rendered as `radians`.
-
-Use `degrees` or `turns` from the standard library if you want to use a different set of units.
--}
-rotate : Float -> Float -> Float -> Transform
-rotate x y z =
-    Style.Model.Rotate x y z
-
-
-{-| Units are always as pixels
--}
-translate : Float -> Float -> Float -> Transform
-translate x y z =
-    Style.Model.Translate x y z
-
-
-{-| -}
-scale : Float -> Float -> Float -> Transform
-scale x y z =
-    Style.Model.Scale x y z
-
-
-{-| -}
-filterUrl : String -> Filter
-filterUrl s =
-    Style.Model.FilterUrl s
-
-
-{-| -}
-blur : Float -> Filter
-blur x =
-    Style.Model.Blur x
-
-
-{-| -}
-brightness : Float -> Filter
-brightness x =
-    Style.Model.Brightness x
-
-
-{-| -}
-contrast : Float -> Filter
-contrast x =
-    Style.Model.Contrast x
-
-
-{-| -}
-grayscale : Float -> Filter
-grayscale x =
-    Style.Model.Grayscale x
-
-
-{-| -}
-hueRotate : Float -> Filter
-hueRotate x =
-    Style.Model.HueRotate x
-
-
-{-| -}
-invert : Float -> Filter
-invert x =
-    Style.Model.Invert x
-
-
-{-| -}
-opacityFilter : Float -> Filter
-opacityFilter x =
-    Style.Model.Opacity x
-
-
-{-| -}
-saturate : Float -> Filter
-saturate x =
-    Style.Model.Saturate x
-
-
-{-| -}
-sepia : Float -> Filter
-sepia x =
-    Style.Model.Sepia x
 
 
 {-| -}

@@ -1,4 +1,4 @@
-module Style.Render exposing (render, findStyle, findLayout, findPosition, getName, formatName, variationName, verifyVariations, inlineError, floatError, missingError)
+module Style.Internal.Render exposing (render, findStyle, findLayout, findPosition, getName, formatName, variationName, verifyVariations, inlineError, floatError, missingError)
 
 {-|
 -}
