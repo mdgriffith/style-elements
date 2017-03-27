@@ -99,6 +99,56 @@ flowLeft { wrap, horizontal, vertical } =
 
 
 {-| -}
+alignTop : Centerable Vertical
+alignTop =
+    Other Top
+
+
+{-| -}
+alignBottom : Centerable Vertical
+alignBottom =
+    Other Bottom
+
+
+{-|
+-}
+center : Centerable a
+center =
+    Center
+
+
+{-|
+-}
+stretch : Centerable a
+stretch =
+    Stretch
+
+
+{-| -}
+justify : Centerable a
+justify =
+    stretch
+
+
+{-| -}
+justifyAll : Centerable a
+justifyAll =
+    stretch
+
+
+{-| -}
+alignLeft : Centerable Horizontal
+alignLeft =
+    Other Left
+
+
+{-| -}
+alignRight : Centerable Horizontal
+alignRight =
+    Other Right
+
+
+{-| -}
 spacing : ( Float, Float, Float, Float ) -> LayoutProperty animation variation msg
 spacing s =
     LayoutProperty (Spacing s)

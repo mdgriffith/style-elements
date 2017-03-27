@@ -1,7 +1,6 @@
 module Style.Color exposing (..)
 
-{-|-}
-
+{-| -}
 
 import Color exposing (Color)
 
@@ -10,17 +9,20 @@ type Palette
     = Palette
         { text : Color
         , background : Color
-        , border : Color\
+        , border : Color
         }
 
+
 invisible : Color
-invisible color = 
+invisible color =
     let
-        {red, green, blue} = Color.toRgb color
+        { red, green, blue } =
+            Color.toRgb color
     in
         Color.rgba red green blue 0.0
 
-{-|-}
+
+{-| -}
 transparent : Palette
 transparent =
     Palette
@@ -28,8 +30,6 @@ transparent =
         , background = invisible Color.white
         , border = invisible Color.white
         }
-
-
 
 
 {-| Replace the text color with the text color from another palette
@@ -40,7 +40,6 @@ text (Palette { text }) (Palette palette) =
         { palette | text = text }
 
 
-
 {-| Replace the background color with the background color from another palette
 -}
 background : Palette -> Palette -> Palette
@@ -49,17 +48,9 @@ background (Palette { background }) (Palette palette) =
         { palette | background = background }
 
 
-
 {-| Replace the border color with the border color from another palette
 -}
 border : Palette -> Palette -> Palette
 border (Palette { border }) (Palette palette) =
     Palette
         { palette | border = border }
-
-
-
-
-
-
-
