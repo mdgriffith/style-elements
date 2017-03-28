@@ -36,12 +36,27 @@ mapPropClass fn prop =
         Border props ->
             Border props
 
+        Box props ->
+            Box props
+
 
 type Property class variation animation
     = Exact String String
     | Variation variation (List (Property class Never animation))
     | Child class (List (Property class variation animation))
     | Border BorderModel
+    | Box BoxModel
+
+
+type alias BoxModel =
+    { padding : Maybe ( String, String )
+    , width : Maybe ( String, String )
+    , height : Maybe ( String, String )
+    , minHeight : Maybe ( String, String )
+    , maxHeight : Maybe ( String, String )
+    , minWidth : Maybe ( String, String )
+    , maxWidth : Maybe ( String, String )
+    }
 
 
 type alias BorderModel =
@@ -52,12 +67,24 @@ type alias BorderModel =
     }
 
 
-emptyBorderModel : BorderModel
-emptyBorderModel =
+emptyBorder : BorderModel
+emptyBorder =
     { color = Nothing
     , width = Nothing
     , radius = Nothing
     , style = Nothing
+    }
+
+
+emptyBox : BoxModel
+emptyBox =
+    { padding = Nothing
+    , width = Nothing
+    , height = Nothing
+    , minHeight = Nothing
+    , maxHeight = Nothing
+    , minWidth = Nothing
+    , maxWidth = Nothing
     }
 
 
