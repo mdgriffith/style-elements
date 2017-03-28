@@ -30,14 +30,41 @@ mapPropClass fn prop =
         Variation var props ->
             Variation var (List.map (mapPropClass fn) props)
 
-        Property name val ->
-            Property name val
+        Exact name val ->
+            Exact name val
+
+        Border props ->
+            Border props
 
 
 type Property class variation animation
-    = Property String String
+    = Exact String String
     | Variation variation (List (Property class Never animation))
     | Child class (List (Property class variation animation))
+    | Border BorderModel
+
+
+type alias BorderModel =
+    { color : Maybe ( String, String )
+    , width : Maybe ( String, String )
+    , radius : Maybe ( String, String )
+    , style : Maybe ( String, String )
+    }
+
+
+emptyBorderModel : BorderModel
+emptyBorderModel =
+    { color = Nothing
+    , width = Nothing
+    , radius = Nothing
+    , style = Nothing
+    }
+
+
+type Length
+    = Px Float
+    | Percent Float
+    | Auto
 
 
 
@@ -50,7 +77,6 @@ type Property class variation animation
 --| BackgroundImageProp BackgroundImage
 --| VisibilityProp Visibility
 --| ColorProp String Color
---| Variation variation (List (Property variation animation))
 --| MediaQuery String (List (Property variation animation))
 --| SubElement String (List (Property variation animation))
 --| AnimationProp (Animation (Property variation animation))
@@ -204,10 +230,6 @@ type Property class variation animation
 --    = AnchorLeft
 --    | AnchorRight
 --{-| -}
---type Length
---    = Px Float
---    | Percent Float
---    | Auto
 --{-| -}
 --type TextDecoration
 --    = Underline

@@ -12,8 +12,8 @@ type alias Image =
 
 
 {-| -}
-backgroundColor : Color -> Property animation variation msg
-backgroundColor color =
+color : Color -> Property animation variation msg
+color color =
     (ColorProp "background-color" color)
 
 

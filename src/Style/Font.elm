@@ -2,152 +2,150 @@ module Style.Font exposing (..)
 
 {-| -}
 
+import Style.Internal.Model as Internal exposing (Property)
+import Style.Internal.Render as Render
+import Color exposing (Color)
 import String
 
 
 {-|
 -}
-stack : List String -> Property animation variation msg
+stack : List String -> Property animation variation msg -> Property animation variation msg
 stack families =
-    Property "font-family" (String.join "," families)
+    Internal.addProperty Internal.Font "font-family" (String.join "," families)
 
 
 {-| Set font-family
 -}
-font : String -> Property animation variation msg
+font : String -> Property animation variation msg -> Property animation variation msg
 font family =
-    Property "font-family" family
+    Internal.addProperty Internal.Font "font-family" family
 
 
 {-| Set font-size.  Only px allowed.
 -}
-size : Float -> Property animation variation msg
+size : Float -> Property animation variation msg -> Property animation variation msg
 size size =
-    Property "font-size" (toString size ++ "px")
+    Internal.addProperty Internal.Font "font-size" (toString size ++ "px")
 
 
 {-| -}
-color : Color -> Property animation variation msg
-color color =
-    ColorProp "color" color
+color : Color -> Property animation variation msg -> Property animation variation msg
+color fontColor =
+    Internal.addProperty Internal.Font "color" (Render.color fontColor)
 
 
 {-| Given as unitless lineheight.
 -}
-height : Float -> Property animation variation msg
+height : Float -> Property animation variation msg -> Property animation variation msg
 height size =
-    Property "line-height" (toString size)
+    Internal.addProperty Internal.Font "line-height" (toString size)
 
 
 {-| -}
-letterSpacing : Float -> Property animation variation msg
+letterSpacing : Float -> Property animation variation msg -> Property animation variation msg
 letterSpacing offset =
-    Property "letter-spacing" (toString offset ++ "px")
+    Internal.addProperty Internal.Font "letter-spacing" (toString offset ++ "px")
 
 
 {-| -}
-align : Centerable Horizontal -> Property animation variation msg
-align alignment =
-    case alignment of
-        Other Left ->
-            Property "text-align" "left"
-
-        Other Right ->
-            Property "text-align" "right"
-
-        Center ->
-            Property "text-align" "center"
-
-        Stretch ->
-            Property "text-align" "justify"
-
-
-
---JustifyAll ->
---    Property "text-align" "justify-all"
+wordSpacing : Float -> Property animation variation msg -> Property animation variation msg
+wordSpacing offset =
+    Internal.addProperty Internal.Font "word-spacing" (toString offset ++ "px")
 
 
 {-| -}
-whitespace : Whitespace -> Property animation variation msg
-whitespace ws =
-    case ws of
-        Normal ->
-            Property "white-space" "normal"
-
-        Pre ->
-            Property "white-space" "pre"
-
-        PreWrap ->
-            Property "white-space" "pre-wrap"
-
-        PreLine ->
-            Property "white-space" "pre-line"
-
-        NoWrap ->
-            Property "white-space" "no-wrap"
+left : Property animation variation msg -> Property animation variation msg
+left =
+    Internal.addProperty Internal.Font "text-align" "left"
 
 
 {-| -}
-normal : Whitespace
-normal =
-    Style.Model.Normal
+right : Property animation variation msg -> Property animation variation msg
+right =
+    Internal.addProperty Internal.Font "text-align" "right"
 
 
 {-| -}
-pre : Whitespace
+center : Property animation variation msg -> Property animation variation msg
+center =
+    Internal.addProperty Internal.Font "text-align" "center"
+
+
+{-| -}
+justify : Property animation variation msg -> Property animation variation msg
+justify =
+    Internal.addProperty Internal.Font "text-align" "justify"
+
+
+{-| -}
+justifyAll : Property animation variation msg -> Property animation variation msg
+justifyAll =
+    Internal.addProperty Internal.Font "text-align" "justify-all"
+
+
+{-| Renders as "white-space:normal", which is the standard wrapping behavior you're probably used to.
+-}
+wrap : Property animation variation msg -> Property animation variation msg
+wrap =
+    Internal.addProperty Internal.Font "white-space" "normal"
+
+
+{-| -}
+pre : Property animation variation msg -> Property animation variation msg
 pre =
-    Style.Model.Pre
+    Internal.addProperty Internal.Font "white-space" "pre"
 
 
 {-| -}
-preWrap : Whitespace
+preWrap : Property animation variation msg -> Property animation variation msg
 preWrap =
-    Style.Model.PreWrap
+    Internal.addProperty Internal.Font "white-space" "pre-wrap"
 
 
 {-| -}
-preLine : Whitespace
+preLine : Property animation variation msg -> Property animation variation msg
 preLine =
-    Style.Model.PreLine
+    Internal.addProperty Internal.Font "white-space" "pre-line"
 
 
 {-| -}
-noWrap : Whitespace
+noWrap : Property animation variation msg -> Property animation variation msg
 noWrap =
-    Style.Model.NoWrap
+    Internal.addProperty Internal.Font "white-space" "no-wrap"
 
 
 {-| -}
-underline : Property animation variation msg
+underline : Property animation variation msg -> Property animation variation msg
 underline =
-    Property "text-decoration" "underline"
+    Internal.addProperty Internal.Font "text-decoration" "underline"
 
 
 {-| -}
-strike : Property animation variation msg
+strike : Property animation variation msg -> Property animation variation msg
 strike =
-    Property "text-decoration" "line-through"
+    Internal.addProperty Internal.Font "text-decoration" "line-through"
 
 
 {-| -}
-italicize : Property animation variation msg
+italicize : Property animation variation msg -> Property animation variation msg
 italicize =
-    Property "font-style" "italic"
+    Internal.addProperty Internal.Font "font-style" "italic"
 
 
 {-| -}
-bold : Property animation variation msg
+bold : Property animation variation msg -> Property animation variation msg
 bold =
-    Property "font-weight" "700"
+    Internal.addProperty Internal.Font "font-weight" "700"
 
 
 {-| -}
-light : Property animation variation msg
+light : Property animation variation msg -> Property animation variation msg
 light =
-    Property "font-weight" "300"
+    Internal.addProperty Internal.Font "font-weight" "300"
 
 
 {-| -}
-weight : Int -> Property animation variation msg
-weight weight =
-    Property "font-weight" (toString weight)
+weight : Int -> Property animation variation msg -> Property animation variation msg
+weight fontWeight =
+    Internal.addProperty Internal.Font "font-weight" (toString fontWeight)

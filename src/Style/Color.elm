@@ -2,6 +2,7 @@ module Style.Color exposing (..)
 
 {-| -}
 
+import Style.Internal.Model as Internal exposing (Property)
 import Color exposing (Color)
 
 
@@ -11,6 +12,12 @@ type Palette
         , background : Color
         , border : Color
         }
+
+
+
+--from : Palette -> Property animation variation msg -> Property animation variation msg
+--from box border =
+--    Internal.addProperty Internal.Border "border-width" (Render.box box) border
 
 
 invisible : Color

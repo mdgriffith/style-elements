@@ -2,42 +2,46 @@ module Style.Border exposing (..)
 
 {-| -}
 
-import Style.Internal.Model exposing (Property(..))
-import Style.Render
+import Style.Internal.Model as Internal exposing (Property(..))
+import Style.Internal.Render as Render
 import Color exposing (Color)
 
 
-{-| -}
-color : Color -> Property animation variation msg
-color color =
-    ColorProp "border-color" color
+type alias Border =
+    Internal.BorderModel
 
 
 {-| -}
-width : ( Float, Float, Float, Float ) -> Property animation variation msg
-width value =
-    Box "border-width" value
+color : Color -> Border -> Border
+color borderColor border =
+    { border | color = Just ( "border-color", Render.color borderColor ) }
 
 
 {-| -}
-radius : ( Float, Float, Float, Float ) -> Property animation variation msg
-radius value =
-    Box "border-radius" value
+width : ( Float, Float, Float, Float ) -> Border -> Border
+width box border =
+    { border | color = Just ( "border-width", Render.box box ) }
 
 
 {-| -}
-solid : BorderStyle
-solid =
-    Property "border-style" "solid"
+radius : ( Float, Float, Float, Float ) -> Border -> Border
+radius box border =
+    { border | color = Just ( "border-radius", Render.box box ) }
 
 
 {-| -}
-dashed : BorderStyle
-dashed =
-    Property "border-style" "dashed"
+solid : Border -> Border
+solid border =
+    { border | color = Just ( "border-style", "solid" ) }
 
 
 {-| -}
-dotted : BorderStyle
-dotted =
-    Property "border-style" "dotted"
+dashed : Border -> Border
+dashed border =
+    { border | color = Just ( "border-style", "dashed" ) }
+
+
+{-| -}
+dotted : Border -> Border
+dotted border =
+    { border | color = Just ( "border-style", "dotted" ) }

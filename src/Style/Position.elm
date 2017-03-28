@@ -2,118 +2,82 @@ module Style.Position exposing (..)
 
 {-| -}
 
-
-{-| Render an element as 'inline-block'.
-
-This element will no longer be affected by 'spacing'
-
--}
-inline : PositionProperty animation variation msg
-inline =
-    PositionProp Style.Model.Inline
+import Style.Internal.Model as Internal exposing (Property)
 
 
-{-| Float something to the left.  Only valid in textLayouts.
-
-Will ignore any left spacing that it's parent has set for it.
-
--}
-floatLeft : PositionProperty animation variation msg
-floatLeft =
-    PositionProp (FloatProp Style.Model.FloatLeft)
-
-
-{-|
-
--}
-floatRight : PositionProperty animation variation msg
-floatRight =
-    PositionProp (FloatProp Style.Model.FloatRight)
-
-
-{-| Same as floatLeft, except it will ignore any top spacing that it's parent has set for it.
-
-This is useful for floating things at the beginning of text.
-
--}
-floatTopLeft : PositionProperty animation variation msg
-floatTopLeft =
-    PositionProp (FloatProp Style.Model.FloatTopLeft)
-
-
-{-|
-
--}
-floatTopRight : PositionProperty animation variation msg
-floatTopRight =
-    PositionProp (FloatProp Style.Model.FloatTopRight)
+--{-| Render an element as 'inline-block'.
+--This element will no longer be affected by 'spacing'
+---}
+--inline : PositionProperty animation variation msg
+--inline =
+--    PositionProp Style.Model.Inline
+--{-| Float something to the left.  Only valid in textLayouts.
+--Will ignore any left spacing that it's parent has set for it.
+---}
+--floatLeft : PositionProperty animation variation msg
+--floatLeft =
+--    PositionProp (FloatProp Style.Model.FloatLeft)
+--{-|
+---}
+--floatRight : PositionProperty animation variation msg
+--floatRight =
+--    PositionProp (FloatProp Style.Model.FloatRight)
+--{-| Same as floatLeft, except it will ignore any top spacing that it's parent has set for it.
+--This is useful for floating things at the beginning of text.
+---}
+--floatTopLeft : PositionProperty animation variation msg
+--floatTopLeft =
+--    PositionProp (FloatProp Style.Model.FloatTopLeft)
+--{-|
+---}
+--floatTopRight : PositionProperty animation variation msg
+--floatTopRight =
+--    PositionProp (FloatProp Style.Model.FloatTopRight)
 
 
 {-| -}
-screen : PositionParent
+screen : Property class variation animation -> Property class variation animation
 screen =
-    Style.Model.Screen
+    Internal.addProperty Internal.Position "position" "fixed"
 
 
 {-| -}
-parent : PositionParent
+parent : Property class variation animation -> Property class variation animation
 parent =
-    Style.Model.Parent
+    Internal.addProperty Internal.Position "position" "absolute"
 
 
 {-| -}
-currentPosition : PositionParent
-currentPosition =
-    Style.Model.CurrentPosition
+relative : Property class variation animation -> Property class variation animation
+relative =
+    Internal.addProperty Internal.Position "position" "relative"
 
 
 {-| -}
-positionBy : PositionParent -> PositionProperty animation variation msg
-positionBy parent =
-    PositionProp (Style.Model.RelProp parent)
+left : Int -> Property class variation animation -> Property class variation animation
+left i =
+    Internal.addProperty Internal.Position "left" (toString i ++ "px")
 
 
 {-| -}
-topLeft : Float -> Float -> PositionProperty animation variation msg
-topLeft y x =
-    let
-        anchor =
-            Style.Model.AnchorTop => Style.Model.AnchorLeft
-    in
-        PositionProp (Position anchor x y)
+right : Int -> Property class variation animation -> Property class variation animation
+right i =
+    Internal.addProperty Internal.Position "right" (toString i ++ "px")
 
 
 {-| -}
-topRight : Float -> Float -> PositionProperty animation variation msg
-topRight y x =
-    let
-        anchor =
-            Style.Model.AnchorTop => Style.Model.AnchorRight
-    in
-        PositionProp (Position anchor x y)
+top : Int -> Property class variation animation -> Property class variation animation
+top i =
+    Internal.addProperty Internal.Position "top" (toString i ++ "px")
 
 
 {-| -}
-bottomLeft : Float -> Float -> PositionProperty animation variation msg
-bottomLeft y x =
-    let
-        anchor =
-            Style.Model.AnchorBottom => Style.Model.AnchorLeft
-    in
-        PositionProp (Position anchor x y)
+bottom : Int -> Property class variation animation -> Property class variation animation
+bottom i =
+    Internal.addProperty Internal.Position "bottom" (toString i ++ "px")
 
 
 {-| -}
-bottomRight : Float -> Float -> PositionProperty animation variation msg
-bottomRight y x =
-    let
-        anchor =
-            Style.Model.AnchorBottom => Style.Model.AnchorRight
-    in
-        PositionProp (Position anchor x y)
-
-
-{-| -}
-zIndex : Int -> Property animation variation msg
+zIndex : Int -> Property class variation animation -> Property class variation animation
 zIndex i =
-    Property "z-index" (toString i)
+    Internal.addProperty Internal.Position "z-index" (toString i)
