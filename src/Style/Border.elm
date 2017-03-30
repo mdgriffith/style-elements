@@ -14,34 +14,34 @@ type alias Border =
 {-| -}
 color : Color -> Border -> Border
 color borderColor border =
-    { border | color = Just ( "border-color", Render.color borderColor ) }
+    { border | color = Just <| Render.color borderColor }
 
 
 {-| -}
 width : ( Float, Float, Float, Float ) -> Border -> Border
 width box border =
-    { border | color = Just ( "border-width", Render.box box ) }
+    { border | width = Just <| Render.box box }
 
 
 {-| -}
 radius : ( Float, Float, Float, Float ) -> Border -> Border
 radius box border =
-    { border | color = Just ( "border-radius", Render.box box ) }
+    { border | radius = Just <| Render.box box }
 
 
 {-| -}
 solid : Border -> Border
 solid border =
-    { border | color = Just ( "border-style", "solid" ) }
+    { border | style = Just "solid" }
 
 
 {-| -}
 dashed : Border -> Border
 dashed border =
-    { border | color = Just ( "border-style", "dashed" ) }
+    { border | style = Just "dashed" }
 
 
 {-| -}
 dotted : Border -> Border
 dotted border =
-    { border | color = Just ( "border-style", "dotted" ) }
+    { border | style = Just "dotted" }

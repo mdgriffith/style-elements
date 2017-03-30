@@ -39,6 +39,12 @@ mapPropClass fn prop =
         Box props ->
             Box props
 
+        Position props ->
+            Position props
+
+        Font props ->
+            Font props
+
 
 type Property class variation animation
     = Exact String String
@@ -46,24 +52,30 @@ type Property class variation animation
     | Child class (List (Property class variation animation))
     | Border BorderModel
     | Box BoxModel
+    | Position PositionModel
+    | Font FontModel
 
 
-type alias BoxModel =
-    { padding : Maybe ( String, String )
-    , width : Maybe ( String, String )
-    , height : Maybe ( String, String )
-    , minHeight : Maybe ( String, String )
-    , maxHeight : Maybe ( String, String )
-    , minWidth : Maybe ( String, String )
-    , maxWidth : Maybe ( String, String )
+type alias PositionModel =
+    { relativeTo : Maybe String
+    , position : Maybe ( Int, Int, Int, Int )
+    , zIndex : Maybe Int
+    }
+
+
+emptyPosition : PositionModel
+emptyPosition =
+    { relativeTo = Nothing
+    , position = Nothing
+    , zIndex = Nothing
     }
 
 
 type alias BorderModel =
-    { color : Maybe ( String, String )
-    , width : Maybe ( String, String )
-    , radius : Maybe ( String, String )
-    , style : Maybe ( String, String )
+    { color : Maybe String
+    , width : Maybe String
+    , radius : Maybe String
+    , style : Maybe String
     }
 
 
@@ -73,6 +85,17 @@ emptyBorder =
     , width = Nothing
     , radius = Nothing
     , style = Nothing
+    }
+
+
+type alias BoxModel =
+    { padding : Maybe String
+    , width : Maybe String
+    , height : Maybe String
+    , minHeight : Maybe String
+    , maxHeight : Maybe String
+    , minWidth : Maybe String
+    , maxWidth : Maybe String
     }
 
 
@@ -86,6 +109,39 @@ emptyBox =
     , minWidth = Nothing
     , maxWidth = Nothing
     }
+
+
+type FontModel
+    = FontModel
+        { stack : Maybe (List String)
+        , size : Maybe Float
+        , height : Maybe Float
+        , color : Maybe Color
+        , letterSpacing : Maybe Float
+        , wordSpacing : Maybe Float
+        , align : Maybe String
+        , whitespace : Maybe String
+        , decoration : Maybe String
+        , style : Maybe String
+        , weight : Maybe String
+        }
+
+
+emptyFont : FontModel
+emptyFont =
+    FontModel
+        { stack = Nothing
+        , size = Nothing
+        , height = Nothing
+        , color = Nothing
+        , letterSpacing = Nothing
+        , wordSpacing = Nothing
+        , align = Nothing
+        , whitespace = Nothing
+        , decoration = Nothing
+        , style = Nothing
+        , weight = Nothing
+        }
 
 
 type Length

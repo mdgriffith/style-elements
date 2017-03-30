@@ -5,6 +5,11 @@ module Style.Position exposing (..)
 import Style.Internal.Model as Internal exposing (Property)
 
 
+type alias Position =
+    Internal.PositionModel
+
+
+
 --{-| Render an element as 'inline-block'.
 --This element will no longer be affected by 'spacing'
 ---}
@@ -36,48 +41,41 @@ import Style.Internal.Model as Internal exposing (Property)
 
 
 {-| -}
-screen : Property class variation animation -> Property class variation animation
-screen =
-    Internal.addProperty Internal.Position "position" "fixed"
+screen : Position -> Position
+screen pos =
+    { pos | relativeTo = Just "fixed" }
 
 
 {-| -}
-parent : Property class variation animation -> Property class variation animation
-parent =
-    Internal.addProperty Internal.Position "position" "absolute"
+parent : Position -> Position
+parent pos =
+    { pos | relativeTo = Just "absolute" }
 
 
 {-| -}
-relative : Property class variation animation -> Property class variation animation
-relative =
-    Internal.addProperty Internal.Position "position" "relative"
+relative : Position -> Position
+relative pos =
+    { pos | relativeTo = Just "relative" }
 
 
-{-| -}
-left : Int -> Property class variation animation -> Property class variation animation
-left i =
-    Internal.addProperty Internal.Position "left" (toString i ++ "px")
 
-
-{-| -}
-right : Int -> Property class variation animation -> Property class variation animation
-right i =
-    Internal.addProperty Internal.Position "right" (toString i ++ "px")
-
-
-{-| -}
-top : Int -> Property class variation animation -> Property class variation animation
-top i =
-    Internal.addProperty Internal.Position "top" (toString i ++ "px")
-
-
-{-| -}
-bottom : Int -> Property class variation animation -> Property class variation animation
-bottom i =
-    Internal.addProperty Internal.Position "bottom" (toString i ++ "px")
-
-
-{-| -}
-zIndex : Int -> Property class variation animation -> Property class variation animation
-zIndex i =
-    Internal.addProperty Internal.Position "z-index" (toString i)
+--{-| -}
+--left : Int -> Property class variation animation -> Property class variation animation
+--left i =
+--    Internal.addProperty Internal.Position "left" (toString i ++ "px")
+--{-| -}
+--right : Int -> Property class variation animation -> Property class variation animation
+--right i =
+--    Internal.addProperty Internal.Position "right" (toString i ++ "px")
+--{-| -}
+--top : Int -> Property class variation animation -> Property class variation animation
+--top i =
+--    Internal.addProperty Internal.Position "top" (toString i ++ "px")
+--{-| -}
+--bottom : Int -> Property class variation animation -> Property class variation animation
+--bottom i =
+--    Internal.addProperty Internal.Position "bottom" (toString i ++ "px")
+--{-| -}
+--zIndex : Int -> Property class variation animation -> Property class variation animation
+--zIndex i =
+--    Internal.addProperty Internal.Position "z-index" (toString i)
