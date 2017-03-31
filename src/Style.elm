@@ -4,6 +4,7 @@ module Style
         , Property
         , Shadow
         , Transform
+        , Filter
         , style
         , variation
         , prop
@@ -18,6 +19,7 @@ module Style
         , maxWidth
         , minWidth
         , transform
+        , filters
         )
 
 {-|
@@ -39,6 +41,8 @@ module Style
 @docs Shadow, shadows
 
 @docs Transform, transform
+
+@docs Filter, filters
 
 
 -}
@@ -171,6 +175,17 @@ type alias Transform =
 transform : (Transform -> Transform) -> Property class variation animation
 transform update =
     Internal.Transform (update [])
+
+
+{-| -}
+type alias Filter =
+    List Internal.Filter
+
+
+{-| -}
+filters : (Filter -> Filter) -> Property class variation animation
+filters update =
+    Internal.Filters (update [])
 
 
 {-| This is not a fancy operator.

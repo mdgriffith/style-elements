@@ -2,61 +2,64 @@ module Style.Filter exposing (..)
 
 {-| -}
 
-
-url : String -> Filter
-url s =
-    Style.Model.FilterUrl s
+import Style.Internal.Model as Internal
+import Style exposing (Filter)
 
 
-{-| -}
-blur : Float -> Filter
-blur x =
-    Style.Model.Blur x
+url : String -> Filter -> Filter
+url s filt =
+    (Internal.FilterUrl s) :: filt
 
 
 {-| -}
-brightness : Float -> Filter
-brightness x =
-    Style.Model.Brightness x
+blur : Float -> Filter -> Filter
+blur x filt =
+    (Internal.Blur x) :: filt
 
 
 {-| -}
-contrast : Float -> Filter
-contrast x =
-    Style.Model.Contrast x
+brightness : Float -> Filter -> Filter
+brightness x filt =
+    (Internal.Brightness x) :: filt
 
 
 {-| -}
-grayscale : Float -> Filter
-grayscale x =
-    Style.Model.Grayscale x
+contrast : Float -> Filter -> Filter
+contrast x filt =
+    (Internal.Contrast x) :: filt
 
 
 {-| -}
-hueRotate : Float -> Filter
-hueRotate x =
-    Style.Model.HueRotate x
+grayscale : Float -> Filter -> Filter
+grayscale x filt =
+    (Internal.Grayscale x) :: filt
 
 
 {-| -}
-invert : Float -> Filter
-invert x =
-    Style.Model.Invert x
+hueRotate : Float -> Filter -> Filter
+hueRotate x filt =
+    (Internal.HueRotate x) :: filt
 
 
 {-| -}
-opacityFilter : Float -> Filter
-opacityFilter x =
-    Style.Model.Opacity x
+invert : Float -> Filter -> Filter
+invert x filt =
+    (Internal.Invert x) :: filt
 
 
 {-| -}
-saturate : Float -> Filter
-saturate x =
-    Style.Model.Saturate x
+opacityFilter : Float -> Filter -> Filter
+opacityFilter x filt =
+    (Internal.Opacity x) :: filt
 
 
 {-| -}
-sepia : Float -> Filter
-sepia x =
-    Style.Model.Sepia x
+saturate : Float -> Filter -> Filter
+saturate x filt =
+    (Internal.Saturate x) :: filt
+
+
+{-| -}
+sepia : Float -> Filter -> Filter
+sepia x filt =
+    (Internal.Sepia x) :: filt

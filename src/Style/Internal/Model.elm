@@ -60,6 +60,9 @@ mapPropClass fn prop =
         Transform transforms ->
             Transform transforms
 
+        Filters filters ->
+            Filters filters
+
 
 type Property class variation animation
     = Exact String String
@@ -74,6 +77,7 @@ type Property class variation animation
     | Background BackgroundModel
     | Shadows (List ShadowModel)
     | Transform (List Transformation)
+    | Filters (List Filter)
 
 
 type alias PositionModel =
@@ -246,6 +250,20 @@ type ShadowModel
         }
 
 
+{-| -}
+type Filter
+    = FilterUrl String
+    | Blur Float
+    | Brightness Float
+    | Contrast Float
+    | Grayscale Float
+    | HueRotate Float
+    | Invert Float
+    | Opacity Float
+    | Saturate Float
+    | Sepia Float
+
+
 type Transformation
     = Translate Float Float Float
     | Rotate Float Float Float
@@ -380,19 +398,6 @@ type Length
 --        , steps : List ( Float, List prop )
 --        }
 --{-| -}
---{-| -}
---type Filter
---    = FilterUrl String
---    | Blur Float
---    | Brightness Float
---    | Contrast Float
---    | Grayscale Float
---    | HueRotate Float
---    | Invert Float
---    | Opacity Float
---    | Saturate Float
---    | Sepia Float
---    | DropShadow Shadow
 --{-| Floats only work if the parent has its layout set to `TextLayout`.
 ---}
 --type Floating
