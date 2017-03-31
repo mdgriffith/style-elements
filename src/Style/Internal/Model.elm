@@ -51,11 +51,15 @@ mapPropClass fn prop =
         Background props ->
             Background props
 
+        MediaQuery name props ->
+            MediaQuery name (List.map (mapPropClass fn) props)
+
 
 type Property class variation animation
     = Exact String String
     | Variation variation (List (Property class Never animation))
     | Child class (List (Property class variation animation))
+    | MediaQuery String (List (Property class variation animation))
     | Border BorderModel
     | Box BoxModel
     | Position PositionModel

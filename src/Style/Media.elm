@@ -20,58 +20,58 @@ Taken from the following article: https://medium.freecodecamp.com/the-100-correc
 
 -}
 
-import Style.Model exposing (Model, Property)
+import Style.Internal.Model as Internal exposing (Property)
 
 
 {-| -}
-query : String -> List (Property animation variation msg) -> Property animation variation msg
+query : String -> List (Property class variation animation) -> Property class variation animation
 query =
-    Style.Model.MediaQuery
+    Internal.MediaQuery
 
 
 {-| -}
-phoneOnly : List (Property animation variation msg) -> Property animation variation msg
+phoneOnly : List (Property class variation animation) -> Property class variation animation
 phoneOnly =
     query "(max-width: 599px)"
 
 
 {-| -}
-tabletPortraitUp : List (Property animation variation msg) -> Property animation variation msg
+tabletPortraitUp : List (Property class variation animation) -> Property class variation animation
 tabletPortraitUp =
     query "(min-width: 600px)"
 
 
 {-| -}
-tabletPortraitOnly : List (Property animation variation msg) -> Property animation variation msg
+tabletPortraitOnly : List (Property class variation animation) -> Property class variation animation
 tabletPortraitOnly =
     query "(min-width: 600px) and (max-width: 899px)"
 
 
 {-| -}
-tabletLandscapeUp : List (Property animation variation msg) -> Property animation variation msg
+tabletLandscapeUp : List (Property class variation animation) -> Property class variation animation
 tabletLandscapeUp =
     query "(min-width: 900px)"
 
 
 {-| -}
-tabletLandscapeOnly : List (Property animation variation msg) -> Property animation variation msg
+tabletLandscapeOnly : List (Property class variation animation) -> Property class variation animation
 tabletLandscapeOnly =
     query "(min-width: 900px) and (max-width: 1199px)"
 
 
 {-| -}
-desktopUp : List (Property animation variation msg) -> Property animation variation msg
+desktopUp : List (Property class variation animation) -> Property class variation animation
 desktopUp =
     query "(min-width: 1200px)"
 
 
 {-| -}
-desktopOnly : List (Property animation variation msg) -> Property animation variation msg
+desktopOnly : List (Property class variation animation) -> Property class variation animation
 desktopOnly =
     query "(min-width: 1200px) and (max-width: 1799px)"
 
 
 {-| -}
-bigDesktopUp : List (Property animation variation msg) -> Property animation variation msg
+bigDesktopUp : List (Property class variation animation) -> Property class variation animation
 bigDesktopUp =
     query "(min-width: 1800px)"
