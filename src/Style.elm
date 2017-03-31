@@ -1,5 +1,24 @@
-module Style exposing 
-    (Style, Property, Shadow, style, variation, prop, shadows, position, border, box, width, height, maxHeight, minHeight, maxWidth, minWidth)
+module Style
+    exposing
+        ( Style
+        , Property
+        , Shadow
+        , Transform
+        , style
+        , variation
+        , prop
+        , shadows
+        , position
+        , border
+        , box
+        , width
+        , height
+        , maxHeight
+        , minHeight
+        , maxWidth
+        , minWidth
+        , transform
+        )
 
 {-|
 # Welcome to the Style Elements Library!
@@ -19,6 +38,8 @@ module Style exposing
 
 @docs Shadow, shadows
 
+@docs Transform, transform
+
 
 -}
 
@@ -26,6 +47,7 @@ import Style.Internal.Model as Internal
 import Style.Internal.Render as Render
 import Style.Border exposing (Border)
 import Style.Position exposing (Position)
+
 
 {-| -}
 type alias Style class variation animation =
@@ -65,13 +87,11 @@ prop =
     Internal.Exact
 
 
-
-
 {-| -}
 border : (Border -> Border) -> Property class variation animation
 border update =
-        Internal.Border (update Internal.emptyBorder)
-    
+    Internal.Border (update Internal.emptyBorder)
+
 
 {-| -}
 position : (Position -> Position) -> Property class variation animation
@@ -79,13 +99,14 @@ position update =
     Internal.Position (update Internal.emptyPosition)
 
 
-type alias Box = Internal.BoxModel
+type alias Box =
+    Internal.BoxModel
+
 
 {-| -}
 box : (Box -> Box) -> Property class variation animation
 box update =
-        Internal.Box (update Internal.emptyBox)
-
+    Internal.Box (update Internal.emptyBox)
 
 
 {-| -}
@@ -96,48 +117,60 @@ width len box =
 
 {-| -}
 minWidth : Length -> Box -> Box
-minWidth  len box =
+minWidth len box =
     { box | minWidth = Just <| Render.length len }
 
 
 {-| -}
 maxWidth : Length -> Box -> Box
-maxWidth  len box =
+maxWidth len box =
     { box | maxWidth = Just <| Render.length len }
 
 
-{-|-}
+{-| -}
 height : Length -> Box -> Box
-height  len box =
+height len box =
     { box | height = Just <| Render.length len }
 
 
 {-| -}
 minHeight : Length -> Box -> Box
-minHeight  len box =
-    { box | minHeight= Just <| Render.length len }
+minHeight len box =
+    { box | minHeight = Just <| Render.length len }
 
 
 {-| -}
 maxHeight : Length -> Box -> Box
-maxHeight  len box =
+maxHeight len box =
     { box | maxHeight = Just <| Render.length len }
 
 
 {-| -}
 padding : ( Float, Float, Float, Float ) -> Box -> Box
-padding  pad box =
+padding pad box =
     { box | padding = Just <| Render.box pad }
 
-{-|-}
-type alias Shadow = List Internal.ShadowModel
 
-{-|-}
-shadows : (Shadow -> Shadow) ->  Property class variation animation
+{-| -}
+type alias Shadow =
+    List Internal.ShadowModel
+
+
+{-| -}
+shadows : (Shadow -> Shadow) -> Property class variation animation
 shadows update =
-        Internal.Shadows (update [])
+    Internal.Shadows (update [])
 
 
+{-| -}
+type alias Transform =
+    List Internal.Transformation
+
+
+{-| -}
+transform : (Transform -> Transform) -> Property class variation animation
+transform update =
+    Internal.Transform (update [])
 
 
 {-| This is not a fancy operator.
@@ -162,6 +195,7 @@ I highly recommending only using this when dealing with this library, it's not m
 (|-) =
     (>>)
 infixl 1 |-
+
 
 
 {- Box Constructors
@@ -198,5 +232,3 @@ top x =
 bottom : Float -> ( Float, Float, Float, Float )
 bottom x =
     ( 0, 0, x, 0 )
-
-

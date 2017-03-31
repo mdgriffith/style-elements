@@ -57,6 +57,9 @@ mapPropClass fn prop =
         Shadows shadows ->
             Shadows shadows
 
+        Transform transforms ->
+            Transform transforms
+
 
 type Property class variation animation
     = Exact String String
@@ -70,6 +73,7 @@ type Property class variation animation
     | Layout LayoutModel
     | Background BackgroundModel
     | Shadows (List ShadowModel)
+    | Transform (List Transformation)
 
 
 type alias PositionModel =
@@ -240,6 +244,12 @@ type ShadowModel
         , blur : Float
         , color : Color
         }
+
+
+type Transformation
+    = Translate Float Float Float
+    | Rotate Float Float Float
+    | Scale Float Float Float
 
 
 type Repeat
