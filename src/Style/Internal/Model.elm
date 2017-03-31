@@ -66,17 +66,35 @@ type Property class variation animation
 
 type alias PositionModel =
     { relativeTo : Maybe String
-    , position : Maybe ( Int, Int, Int, Int )
+    , left : Maybe Float
+    , top : Maybe Float
+    , bottom : Maybe Float
+    , right : Maybe Float
     , zIndex : Maybe Int
+    , inline : Bool
+    , float : Floating
     }
 
 
 emptyPosition : PositionModel
 emptyPosition =
     { relativeTo = Nothing
-    , position = Nothing
+    , left = Nothing
+    , top = Nothing
+    , bottom = Nothing
+    , right = Nothing
     , zIndex = Nothing
+    , inline = False
+    , float = NoFloat
     }
+
+
+type Floating
+    = FloatLeft
+    | FloatRight
+    | FloatTopLeft
+    | FloatTopRight
+    | NoFloat
 
 
 type alias BorderModel =
@@ -264,22 +282,6 @@ type Length
 --| RelProp PositionParent
 --| FloatProp Floating
 --| Inline
---{-| -}
---type Layout
---    = FlexLayout Flexible
---    | TextLayout
---    | TableLayout
---{-| -}
---type Flexible
---    = Flexible
---{ go : Direction
---, wrap : Bool
---, horizontal : Centerable Horizontal
---, vertical : Centerable Vertical
---}
-
-
-
 --propertyName : Property animation variation msg -> String
 --propertyName prop =
 --    case prop of

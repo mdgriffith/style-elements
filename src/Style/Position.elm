@@ -9,37 +9,6 @@ type alias Position =
     Internal.PositionModel
 
 
-
---{-| Render an element as 'inline-block'.
---This element will no longer be affected by 'spacing'
----}
---inline : PositionProperty animation variation msg
---inline =
---    PositionProp Style.Model.Inline
---{-| Float something to the left.  Only valid in textLayouts.
---Will ignore any left spacing that it's parent has set for it.
----}
---floatLeft : PositionProperty animation variation msg
---floatLeft =
---    PositionProp (FloatProp Style.Model.FloatLeft)
---{-|
----}
---floatRight : PositionProperty animation variation msg
---floatRight =
---    PositionProp (FloatProp Style.Model.FloatRight)
---{-| Same as floatLeft, except it will ignore any top spacing that it's parent has set for it.
---This is useful for floating things at the beginning of text.
----}
---floatTopLeft : PositionProperty animation variation msg
---floatTopLeft =
---    PositionProp (FloatProp Style.Model.FloatTopLeft)
---{-|
----}
---floatTopRight : PositionProperty animation variation msg
---floatTopRight =
---    PositionProp (FloatProp Style.Model.FloatTopRight)
-
-
 {-| -}
 screen : Position -> Position
 screen pos =
@@ -58,24 +27,61 @@ relative pos =
     { pos | relativeTo = Just "relative" }
 
 
+{-| -}
+zIndex : Int -> Position -> Position
+zIndex i pos =
+    { pos | zIndex = Just i }
 
---{-| -}
---left : Int -> Property class variation animation -> Property class variation animation
---left i =
---    Internal.addProperty Internal.Position "left" (toString i ++ "px")
---{-| -}
---right : Int -> Property class variation animation -> Property class variation animation
---right i =
---    Internal.addProperty Internal.Position "right" (toString i ++ "px")
---{-| -}
---top : Int -> Property class variation animation -> Property class variation animation
---top i =
---    Internal.addProperty Internal.Position "top" (toString i ++ "px")
---{-| -}
---bottom : Int -> Property class variation animation -> Property class variation animation
---bottom i =
---    Internal.addProperty Internal.Position "bottom" (toString i ++ "px")
---{-| -}
---zIndex : Int -> Property class variation animation -> Property class variation animation
---zIndex i =
---    Internal.addProperty Internal.Position "z-index" (toString i)
+
+{-| -}
+left : Float -> Position -> Position
+left i pos =
+    { pos | left = Just i }
+
+
+{-| -}
+right : Float -> Position -> Position
+right i pos =
+    { pos | right = Just i }
+
+
+{-| -}
+top : Float -> Position -> Position
+top i pos =
+    { pos | top = Just i }
+
+
+{-| -}
+bottom : Float -> Position -> Position
+bottom i pos =
+    { pos | bottom = Just i }
+
+
+{-| -}
+inline : Position -> Position
+inline pos =
+    { pos | inline = True }
+
+
+{-| -}
+floatLeft : Position -> Position
+floatLeft pos =
+    { pos | float = Internal.FloatLeft }
+
+
+{-| -}
+floatRight : Position -> Position
+floatRight pos =
+    { pos | float = Internal.FloatRight }
+
+
+{-| -}
+floatTopRight : Position -> Position
+floatTopRight pos =
+    { pos | float = Internal.FloatTopRight }
+
+
+{-| -}
+floatTopLeft : Position -> Position
+floatTopLeft pos =
+    { pos | float = Internal.FloatTopLeft }
