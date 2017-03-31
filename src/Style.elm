@@ -1,4 +1,5 @@
-module Style exposing (Style, Property, style, variation, prop)
+module Style exposing 
+    (Style, Property, Shadow, style, variation, prop, shadows, position, border, box, width, height, maxHeight, minHeight, maxWidth, minWidth)
 
 {-|
 # Welcome to the Style Elements Library!
@@ -9,6 +10,15 @@ module Style exposing (Style, Property, style, variation, prop)
 @docs style, variation
 
 @docs prop
+
+@docs position
+
+@docs border
+
+@docs box, width, maxWidth, minWidth, height, maxHeight, minHeight
+
+@docs Shadow, shadows
+
 
 -}
 
@@ -96,7 +106,7 @@ maxWidth  len box =
     { box | maxWidth = Just <| Render.length len }
 
 
-
+{-|-}
 height : Length -> Box -> Box
 height  len box =
     { box | height = Just <| Render.length len }
@@ -119,6 +129,14 @@ padding : ( Float, Float, Float, Float ) -> Box -> Box
 padding  pad box =
     { box | padding = Just <| Render.box pad }
 
+{-|-}
+type alias Shadow = List Internal.ShadowModel
+
+{-|-}
+shadows : (Shadow -> Shadow) ->  Property class variation animation
+shadows update =
+        Internal.Shadows (update [])
+
 
 
 
@@ -140,7 +158,7 @@ This is just a synonym for `>>`, but with an adjusted infix priority so that it 
 I highly recommending only using this when dealing with this library, it's not meant as a general operator.
 
 -}
-(|-) : (b -> c) -> (a -> b) -> (a -> c)
+(|-) : (a -> b) -> (b -> c) -> (a -> c)
 (|-) =
     (>>)
 infixl 1 |-

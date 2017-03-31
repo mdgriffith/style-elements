@@ -54,6 +54,9 @@ mapPropClass fn prop =
         MediaQuery name props ->
             MediaQuery name (List.map (mapPropClass fn) props)
 
+        Shadows shadows ->
+            Shadows shadows
+
 
 type Property class variation animation
     = Exact String String
@@ -66,6 +69,7 @@ type Property class variation animation
     | Font FontModel
     | Layout LayoutModel
     | Background BackgroundModel
+    | Shadows (List ShadowModel)
 
 
 type alias PositionModel =
@@ -226,6 +230,16 @@ emptyImage =
     , position = ( 0, 0 )
     , repeat = NoRepeat
     }
+
+
+type ShadowModel
+    = ShadowModel
+        { kind : String
+        , offset : ( Float, Float )
+        , size : Float
+        , blur : Float
+        , color : Color
+        }
 
 
 type Repeat
