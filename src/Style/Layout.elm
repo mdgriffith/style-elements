@@ -1,154 +1,217 @@
 module Style.Layout exposing (..)
 
-{-| -}
+{-|
 
 
-{-| This is the familiar block layout.  It's the only layout that allows for child elements to use `float` or `inline`.
+
+class FontExample
+    [ Layout.row
+        |^ Layout.spacing 10
+
+    ]
+
+
+
+class FontExample
+    [ Layout.text
+    ]
+
+
+class FontExample
+    [ Layout.down
+        |^ Layout.spacing 10
+        |- Layout.wrap
+    ]
+
+-- This should error....
+class FontExample
+    [ Layout.text
+        |^ Layout.spacing 10
+        |- Layout.wrap
+    ]
+
+
+class FontExample
+    [ Layout.flow
+        |^ Layout.down
+        |- Layout.center
+        |- Layout.spacing 10
+        |- Layout.wrap
+    ]
+
+class FontExample
+    [ layout
+        |^ Layout.text
+    ]
+
+
 
 
 
 -}
-text : LayoutProperty animation variation msg
+
+import Style.Internal.Model as Internal exposing (Property, Centerable(..), Vertical(..), Horizontal(..))
+
+
+type alias FlexBox =
+    Internal.FlexBox
+
+
+
+--test =
+--    class FontExample
+--        [ Layout.flex
+--            |^ Layout.right
+--                { horizontal = center
+--                , vertical = center
+--                , wrap = True
+--                }
+--            |- Layout.horizontal center
+--          --|- Layout.vertical center
+--          --|- Layout.spacing 10
+--          --|- Layout.wrap
+--        ]
+
+
+{-| This is the familiar block layout.
+
+__Note:__ It's the only layout that allows for child elements to use `Position.float` or `Position.inline`.
+
+-}
+text : Property class variation animation
 text =
-    LayoutProperty (LayoutProp Style.Model.TextLayout)
+    Internal.Layout <|
+        Internal.TextLayout Nothing
 
 
-{-| This is the same as setting an element to `display:table`.
+{-| This is the familiar block layout with spacing applied to the children.
 
--}
-table : LayoutProperty animation variation msg
-table =
-    LayoutProperty (LayoutProp Style.Model.TableLayout)
-
-
-{-|
+__Note:__ It's the only layout that allows for child elements to use `Position.float` or `Position.inline`.
 
 -}
-type alias Flow =
-    { wrap : Bool
-    , horizontal : Centerable Horizontal
-    , vertical : Centerable Vertical
-    }
-
-
-{-| This is a flexbox based layout
--}
-flowUp : Flow -> LayoutProperty animation variation msg
-flowUp { wrap, horizontal, vertical } =
-    let
-        layout =
-            Style.Model.FlexLayout <|
-                Style.Model.Flexible
-                    { go = Style.Model.Up
-                    , wrap = wrap
-                    , horizontal = horizontal
-                    , vertical = vertical
-                    }
-    in
-        LayoutProperty (LayoutProp layout)
-
-
-{-|
-
--}
-flowDown : Flow -> LayoutProperty animation variation msg
-flowDown { wrap, horizontal, vertical } =
-    let
-        layout =
-            Style.Model.FlexLayout <|
-                Style.Model.Flexible
-                    { go = Style.Model.Down
-                    , wrap = wrap
-                    , horizontal = horizontal
-                    , vertical = vertical
-                    }
-    in
-        LayoutProperty (LayoutProp layout)
+spacedText : Int -> Property class variation animation
+spacedText space =
+    Internal.Layout <|
+        Internal.TextLayout (Just space)
 
 
 {-| -}
-flowRight : Flow -> LayoutProperty animation variation msg
-flowRight { wrap, horizontal, vertical } =
-    let
-        layout =
-            Style.Model.FlexLayout <|
-                Style.Model.Flexible
-                    { go = Style.Model.GoRight
-                    , wrap = wrap
-                    , horizontal = horizontal
-                    , vertical = vertical
-                    }
-    in
-        LayoutProperty (LayoutProp layout)
+row : Property class variation animation
+row =
+    Internal.Layout <|
+        Internal.FlexLayout <|
+            Internal.emptyFlexBox
 
 
 {-| -}
-flowLeft : Flow -> LayoutProperty animation variation msg
-flowLeft { wrap, horizontal, vertical } =
-    let
-        layout =
-            Style.Model.FlexLayout <|
-                Style.Model.Flexible
-                    { go = Style.Model.GoLeft
-                    , wrap = wrap
-                    , horizontal = horizontal
-                    , vertical = vertical
-                    }
-    in
-        LayoutProperty (LayoutProp layout)
+spacedRow : Int -> Property class variation animation
+spacedRow i =
+    Internal.FlexLayout
 
 
 {-| -}
-alignTop : Centerable Vertical
-alignTop =
-    Other Top
+column : Property class variation animation
+column i =
+    Internal.FlexLayout
 
 
 {-| -}
-alignBottom : Centerable Vertical
-alignBottom =
-    Other Bottom
-
-
-{-|
--}
-center : Centerable a
-center =
-    Center
-
-
-{-|
--}
-stretch : Centerable a
-stretch =
-    Stretch
+spacedColumn : Int -> Property class variation animation
+spacedColumn i =
+    Internal.FlexLayout
 
 
 {-| -}
-justify : Centerable a
-justify =
-    stretch
+flow : (Flexbox -> Flexbox) -> Property class variation animation
+flow update =
+    Internal.Layout <| Internal.FlexLayout (update Internal.emptyFlexBox)
 
 
 {-| -}
-justifyAll : Centerable a
-justifyAll =
-    stretch
+up : Flexbox -> Flexbox
+up (Internal.FlexBox flex) =
+    Internal.FlexBox { flex | go = Internal.Up }
 
 
 {-| -}
-alignLeft : Centerable Horizontal
-alignLeft =
-    Other Left
+down : Flexbox -> Flexbox
+down (Internal.FlexBox flex) =
+    Internal.FlexBox { flex | go = Internal.Down }
 
 
 {-| -}
-alignRight : Centerable Horizontal
-alignRight =
-    Other Right
+right : Flexbox -> Flexbox
+right (Internal.FlexBox flex) =
+    Internal.FlexBox { flex | go = Internal.GoRight }
 
 
 {-| -}
-spacing : ( Float, Float, Float, Float ) -> LayoutProperty animation variation msg
-spacing s =
-    LayoutProperty (Spacing s)
+left : Flexbox -> Flexbox
+left (Internal.FlexBox flex) =
+    Internal.FlexBox { flex | go = Internal.GoLeft }
+
+
+{-| -}
+alignRight : Flexbox -> Flexbox
+alignRight (Internal.FlexBox flex) =
+    Internal.FlexBox { flex | horizontal = Other Right }
+
+
+{-| -}
+alignLeft : Flexbox -> Flexbox
+alignLeft (Internal.FlexBox flex) =
+    Internal.FlexBox { flex | horizontal = Other Left }
+
+
+{-| -}
+center : Flexbox -> Flexbox
+center (Internal.FlexBox flex) =
+    Internal.FlexBox { flex | horizontal = Center }
+
+
+{-| -}
+alignTop : Flexbox -> Flexbox
+alignTop (Internal.FlexBox flex) =
+    Internal.FlexBox { flex | vertical = Other Top }
+
+
+{-| -}
+alignBottom : Flexbox -> Flexbox
+alignBottom (Internal.FlexBox flex) =
+    Internal.FlexBox { flex | vertical = Other Bottom }
+
+
+{-| -}
+vCenter : Flexbox -> Flexbox
+vCenter (Internal.FlexBox flex) =
+    Internal.FlexBox { flex | vertical = Center }
+
+
+{-| -}
+justify : Flexbox -> Flexbox
+justify (Internal.FlexBox flex) =
+    Internal.FlexBox { flex | horizontal = Justify }
+
+
+{-| -}
+justifyAll : Flexbox -> Flexbox
+justifyAll (Internal.FlexBox flex) =
+    Internal.FlexBox { flex | horizontal = JustifyAll }
+
+
+{-| -}
+vJustify : Flexbox -> Flexbox
+vJustify (Internal.FlexBox flex) =
+    Internal.FlexBox { flex | vertical = Justify }
+
+
+{-| -}
+vJustifyAll : Flexbox -> Flexbox
+vJustifyAll (Internal.FlexBox flex) =
+    Internal.FlexBox { flex | vertical = JustifyAll }
+
+
+{-| -}
+spacing : ( Float, Float, Float, Float ) -> (FlexBox -> FlexBox)
+spacing box (Internal.LayoutModel layout) =
+    Internal.LayoutModel { layout | spacing = Just box }

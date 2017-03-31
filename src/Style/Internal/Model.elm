@@ -45,6 +45,12 @@ mapPropClass fn prop =
         Font props ->
             Font props
 
+        Layout props ->
+            Layout props
+
+        Background props ->
+            Background props
+
 
 type Property class variation animation
     = Exact String String
@@ -54,6 +60,8 @@ type Property class variation animation
     | Box BoxModel
     | Position PositionModel
     | Font FontModel
+    | Layout LayoutModel
+    | Background BackgroundModel
 
 
 type alias PositionModel =
@@ -144,6 +152,93 @@ emptyFont =
         }
 
 
+type LayoutModel
+    = TextLayout { spacing : Maybe Int }
+    | FlexLayout FlexBox
+
+
+type FlexBox
+    = FlexBox
+        { go : Direction
+        , wrap : Bool
+        , horizontal : Centerable Horizontal
+        , vertical : Centerable Vertical
+        , spacing : Maybe Int
+        }
+
+
+emptyFlexBox : FlexBox
+emptyFlexBox =
+    FlexBox
+        { go = GoRight
+        , wrap = False
+        , horizontal = Other Left
+        , vertical = Other Top
+        , spacing = Nothing
+        }
+
+
+type alias BackgroundModel =
+    { image : Maybe Image
+    , color : Maybe Color
+    }
+
+
+emptyBackground : BackgroundModel
+emptyBackground =
+    { image = Nothing
+    , color = Nothing
+    }
+
+
+type alias Image =
+    { src : String
+    , position : ( Float, Float )
+    , repeat : Repeat
+    }
+
+
+emptyImage : Image
+emptyImage =
+    { src = ""
+    , position = ( 0, 0 )
+    , repeat = NoRepeat
+    }
+
+
+type Repeat
+    = RepeatX
+    | RepeatY
+    | Repeat
+    | Space
+    | Round
+    | NoRepeat
+
+
+type Direction
+    = Up
+    | GoRight
+    | Down
+    | GoLeft
+
+
+type Centerable thing
+    = Center
+    | Justify
+    | JustifyAll
+    | Other thing
+
+
+type Vertical
+    = Top
+    | Bottom
+
+
+type Horizontal
+    = Left
+    | Right
+
+
 type Length
     = Px Float
     | Percent Float
@@ -177,27 +272,14 @@ type Length
 --{-| -}
 --type Flexible
 --    = Flexible
---        { go : Direction
---        , wrap : Bool
---        , horizontal : Centerable Horizontal
---        , vertical : Centerable Vertical
---        }
---{-| -}
---type Direction
---    = Up
---    | GoRight
---    | Down
---    | GoLeft
---type Centerable thing
---    = Center
---    | Stretch
---    | Other thing
---type Vertical
---    = Top
---    | Bottom
---type Horizontal
---    = Left
---    | Right
+--{ go : Direction
+--, wrap : Bool
+--, horizontal : Centerable Horizontal
+--, vertical : Centerable Vertical
+--}
+
+
+
 --propertyName : Property animation variation msg -> String
 --propertyName prop =
 --    case prop of
@@ -268,13 +350,6 @@ type Length
 --        , steps : List ( Float, List prop )
 --        }
 --{-| -}
---type Repeat
---    = RepeatX
---    | RepeatY
---    | Repeat
---    | Space
---    | Round
---    | NoRepeat
 --{-| -}
 --type Filter
 --    = FilterUrl String
