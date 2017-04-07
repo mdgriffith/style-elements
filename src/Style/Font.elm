@@ -43,6 +43,7 @@ class FontExample
 -}
 
 import Style.Internal.Model as Internal
+import Style.Internal.Render as Render
 import Style exposing (Font)
 import Color exposing (Color)
 import String
@@ -61,126 +62,144 @@ stack families =
 -}
 size : Float -> Font
 size size =
-    Internal.FontElement "size" "size"
+    Internal.FontElement "font-size" (toString size ++ "px")
 
 
 {-| -}
 color : Color -> Font
 color fontColor =
-    Internal.FontElement "color" "fontColor"
+    Internal.FontElement "color" (Render.color fontColor)
 
 
 {-| Given as unitless lineheight.
 -}
 height : Float -> Font
 height height =
-    Internal.FontElement "height" "height"
+    Internal.FontElement "line-height" (toString height ++ "px")
 
 
 {-| -}
 letterSpacing : Float -> Font
 letterSpacing offset =
-    Internal.FontElement "letterSpacing" "offset"
+    Internal.FontElement "letter-spacing" (toString offset ++ "px")
 
 
 {-| -}
 wordSpacing : Float -> Font
 wordSpacing offset =
-    Internal.FontElement "wordSpacing" "offset"
+    Internal.FontElement "word-spacing" (toString offset ++ "px")
 
 
 {-| -}
 left : Font
 left =
-    Internal.FontElement "align" "left"
+    Internal.FontElement "text-align" "left"
 
 
 {-| -}
 right : Font
 right =
-    Internal.FontElement "align" "right"
+    Internal.FontElement "text-align" "right"
 
 
 {-| -}
 center : Font
 center =
-    Internal.FontElement "align" "center"
+    Internal.FontElement "text-align" "center"
 
 
 {-| -}
 justify : Font
 justify =
-    Internal.FontElement "align" "jusitfy"
+    Internal.FontElement "text-align" "justify"
 
 
 {-| -}
 justifyAll : Font
 justifyAll =
-    Internal.FontElement "align" "justifyAll"
+    Internal.FontElement "text-align" "justifyAll"
 
 
 {-| Renders as "white-space:normal", which is the standard wrapping behavior you're probably used to.
 -}
 wrap : Font
 wrap =
-    Internal.FontElement "whitespace" "normal"
+    Internal.FontElement "white-space" "normal"
 
 
 {-| -}
 pre : Font
 pre =
-    Internal.FontElement "whitespace" "pre"
+    Internal.FontElement "white-space" "pre"
 
 
 {-| -}
 preWrap : Font
 preWrap =
-    Internal.FontElement "whitespace" "pre-wrap"
+    Internal.FontElement "white-space" "pre-wrap"
 
 
 {-| -}
 preLine : Font
 preLine =
-    Internal.FontElement "whitespace" "pre-line"
+    Internal.FontElement "white-space" "pre-line"
 
 
 {-| -}
 noWrap : Font
 noWrap =
-    Internal.FontElement "whitespace" "nowrap"
+    Internal.FontElement "white-space" "nowrap"
 
 
 {-| -}
 underline : Font
 underline =
-    Internal.FontElement "decoration" "underline"
+    Internal.FontElement "text-decoration" "underline"
 
 
 {-| -}
 strike : Font
 strike =
-    Internal.FontElement "decoration" "underline"
+    Internal.FontElement "text-decoration" "underline"
 
 
 {-| -}
 italicize : Font
 italicize =
-    Internal.FontElement "style" "italics"
+    Internal.FontElement "font-style" "italics"
 
 
 {-| -}
 bold : Font
 bold =
-    Internal.FontElement "weight" "700"
+    Internal.FontElement "font-weight" "700"
 
 
 {-| -}
 light : Font
 light =
-    Internal.FontElement "weight" "300"
+    Internal.FontElement "font-weight" "300"
 
 
 {-| -}
 weight : Int -> Font
 weight fontWeight =
-    Internal.FontElement "weight" (toString fontWeight)
+    Internal.FontElement "font-weight" (toString fontWeight)
+
+
+{-| -}
+uppercase : Font
+uppercase =
+    Internal.FontElement "text-transform" "uppercase"
+
+
+{-| -}
+capitalize : Font
+capitalize =
+    Internal.FontElement "text-transform" "capitalize"
+
+
+{-| -}
+lowercase : Font
+lowercase =
+    Internal.FontElement "text-transform" "lowercase"

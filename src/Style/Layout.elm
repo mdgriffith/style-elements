@@ -37,18 +37,15 @@ spacedText space =
 row : Property class variation animation
 row =
     Internal.Layout <|
-        Internal.FlexLayout
-            [ Internal.Go Internal.GoRight
-            ]
+        Internal.FlexLayout Internal.GoRight []
 
 
 {-| -}
 spacedRow : ( Float, Float, Float, Float ) -> Property class variation animation
 spacedRow i =
     Internal.Layout <|
-        Internal.FlexLayout
-            [ Internal.Go Internal.GoRight
-            , spacing i
+        Internal.FlexLayout Internal.GoRight
+            [ spacing i
             ]
 
 
@@ -56,18 +53,16 @@ spacedRow i =
 column : Property class variation animation
 column =
     Internal.Layout <|
-        Internal.FlexLayout
-            [ Internal.Go Internal.Down
-            ]
+        Internal.FlexLayout Internal.Down
+            []
 
 
 {-| -}
 spacedColumn : ( Float, Float, Float, Float ) -> Property class variation animation
 spacedColumn i =
     Internal.Layout <|
-        Internal.FlexLayout
-            [ Internal.Go Internal.Down
-            , spacing i
+        Internal.FlexLayout Internal.Down
+            [ spacing i
             ]
 
 

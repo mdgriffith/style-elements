@@ -10,7 +10,7 @@ import Color exposing (Color)
 
 {-| -}
 color : Color -> Border
-color borderColor border =
+color borderColor =
     Internal.BorderElement "border-color" (Render.color borderColor)
 
 

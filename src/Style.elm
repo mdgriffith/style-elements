@@ -4,13 +4,16 @@ module Style
         , Property
         , Font
         , Background
+        , Border
         , Repeat
         , Shadow
         , Transform
         , Filter
         , style
         , variation
+        , child
         , prop
+        , font
         , shadows
         , position
         , border
@@ -23,6 +26,14 @@ module Style
         , minWidth
         , transform
         , filters
+        , px
+        , percent
+        , auto
+        , all
+        , left
+        , right
+        , top
+        , bottom
         )
 
 {-|
@@ -31,15 +42,15 @@ module Style
 
 @docs Style, Property
 
-@docs style, variation
+@docs style, variation, child
 
 @docs prop
 
 @docs position
 
-@docs border
+@docs Border, border
 
-@docs box, width, maxWidth, minWidth, height, maxHeight, minHeight
+@docs box, px, auto, percent, width, maxWidth, minWidth, height, maxHeight, minHeight
 
 @docs Shadow, shadows
 
@@ -47,10 +58,11 @@ module Style
 
 @docs Filter, filters
 
-@docs Font
+@docs Font, font
 
 @docs Background, Repeat
 
+@docs all, top, left, right, bottom
 
 -}
 
@@ -139,6 +151,12 @@ border =
 
 
 {-| -}
+font : List Font -> Property class variation animation
+font =
+    Internal.Font
+
+
+{-| -}
 position : List Position -> Property class variation animation
 position =
     Internal.Position
@@ -148,6 +166,24 @@ position =
 box : List Box -> Property class variation animation
 box =
     Internal.Box
+
+
+{-| -}
+px : Float -> Length
+px =
+    Internal.Px
+
+
+{-| -}
+auto : Length
+auto =
+    Internal.Auto
+
+
+{-| -}
+percent : Float -> Length
+percent =
+    Internal.Percent
 
 
 {-| -}
