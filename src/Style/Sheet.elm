@@ -3,6 +3,8 @@ module Style.Sheet exposing (embed, render, merge, map)
 {-| -}
 
 import Style.Internal.Model as Internal
+import Style.Internal.Render as Render
+import Style exposing (Style)
 import Html.Attributes
 import Html exposing (Html)
 
@@ -22,17 +24,12 @@ type ChildSheet class variation animation
 
 
 {-| -}
-type alias Style class variation animation =
-    Internal.BatchedStyle class variation animation
-
-
-{-| -}
 render : List (Style class variation animation) -> StyleSheet class variation animation msg
 render styles =
-    { style = (\class -> Html.Attributes.class "test")
-    , variations = (\class variations -> Html.Attributes.class "test")
-    , animate = (\class variations -> Html.Attributes.class "test")
-    , css = ""
+    { style = \class -> Html.Attributes.class "test"
+    , variations = \class variations -> Html.Attributes.class "test"
+    , animate = \class variations -> Html.Attributes.class "test"
+    , css = Render.stylesheet styles
     }
 
 

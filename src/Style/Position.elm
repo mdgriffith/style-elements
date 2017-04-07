@@ -2,86 +2,86 @@ module Style.Position exposing (..)
 
 {-| -}
 
-import Style.Internal.Model as Internal exposing (Property)
+import Style.Internal.Model as Internal exposing (Property, PositionElement(..), PositionParent(..), Floating(..))
 
 
 type alias Position =
-    Internal.PositionModel
+    List Internal.PositionElement
 
 
 {-| -}
 screen : Position -> Position
 screen pos =
-    { pos | relativeTo = Just "fixed" }
+    RelativeTo Screen :: pos
 
 
 {-| -}
 parent : Position -> Position
 parent pos =
-    { pos | relativeTo = Just "absolute" }
+    RelativeTo Parent :: pos
 
 
 {-| -}
 relative : Position -> Position
 relative pos =
-    { pos | relativeTo = Just "relative" }
+    RelativeTo Current :: pos
 
 
 {-| -}
 zIndex : Int -> Position -> Position
 zIndex i pos =
-    { pos | zIndex = Just i }
+    ZIndex i :: pos
 
 
 {-| -}
 left : Float -> Position -> Position
 left i pos =
-    { pos | left = Just i }
+    PosLeft i :: pos
 
 
 {-| -}
 right : Float -> Position -> Position
 right i pos =
-    { pos | right = Just i }
+    PosRight i :: pos
 
 
 {-| -}
 top : Float -> Position -> Position
 top i pos =
-    { pos | top = Just i }
+    PosTop i :: pos
 
 
 {-| -}
 bottom : Float -> Position -> Position
 bottom i pos =
-    { pos | bottom = Just i }
+    PosBottom i :: pos
 
 
 {-| -}
 inline : Position -> Position
 inline pos =
-    { pos | inline = True }
+    Inline :: pos
 
 
 {-| -}
 floatLeft : Position -> Position
 floatLeft pos =
-    { pos | float = Internal.FloatLeft }
+    Internal.Float FloatLeft :: pos
 
 
 {-| -}
 floatRight : Position -> Position
 floatRight pos =
-    { pos | float = Internal.FloatRight }
+    Internal.Float FloatRight :: pos
 
 
 {-| -}
 floatTopRight : Position -> Position
 floatTopRight pos =
-    { pos | float = Internal.FloatTopRight }
+    Internal.Float FloatTopRight :: pos
 
 
 {-| -}
 floatTopLeft : Position -> Position
 floatTopLeft pos =
-    { pos | float = Internal.FloatTopLeft }
+    Internal.Float FloatTopLeft :: pos

@@ -40,8 +40,6 @@ class FontExample
         |- Font.color Color.blue
     ]
 
-
-
 -}
 
 import Style.Internal.Model as Internal exposing (Property, FontModel(..))
@@ -73,6 +71,12 @@ current update =
 named : Font -> (Font -> Font) -> Property class variation animation
 named font update =
     Internal.Font (update font)
+
+
+{-| -}
+only : Font -> Property class variation animation
+only font =
+    Internal.Font font
 
 
 {-|

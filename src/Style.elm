@@ -94,65 +94,65 @@ prop =
 {-| -}
 border : (Border -> Border) -> Property class variation animation
 border update =
-    Internal.Border (update Internal.emptyBorder)
+    Internal.Border (update [ Internal.BorderElement "border-style" "solid" ])
 
 
 {-| -}
 position : (Position -> Position) -> Property class variation animation
 position update =
-    Internal.Position (update Internal.emptyPosition)
+    Internal.Position (update [])
 
 
 type alias Box =
-    Internal.BoxModel
+    List Internal.BoxElement
 
 
 {-| -}
 box : (Box -> Box) -> Property class variation animation
 box update =
-    Internal.Box (update Internal.emptyBox)
+    Internal.Box (update [])
 
 
 {-| -}
 width : Length -> Box -> Box
 width len box =
-    { box | width = Just <| Render.length len }
+    Internal.BoxProp "width" (Render.length len) :: box
 
 
 {-| -}
 minWidth : Length -> Box -> Box
 minWidth len box =
-    { box | minWidth = Just <| Render.length len }
+    Internal.BoxProp "min-width" (Render.length len) :: box
 
 
 {-| -}
 maxWidth : Length -> Box -> Box
 maxWidth len box =
-    { box | maxWidth = Just <| Render.length len }
+    Internal.BoxProp "max-width" (Render.length len) :: box
 
 
 {-| -}
 height : Length -> Box -> Box
 height len box =
-    { box | height = Just <| Render.length len }
+    Internal.BoxProp "height" (Render.length len) :: box
 
 
 {-| -}
 minHeight : Length -> Box -> Box
 minHeight len box =
-    { box | minHeight = Just <| Render.length len }
+    Internal.BoxProp "min-height" (Render.length len) :: box
 
 
 {-| -}
 maxHeight : Length -> Box -> Box
 maxHeight len box =
-    { box | maxHeight = Just <| Render.length len }
+    Internal.BoxProp "max-height" (Render.length len) :: box
 
 
 {-| -}
 padding : ( Float, Float, Float, Float ) -> Box -> Box
 padding pad box =
-    { box | padding = Just <| Render.box pad }
+    Internal.BoxProp "padding" (Render.box pad) :: box
 
 
 {-| -}

@@ -1,10 +1,11 @@
-module Style.Internal.Render exposing (box, color, length)
+module Style.Internal.Render exposing (stylesheet, box, color, length)
 
 {-|
 -}
 
+import Murmur3
 import Color exposing (Color)
-import Style.Internal.Model as Internal
+import Style.Internal.Model as Internal exposing (..)
 
 
 (=>) : x -> y -> ( x, y )
@@ -36,15 +37,480 @@ color color =
         { red, green, blue, alpha } =
             Color.toRgb color
     in
-        "rgba("
-            ++ toString red
-            ++ ","
-            ++ toString green
-            ++ ","
-            ++ toString blue
-            ++ ","
-            ++ toString alpha
-            ++ ")"
+        ("rgba(" ++ toString red)
+            ++ ("," ++ toString green)
+            ++ ("," ++ toString blue)
+            ++ ("," ++ toString alpha ++ ")")
+
+
+concat : List (Internal.BatchedStyle class variation animation) -> List (Internal.Style class variation animation)
+concat batched =
+    let
+        flatten batch =
+            case batch of
+                Internal.Single style ->
+                    [ style ]
+
+                Internal.Many styles ->
+                    styles
+    in
+        List.concatMap flatten batched
+
+
+stylesheet : List (Internal.BatchedStyle class variation animation) -> String
+stylesheet batched =
+    batched
+        |> concat
+        |> List.map renderStyle
+        |> String.join "\n"
+
+
+renderStyle : Style class variation animation -> String
+renderStyle (Internal.Style class props) =
+    let
+        className =
+            "." ++ formatName class
+
+        ( embeddedElements, renderedProps ) =
+            renderAllProps className props
+
+        children =
+            List.map renderIntermediate embeddedElements
+
+        parent =
+            renderIntermediate <| Intermediate className renderedProps
+    in
+        String.join "\n" <|
+            (parent :: children)
+
+
+type IntermediateStyle
+    = Intermediate String (List ( String, String ))
+
+
+renderAllProps : String -> List (Property class variation animation) -> ( List IntermediateStyle, List ( String, String ) )
+renderAllProps parent allProps =
+    let
+        renderPropsAndChildren prop ( existing, rendered ) =
+            let
+                ( children, renderedProp ) =
+                    renderProp parent prop
+            in
+                ( children ++ existing
+                , renderedProp ++ rendered
+                )
+    in
+        List.foldl renderPropsAndChildren ( [], [] ) allProps
+
+
+formatName : a -> String
+formatName x =
+    let
+        raw =
+            toString x
+
+        head =
+            String.left 1 raw
+                |> String.toLower
+
+        tail =
+            String.dropLeft 1 raw
+    in
+        head ++ tail
+
+
+renderProp : String -> Property class variation animation -> ( List IntermediateStyle, List ( String, String ) )
+renderProp parentClass prop =
+    case prop of
+        Child class props ->
+            let
+                selector =
+                    parentClass ++ " > ." ++ formatName class
+
+                ( intermediates, renderedProps ) =
+                    renderAllProps selector props
+            in
+                ( (Intermediate selector renderedProps) :: intermediates
+                , []
+                )
+
+        Variation var props ->
+            let
+                ( intermediates, renderedProps ) =
+                    renderAllProps parentClass props
+            in
+                ( (Intermediate (parentClass ++ "-" ++ formatName var) renderedProps) :: intermediates
+                , []
+                )
+
+        MediaQuery name props ->
+            ( [], [] )
+
+        Exact name val ->
+            ( [], [ ( name, val ) ] )
+
+        Border props ->
+            ( [], borderProps props )
+
+        Box props ->
+            ( [], boxProps props )
+
+        Position pos ->
+            ( [], position pos )
+
+        Font props ->
+            ( [], [] )
+
+        Layout lay ->
+            ( layoutSpacing parentClass lay
+            , layout lay
+            )
+
+        Background props ->
+            ( [], [] )
+
+        Shadows shadows ->
+            ( [], [] )
+
+        Transform transforms ->
+            ( [], [] )
+
+        Filters filters ->
+            ( [], renderFilters filters )
+
+
+renderIntermediate : IntermediateStyle -> String
+renderIntermediate (Intermediate class props) =
+    (class ++ brace (String.join "\n" <| List.map cssProp props) ++ "\n")
+
+
+brace : String -> String
+brace str =
+    " {\n" ++ str ++ "\n}"
+
+
+cssProp : ( String, String ) -> String
+cssProp ( propName, propValue ) =
+    "  " ++ propName ++ ": " ++ propValue ++ ";"
+
+
+boxProps : List BoxElement -> List ( String, String )
+boxProps elements =
+    List.map (\(BoxProp name val) -> ( name, val )) elements
+        |> List.reverse
+
+
+borderProps : List BorderElement -> List ( String, String )
+borderProps elements =
+    List.map (\(BorderElement name val) -> ( name, val )) elements
+        |> List.reverse
+
+
+renderFilters : List Filter -> List ( String, String )
+renderFilters filters =
+    let
+        filterName filtr =
+            case filtr of
+                FilterUrl url ->
+                    "url(" ++ url ++ ")"
+
+                Blur x ->
+                    "blur(" ++ toString x ++ "px)"
+
+                Brightness x ->
+                    "brightness(" ++ toString x ++ "%)"
+
+                Contrast x ->
+                    "contrast(" ++ toString x ++ "%)"
+
+                Grayscale x ->
+                    "grayscale(" ++ toString x ++ "%)"
+
+                HueRotate x ->
+                    "hueRotate(" ++ toString x ++ "deg)"
+
+                Invert x ->
+                    "invert(" ++ toString x ++ "%)"
+
+                Opacity x ->
+                    "opacity(" ++ toString x ++ "%)"
+
+                Saturate x ->
+                    "saturate(" ++ toString x ++ "%)"
+
+                Sepia x ->
+                    "sepia(" ++ toString x ++ "%)"
+
+                DropShadow shadow ->
+                    Debug.crash "TODO"
+
+        -- "drop-shadow(" ++ shadowValue shadow ++ ")"
+    in
+        if List.length filters == 0 then
+            []
+        else
+            [ "filter"
+                => (String.join " " <| List.map filterName filters)
+            ]
+
+
+
+-- shadowValue : Shadow -> String
+-- shadowValue (Shadow shadow) =
+--     String.join " "
+--         [ if shadow.kind == "inset" then
+--             "inset"
+--           else
+--             ""
+--         , toString (Tuple.first shadow.offset) ++ "px"
+--         , toString (Tuple.second shadow.offset) ++ "px"
+--         , toString shadow.blur ++ "px"
+--         , (if shadow.kind == "text" || shadow.kind == "drop" then
+--             ""
+--            else
+--             toString shadow.size ++ "px"
+--           )
+--         , color shadow.color
+--         ]
+
+
+position : List PositionElement -> List ( String, String )
+position posEls =
+    let
+        renderPos pos =
+            case pos of
+                RelativeTo Screen ->
+                    ( "position", "fixed" )
+
+                RelativeTo Parent ->
+                    ( "position", "absolute" )
+
+                RelativeTo Current ->
+                    ( "position", "relative" )
+
+                PosLeft x ->
+                    ( "left", toString x ++ "px" )
+
+                PosRight x ->
+                    ( "right", toString x ++ "px" )
+
+                PosTop x ->
+                    ( "top", toString x ++ "px" )
+
+                PosBottom x ->
+                    ( "bottom", toString x ++ "px" )
+
+                ZIndex i ->
+                    ( "z-index", toString i )
+
+                Inline ->
+                    ( "display", "inline-block" )
+
+                Float FloatLeft ->
+                    ( "float", "left" )
+
+                Float FloatRight ->
+                    ( "float", "right" )
+
+                Float FloatTopLeft ->
+                    ( "float", "left" )
+
+                Float FloatTopRight ->
+                    ( "float", "right" )
+    in
+        List.map renderPos posEls
+            |> List.reverse
+
+
+{-| -}
+layoutSpacing : String -> LayoutModel -> List IntermediateStyle
+layoutSpacing parent layout =
+    case layout of
+        Internal.TextLayout { spacing } ->
+            case spacing of
+                Nothing ->
+                    []
+
+                Just space ->
+                    [ Intermediate
+                        (parent ++ " > *:not(.nospacing)")
+                        [ ( "margin", toString space ++ "px" ) ]
+                    ]
+
+        Internal.FlexLayout (Internal.FlexBox { spacing }) ->
+            case spacing of
+                Nothing ->
+                    []
+
+                Just space ->
+                    [ Intermediate
+                        (parent ++ " > *:not(.nospacing)")
+                        [ ( "margin", toString space ++ "px" ) ]
+                    ]
+
+
+{-| -}
+layout : LayoutModel -> List ( String, String )
+layout lay =
+    case lay of
+        Internal.TextLayout _ ->
+            [ "display" => "block" ]
+
+        Internal.FlexLayout (Internal.FlexBox { go, wrap, horizontal, vertical, spacing }) ->
+            [ "display" => "flex"
+            , case go of
+                GoRight ->
+                    "flex-direction" => "row"
+
+                GoLeft ->
+                    "flex-direction" => "row-reverse"
+
+                Down ->
+                    "flex-direction" => "column"
+
+                Up ->
+                    "flex-direction" => "column-reverse"
+            , if wrap then
+                "flex-wrap" => "wrap"
+              else
+                "flex-wrap" => "nowrap"
+            , case go of
+                GoRight ->
+                    case horizontal of
+                        Other Left ->
+                            "justify-content" => "flex-start"
+
+                        Other Right ->
+                            "justify-content" => "flex-end"
+
+                        Center ->
+                            "justify-content" => "center"
+
+                        Justify ->
+                            "justify-content" => "space-between"
+
+                        JustifyAll ->
+                            "justify-content" => "space-between"
+
+                GoLeft ->
+                    case horizontal of
+                        Other Left ->
+                            "justify-content" => "flex-end"
+
+                        Other Right ->
+                            "justify-content" => "flex-start"
+
+                        Center ->
+                            "justify-content" => "center"
+
+                        Justify ->
+                            "justify-content" => "space-between"
+
+                        JustifyAll ->
+                            "justify-content" => "space-between"
+
+                Down ->
+                    case horizontal of
+                        Other Left ->
+                            "align-items" => "flex-start"
+
+                        Other Right ->
+                            "align-items" => "flex-end"
+
+                        Center ->
+                            "align-items" => "center"
+
+                        Justify ->
+                            "align-items" => "Justify"
+
+                        JustifyAll ->
+                            "align-items" => "Justify"
+
+                Up ->
+                    case horizontal of
+                        Other Left ->
+                            "align-items" => "flex-start"
+
+                        Other Right ->
+                            "align-items" => "flex-end"
+
+                        Center ->
+                            "align-items" => "center"
+
+                        Justify ->
+                            "align-items" => "Justify"
+
+                        JustifyAll ->
+                            "align-items" => "Justify"
+            , case go of
+                GoRight ->
+                    case vertical of
+                        Other Top ->
+                            "align-items" => "flex-start"
+
+                        Other Bottom ->
+                            "align-items" => "flex-end"
+
+                        Center ->
+                            "align-items" => "center"
+
+                        Justify ->
+                            "align-items" => "Justify"
+
+                        JustifyAll ->
+                            "align-items" => "Justify"
+
+                GoLeft ->
+                    case vertical of
+                        Other Top ->
+                            "align-items" => "flex-start"
+
+                        Other Bottom ->
+                            "align-items" => "flex-end"
+
+                        Center ->
+                            "align-items" => "center"
+
+                        Justify ->
+                            "align-items" => "Justify"
+
+                        JustifyAll ->
+                            "align-items" => "Justify"
+
+                Down ->
+                    case vertical of
+                        Other Top ->
+                            "justify-content" => "flex-start"
+
+                        Other Bottom ->
+                            "justify-content" => "flex-end"
+
+                        Center ->
+                            "justify-content" => "center"
+
+                        Justify ->
+                            "justify-content" => "space-between"
+
+                        JustifyAll ->
+                            "align-items" => "Justify"
+
+                Up ->
+                    case vertical of
+                        Other Top ->
+                            "justify-content" => "flex-end"
+
+                        Other Bottom ->
+                            "justify-content" => "flex-start"
+
+                        Center ->
+                            "justify-content" => "center"
+
+                        Justify ->
+                            "justify-content" => "space-between"
+
+                        JustifyAll ->
+                            "align-items" => "Justify"
+            ]
 
 
 
@@ -641,126 +1107,6 @@ color color =
 --                [ "bottom" => (toString (-1 * y) ++ "px")
 --                , "right" => (toString (-1 * x) ++ "px")
 --                ]
---renderLayout : Layout -> ( List ( String, String ), String )
---renderLayout layout =
---    case layout of
---        TextLayout ->
---            ( [ "display" => "block" ]
---            , "pos"
---            )
---        TableLayout ->
---            ( [ "display" => "table", "border-collapse" => "collapse" ]
---            , "pos not-floatable not-inlineable"
---            )
---        FlexLayout (Flexible flex) ->
---            ( [ "display" => "flex"
---              , case flex.go of
---                    GoRight ->
---                        "flex-direction" => "row"
---                    GoLeft ->
---                        "flex-direction" => "row-reverse"
---                    Down ->
---                        "flex-direction" => "column"
---                    Up ->
---                        "flex-direction" => "column-reverse"
---              , if flex.wrap then
---                    "flex-wrap" => "wrap"
---                else
---                    "flex-wrap" => "nowrap"
---              , case flex.go of
---                    GoRight ->
---                        case flex.horizontal of
---                            Other Left ->
---                                "justify-content" => "flex-start"
---                            Other Right ->
---                                "justify-content" => "flex-end"
---                            Center ->
---                                "justify-content" => "center"
---                            Stretch ->
---                                "justify-content" => "space-between"
---                    -- TODO
---                    --Stretch ->
---                    --    "justify-content" => "space-between"
---                    GoLeft ->
---                        case flex.horizontal of
---                            Other Left ->
---                                "justify-content" => "flex-end"
---                            Other Right ->
---                                "justify-content" => "flex-start"
---                            Center ->
---                                "justify-content" => "center"
---                            Stretch ->
---                                "justify-content" => "space-between"
---                    --JustifyAll ->
---                    --    "justify-content" => "space-between"
---                    Down ->
---                        case flex.horizontal of
---                            Other Left ->
---                                "align-items" => "flex-start"
---                            Other Right ->
---                                "align-items" => "flex-end"
---                            Center ->
---                                "align-items" => "center"
---                            Stretch ->
---                                "align-items" => "stretch"
---                    --JustifyAll ->
---                    --    "align-items" => "stretch"
---                    Up ->
---                        case flex.horizontal of
---                            Other Left ->
---                                "align-items" => "flex-start"
---                            Other Right ->
---                                "align-items" => "flex-end"
---                            Center ->
---                                "align-items" => "center"
---                            Stretch ->
---                                "align-items" => "stretch"
---                --JustifyAll ->
---                --    "align-items" => "stretch"
---              , case flex.go of
---                    GoRight ->
---                        case flex.vertical of
---                            Other Top ->
---                                "align-items" => "flex-start"
---                            Other Bottom ->
---                                "align-items" => "flex-end"
---                            Center ->
---                                "align-items" => "center"
---                            Stretch ->
---                                "align-items" => "stretch"
---                    GoLeft ->
---                        case flex.vertical of
---                            Other Top ->
---                                "align-items" => "flex-start"
---                            Other Bottom ->
---                                "align-items" => "flex-end"
---                            Center ->
---                                "align-items" => "center"
---                            Stretch ->
---                                "align-items" => "stretch"
---                    Down ->
---                        case flex.vertical of
---                            Other Top ->
---                                "justify-content" => "flex-start"
---                            Other Bottom ->
---                                "justify-content" => "flex-end"
---                            Center ->
---                                "justify-content" => "center"
---                            Stretch ->
---                                "justify-content" => "space-between"
---                    Up ->
---                        case flex.vertical of
---                            Other Top ->
---                                "justify-content" => "flex-end"
---                            Other Bottom ->
---                                "justify-content" => "flex-start"
---                            Center ->
---                                "justify-content" => "center"
---                            Stretch ->
---                                "justify-content" => "space-between"
---              ]
---            , "pos not-floatable not-inlineable"
---            )
 --------------------------
 ---- Class Name Generation
 --------------------------
@@ -791,9 +1137,6 @@ color color =
 -------------------
 ---- CSS formatting
 -------------------
---brace : String -> String
---brace str =
---    " {\n" ++ str ++ "\n}"
 --indent : Int -> String -> String
 --indent x str =
 --    str

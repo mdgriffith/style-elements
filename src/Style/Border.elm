@@ -8,40 +8,40 @@ import Color exposing (Color)
 
 
 type alias Border =
-    Internal.BorderModel
+    List Internal.BorderElement
 
 
 {-| -}
 color : Color -> Border -> Border
 color borderColor border =
-    { border | color = Just <| Render.color borderColor }
+    Internal.BorderElement "border-color" (Render.color borderColor) :: border
 
 
 {-| -}
 width : ( Float, Float, Float, Float ) -> Border -> Border
 width box border =
-    { border | width = Just <| Render.box box }
+    Internal.BorderElement "border-width" (Render.box box) :: border
 
 
 {-| -}
 radius : ( Float, Float, Float, Float ) -> Border -> Border
 radius box border =
-    { border | radius = Just <| Render.box box }
+    Internal.BorderElement "border-radius" (Render.box box) :: border
 
 
 {-| -}
 solid : Border -> Border
 solid border =
-    { border | style = Just "solid" }
+    Internal.BorderElement "border-style" "solid" :: border
 
 
 {-| -}
 dashed : Border -> Border
 dashed border =
-    { border | style = Just "dashed" }
+    Internal.BorderElement "border-style" "dashed" :: border
 
 
 {-| -}
 dotted : Border -> Border
 dotted border =
-    { border | style = Just "dotted" }
+    Internal.BorderElement "border-style" "dotted" :: border

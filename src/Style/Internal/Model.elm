@@ -69,9 +69,9 @@ type Property class variation animation
     | Variation variation (List (Property class Never animation))
     | Child class (List (Property class variation animation))
     | MediaQuery String (List (Property class variation animation))
-    | Border BorderModel
-    | Box BoxModel
-    | Position PositionModel
+    | Border (List BorderElement)
+    | Box (List BoxElement)
+    | Position (List PositionElement)
     | Font FontModel
     | Layout LayoutModel
     | Background BackgroundModel
@@ -80,29 +80,21 @@ type Property class variation animation
     | Filters (List Filter)
 
 
-type alias PositionModel =
-    { relativeTo : Maybe String
-    , left : Maybe Float
-    , top : Maybe Float
-    , bottom : Maybe Float
-    , right : Maybe Float
-    , zIndex : Maybe Int
-    , inline : Bool
-    , float : Floating
-    }
+type PositionElement
+    = RelativeTo PositionParent
+    | PosLeft Float
+    | PosRight Float
+    | PosTop Float
+    | PosBottom Float
+    | ZIndex Int
+    | Inline
+    | Float Floating
 
 
-emptyPosition : PositionModel
-emptyPosition =
-    { relativeTo = Nothing
-    , left = Nothing
-    , top = Nothing
-    , bottom = Nothing
-    , right = Nothing
-    , zIndex = Nothing
-    , inline = False
-    , float = NoFloat
-    }
+type PositionParent
+    = Screen
+    | Current
+    | Parent
 
 
 type Floating
@@ -110,47 +102,14 @@ type Floating
     | FloatRight
     | FloatTopLeft
     | FloatTopRight
-    | NoFloat
 
 
-type alias BorderModel =
-    { color : Maybe String
-    , width : Maybe String
-    , radius : Maybe String
-    , style : Maybe String
-    }
+type BorderElement
+    = BorderElement String String
 
 
-emptyBorder : BorderModel
-emptyBorder =
-    { color = Nothing
-    , width = Nothing
-    , radius = Nothing
-    , style = Nothing
-    }
-
-
-type alias BoxModel =
-    { padding : Maybe String
-    , width : Maybe String
-    , height : Maybe String
-    , minHeight : Maybe String
-    , maxHeight : Maybe String
-    , minWidth : Maybe String
-    , maxWidth : Maybe String
-    }
-
-
-emptyBox : BoxModel
-emptyBox =
-    { padding = Nothing
-    , width = Nothing
-    , height = Nothing
-    , minHeight = Nothing
-    , maxHeight = Nothing
-    , minWidth = Nothing
-    , maxWidth = Nothing
-    }
+type BoxElement
+    = BoxProp String String
 
 
 type FontModel
@@ -262,6 +221,12 @@ type Filter
     | Opacity Float
     | Saturate Float
     | Sepia Float
+    | DropShadow
+        { offset : ( Float, Float )
+        , size : Float
+        , blur : Float
+        , color : Color
+        }
 
 
 type Transformation

@@ -1,6 +1,9 @@
-module Style.Transform exposing (..)
+module Style.Transform exposing (rotate, translate, scale)
 
 {-|
+
+@docs rotate, translate, scale
+
 -}
 
 import Style exposing (Transform)
