@@ -2,123 +2,60 @@ module Style.Background exposing (..)
 
 {-| -}
 
-import Style.Internal.Model as Internal exposing (Property)
+import Style.Internal.Model as Internal
+import Style.Internal.Render as Render
 import Color exposing (Color)
-
-
-type alias Background =
-    Internal.BackgroundModel
-
-
-background : (Background -> Background) -> Property class variation animation
-background update =
-    Internal.Background <| update Internal.emptyBackground
+import Style exposing (Background, Repeat)
 
 
 {-| -}
-color : Color -> Background -> Background
-color bgColor bg =
-    { bg | color = Just bgColor }
+color : Color -> Background
+color bgColor =
+    Internal.BackgroundElement "background-color" (Render.color bgColor)
 
 
 {-| -}
-image : String -> Background -> Background
-image src bg =
-    let
-        existing =
-            Maybe.withDefault Internal.emptyImage bg.image
-
-        newImage =
-            { existing | src = src }
-    in
-        { bg | image = Just newImage }
-
-
-position : Float -> Float -> Background -> Background
-position x y bg =
-    let
-        existing =
-            Maybe.withDefault Internal.emptyImage bg.image
-
-        newImage =
-            { existing | position = ( x, y ) }
-    in
-        { bg | image = Just newImage }
+image :
+    { src : String
+    , position : ( Float, Float )
+    , repeat : Repeat
+    }
+    -> Background
+image =
+    Internal.BackgroundImage
 
 
 {-| -}
-repeatX : Background -> Background
-repeatX bg =
-    let
-        existing =
-            Maybe.withDefault Internal.emptyImage bg.image
-
-        newImage =
-            { existing | repeat = Internal.RepeatX }
-    in
-        { bg | image = Just newImage }
+repeatX : Repeat
+repeatX =
+    Internal.RepeatX
 
 
 {-| -}
-repeatY : Background -> Background
-repeatY bg =
-    let
-        existing =
-            Maybe.withDefault Internal.emptyImage bg.image
-
-        newImage =
-            { existing | repeat = Internal.RepeatY }
-    in
-        { bg | image = Just newImage }
+repeatY : Repeat
+repeatY =
+    Internal.RepeatY
 
 
 {-| -}
-repeat : Background -> Background
-repeat bg =
-    let
-        existing =
-            Maybe.withDefault Internal.emptyImage bg.image
-
-        newImage =
-            { existing | repeat = Internal.Repeat }
-    in
-        { bg | image = Just newImage }
+repeat : Repeat
+repeat =
+    Internal.Repeat
 
 
 {-| -}
-space : Background -> Background
-space bg =
-    let
-        existing =
-            Maybe.withDefault Internal.emptyImage bg.image
-
-        newImage =
-            { existing | repeat = Internal.Space }
-    in
-        { bg | image = Just newImage }
+space : Repeat
+space =
+    Internal.Space
 
 
 {-| -}
-round : Background -> Background
-round bg =
-    let
-        existing =
-            Maybe.withDefault Internal.emptyImage bg.image
-
-        newImage =
-            { existing | repeat = Internal.Round }
-    in
-        { bg | image = Just newImage }
+round : Repeat
+round =
+    Internal.Round
 
 
 {-| -}
-noRepeat : Background -> Background
-noRepeat bg =
-    let
-        existing =
-            Maybe.withDefault Internal.emptyImage bg.image
-
-        newImage =
-            { existing | repeat = Internal.NoRepeat }
-    in
-        { bg | image = Just newImage }
+noRepeat : Repeat
+noRepeat =
+    Internal.NoRepeat

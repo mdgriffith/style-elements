@@ -2,6 +2,9 @@ module Style
     exposing
         ( Style
         , Property
+        , Font
+        , Background
+        , Repeat
         , Shadow
         , Transform
         , Filter
@@ -44,13 +47,15 @@ module Style
 
 @docs Filter, filters
 
+@docs Font
+
+@docs Background, Repeat
+
 
 -}
 
 import Style.Internal.Model as Internal
 import Style.Internal.Render as Render
-import Style.Border exposing (Border)
-import Style.Position exposing (Position)
 
 
 {-| -}
@@ -63,8 +68,44 @@ type alias Property class variation animation =
     Internal.Property class variation animation
 
 
+{-| -}
 type alias Length =
     Internal.Length
+
+
+{-| -}
+type alias Border =
+    Internal.BorderElement
+
+
+{-| -}
+type alias Box =
+    Internal.BoxElement
+
+
+{-| -}
+type alias Position =
+    Internal.PositionElement
+
+
+{-| -}
+type alias Font =
+    Internal.FontElement
+
+
+{-| -}
+type alias Background =
+    Internal.BackgroundElement
+
+
+{-| -}
+type alias Repeat =
+    Internal.Repeat
+
+
+{-| -}
+type alias Transform =
+    Internal.Transformation
 
 
 {-| -}
@@ -92,67 +133,63 @@ prop =
 
 
 {-| -}
-border : (Border -> Border) -> Property class variation animation
-border update =
-    Internal.Border (update [ Internal.BorderElement "border-style" "solid" ])
+border : List Border -> Property class variation animation
+border =
+    Internal.Border
 
 
 {-| -}
-position : (Position -> Position) -> Property class variation animation
-position update =
-    Internal.Position (update [])
-
-
-type alias Box =
-    List Internal.BoxElement
+position : List Position -> Property class variation animation
+position =
+    Internal.Position
 
 
 {-| -}
-box : (Box -> Box) -> Property class variation animation
-box update =
-    Internal.Box (update [])
+box : List Box -> Property class variation animation
+box =
+    Internal.Box
 
 
 {-| -}
-width : Length -> Box -> Box
-width len box =
-    Internal.BoxProp "width" (Render.length len) :: box
+width : Length -> Box
+width len =
+    Internal.BoxProp "width" (Render.length len)
 
 
 {-| -}
-minWidth : Length -> Box -> Box
-minWidth len box =
-    Internal.BoxProp "min-width" (Render.length len) :: box
+minWidth : Length -> Box
+minWidth len =
+    Internal.BoxProp "min-width" (Render.length len)
 
 
 {-| -}
-maxWidth : Length -> Box -> Box
-maxWidth len box =
-    Internal.BoxProp "max-width" (Render.length len) :: box
+maxWidth : Length -> Box
+maxWidth len =
+    Internal.BoxProp "max-width" (Render.length len)
 
 
 {-| -}
-height : Length -> Box -> Box
-height len box =
-    Internal.BoxProp "height" (Render.length len) :: box
+height : Length -> Box
+height len =
+    Internal.BoxProp "height" (Render.length len)
 
 
 {-| -}
-minHeight : Length -> Box -> Box
-minHeight len box =
-    Internal.BoxProp "min-height" (Render.length len) :: box
+minHeight : Length -> Box
+minHeight len =
+    Internal.BoxProp "min-height" (Render.length len)
 
 
 {-| -}
-maxHeight : Length -> Box -> Box
-maxHeight len box =
-    Internal.BoxProp "max-height" (Render.length len) :: box
+maxHeight : Length -> Box
+maxHeight len =
+    Internal.BoxProp "max-height" (Render.length len)
 
 
 {-| -}
-padding : ( Float, Float, Float, Float ) -> Box -> Box
-padding pad box =
-    Internal.BoxProp "padding" (Render.box pad) :: box
+padding : ( Float, Float, Float, Float ) -> Box
+padding pad =
+    Internal.BoxProp "padding" (Render.box pad)
 
 
 {-| -}
@@ -167,49 +204,20 @@ shadows update =
 
 
 {-| -}
-type alias Transform =
-    List Internal.Transformation
-
-
-{-| -}
-transform : (Transform -> Transform) -> Property class variation animation
-transform update =
-    Internal.Transform (update [])
+transform : List Transform -> Property class variation animation
+transform =
+    Internal.Transform
 
 
 {-| -}
 type alias Filter =
-    List Internal.Filter
+    Internal.Filter
 
 
 {-| -}
-filters : (Filter -> Filter) -> Property class variation animation
-filters update =
-    Internal.Filters (update [])
-
-
-{-| This is not a fancy operator.
-
-This is a synonym for `<|`.  If `<|` was used instead, `elm-format` would make your styles look weird.
-
--}
-(|^) : (a -> b) -> a -> b
-(|^) =
-    (<|)
-infixr 0 |^
-
-
-{-| This is not a fancy operator.
-
-This is just a synonym for `>>`, but with an adjusted infix priority so that it plays nicely with `|^`.
-
-I highly recommending only using this when dealing with this library, it's not meant as a general operator.
-
--}
-(|-) : (a -> b) -> (b -> c) -> (a -> c)
-(|-) =
-    (>>)
-infixl 1 |-
+filters : List Filter -> Property class variation animation
+filters =
+    Internal.Filters
 
 
 

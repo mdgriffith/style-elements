@@ -14,19 +14,19 @@ import Style.Internal.Model as Internal
 
 Use `degrees` or `turns` from the standard library if you want to use a different set of units.
 -}
-rotate : Float -> Float -> Float -> Transform -> Transform
-rotate x y z transforms =
-    (Internal.Rotate x y z) :: transforms
+rotate : Float -> Float -> Float -> Transform
+rotate x y z =
+    Internal.Rotate x y z
 
 
 {-| Units are always as pixels
 -}
-translate : Float -> Float -> Float -> Transform -> Transform
-translate x y z transforms =
-    (Internal.Translate x y z) :: transforms
+translate : Float -> Float -> Float -> Transform
+translate x y z =
+    Internal.Translate x y z
 
 
 {-| -}
-scale : Float -> Float -> Float -> Transform -> Transform
-scale x y z transforms =
-    (Internal.Scale x y z) :: transforms
+scale : Float -> Float -> Float -> Transform
+scale x y z =
+    Internal.Scale x y z

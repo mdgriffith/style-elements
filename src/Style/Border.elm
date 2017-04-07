@@ -4,44 +4,41 @@ module Style.Border exposing (..)
 
 import Style.Internal.Model as Internal exposing (Property(..))
 import Style.Internal.Render as Render
+import Style exposing (Border)
 import Color exposing (Color)
 
 
-type alias Border =
-    List Internal.BorderElement
-
-
 {-| -}
-color : Color -> Border -> Border
+color : Color -> Border
 color borderColor border =
-    Internal.BorderElement "border-color" (Render.color borderColor) :: border
+    Internal.BorderElement "border-color" (Render.color borderColor)
 
 
 {-| -}
-width : ( Float, Float, Float, Float ) -> Border -> Border
-width box border =
-    Internal.BorderElement "border-width" (Render.box box) :: border
+width : ( Float, Float, Float, Float ) -> Border
+width box =
+    Internal.BorderElement "border-width" (Render.box box)
 
 
 {-| -}
-radius : ( Float, Float, Float, Float ) -> Border -> Border
-radius box border =
-    Internal.BorderElement "border-radius" (Render.box box) :: border
+radius : ( Float, Float, Float, Float ) -> Border
+radius box =
+    Internal.BorderElement "border-radius" (Render.box box)
 
 
 {-| -}
-solid : Border -> Border
-solid border =
-    Internal.BorderElement "border-style" "solid" :: border
+solid : Border
+solid =
+    Internal.BorderElement "border-style" "solid"
 
 
 {-| -}
-dashed : Border -> Border
-dashed border =
-    Internal.BorderElement "border-style" "dashed" :: border
+dashed : Border
+dashed =
+    Internal.BorderElement "border-style" "dashed"
 
 
 {-| -}
-dotted : Border -> Border
-dotted border =
-    Internal.BorderElement "border-style" "dotted" :: border
+dotted : Border
+dotted =
+    Internal.BorderElement "border-style" "dotted"

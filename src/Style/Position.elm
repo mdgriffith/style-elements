@@ -3,85 +3,82 @@ module Style.Position exposing (..)
 {-| -}
 
 import Style.Internal.Model as Internal exposing (Property, PositionElement(..), PositionParent(..), Floating(..))
-
-
-type alias Position =
-    List Internal.PositionElement
+import Style exposing (Position)
 
 
 {-| -}
-screen : Position -> Position
-screen pos =
-    RelativeTo Screen :: pos
+screen : Position
+screen =
+    RelativeTo Screen
 
 
 {-| -}
-parent : Position -> Position
-parent pos =
-    RelativeTo Parent :: pos
+parent : Position
+parent =
+    RelativeTo Parent
 
 
 {-| -}
-relative : Position -> Position
-relative pos =
-    RelativeTo Current :: pos
+relative : Position
+relative =
+    RelativeTo Current
 
 
 {-| -}
-zIndex : Int -> Position -> Position
-zIndex i pos =
-    ZIndex i :: pos
+zIndex : Int -> Position
+zIndex i =
+    ZIndex i
 
 
 {-| -}
-left : Float -> Position -> Position
-left i pos =
-    PosLeft i :: pos
+left : Float -> Position
+left i =
+    PosLeft i
 
 
 {-| -}
-right : Float -> Position -> Position
-right i pos =
-    PosRight i :: pos
+right : Float -> Position
+right i =
+    PosRight i
 
 
 {-| -}
-top : Float -> Position -> Position
-top i pos =
-    PosTop i :: pos
+top : Float -> Position
+top i =
+    PosTop i
 
 
 {-| -}
-bottom : Float -> Position -> Position
-bottom i pos =
-    PosBottom i :: pos
+bottom : Float -> Position
+bottom i =
+    PosBottom i
 
 
 {-| -}
-inline : Position -> Position
-inline pos =
-    Inline :: pos
+inline : Position
+inline =
+    Inline
 
 
 {-| -}
-floatLeft : Position -> Position
-floatLeft pos =
-    Internal.Float FloatLeft :: pos
+floatLeft : Position
+floatLeft =
+    Internal.Float FloatLeft
 
 
 {-| -}
-floatRight : Position -> Position
-floatRight pos =
-    Internal.Float FloatRight :: pos
+floatRight : Position
+floatRight =
+    Internal.Float FloatRight
 
 
 {-| -}
-floatTopRight : Position -> Position
-floatTopRight pos =
-    Internal.Float FloatTopRight :: pos
+floatTopRight : Position
+floatTopRight =
+    Internal.Float FloatTopRight
 
 
 {-| -}
-floatTopLeft : Position -> Position
-floatTopLeft pos =
-    Internal.Float FloatTopLeft :: pos
+floatTopLeft : Position
+floatTopLeft =
+    Internal.Float FloatTopLeft

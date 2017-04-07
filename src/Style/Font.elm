@@ -42,174 +42,145 @@ class FontExample
 
 -}
 
-import Style.Internal.Model as Internal exposing (Property, FontModel(..))
-import Style.Internal.Render as Render
+import Style.Internal.Model as Internal
+import Style exposing (Font)
 import Color exposing (Color)
 import String
 
 
-type alias Font =
-    Internal.FontModel
-
-
-{-| -}
-font : { stack : List String, size : Float, lineHeight : Float } -> Font
-font given =
-    Internal.emptyFont
-        |> stack given.stack
-        |> size given.size
-        |> height given.lineHeight
-
-
-{-| -}
-current : (Font -> Font) -> Property class variation animation
-current update =
-    Internal.Font (update Internal.emptyFont)
-
-
-{-| -}
-named : Font -> (Font -> Font) -> Property class variation animation
-named font update =
-    Internal.Font (update font)
-
-
-{-| -}
-only : Font -> Property class variation animation
-only font =
-    Internal.Font font
-
-
 {-|
 -}
-stack : List String -> Font -> Font
-stack families (FontModel font) =
-    Internal.FontModel { font | stack = Just families }
+stack : List String -> Font
+stack families =
+    families
+        |> List.map (\fam -> "\"" ++ fam ++ "\"")
+        |> \fams -> Internal.FontElement "font-family" (String.join ", " fams)
 
 
 {-| Set font-size.  Only px allowed.
 -}
-size : Float -> Font -> Font
-size size (FontModel font) =
-    Internal.FontModel { font | size = Just size }
+size : Float -> Font
+size size =
+    Internal.FontElement "size" "size"
 
 
 {-| -}
-color : Color -> Font -> Font
-color fontColor (FontModel font) =
-    Internal.FontModel { font | color = Just fontColor }
+color : Color -> Font
+color fontColor =
+    Internal.FontElement "color" "fontColor"
 
 
 {-| Given as unitless lineheight.
 -}
-height : Float -> Font -> Font
-height height (FontModel font) =
-    Internal.FontModel { font | height = Just height }
+height : Float -> Font
+height height =
+    Internal.FontElement "height" "height"
 
 
 {-| -}
-letterSpacing : Float -> Font -> Font
-letterSpacing offset (FontModel font) =
-    Internal.FontModel { font | letterSpacing = Just offset }
+letterSpacing : Float -> Font
+letterSpacing offset =
+    Internal.FontElement "letterSpacing" "offset"
 
 
 {-| -}
-wordSpacing : Float -> Font -> Font
-wordSpacing offset (FontModel font) =
-    Internal.FontModel { font | wordSpacing = Just offset }
+wordSpacing : Float -> Font
+wordSpacing offset =
+    Internal.FontElement "wordSpacing" "offset"
 
 
 {-| -}
-left : Font -> Font
-left (FontModel font) =
-    Internal.FontModel { font | align = Just "left" }
+left : Font
+left =
+    Internal.FontElement "align" "left"
 
 
 {-| -}
-right : Font -> Font
-right (FontModel font) =
-    Internal.FontModel { font | align = Just "right" }
+right : Font
+right =
+    Internal.FontElement "align" "right"
 
 
 {-| -}
-center : Font -> Font
-center (FontModel font) =
-    Internal.FontModel { font | align = Just "center" }
+center : Font
+center =
+    Internal.FontElement "align" "center"
 
 
 {-| -}
-justify : Font -> Font
-justify (FontModel font) =
-    Internal.FontModel { font | align = Just "jusitfy" }
+justify : Font
+justify =
+    Internal.FontElement "align" "jusitfy"
 
 
 {-| -}
-justifyAll : Font -> Font
-justifyAll (FontModel font) =
-    Internal.FontModel { font | align = Just "justifyAll" }
+justifyAll : Font
+justifyAll =
+    Internal.FontElement "align" "justifyAll"
 
 
 {-| Renders as "white-space:normal", which is the standard wrapping behavior you're probably used to.
 -}
-wrap : Font -> Font
-wrap (FontModel font) =
-    Internal.FontModel { font | whitespace = Just "normal" }
+wrap : Font
+wrap =
+    Internal.FontElement "whitespace" "normal"
 
 
 {-| -}
-pre : Font -> Font
-pre (FontModel font) =
-    Internal.FontModel { font | whitespace = Just "pre" }
+pre : Font
+pre =
+    Internal.FontElement "whitespace" "pre"
 
 
 {-| -}
-preWrap : Font -> Font
-preWrap (FontModel font) =
-    Internal.FontModel { font | whitespace = Just "pre-wrap" }
+preWrap : Font
+preWrap =
+    Internal.FontElement "whitespace" "pre-wrap"
 
 
 {-| -}
-preLine : Font -> Font
-preLine (FontModel font) =
-    Internal.FontModel { font | whitespace = Just "pre-line" }
+preLine : Font
+preLine =
+    Internal.FontElement "whitespace" "pre-line"
 
 
 {-| -}
-noWrap : Font -> Font
-noWrap (FontModel font) =
-    Internal.FontModel { font | whitespace = Just "nowrap" }
+noWrap : Font
+noWrap =
+    Internal.FontElement "whitespace" "nowrap"
 
 
 {-| -}
-underline : Font -> Font
-underline (FontModel font) =
-    Internal.FontModel { font | decoration = Just "underline" }
+underline : Font
+underline =
+    Internal.FontElement "decoration" "underline"
 
 
 {-| -}
-strike : Font -> Font
-strike (FontModel font) =
-    Internal.FontModel { font | decoration = Just "underline" }
+strike : Font
+strike =
+    Internal.FontElement "decoration" "underline"
 
 
 {-| -}
-italicize : Font -> Font
-italicize (FontModel font) =
-    Internal.FontModel { font | style = Just "italics" }
+italicize : Font
+italicize =
+    Internal.FontElement "style" "italics"
 
 
 {-| -}
-bold : Font -> Font
-bold (FontModel font) =
-    Internal.FontModel { font | weight = Just "700" }
+bold : Font
+bold =
+    Internal.FontElement "weight" "700"
 
 
 {-| -}
-light : Font -> Font
-light (FontModel font) =
-    Internal.FontModel { font | weight = Just "300" }
+light : Font
+light =
+    Internal.FontElement "weight" "300"
 
 
 {-| -}
-weight : Int -> Font -> Font
-weight fontWeight (FontModel font) =
-    Internal.FontModel { font | weight = Just <| toString fontWeight }
+weight : Int -> Font
+weight fontWeight =
+    Internal.FontElement "weight" (toString fontWeight)

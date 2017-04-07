@@ -150,16 +150,16 @@ renderProp parentClass prop =
             ( [], [ ( name, val ) ] )
 
         Border props ->
-            ( [], borderProps props )
+            ( [], List.map borderProp props )
 
         Box props ->
-            ( [], boxProps props )
+            ( [], List.map boxProp props )
 
         Position pos ->
             ( [], position pos )
 
         Font props ->
-            ( [], [] )
+            ( [], List.map fontProp props )
 
         Layout lay ->
             ( layoutSpacing parentClass lay
@@ -167,13 +167,13 @@ renderProp parentClass prop =
             )
 
         Background props ->
-            ( [], [] )
+            ( [], background props )
 
         Shadows shadows ->
-            ( [], [] )
+            ( [], renderShadow shadows )
 
-        Transform transforms ->
-            ( [], [] )
+        Transform transformations ->
+            ( [], renderTransformations transformations )
 
         Filters filters ->
             ( [], renderFilters filters )
@@ -194,16 +194,19 @@ cssProp ( propName, propValue ) =
     "  " ++ propName ++ ": " ++ propValue ++ ";"
 
 
-boxProps : List BoxElement -> List ( String, String )
-boxProps elements =
-    List.map (\(BoxProp name val) -> ( name, val )) elements
-        |> List.reverse
+boxProp : BoxElement -> ( String, String )
+boxProp (BoxProp name val) =
+    ( name, val )
 
 
-borderProps : List BorderElement -> List ( String, String )
-borderProps elements =
-    List.map (\(BorderElement name val) -> ( name, val )) elements
-        |> List.reverse
+borderProp : BorderElement -> ( String, String )
+borderProp (BorderElement name val) =
+    ( name, val )
+
+
+fontProp : FontElement -> ( String, String )
+fontProp (FontElement name val) =
+    ( name, val )
 
 
 renderFilters : List Filter -> List ( String, String )
@@ -242,9 +245,17 @@ renderFilters filters =
                     "sepia(" ++ toString x ++ "%)"
 
                 DropShadow shadow ->
-                    Debug.crash "TODO"
-
-        -- "drop-shadow(" ++ shadowValue shadow ++ ")"
+                    let
+                        shadowModel =
+                            ShadowModel
+                                { kind = "drop"
+                                , offset = shadow.offset
+                                , size = shadow.size
+                                , blur = shadow.blur
+                                , color = shadow.color
+                                }
+                    in
+                        "drop-shadow(" ++ shadowValue shadowModel ++ ")"
     in
         if List.length filters == 0 then
             []
@@ -254,24 +265,104 @@ renderFilters filters =
             ]
 
 
+renderShadow : List ShadowModel -> List ( String, String )
+renderShadow shadows =
+    let
+        ( text, box ) =
+            List.partition (\(ShadowModel s) -> s.kind == "text") shadows
 
--- shadowValue : Shadow -> String
--- shadowValue (Shadow shadow) =
---     String.join " "
---         [ if shadow.kind == "inset" then
---             "inset"
---           else
---             ""
---         , toString (Tuple.first shadow.offset) ++ "px"
---         , toString (Tuple.second shadow.offset) ++ "px"
---         , toString shadow.blur ++ "px"
---         , (if shadow.kind == "text" || shadow.kind == "drop" then
---             ""
---            else
---             toString shadow.size ++ "px"
---           )
---         , color shadow.color
---         ]
+        renderedBox =
+            String.join ", " (List.map shadowValue box)
+
+        renderedText =
+            String.join ", " (List.map shadowValue text)
+    in
+        List.filterMap identity
+            [ if renderedBox == "" then
+                Nothing
+              else
+                Just ("box-shadow" => renderedBox)
+            , if renderedText == "" then
+                Nothing
+              else
+                Just ("text-shadow" => renderedText)
+            ]
+
+
+shadowValue : ShadowModel -> String
+shadowValue (ShadowModel shadow) =
+    String.join " "
+        [ if shadow.kind == "inset" then
+            "inset"
+          else
+            ""
+        , toString (Tuple.first shadow.offset) ++ "px"
+        , toString (Tuple.second shadow.offset) ++ "px"
+        , toString shadow.blur ++ "px"
+        , (if shadow.kind == "text" || shadow.kind == "drop" then
+            ""
+           else
+            toString shadow.size ++ "px"
+          )
+        , color shadow.color
+        ]
+
+
+renderTransformations : List Transformation -> List ( String, String )
+renderTransformations transforms =
+    let
+        transformToString transform =
+            case transform of
+                Translate x y z ->
+                    ("translate3d(" ++ toString x ++ "px, " ++ toString y ++ "px, " ++ toString z ++ "px)")
+
+                Rotate x y z ->
+                    ("rotateX(" ++ toString x ++ "rad) rotateY(" ++ toString y ++ "rad) rotateZ(" ++ toString z ++ "rad)")
+
+                Scale x y z ->
+                    ("scale3d(" ++ toString x ++ ", " ++ toString y ++ ", " ++ toString z ++ ")")
+    in
+        if List.length transforms == 0 then
+            []
+        else
+            [ "transform"
+                => (String.join " " (List.map transformToString transforms))
+            ]
+
+
+background : List BackgroundElement -> List ( String, String )
+background props =
+    let
+        bgElement bg =
+            case bg of
+                BackgroundElement name val ->
+                    [ ( name, val ) ]
+
+                BackgroundImage { src, position, repeat } ->
+                    [ "background-image" => src
+                    , "background-repeat"
+                        => case repeat of
+                            RepeatX ->
+                                "repeat-x"
+
+                            RepeatY ->
+                                "repeat-y"
+
+                            Repeat ->
+                                "repeat"
+
+                            Space ->
+                                "space"
+
+                            Round ->
+                                "round"
+
+                            NoRepeat ->
+                                "no-repeat"
+                    , "background-position" => (toString (Tuple.first position) ++ "px " ++ toString (Tuple.second position) ++ "px")
+                    ]
+    in
+        List.concatMap bgElement props
 
 
 position : List PositionElement -> List ( String, String )
@@ -337,16 +428,20 @@ layoutSpacing parent layout =
                         [ ( "margin", toString space ++ "px" ) ]
                     ]
 
-        Internal.FlexLayout (Internal.FlexBox { spacing }) ->
-            case spacing of
-                Nothing ->
-                    []
+        Internal.FlexLayout _ props ->
+            let
+                spacing prop =
+                    case prop of
+                        Spacing spaced ->
+                            Just <|
+                                Intermediate
+                                    (parent ++ " > *:not(.nospacing)")
+                                    [ ( "margin", box spaced ) ]
 
-                Just space ->
-                    [ Intermediate
-                        (parent ++ " > *:not(.nospacing)")
-                        [ ( "margin", toString space ++ "px" ) ]
-                    ]
+                        _ ->
+                            Nothing
+            in
+                List.filterMap spacing props
 
 
 {-| -}
@@ -356,25 +451,40 @@ layout lay =
         Internal.TextLayout _ ->
             [ "display" => "block" ]
 
-        Internal.FlexLayout (Internal.FlexBox { go, wrap, horizontal, vertical, spacing }) ->
-            [ "display" => "flex"
-            , case go of
-                GoRight ->
-                    "flex-direction" => "row"
+        Internal.FlexLayout direction flexProps ->
+            ("display" => "flex") :: renderDirection direction :: List.map (renderFlexbox direction) flexProps
 
-                GoLeft ->
-                    "flex-direction" => "row-reverse"
 
-                Down ->
-                    "flex-direction" => "column"
+renderDirection : Direction -> ( String, String )
+renderDirection dir =
+    case dir of
+        GoRight ->
+            "flex-direction" => "row"
 
-                Up ->
-                    "flex-direction" => "column-reverse"
-            , if wrap then
+        GoLeft ->
+            "flex-direction" => "row-reverse"
+
+        Down ->
+            "flex-direction" => "column"
+
+        Up ->
+            "flex-direction" => "column-reverse"
+
+
+renderFlexbox : Direction -> FlexBoxElement -> ( String, String )
+renderFlexbox dir el =
+    case el of
+        Wrap wrap ->
+            if wrap then
                 "flex-wrap" => "wrap"
-              else
+            else
                 "flex-wrap" => "nowrap"
-            , case go of
+
+        Spacing _ ->
+            ( "", "" )
+
+        Horz horizontal ->
+            case dir of
                 GoRight ->
                     case horizontal of
                         Other Left ->
@@ -442,7 +552,9 @@ layout lay =
 
                         JustifyAll ->
                             "align-items" => "Justify"
-            , case go of
+
+        Vert vertical ->
+            case dir of
                 GoRight ->
                     case vertical of
                         Other Top ->
@@ -510,10 +622,10 @@ layout lay =
 
                         JustifyAll ->
                             "align-items" => "Justify"
-            ]
 
 
 
+-- ]
 --import Style.Model exposing (..)
 --import Murmur3
 --import String.Extra

@@ -72,9 +72,9 @@ type Property class variation animation
     | Border (List BorderElement)
     | Box (List BoxElement)
     | Position (List PositionElement)
-    | Font FontModel
+    | Font (List FontElement)
     | Layout LayoutModel
-    | Background BackgroundModel
+    | Background (List BackgroundElement)
     | Shadows (List ShadowModel)
     | Transform (List Transformation)
     | Filters (List Filter)
@@ -112,91 +112,29 @@ type BoxElement
     = BoxProp String String
 
 
-type FontModel
-    = FontModel
-        { stack : Maybe (List String)
-        , size : Maybe Float
-        , height : Maybe Float
-        , color : Maybe Color
-        , letterSpacing : Maybe Float
-        , wordSpacing : Maybe Float
-        , align : Maybe String
-        , whitespace : Maybe String
-        , decoration : Maybe String
-        , style : Maybe String
-        , weight : Maybe String
-        }
-
-
-emptyFont : FontModel
-emptyFont =
-    FontModel
-        { stack = Nothing
-        , size = Nothing
-        , height = Nothing
-        , color = Nothing
-        , letterSpacing = Nothing
-        , wordSpacing = Nothing
-        , align = Nothing
-        , whitespace = Nothing
-        , decoration = Nothing
-        , style = Nothing
-        , weight = Nothing
-        }
+type FontElement
+    = FontElement String String
 
 
 type LayoutModel
-    = TextLayout { spacing : Maybe Int }
-    | FlexLayout FlexBox
+    = TextLayout { spacing : Maybe ( Float, Float, Float, Float ) }
+    | FlexLayout Direction (List FlexBoxElement)
 
 
-type FlexBox
-    = FlexBox
-        { go : Direction
-        , wrap : Bool
-        , horizontal : Centerable Horizontal
-        , vertical : Centerable Vertical
-        , spacing : Maybe Int
+type FlexBoxElement
+    = Wrap Bool
+    | Horz (Centerable Horizontal)
+    | Vert (Centerable Vertical)
+    | Spacing ( Float, Float, Float, Float )
+
+
+type BackgroundElement
+    = BackgroundImage
+        { src : String
+        , position : ( Float, Float )
+        , repeat : Repeat
         }
-
-
-emptyFlexBox : FlexBox
-emptyFlexBox =
-    FlexBox
-        { go = GoRight
-        , wrap = False
-        , horizontal = Other Left
-        , vertical = Other Top
-        , spacing = Nothing
-        }
-
-
-type alias BackgroundModel =
-    { image : Maybe Image
-    , color : Maybe Color
-    }
-
-
-emptyBackground : BackgroundModel
-emptyBackground =
-    { image = Nothing
-    , color = Nothing
-    }
-
-
-type alias Image =
-    { src : String
-    , position : ( Float, Float )
-    , repeat : Repeat
-    }
-
-
-emptyImage : Image
-emptyImage =
-    { src = ""
-    , position = ( 0, 0 )
-    , repeat = NoRepeat
-    }
+    | BackgroundElement String String
 
 
 type ShadowModel
