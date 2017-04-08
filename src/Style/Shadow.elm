@@ -39,17 +39,14 @@ box :
     , color : Color
     }
     -> Shadow
-    -> Shadow
-box { offset, size, blur, color } shadows =
-    (Internal.ShadowModel
+box { offset, size, blur, color } =
+    Internal.ShadowModel
         { kind = "box"
         , offset = offset
         , size = size
         , blur = blur
         , color = color
         }
-    )
-        :: shadows
 
 
 {-| -}
@@ -60,17 +57,14 @@ inset :
     , color : Color
     }
     -> Shadow
-    -> Shadow
-inset { offset, blur, color, size } shadows =
-    (Internal.ShadowModel
+inset { offset, blur, color, size } =
+    Internal.ShadowModel
         { kind = "inset"
         , offset = offset
         , size = size
         , blur = blur
         , color = color
         }
-    )
-        :: shadows
 
 
 {-| -}
@@ -80,17 +74,14 @@ text :
     , color : Color
     }
     -> Shadow
-    -> Shadow
-text { offset, blur, color } shadows =
-    (Internal.ShadowModel
+text { offset, blur, color } =
+    Internal.ShadowModel
         { kind = "text"
         , offset = offset
         , size = 0
         , blur = blur
         , color = color
         }
-    )
-        :: shadows
 
 
 {-|
@@ -101,14 +92,11 @@ drop :
     , color : Color
     }
     -> Shadow
-    -> Shadow
-drop { offset, blur, color } shadows =
-    (Internal.ShadowModel
+drop { offset, blur, color } =
+    Internal.ShadowModel
         { kind = "drop"
         , offset = offset
         , size = 0
         , blur = blur
         , color = color
         }
-    )
-        :: shadows

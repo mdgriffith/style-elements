@@ -49,9 +49,9 @@ invert x =
 
 
 {-| -}
-opacityFilter : Float -> Filter
-opacityFilter x =
-    Internal.Opacity x
+opacity : Float -> Filter
+opacity x =
+    Internal.OpacityFilter x
 
 
 {-| -}
