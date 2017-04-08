@@ -9,6 +9,17 @@ module Style
         , Shadow
         , Transform
         , Filter
+        , FlexBox
+        , block
+        , blockSpaced
+        , row
+        , rowSpaced
+        , column
+        , columnSpaced
+        , flowRight
+        , flowDown
+        , flowUp
+        , flowLeft
         , style
         , variation
         , child
@@ -48,6 +59,8 @@ module Style
 
 @docs position
 
+@docs block, blockSpaced, row, rowSpaced, column, columnSpaced,  FlexBox, flowRight, flowDown, flowUp, flowLeft
+
 @docs Border, border
 
 @docs box, px, auto, percent, width, maxWidth, minWidth, height, maxHeight, minHeight
@@ -63,6 +76,9 @@ module Style
 @docs Background, Repeat
 
 @docs all, top, left, right, bottom
+
+
+
 
 -}
 
@@ -83,6 +99,11 @@ type alias Property class variation animation =
 {-| -}
 type alias Length =
     Internal.Length
+
+
+{-| -}
+type alias FlexBox =
+    Internal.FlexBoxElement
 
 
 {-| -}
@@ -226,6 +247,89 @@ maxHeight len =
 padding : ( Float, Float, Float, Float ) -> Box
 padding pad =
     Internal.BoxProp "padding" (Render.box pad)
+
+
+{-| This is the familiar block layout.
+
+It's called `text` because this layout should generally only be used for doing text layouts.
+
+__Note:__ It's the only layout that allows for child elements to use `Position.float` or `Position.inline`.
+
+-}
+block : Property class variation animation
+block =
+    Internal.Layout <|
+        Internal.TextLayout { spacing = Nothing }
+
+
+{-| Same as `Layout.text`, but sets margin on all children.
+
+-}
+blockSpaced : ( Float, Float, Float, Float ) -> Property class variation animation
+blockSpaced space =
+    Internal.Layout <|
+        Internal.TextLayout { spacing = (Just space) }
+
+
+{-| -}
+row : Property class variation animation
+row =
+    Internal.Layout <|
+        Internal.FlexLayout Internal.GoRight []
+
+
+{-| -}
+rowSpaced : ( Float, Float, Float, Float ) -> Property class variation animation
+rowSpaced i =
+    Internal.Layout <|
+        Internal.FlexLayout Internal.GoRight
+            [ Internal.Spacing i
+            ]
+
+
+{-| -}
+column : Property class variation animation
+column =
+    Internal.Layout <|
+        Internal.FlexLayout Internal.Down
+            []
+
+
+{-| -}
+columnSpaced : ( Float, Float, Float, Float ) -> Property class variation animation
+columnSpaced i =
+    Internal.Layout <|
+        Internal.FlexLayout Internal.Down
+            [ Internal.Spacing i
+            ]
+
+
+{-| -}
+flowRight : List FlexBox -> Property class variation animation
+flowRight flexbox =
+    Internal.FlexLayout Internal.GoRight flexbox
+        |> Internal.Layout
+
+
+{-| -}
+flowLeft : List FlexBox -> Property class variation animation
+flowLeft flexbox =
+    Internal.FlexLayout Internal.GoLeft flexbox
+        |> Internal.Layout
+
+
+{-| -}
+flowDown : List FlexBox -> Property class variation animation
+flowDown flexbox =
+    Internal.FlexLayout Internal.Down flexbox
+        |> Internal.Layout
+
+
+{-| -}
+flowUp : List FlexBox -> Property class variation animation
+flowUp flexbox =
+    Internal.FlexLayout Internal.Up flexbox
+        |> Internal.Layout
 
 
 {-| -}

@@ -5,93 +5,7 @@ module Style.Layout exposing (..)
 -}
 
 import Style.Internal.Model as Internal exposing (Property, Centerable(..), Vertical(..), Horizontal(..))
-
-
-type alias FlexBox =
-    Internal.FlexBoxElement
-
-
-{-| This is the familiar block layout.
-
-It's called `text` because this layout should generally only be used for doing text layouts.
-
-__Note:__ It's the only layout that allows for child elements to use `Position.float` or `Position.inline`.
-
--}
-text : Property class variation animation
-text =
-    Internal.Layout <|
-        Internal.TextLayout { spacing = Nothing }
-
-
-{-| Same as `Layout.text`, but sets margin on all children.
-
--}
-spacedText : ( Float, Float, Float, Float ) -> Property class variation animation
-spacedText space =
-    Internal.Layout <|
-        Internal.TextLayout { spacing = (Just space) }
-
-
-{-| -}
-row : Property class variation animation
-row =
-    Internal.Layout <|
-        Internal.FlexLayout Internal.GoRight []
-
-
-{-| -}
-spacedRow : ( Float, Float, Float, Float ) -> Property class variation animation
-spacedRow i =
-    Internal.Layout <|
-        Internal.FlexLayout Internal.GoRight
-            [ spacing i
-            ]
-
-
-{-| -}
-column : Property class variation animation
-column =
-    Internal.Layout <|
-        Internal.FlexLayout Internal.Down
-            []
-
-
-{-| -}
-spacedColumn : ( Float, Float, Float, Float ) -> Property class variation animation
-spacedColumn i =
-    Internal.Layout <|
-        Internal.FlexLayout Internal.Down
-            [ spacing i
-            ]
-
-
-{-| -}
-flowRight : List FlexBox -> Property class variation animation
-flowRight flexbox =
-    Internal.FlexLayout Internal.GoRight flexbox
-        |> Internal.Layout
-
-
-{-| -}
-flowLeft : List FlexBox -> Property class variation animation
-flowLeft flexbox =
-    Internal.FlexLayout Internal.GoLeft flexbox
-        |> Internal.Layout
-
-
-{-| -}
-flowDown : List FlexBox -> Property class variation animation
-flowDown flexbox =
-    Internal.FlexLayout Internal.Down flexbox
-        |> Internal.Layout
-
-
-{-| -}
-flowUp : List FlexBox -> Property class variation animation
-flowUp flexbox =
-    Internal.FlexLayout Internal.Up flexbox
-        |> Internal.Layout
+import Style exposing (FlexBox)
 
 
 {-| -}
@@ -168,5 +82,5 @@ nowrap =
 
 {-| -}
 spacing : ( Float, Float, Float, Float ) -> FlexBox
-spacing box =
-    Internal.Spacing box
+spacing =
+    Internal.Spacing
