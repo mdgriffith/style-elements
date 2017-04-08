@@ -1,4 +1,4 @@
-module Style.Internal.Render exposing (stylesheet, guardedStylesheet, box, color, length)
+module Style.Internal.Render exposing (stylesheet, box, color, length)
 
 {-|
 -}
@@ -6,6 +6,7 @@ module Style.Internal.Render exposing (stylesheet, guardedStylesheet, box, color
 import Murmur3
 import Color exposing (Color)
 import Style.Internal.Model as Internal exposing (..)
+import Style.Internal.Find as Findable
 
 
 (=>) : x -> y -> ( x, y )
@@ -57,20 +58,11 @@ concatStyles batched =
         List.concatMap flatten batched
 
 
-stylesheet : List (Internal.BatchedStyle class variation animation) -> String
-stylesheet batched =
+stylesheet : Bool -> List (Internal.BatchedStyle class variation animation) -> List ( String, List (Findable.Element class variation animation) )
+stylesheet guard batched =
     batched
         |> concatStyles
-        |> List.map (renderStyle << preprocess)
-        |> String.join "\n"
-
-
-guardedStylesheet : List (Internal.BatchedStyle class variation animation) -> String
-guardedStylesheet batched =
-    batched
-        |> concatStyles
-        |> List.map (renderGuarded << preprocess)
-        |> String.join "\n"
+        |> List.map (renderStyle guard << preprocess)
 
 
 {-| This handles rearranging some properties before they're rendered.
@@ -166,29 +158,80 @@ preprocess (Internal.Style class props) =
         (Internal.Style class (notFilters ++ lastVisible ++ filters))
 
 
-renderGuarded : Style class variation animation -> String
-renderGuarded (Internal.Style class props) =
+applyGuard : String -> IntermediateStyle class variation animation -> IntermediateStyle class variation animation
+applyGuard guard intermediate =
+    let
+        addGuard str =
+            str ++ "--" ++ guard
+
+        toFindable findable =
+            case findable of
+                Findable.Style class name ->
+                    Findable.Style class (addGuard name)
+
+                Findable.Variation class variation name ->
+                    Findable.Variation class variation (addGuard name)
+
+                Findable.Animation class animation name ->
+                    Findable.Animation class animation (addGuard name)
+
+        toSelector selector =
+            case selector of
+                Select rendered findable ->
+                    Select
+                        (addGuard rendered)
+                        (toFindable findable)
+
+                SelectChild child ->
+                    SelectChild (toSelector child)
+
+                -- Free String
+                Stack selectors ->
+                    Stack (List.map toSelector selectors)
+
+                x ->
+                    x
+    in
+        case intermediate of
+            Intermediate select props ->
+                Intermediate (toSelector select) props
+
+            MediaIntermediate query select props ->
+                MediaIntermediate query (toSelector select) props
+
+
+renderStyle : Bool -> Style class variation animation -> ( String, List (Findable.Element class variation animation) )
+renderStyle guarded (Internal.Style class props) =
     let
         className =
-            Select <| formatName class
+            Select (formatName class) (Findable.Style class (formatName class))
 
         ( embeddedElements, renderedProps ) =
-            renderAllProps (className) props
+            renderAllProps className props
 
-        guard =
-            calculateGuard <| Intermediate (className) renderedProps :: embeddedElements
+        intermediates =
+            (Intermediate className renderedProps :: embeddedElements)
+                |> guard
 
-        children =
-            List.map (renderGuardedIntermediate guard) embeddedElements
-
-        parent =
-            renderGuardedIntermediate guard <| Intermediate (className) renderedProps
+        guard inter =
+            if guarded then
+                let
+                    g =
+                        calculateGuard inter
+                in
+                    List.map (applyGuard g) inter
+            else
+                inter
     in
-        String.join "\n" <|
-            (parent :: children)
+        ( intermediates
+            |> List.map renderIntermediate
+            |> String.join "\n"
+        , intermediates
+            |> List.concatMap renderFindable
+        )
 
 
-calculateGuard : List IntermediateStyle -> String
+calculateGuard : List (IntermediateStyle class variation animation) -> String
 calculateGuard intermediates =
     let
         propToString ( x, y ) =
@@ -208,6 +251,35 @@ calculateGuard intermediates =
             |> hash
 
 
+renderFindable : IntermediateStyle class variation animation -> List (Findable.Element class variation animation)
+renderFindable intermediate =
+    let
+        getFindable find =
+            case find of
+                Select _ findable ->
+                    [ findable ]
+
+                SelectChild selector ->
+                    getFindable selector
+
+                Stack selectors ->
+                    List.concatMap getFindable selectors
+                        |> List.reverse
+                        |> List.head
+                        |> Maybe.map (\x -> [ x ])
+                        |> Maybe.withDefault []
+
+                _ ->
+                    []
+    in
+        case intermediate of
+            Intermediate selector _ ->
+                getFindable selector
+
+            _ ->
+                []
+
+
 {-| -}
 hash : String -> String
 hash value =
@@ -215,39 +287,20 @@ hash value =
         |> toString
 
 
-renderStyle : Style class variation animation -> String
-renderStyle (Internal.Style class props) =
-    let
-        className =
-            Select <| formatName class
-
-        ( embeddedElements, renderedProps ) =
-            renderAllProps (className) props
-
-        children =
-            List.map renderIntermediate embeddedElements
-
-        parent =
-            renderIntermediate <| Intermediate (className) renderedProps
-    in
-        String.join "\n" <|
-            (parent :: children)
-
-
-type IntermediateStyle
-    = Intermediate Selector (List ( String, String ))
+type IntermediateStyle class variation animation
+    = Intermediate (Selector class variation animation) (List ( String, String ))
       --              query  class  props  intermediates
-    | MediaIntermediate String Selector (List ( String, String ))
+    | MediaIntermediate String (Selector class variation animation) (List ( String, String ))
 
 
-type Selector
-    = Select String
-    | SelectChild Selector
+type Selector class variation animation
+    = Select String (Findable.Element class variation animation)
+    | SelectChild (Selector class variation animation)
     | Free String
-    | Stack (List Selector)
+    | Stack (List (Selector class variation animation))
 
 
-asMediaQuery : String -> IntermediateStyle -> IntermediateStyle
+asMediaQuery : String -> IntermediateStyle class variation animation -> IntermediateStyle class variation animation
 asMediaQuery query style =
     case style of
         Intermediate class props ->
@@ -257,13 +310,28 @@ asMediaQuery query style =
             x
 
 
-renderAllProps : Selector -> List (Property class variation animation) -> ( List IntermediateStyle, List ( String, String ) )
+renderAllProps : Selector class variation animation -> List (Property class variation animation) -> ( List (IntermediateStyle class variation animation), List ( String, String ) )
 renderAllProps parent allProps =
     let
         renderPropsAndChildren prop ( existing, rendered ) =
             let
                 ( children, renderedProp ) =
                     renderProp parent prop
+            in
+                ( children ++ existing
+                , renderedProp ++ rendered
+                )
+    in
+        List.foldr renderPropsAndChildren ( [], [] ) allProps
+
+
+renderVariationProps : Selector class variation animation -> List (Property class Never animation) -> ( List (IntermediateStyle class variation animation), List ( String, String ) )
+renderVariationProps parent allProps =
+    let
+        renderPropsAndChildren prop ( existing, rendered ) =
+            let
+                ( children, renderedProp ) =
+                    renderVariationProp parent prop
             in
                 ( children ++ existing
                 , renderedProp ++ rendered
@@ -293,13 +361,13 @@ formatName x =
         |> String.join "_"
 
 
-renderProp : Selector -> Property class variation animation -> ( List IntermediateStyle, List ( String, String ) )
+renderProp : Selector class variation animation -> Property class variation animation -> ( List (IntermediateStyle class variation animation), List ( String, String ) )
 renderProp parentClass prop =
     case prop of
         Child class props ->
             let
                 selector =
-                    Stack [ parentClass, SelectChild <| Select (formatName class) ]
+                    Stack [ parentClass, SelectChild <| Select (formatName class) (Findable.Style class (formatName class)) ]
 
                 ( intermediates, renderedProps ) =
                     renderAllProps selector props
@@ -311,9 +379,9 @@ renderProp parentClass prop =
         Variation var props ->
             let
                 ( intermediates, renderedProps ) =
-                    renderAllProps parentClass props
+                    renderVariationProps parentClass props
             in
-                ( (Intermediate (variant parentClass (formatName var)) renderedProps) :: intermediates
+                ( (Intermediate (variant parentClass var) renderedProps) :: intermediates
                 , []
                 )
 
@@ -365,7 +433,66 @@ renderProp parentClass prop =
             ( [], renderFilters filters )
 
 
-renderIntermediate : IntermediateStyle -> String
+renderVariationProp : Selector class variation animation -> Property class Never animation -> ( List (IntermediateStyle class variation animation), List ( String, String ) )
+renderVariationProp parentClass prop =
+    case prop of
+        Child class props ->
+            ( []
+            , []
+            )
+
+        Variation var props ->
+            ( [], [] )
+
+        MediaQuery query props ->
+            let
+                ( intermediates, renderedProps ) =
+                    renderVariationProps parentClass props
+
+                mediaQueries =
+                    List.map (asMediaQuery query) intermediates
+            in
+                ( (MediaIntermediate ("@media " ++ query) parentClass renderedProps) :: mediaQueries
+                , []
+                )
+
+        Exact name val ->
+            ( [], [ ( name, val ) ] )
+
+        Visibility vis ->
+            ( [], renderVisibility vis )
+
+        Border props ->
+            ( [], List.map borderProp props )
+
+        Box props ->
+            ( [], List.map boxProp props )
+
+        Position pos ->
+            ( [], position pos )
+
+        Font props ->
+            ( [], List.map fontProp props )
+
+        Layout lay ->
+            ( layoutSpacing parentClass lay
+            , layout lay
+            )
+
+        Background props ->
+            ( [], background props )
+
+        Shadows shadows ->
+            ( [], renderShadow shadows )
+
+        Transform transformations ->
+            ( [], renderTransformations transformations )
+
+        Filters filters ->
+            ( [], renderFilters filters )
+
+
+renderIntermediate : IntermediateStyle class variation animation -> String
 renderIntermediate intermediate =
     case intermediate of
         Intermediate class props ->
@@ -375,11 +502,16 @@ renderIntermediate intermediate =
             query ++ brace 0 ("  " ++ renderSelector Nothing class ++ brace 2 (String.join "\n" <| List.map (cssProp 4) props))
 
 
-variant : Selector -> String -> Selector
+variant : Selector class variation animation -> variation -> Selector class variation animation
 variant sel var =
     case sel of
-        Select single ->
-            Select (single ++ "-" ++ var)
+        Select single findable ->
+            Select (single ++ "-" ++ formatName var)
+                (Findable.toVariation
+                    var
+                    (single ++ "-" ++ formatName var)
+                    findable
+                )
 
         SelectChild child ->
             SelectChild (variant child var)
@@ -408,7 +540,7 @@ variant sel var =
                         Stack (init ++ [ variant last var ])
 
 
-renderSelector : Maybe String -> Selector -> String
+renderSelector : Maybe String -> Selector class variation animation -> String
 renderSelector maybeGuard selector =
     let
         guard str =
@@ -420,7 +552,7 @@ renderSelector maybeGuard selector =
                     str ++ "--" ++ g
     in
         case selector of
-            Select single ->
+            Select single _ ->
                 "." ++ guard single
 
             SelectChild child ->
@@ -435,7 +567,7 @@ renderSelector maybeGuard selector =
                     |> String.join " "
 
 
-renderGuardedIntermediate : String -> IntermediateStyle -> String
+renderGuardedIntermediate : String -> IntermediateStyle class variation animation -> String
 renderGuardedIntermediate guard intermediate =
     case intermediate of
         Intermediate class props ->
@@ -709,7 +841,7 @@ position posEls =
 
 
 {-| -}
-layoutSpacing : Selector -> LayoutModel -> List IntermediateStyle
+layoutSpacing : Selector class variation animation -> LayoutModel -> List (IntermediateStyle class variation animation)
 layoutSpacing parent layout =
     case layout of
         Internal.TextLayout { spacing } ->

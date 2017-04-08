@@ -4,6 +4,7 @@ module Style.Sheet exposing (embed, render, guarded, merge, map)
 
 import Style.Internal.Model as Internal
 import Style.Internal.Render as Render
+import Style.Internal.Find as Find
 import Style exposing (Style)
 import Html.Attributes
 import Html exposing (Html)
@@ -26,21 +27,43 @@ type ChildSheet class variation animation
 {-| -}
 render : List (Style class variation animation) -> StyleSheet class variation animation msg
 render styles =
-    { style = \class -> Html.Attributes.class "test"
-    , variations = \class variations -> Html.Attributes.class "test"
-    , animate = \class variations -> Html.Attributes.class "test"
-    , css = Render.stylesheet styles
-    }
+    prepareSheet (Render.stylesheet False styles)
 
 
 {-| -}
 guarded : List (Style class variation animation) -> StyleSheet class variation animation msg
 guarded styles =
-    { style = \class -> Html.Attributes.class "test"
-    , variations = \class variations -> Html.Attributes.class "test"
-    , animate = \class variations -> Html.Attributes.class "test"
-    , css = Render.guardedStylesheet styles
-    }
+    prepareSheet (Render.stylesheet True styles)
+
+
+prepareSheet : List ( String, List (Find.Element class variation animation) ) -> StyleSheet class variation animation msg
+prepareSheet rendered =
+    let
+        findable =
+            rendered
+                |> List.concatMap Tuple.second
+
+        variations class variations =
+            let
+                parent =
+                    Find.style class findable
+
+                varys =
+                    variations
+                        |> List.filter Tuple.second
+                        |> List.map ((\vary -> Find.variation class vary findable) << Tuple.first)
+                        |> List.map (\cls -> ( cls, True ))
+            in
+                Html.Attributes.classList (( parent, True ) :: varys)
+    in
+        { style = \class -> Html.Attributes.class (Find.style class findable)
+        , variations = \class varys -> variations class varys
+        , animate = \class variations -> Html.Attributes.class "test"
+        , css =
+            rendered
+                |> List.map Tuple.first
+                |> String.join "\n"
+        }
 
 
 {-| -}
