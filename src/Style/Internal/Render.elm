@@ -414,13 +414,34 @@ renderTransformations transforms =
 
                 Scale x y z ->
                     ("scale3d(" ++ toString x ++ ", " ++ toString y ++ ", " ++ toString z ++ ")")
+
+                _ ->
+                    ""
+
+        transformOriginToString transform =
+            case transform of
+                Origin x y z ->
+                    Just ( "transform-origin", (toString x ++ "px  " ++ toString y ++ "px " ++ toString z ++ "px") )
+
+                _ ->
+                    Nothing
+
+        transformString =
+            (String.join " " (List.map transformToString transforms))
+
+        renderedTransforms =
+            if String.length transformString > 0 then
+                [ "transform" => transformString ]
+            else
+                []
+
+        renderedOrigin =
+            List.filterMap transformOriginToString transforms
     in
         if List.length transforms == 0 then
             []
         else
-            [ "transform"
-                => (String.join " " (List.map transformToString transforms))
-            ]
+            renderedTransforms ++ renderedOrigin
 
 
 background : List BackgroundElement -> List ( String, String )

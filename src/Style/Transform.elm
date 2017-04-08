@@ -2,12 +2,21 @@ module Style.Transform exposing (rotate, translate, scale)
 
 {-|
 
+@docs origin
+
 @docs rotate, translate, scale
 
 -}
 
 import Style exposing (Transform)
 import Style.Internal.Model as Internal
+
+
+{-| Always rendered as px
+-}
+origin : Float -> Float -> Float -> Transform
+origin x y z =
+    Internal.Origin x y z
 
 
 {-| Units always rendered as `radians`.
