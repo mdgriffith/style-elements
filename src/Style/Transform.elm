@@ -1,4 +1,4 @@
-module Style.Transform exposing (rotate, translate, scale)
+module Style.Transform exposing (origin, rotate, translate, scale)
 
 {-|
 

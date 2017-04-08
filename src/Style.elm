@@ -38,7 +38,7 @@ module Style
         , minHeight
         , maxWidth
         , minWidth
-        , transform
+        , transforms
         , filters
         , px
         , percent
@@ -72,7 +72,7 @@ module Style
 
 @docs Shadow, shadows
 
-@docs Transform, transform
+@docs Transform, transforms
 
 @docs Filter, filters
 
@@ -388,8 +388,8 @@ shadows =
 
 
 {-| -}
-transform : List Transform -> Property class variation animation
-transform =
+transforms : List Transform -> Property class variation animation
+transforms =
     Internal.Transform
 
 
