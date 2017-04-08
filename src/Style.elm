@@ -10,6 +10,9 @@ module Style
         , Transform
         , Filter
         , FlexBox
+        , hidden
+        , invisible
+        , opacity
         , block
         , blockSpaced
         , row
@@ -56,6 +59,8 @@ module Style
 @docs style, variation, child
 
 @docs prop
+
+@docs hidden, invisible, opacity
 
 @docs position
 
@@ -167,8 +172,8 @@ prop =
 
 {-| -}
 border : List Border -> Property class variation animation
-border =
-    Internal.Border
+border elems =
+    Internal.Border (Internal.BorderElement "border-style" "solid" :: elems)
 
 
 {-| -}
@@ -247,6 +252,39 @@ maxHeight len =
 padding : ( Float, Float, Float, Float ) -> Box
 padding pad =
     Internal.BoxProp "padding" (Render.box pad)
+
+
+{-| Same as `display:none`.
+-}
+hidden : Property class variation animation
+hidden =
+    Internal.Visibility Internal.Hidden
+
+
+{-| Same as `visibility: hidden`.
+
+Meaning the element will be:
+  * present in the flow
+  * transparent
+  * not respond to events
+
+-}
+invisible : Property class variation animation
+invisible =
+    Internal.Visibility Internal.Invisible
+
+
+{-| A value between 0 and 1
+-}
+opacity : Float -> Property class variation animation
+opacity x =
+    Internal.Visibility <| Internal.Opacity <| (toFloat ((round (x * 1000)) % 1000)) / 1000
+
+
+
+------------------------------
+-- Layouts!
+------------------------------
 
 
 {-| This is the familiar block layout.
@@ -332,15 +370,21 @@ flowUp flexbox =
         |> Internal.Layout
 
 
+
+{-
+   Shadows
+-}
+
+
 {-| -}
 type alias Shadow =
-    List Internal.ShadowModel
+    Internal.ShadowModel
 
 
 {-| -}
-shadows : (Shadow -> Shadow) -> Property class variation animation
-shadows update =
-    Internal.Shadows (update [])
+shadows : List Shadow -> Property class variation animation
+shadows =
+    Internal.Shadows
 
 
 {-| -}

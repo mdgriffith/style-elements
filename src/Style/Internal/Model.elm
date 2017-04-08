@@ -63,6 +63,9 @@ mapPropClass fn prop =
         Filters filters ->
             Filters filters
 
+        Visibility v ->
+            Visibility v
+
 
 type Property class variation animation
     = Exact String String
@@ -78,6 +81,13 @@ type Property class variation animation
     | Shadows (List ShadowModel)
     | Transform (List Transformation)
     | Filters (List Filter)
+    | Visibility Visible
+
+
+type Visible
+    = Hidden
+    | Invisible
+    | Opacity Float
 
 
 type PositionElement
@@ -156,7 +166,7 @@ type Filter
     | Grayscale Float
     | HueRotate Float
     | Invert Float
-    | Opacity Float
+    | OpacityFilter Float
     | Saturate Float
     | Sepia Float
     | DropShadow

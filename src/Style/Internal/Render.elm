@@ -43,8 +43,8 @@ color color =
             ++ ("," ++ toString alpha ++ ")")
 
 
-concat : List (Internal.BatchedStyle class variation animation) -> List (Internal.Style class variation animation)
-concat batched =
+concatStyles : List (Internal.BatchedStyle class variation animation) -> List (Internal.Style class variation animation)
+concatStyles batched =
     let
         flatten batch =
             case batch of
@@ -60,17 +60,110 @@ concat batched =
 stylesheet : List (Internal.BatchedStyle class variation animation) -> String
 stylesheet batched =
     batched
-        |> concat
-        |> List.map renderStyle
+        |> concatStyles
+        |> List.map (renderStyle << preprocess)
         |> String.join "\n"
 
 
 guardedStylesheet : List (Internal.BatchedStyle class variation animation) -> String
 guardedStylesheet batched =
     batched
-        |> concat
-        |> List.map renderGuarded
+        |> concatStyles
+        |> List.map (renderGuarded << preprocess)
         |> String.join "\n"
+
+
+{-| This handles rearranging some properties before they're rendered.
+
+Such as:
+
+  * Move drop shadows to the filter property
+  * Visibility should override layout.  Visibility should override previous visibility as well.
+
+
+-}
+preprocess : Style class variation animation -> Style class variation animation
+preprocess (Internal.Style class props) =
+    let
+        visible prop =
+            case prop of
+                Visibility _ ->
+                    True
+
+                _ ->
+                    False
+
+        ( visibility, others ) =
+            List.partition visible props
+
+        lastVisible =
+            case List.reverse visibility of
+                [] ->
+                    []
+
+                vis :: _ ->
+                    [ vis ]
+
+        dropShadows (ShadowModel { kind }) =
+            kind == "drop"
+
+        partitionDropShadows prop ( existing, existingDropShadow ) =
+            case prop of
+                Shadows shadowModels ->
+                    let
+                        ( dropShadow, withOutDropShadows ) =
+                            List.partition dropShadows shadowModels
+                    in
+                        ( Shadows withOutDropShadows :: existing
+                        , [ dropShadow ] ++ existingDropShadow
+                        )
+
+                _ ->
+                    ( prop :: existing
+                    , existingDropShadow
+                    )
+
+        ( notShadows, dropped ) =
+            List.foldr partitionDropShadows ( [], [] ) others
+
+        forFilters prop =
+            case prop of
+                Filters _ ->
+                    True
+
+                _ ->
+                    False
+
+        notFilters =
+            List.filter (not << forFilters) notShadows
+
+        filters =
+            case List.head <| List.reverse dropped of
+                Nothing ->
+                    List.filter forFilters notShadows
+
+                Just dropShad ->
+                    notShadows
+                        |> List.filter forFilters
+                        |> List.map (addToFilter (List.map asDropShadow dropShad))
+
+        addToFilter other prop =
+            case prop of
+                Filters f ->
+                    Filters (f ++ other)
+
+                x ->
+                    x
+
+        asDropShadow (ShadowModel shadow) =
+            DropShadow
+                { offset = shadow.offset
+                , size = shadow.size
+                , blur = shadow.blur
+                , color = shadow.color
+                }
+    in
+        (Internal.Style class (notFilters ++ lastVisible ++ filters))
 
 
 renderGuarded : Style class variation animation -> String
@@ -227,6 +320,9 @@ renderProp parentClass prop =
         Exact name val ->
             ( [], [ ( name, val ) ] )
 
+        Visibility vis ->
+            ( [], renderVisibility vis )
+
         Border props ->
             ( [], List.map borderProp props )
 
@@ -302,6 +398,19 @@ fontProp (FontElement name val) =
     ( name, val )
 
 
+renderVisibility : Visible -> List ( String, String )
+renderVisibility vis =
+    case vis of
+        Hidden ->
+            [ ( "display", "none" ) ]
+
+        Invisible ->
+            [ ( "visibility", "hidden" ) ]
+
+        Opacity x ->
+            [ ( "opacity", toString x ) ]
+
+
 renderFilters : List Filter -> List ( String, String )
 renderFilters filters =
     let
@@ -328,7 +437,7 @@ renderFilters filters =
                 Invert x ->
                     "invert(" ++ toString x ++ "%)"
 
-                Opacity x ->
+                OpacityFilter x ->
                     "opacity(" ++ toString x ++ "%)"
 
                 Saturate x ->
@@ -384,21 +493,22 @@ renderShadow shadows =
 
 shadowValue : ShadowModel -> String
 shadowValue (ShadowModel shadow) =
-    String.join " "
-        [ if shadow.kind == "inset" then
-            "inset"
-          else
-            ""
-        , toString (Tuple.first shadow.offset) ++ "px"
-        , toString (Tuple.second shadow.offset) ++ "px"
-        , toString shadow.blur ++ "px"
-        , (if shadow.kind == "text" || shadow.kind == "drop" then
-            ""
-           else
-            toString shadow.size ++ "px"
-          )
-        , color shadow.color
-        ]
+    [ if shadow.kind == "inset" then
+        Just "inset"
+      else
+        Nothing
+    , Just <| toString (Tuple.first shadow.offset) ++ "px"
+    , Just <| toString (Tuple.second shadow.offset) ++ "px"
+    , Just <| toString shadow.blur ++ "px"
+    , (if shadow.kind == "text" || shadow.kind == "drop" then
+        Nothing
+       else
+        Just <| toString shadow.size ++ "px"
+      )
+    , Just <| color shadow.color
+    ]
+        |> List.filterMap identity
+        |> String.join " "
 
 
 renderTransformations : List Transformation -> List ( String, String )
