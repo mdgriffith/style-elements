@@ -1,4 +1,4 @@
-module Style.Sheet exposing (embed, render, merge, map)
+module Style.Sheet exposing (embed, render, guarded, merge, map)
 
 {-| -}
 
@@ -30,6 +30,16 @@ render styles =
     , variations = \class variations -> Html.Attributes.class "test"
     , animate = \class variations -> Html.Attributes.class "test"
     , css = Render.stylesheet styles
+    }
+
+
+{-| -}
+guarded : List (Style class variation animation) -> StyleSheet class variation animation msg
+guarded styles =
+    { style = \class -> Html.Attributes.class "test"
+    , variations = \class variations -> Html.Attributes.class "test"
+    , animate = \class variations -> Html.Attributes.class "test"
+    , css = Render.guardedStylesheet styles
     }
 
 

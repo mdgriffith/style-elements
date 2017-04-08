@@ -1,4 +1,4 @@
-module Style.Internal.Render exposing (stylesheet, box, color, length)
+module Style.Internal.Render exposing (stylesheet, guardedStylesheet, box, color, length)
 
 {-|
 -}
@@ -65,6 +65,63 @@ stylesheet batched =
         |> String.join "\n"
 
 
+guardedStylesheet : List (Internal.BatchedStyle class variation animation) -> String
+guardedStylesheet batched =
+    batched
+        |> concat
+        |> List.map renderGuarded
+        |> String.join "\n"
+
+
+renderGuarded : Style class variation animation -> String
+renderGuarded (Internal.Style class props) =
+    let
+        className =
+            "." ++ formatName class
+
+        ( embeddedElements, renderedProps ) =
+            renderAllProps className props
+
+        guard =
+            calculateGuard <| Intermediate className renderedProps :: embeddedElements
+
+        children =
+            List.map (renderGuardedIntermediate guard) embeddedElements
+
+        parent =
+            renderGuardedIntermediate guard <| Intermediate className renderedProps
+    in
+        String.join "\n" <|
+            (parent :: children)
+
+
+calculateGuard : List IntermediateStyle -> String
+calculateGuard intermediates =
+    let
+        propToString ( x, y ) =
+            x ++ y
+
+        asString inter =
+            case inter of
+                Intermediate class props ->
+                    String.concat <| List.map propToString props
+
+                MediaIntermediate query class props ->
+                    query ++ (String.concat <| List.map propToString props)
+    in
+        intermediates
+            |> List.map asString
+            |> String.concat
+            |> hash
+
+
+{-| -}
+hash : String -> String
+hash value =
+    Murmur3.hashString 8675309 value
+        |> toString
+
+
 renderStyle : Style class variation animation -> String
 renderStyle (Internal.Style class props) =
     let
@@ -112,7 +169,7 @@ renderAllProps parent allProps =
                 , renderedProp ++ rendered
                 )
     in
-        List.foldl renderPropsAndChildren ( [], [] ) allProps
+        List.foldr renderPropsAndChildren ( [], [] ) allProps
 
 
 formatName : a -> String
@@ -204,20 +261,30 @@ renderIntermediate : IntermediateStyle -> String
 renderIntermediate intermediate =
     case intermediate of
         Intermediate class props ->
-            (class ++ brace (String.join "\n" <| List.map cssProp props) ++ "\n")
+            (class ++ brace 0 (String.join "\n" <| List.map (cssProp 2) props) ++ "\n")
 
         MediaIntermediate query class props ->
-            query ++ brace (class ++ brace (String.join "\n" <| List.map cssProp props))
+            query ++ brace 0 ("  " ++ class ++ brace 2 (String.join "\n" <| List.map (cssProp 4) props))
 
 
-brace : String -> String
-brace str =
-    " {\n" ++ str ++ "\n}"
+renderGuardedIntermediate : String -> IntermediateStyle -> String
+renderGuardedIntermediate guard intermediate =
+    case intermediate of
+        Intermediate class props ->
+            (class ++ "-" ++ guard ++ brace 0 (String.join "\n" <| List.map (cssProp 2) props) ++ "\n")
+
+        MediaIntermediate query class props ->
+            query ++ brace 0 ("  " ++ class ++ "-" ++ guard ++ brace 2 (String.join "\n" <| List.map (cssProp 4) props))
 
 
-cssProp : ( String, String ) -> String
-cssProp ( propName, propValue ) =
-    "  " ++ propName ++ ": " ++ propValue ++ ";"
+brace : Int -> String -> String
+brace i str =
+    " {\n" ++ str ++ "\n" ++ String.repeat i " " ++ "}"
+
+
+cssProp : Int -> ( String, String ) -> String
+cssProp i ( propName, propValue ) =
+    (String.repeat i " ") ++ propName ++ ": " ++ propValue ++ ";"
 
 
 boxProp : BoxElement -> ( String, String )
@@ -450,7 +517,7 @@ layoutSpacing parent layout =
                 Just space ->
                     [ Intermediate
                         (parent ++ " > *:not(.nospacing)")
-                        [ ( "margin", toString space ++ "px" ) ]
+                        [ ( "margin", box space ) ]
                     ]
 
         Internal.FlexLayout _ props ->
