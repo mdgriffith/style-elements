@@ -170,19 +170,19 @@ renderGuarded : Style class variation animation -> String
 renderGuarded (Internal.Style class props) =
     let
         className =
-            "." ++ formatName class
+            Select <| formatName class
 
         ( embeddedElements, renderedProps ) =
-            renderAllProps className props
+            renderAllProps (className) props
 
         guard =
-            calculateGuard <| Intermediate className renderedProps :: embeddedElements
+            calculateGuard <| Intermediate (className) renderedProps :: embeddedElements
 
         children =
             List.map (renderGuardedIntermediate guard) embeddedElements
 
         parent =
-            renderGuardedIntermediate guard <| Intermediate className renderedProps
+            renderGuardedIntermediate guard <| Intermediate (className) renderedProps
     in
         String.join "\n" <|
             (parent :: children)
@@ -219,25 +219,32 @@ renderStyle : Style class variation animation -> String
 renderStyle (Internal.Style class props) =
     let
         className =
-            "." ++ formatName class
+            Select <| formatName class
 
         ( embeddedElements, renderedProps ) =
-            renderAllProps className props
+            renderAllProps (className) props
 
         children =
             List.map renderIntermediate embeddedElements
 
         parent =
-            renderIntermediate <| Intermediate className renderedProps
+            renderIntermediate <| Intermediate (className) renderedProps
     in
         String.join "\n" <|
             (parent :: children)
 
 
 type IntermediateStyle
-    = Intermediate String (List ( String, String ))
+    = Intermediate Selector (List ( String, String ))
       --              query  class  props  intermediates
-    | MediaIntermediate String String (List ( String, String ))
+    | MediaIntermediate String Selector (List ( String, String ))
+
+
+type Selector
+    = Select String
+    | SelectChild Selector
+    | Free String
+    | Stack (List Selector)
 
 
 asMediaQuery : String -> IntermediateStyle -> IntermediateStyle
@@ -250,7 +257,7 @@ asMediaQuery query style =
             x
 
 
-renderAllProps : String -> List (Property class variation animation) -> ( List IntermediateStyle, List ( String, String ) )
+renderAllProps : Selector -> List (Property class variation animation) -> ( List IntermediateStyle, List ( String, String ) )
 renderAllProps parent allProps =
     let
         renderPropsAndChildren prop ( existing, rendered ) =
@@ -265,29 +272,34 @@ renderAllProps parent allProps =
         List.foldr renderPropsAndChildren ( [], [] ) allProps
 
 
-formatName : a -> String
-formatName x =
+uncapitalize : String -> String
+uncapitalize str =
     let
-        raw =
-            toString x
-
         head =
-            String.left 1 raw
+            String.left 1 str
                 |> String.toLower
 
         tail =
-            String.dropLeft 1 raw
+            String.dropLeft 1 str
     in
         head ++ tail
 
 
-renderProp : String -> Property class variation animation -> ( List IntermediateStyle, List ( String, String ) )
+formatName : a -> String
+formatName x =
+    toString x
+        |> String.words
+        |> List.map uncapitalize
+        |> String.join "_"
+
+
+renderProp : Selector -> Property class variation animation -> ( List IntermediateStyle, List ( String, String ) )
 renderProp parentClass prop =
     case prop of
         Child class props ->
             let
                 selector =
-                    parentClass ++ " > ." ++ formatName class
+                    Stack [ parentClass, SelectChild <| Select (formatName class) ]
 
                 ( intermediates, renderedProps ) =
                     renderAllProps selector props
@@ -301,7 +313,7 @@ renderProp parentClass prop =
                 ( intermediates, renderedProps ) =
                     renderAllProps parentClass props
             in
-                ( (Intermediate (parentClass ++ "-" ++ formatName var) renderedProps) :: intermediates
+                ( (Intermediate (variant parentClass (formatName var)) renderedProps) :: intermediates
                 , []
                 )
 
@@ -357,20 +369,80 @@ renderIntermediate : IntermediateStyle -> String
 renderIntermediate intermediate =
     case intermediate of
         Intermediate class props ->
-            (class ++ brace 0 (String.join "\n" <| List.map (cssProp 2) props) ++ "\n")
+            (renderSelector Nothing class ++ brace 0 (String.join "\n" <| List.map (cssProp 2) props) ++ "\n")
 
         MediaIntermediate query class props ->
-            query ++ brace 0 ("  " ++ class ++ brace 2 (String.join "\n" <| List.map (cssProp 4) props))
+            query ++ brace 0 ("  " ++ renderSelector Nothing class ++ brace 2 (String.join "\n" <| List.map (cssProp 4) props))
+
+
+variant : Selector -> String -> Selector
+variant sel var =
+    case sel of
+        Select single ->
+            Select (single ++ "-" ++ var)
+
+        SelectChild child ->
+            SelectChild (variant child var)
+
+        Free single ->
+            Free single
+
+        Stack sels ->
+            let
+                lastElem =
+                    sels
+                        |> List.reverse
+                        |> List.head
+
+                init =
+                    sels
+                        |> List.reverse
+                        |> List.drop 1
+                        |> List.reverse
+            in
+                case lastElem of
+                    Nothing ->
+                        Stack sels
+
+                    Just last ->
+                        Stack (init ++ [ variant last var ])
+
+
+renderSelector : Maybe String -> Selector -> String
+renderSelector maybeGuard selector =
+    let
+        guard str =
+            case maybeGuard of
+                Nothing ->
+                    str
+
+                Just g ->
+                    str ++ "--" ++ g
+    in
+        case selector of
+            Select single ->
+                "." ++ guard single
+
+            SelectChild child ->
+                "> " ++ renderSelector maybeGuard child
+
+            Free single ->
+                single
+
+            Stack sels ->
+                sels
+                    |> List.map (renderSelector maybeGuard)
+                    |> String.join " "
 
 
 renderGuardedIntermediate : String -> IntermediateStyle -> String
 renderGuardedIntermediate guard intermediate =
     case intermediate of
         Intermediate class props ->
-            (class ++ "-" ++ guard ++ brace 0 (String.join "\n" <| List.map (cssProp 2) props) ++ "\n")
+            (renderSelector (Just guard) class ++ brace 0 (String.join "\n" <| List.map (cssProp 2) props) ++ "\n")
 
         MediaIntermediate query class props ->
-            query ++ brace 0 ("  " ++ class ++ "-" ++ guard ++ brace 2 (String.join "\n" <| List.map (cssProp 4) props))
+            query ++ brace 0 ("  " ++ renderSelector (Just guard) class ++ brace 2 (String.join "\n" <| List.map (cssProp 4) props))
 
 
 brace : Int -> String -> String
@@ -637,7 +709,7 @@ position posEls =
 
 
 {-| -}
-layoutSpacing : String -> LayoutModel -> List IntermediateStyle
+layoutSpacing : Selector -> LayoutModel -> List IntermediateStyle
 layoutSpacing parent layout =
     case layout of
         Internal.TextLayout { spacing } ->
@@ -647,7 +719,7 @@ layoutSpacing parent layout =
 
                 Just space ->
                     [ Intermediate
-                        (parent ++ " > *:not(.nospacing)")
+                        (Stack [ parent, SelectChild (Free "*:not(.nospacing)") ])
                         [ ( "margin", box space ) ]
                     ]
 
@@ -658,7 +730,7 @@ layoutSpacing parent layout =
                         Spacing spaced ->
                             Just <|
                                 Intermediate
-                                    (parent ++ " > *:not(.nospacing)")
+                                    (Stack [ parent, SelectChild (Free "*:not(.nospacing)") ])
                                     [ ( "margin", box spaced ) ]
 
                         _ ->
