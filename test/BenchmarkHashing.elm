@@ -19,11 +19,9 @@ suite : Benchmark
 suite =
     describe "Stylesheet Hashing"
         [ Benchmark.compare "1 complex style"
-            -- compare the results of two benchmarks
             (benchmark1 "normal" Style.Sheet.render styles)
             (benchmark1 "hashed" Style.Sheet.guarded styles)
         , Benchmark.compare "1000 styles"
-            -- compare the results of two benchmarks
             (benchmark1 "normal" Style.Sheet.render styles)
             (benchmark1 "hashed" Style.Sheet.guarded styles)
         ]

@@ -29,9 +29,6 @@ toVariation var newName element =
 style : class -> Findable class variation animation -> String
 style class elements =
     let
-        _ =
-            Debug.log "cache" elements
-
         find el =
             case el of
                 Style cls name ->

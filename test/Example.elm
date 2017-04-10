@@ -4,7 +4,10 @@ import Html
 import Style exposing (..)
 import Style.Font as Font
 import Style.Border as Border
-import Style.Layout as Layout
+import Style.Shadow as Shadow
+import Style.Filter as Filter
+import Style.Transform as Transform
+import Style.Media
 import Style.Sheet
 import Color
 
@@ -12,13 +15,21 @@ import Color
 main : Html.Html msg
 main =
     Html.pre []
-        [ Html.text css ]
+        [ Html.div [ Debug.log "button" (stylesheet.style Button) ] []
+        , Html.div [ Debug.log "button" (stylesheet.variations Button [ ( Error, True ) ]) ] []
+        , Html.text stylesheet.css
+        ]
 
 
 type Styles
-    = NavBar
-    | Button
+    = Button
     | OtherButton
+    | Navigation NavStyles
+
+
+type NavStyles
+    = Bar
+    | Logo
 
 
 type Variation
@@ -27,10 +38,12 @@ type Variation
     | Success
 
 
-{ css } =
-    Style.Sheet.render
-        [ style NavBar
-            [ Layout.text
+stylesheet =
+    Style.Sheet.guarded
+        [ style Button
+            [ hidden
+            , invisible
+            , block
             , font
                 [ Font.stack [ "Open Sans" ]
                 , Font.size 18
@@ -48,17 +61,123 @@ type Variation
                 , Border.radius (all 5)
                 , Border.solid
                 ]
+            , shadows
+                [ Shadow.drop
+                    { offset = ( 2, 5 )
+                    , blur = 5
+                    , color = Color.grey
+                    }
+                ]
+            , transforms
+                [ Transform.rotate 0 0 0
+                , Transform.origin 50 50 50
+                , Transform.translate 0 0 0
+                ]
+            , filters
+                [ Filter.sepia 0.5
+                ]
             , Style.variation Error
                 [ font
                     [ Font.color Color.red
                     ]
                 ]
-            , Style.child Button
-                [ Layout.spacedText (all 10)
+            , Style.child OtherButton
+                [ blockSpaced (all 10)
                 , variation Error
                     [ font
                         [ Font.color Color.red
                         ]
+                    ]
+                ]
+            , Style.Media.phoneOnly
+                [ block
+                , font
+                    [ Font.stack [ "Open Sans" ]
+                    , Font.size 18
+                    , Font.letterSpacing 20
+                    , Font.light
+                    , Font.center
+                    , Font.uppercase
+                    ]
+                , box
+                    [ width (px 10)
+                    , height (px 200)
+                    ]
+                , border
+                    [ Border.width (all 5)
+                    , Border.radius (all 5)
+                    , Border.solid
+                    ]
+                ]
+            ]
+        , Style.Sheet.merge otherStyleSheet
+        ]
+
+
+otherStyleSheet =
+    Style.Sheet.map Navigation
+        [ style Bar
+            [ hidden
+            , invisible
+            , block
+            , font
+                [ Font.stack [ "Open Sans" ]
+                , Font.size 18
+                , Font.letterSpacing 20
+                , Font.light
+                , Font.center
+                , Font.uppercase
+                ]
+            , box
+                [ width (px 10)
+                , height (px 200)
+                ]
+            , border
+                [ Border.width (all 5)
+                , Border.radius (all 5)
+                , Border.solid
+                ]
+            , shadows
+                [ Shadow.drop
+                    { offset = ( 2, 5 )
+                    , blur = 5
+                    , color = Color.grey
+                    }
+                ]
+            , filters
+                [ Filter.sepia 0.5
+                ]
+            , Style.variation Error
+                [ font
+                    [ Font.color Color.red
+                    ]
+                ]
+            , Style.child Logo
+                [ blockSpaced (all 10)
+                , variation Error
+                    [ font
+                        [ Font.color Color.red
+                        ]
+                    ]
+                ]
+            , Style.Media.phoneOnly
+                [ block
+                , font
+                    [ Font.stack [ "Open Sans" ]
+                    , Font.size 18
+                    , Font.letterSpacing 20
+                    , Font.light
+                    , Font.center
+                    , Font.uppercase
+                    ]
+                , box
+                    [ width (px 10)
+                    , height (px 200)
+                    ]
+                , border
+                    [ Border.width (all 5)
+                    , Border.radius (all 5)
+                    , Border.solid
                     ]
                 ]
             ]
