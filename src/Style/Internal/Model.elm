@@ -59,6 +59,9 @@ mapPropClass fn prop =
         MediaQuery name props ->
             MediaQuery name (List.map (mapPropClass fn) props)
 
+        PseudoElement name props ->
+            PseudoElement name (List.map (mapPropClass fn) props)
+
         Shadows shadows ->
             Shadows shadows
 
@@ -77,6 +80,7 @@ type Property class variation animation
     | Variation variation (List (Property class Never animation))
     | Child class (List (Property class variation animation))
     | MediaQuery String (List (Property class variation animation))
+    | PseudoElement String (List (Property class variation animation))
     | Border (List BorderElement)
     | Box (List BoxElement)
     | Position (List PositionElement)

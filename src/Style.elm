@@ -48,6 +48,7 @@ module Style
         , right
         , top
         , bottom
+        , hover
         )
 
 {-|
@@ -82,7 +83,7 @@ module Style
 
 @docs all, top, left, right, bottom
 
-
+@docs hover, focus, pseudo, after, before
 
 
 -}
@@ -451,3 +452,39 @@ top x =
 bottom : Float -> ( Float, Float, Float, Float )
 bottom x =
     ( 0, 0, x, 0 )
+
+
+{-| -}
+hover : List (Property class variation animation) -> Property class variation animation
+hover =
+    Internal.PseudoElement ":hover"
+
+
+{-| -}
+focus : List (Property class variation animation) -> Property class variation animation
+focus =
+    Internal.PseudoElement ":focus"
+
+
+{-| -}
+checked : List (Property class variation animation) -> Property class variation animation
+checked =
+    Internal.PseudoElement ":checked"
+
+
+{-| -}
+pseudo : String -> List (Property class variation animation) -> Property class variation animation
+pseudo psu =
+    Internal.PseudoElement (":" ++ psu)
+
+
+{-| -}
+after : String -> List (Property class variation animation) -> Property class variation animation
+after content props =
+    Internal.PseudoElement ":after" (prop "content" ("'" ++ content ++ "'") :: props)
+
+
+{-| -}
+before : String -> List (Property class variation animation) -> Property class variation animation
+before content props =
+    Internal.PseudoElement ":before" (prop "content" ("'" ++ content ++ "'") :: props)

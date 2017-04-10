@@ -305,6 +305,7 @@ type IntermediateStyle class variation animation
 
 type Selector class variation animation
     = Select String (Findable.Element class variation animation)
+    | Pseudo String
     | SelectChild (Selector class variation animation)
     | Free String
     | Stack (List (Selector class variation animation))
@@ -395,6 +396,15 @@ renderProp parentClass prop =
                 , []
                 )
 
+        PseudoElement class props ->
+            let
+                ( intermediates, renderedProps ) =
+                    renderAllProps parentClass props
+            in
+                ( Intermediate (pseudo class parentClass) renderedProps :: intermediates
+                , []
+                )
+
         MediaQuery query props ->
             let
                 ( intermediates, renderedProps ) =
@@ -454,6 +464,15 @@ renderVariationProp parentClass prop =
         Variation var props ->
             ( [], [] )
 
+        PseudoElement class props ->
+            let
+                ( intermediates, renderedProps ) =
+                    renderVariationProps parentClass props
+            in
+                ( Intermediate (pseudo class parentClass) renderedProps :: intermediates
+                , []
+                )
+
         MediaQuery query props ->
             let
                 ( intermediates, renderedProps ) =
@@ -512,9 +531,50 @@ renderIntermediate intermediate =
             query ++ brace 0 ("  " ++ renderSelector Nothing class ++ brace 2 (String.join "\n" <| List.map (cssProp 4) props))
 
 
+{-| Pseudo-classes are allowed anywhere in selectors while pseudo-elements may only be appended after the last simple selector of the selector.
+-}
+pseudo : String -> Selector class variation animation -> Selector class variation animation
+pseudo psu sel =
+    case sel of
+        Pseudo existing ->
+            Pseudo (existing ++ psu)
+
+        Select single findable ->
+            Stack [ Select single findable, Pseudo psu ]
+
+        SelectChild child ->
+            SelectChild (pseudo psu child)
+
+        Free single ->
+            Free single
+
+        Stack sels ->
+            let
+                lastElem =
+                    sels
+                        |> List.reverse
+                        |> List.head
+
+                init =
+                    sels
+                        |> List.reverse
+                        |> List.drop 1
+                        |> List.reverse
+            in
+                case lastElem of
+                    Nothing ->
+                        Stack sels
+
+                    Just last ->
+                        Stack (init ++ [ pseudo psu last ])
+
+
 variant : Selector class variation animation -> variation -> Selector class variation animation
 variant sel var =
     case sel of
+        Pseudo psu ->
+            Pseudo psu
+
         Select single findable ->
             Select (single ++ "-" ++ formatName var)
                 (Findable.toVariation
@@ -560,6 +620,20 @@ renderSelector maybeGuard selector =
 
                 Just g ->
                     str ++ "--" ++ g
+
+        spacer sel =
+            case sel of
+                Pseudo _ ->
+                    ""
+
+                _ ->
+                    " "
+
+        renderAndSpace i sel =
+            if i == 0 then
+                renderSelector maybeGuard sel
+            else
+                (spacer sel ++ renderSelector maybeGuard sel)
     in
         case selector of
             Select single _ ->
@@ -571,10 +645,13 @@ renderSelector maybeGuard selector =
             Free single ->
                 single
 
+            Pseudo psu ->
+                psu
+
             Stack sels ->
                 sels
-                    |> List.map (renderSelector maybeGuard)
-                    |> String.join " "
+                    |> List.indexedMap renderAndSpace
+                    |> String.concat
 
 
 renderGuardedIntermediate : String -> IntermediateStyle class variation animation -> String

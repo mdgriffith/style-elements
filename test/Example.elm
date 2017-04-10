@@ -89,6 +89,10 @@ stylesheet =
                         ]
                     ]
                 ]
+            , Style.hover
+                [ font
+                    [ Font.color Color.blue ]
+                ]
             , Style.Media.phoneOnly
                 [ block
                 , font
