@@ -75,87 +75,92 @@ Such as:
 
 -}
 preprocess : Style class variation animation -> Style class variation animation
-preprocess (Internal.Style class props) =
-    let
-        visible prop =
-            case prop of
-                Visibility _ ->
-                    True
+preprocess style =
+    case style of
+        Internal.Import str ->
+            Internal.Import str
 
-                _ ->
-                    False
+        Internal.Style class props ->
+            let
+                visible prop =
+                    case prop of
+                        Visibility _ ->
+                            True
 
-        ( visibility, others ) =
-            List.partition visible props
+                        _ ->
+                            False
 
-        lastVisible =
-            case List.reverse visibility of
-                [] ->
-                    []
+                ( visibility, others ) =
+                    List.partition visible props
 
-                vis :: _ ->
-                    [ vis ]
+                lastVisible =
+                    case List.reverse visibility of
+                        [] ->
+                            []
 
-        dropShadows (ShadowModel { kind }) =
-            kind == "drop"
+                        vis :: _ ->
+                            [ vis ]
 
-        partitionDropShadows prop ( existing, existingDropShadow ) =
-            case prop of
-                Shadows shadowModels ->
-                    let
-                        ( dropShadow, withOutDropShadows ) =
-                            List.partition dropShadows shadowModels
-                    in
-                        ( Shadows withOutDropShadows :: existing
-                        , [ dropShadow ] ++ existingDropShadow
-                        )
+                dropShadows (ShadowModel { kind }) =
+                    kind == "drop"
 
-                _ ->
-                    ( prop :: existing
-                    , existingDropShadow
-                    )
+                partitionDropShadows prop ( existing, existingDropShadow ) =
+                    case prop of
+                        Shadows shadowModels ->
+                            let
+                                ( dropShadow, withOutDropShadows ) =
+                                    List.partition dropShadows shadowModels
+                            in
+                                ( Shadows withOutDropShadows :: existing
+                                , [ dropShadow ] ++ existingDropShadow
+                                )
 
-        ( notShadows, dropped ) =
-            List.foldr partitionDropShadows ( [], [] ) others
+                        _ ->
+                            ( prop :: existing
+                            , existingDropShadow
+                            )
 
-        forFilters prop =
-            case prop of
-                Filters _ ->
-                    True
+                ( notShadows, dropped ) =
+                    List.foldr partitionDropShadows ( [], [] ) others
 
-                _ ->
-                    False
+                forFilters prop =
+                    case prop of
+                        Filters _ ->
+                            True
 
-        notFilters =
-            List.filter (not << forFilters) notShadows
+                        _ ->
+                            False
 
-        filters =
-            case List.head <| List.reverse dropped of
-                Nothing ->
-                    List.filter forFilters notShadows
+                notFilters =
+                    List.filter (not << forFilters) notShadows
 
-                Just dropShad ->
-                    notShadows
-                        |> List.filter forFilters
-                        |> List.map (addToFilter (List.map asDropShadow dropShad))
+                filters =
+                    case List.head <| List.reverse dropped of
+                        Nothing ->
+                            List.filter forFilters notShadows
 
-        addToFilter other prop =
-            case prop of
-                Filters f ->
-                    Filters (f ++ other)
+                        Just dropShad ->
+                            notShadows
+                                |> List.filter forFilters
+                                |> List.map (addToFilter (List.map asDropShadow dropShad))
 
-                x ->
-                    x
+                addToFilter other prop =
+                    case prop of
+                        Filters f ->
+                            Filters (f ++ other)
 
-        asDropShadow (ShadowModel shadow) =
-            DropShadow
-                { offset = shadow.offset
-                , size = shadow.size
-                , blur = shadow.blur
-                , color = shadow.color
-                }
-    in
-        (Internal.Style class (notFilters ++ lastVisible ++ filters))
+                        x ->
+                            x
+
+                asDropShadow (ShadowModel shadow) =
+                    DropShadow
+                        { offset = shadow.offset
+                        , size = shadow.size
+                        , blur = shadow.blur
+                        , color = shadow.color
+                        }
+            in
+                (Internal.Style class (notFilters ++ lastVisible ++ filters))
 
 
 applyGuard : String -> IntermediateStyle class variation animation -> IntermediateStyle class variation animation
@@ -201,34 +206,39 @@ applyGuard guard intermediate =
 
 
 renderStyle : Bool -> Style class variation animation -> ( String, List (Findable.Element class variation animation) )
-renderStyle guarded (Internal.Style class props) =
-    let
-        className =
-            Select (formatName class) (Findable.Style class (formatName class))
+renderStyle guarded style =
+    case style of
+        Internal.Import str ->
+            ( "@import " ++ str ++ ";\n", [] )
 
-        ( embeddedElements, renderedProps ) =
-            renderAllProps className props
+        Internal.Style class props ->
+            let
+                className =
+                    Select (formatName class) (Findable.Style class (formatName class))
 
-        intermediates =
-            (Intermediate className renderedProps :: embeddedElements)
-                |> guard
+                ( embeddedElements, renderedProps ) =
+                    renderAllProps className props
 
-        guard inter =
-            if guarded then
-                let
-                    g =
-                        calculateGuard inter
-                in
-                    List.map (applyGuard g) inter
-            else
-                inter
-    in
-        ( intermediates
-            |> List.map renderIntermediate
-            |> String.join "\n"
-        , intermediates
-            |> List.concatMap renderFindable
-        )
+                intermediates =
+                    (Intermediate className renderedProps :: embeddedElements)
+                        |> guard
+
+                guard inter =
+                    if guarded then
+                        let
+                            g =
+                                calculateGuard inter
+                        in
+                            List.map (applyGuard g) inter
+                    else
+                        inter
+            in
+                ( intermediates
+                    |> List.map renderIntermediate
+                    |> String.join "\n"
+                , intermediates
+                    |> List.concatMap renderFindable
+                )
 
 
 calculateGuard : List (IntermediateStyle class variation animation) -> String

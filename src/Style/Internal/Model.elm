@@ -7,6 +7,7 @@ import Color exposing (Color)
 
 type Style class variation animation
     = Style class (List (Property class variation animation))
+    | Import String
 
 
 {-| -}
@@ -16,8 +17,13 @@ type BatchedStyle class variation animation
 
 
 mapClass : (class -> classB) -> Style class variation animation -> Style classB variation animation
-mapClass fn (Style class props) =
-    Style (fn class) (List.map (mapPropClass fn) props)
+mapClass fn style =
+    case style of
+        Style class props ->
+            Style (fn class) (List.map (mapPropClass fn) props)
+
+        Import str ->
+            Import str
 
 
 mapPropClass : (class -> classB) -> Property class variation animation -> Property classB variation animation

@@ -165,6 +165,18 @@ child class props =
 
 
 {-| -}
+importCss : String -> Style class variation animation
+importCss css =
+    Internal.Single <| Internal.Import css
+
+
+{-| -}
+importUrl : String -> Style class variation animation
+importUrl url =
+    Internal.Single <| Internal.Import <| "url('" ++ url ++ "')"
+
+
+{-| -}
 prop : String -> String -> Property class variation animation
 prop =
     Internal.Exact
