@@ -10,6 +10,7 @@ module Style
         , Transform
         , Filter
         , FlexBox
+        , ColorElement
         , hidden
         , invisible
         , opacity
@@ -31,6 +32,7 @@ module Style
         , shadows
         , position
         , border
+        , palette
         , box
         , width
         , height
@@ -148,6 +150,11 @@ type alias Transform =
 
 
 {-| -}
+type alias ColorElement =
+    Internal.ColorElement
+
+
+{-| -}
 style : class -> List (Property class variation animation) -> Style class variation animation
 style cls props =
     Internal.Single (Internal.Style cls props)
@@ -205,6 +212,12 @@ position =
 box : List Box -> Property class variation animation
 box =
     Internal.Box
+
+
+{-| -}
+palette : List ColorElement -> Property class variation animation
+palette =
+    Internal.Palette
 
 
 {-| -}

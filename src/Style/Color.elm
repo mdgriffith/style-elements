@@ -21,74 +21,53 @@ All CSS Properties that relate to color
 
 -- External Palette
    class LargerStyle
-            [ Colors.from primary
-                |^ Color.text emphasis
-                |- Color.border transparent
+            [ palette
+                [ Color.text emphasis
+                , Color.border transparent
+                ]
             ]
-
--- modify external Palette
 
 
 -}
 
 import Style.Internal.Model as Internal exposing (Property)
 import Color exposing (Color)
-
-
-type Palette
-    = Palette
-        { text : Color
-        , background : Color
-        , border : Color
-        }
-
-
-
---from : Palette -> (Palette -> Palette)
---from
---from : Palette -> Property animation variation msg -> Property animation variation msg
---from box border =
---    Internal.addProperty Internal.Border "border-width" (Render.box box) border
-
-
-invisible : Color
-invisible color =
-    let
-        { red, green, blue } =
-            Color.toRgb color
-    in
-        Color.rgba red green blue 0.0
+import Style exposing (ColorElement)
 
 
 {-| -}
-transparent : Palette
-transparent =
-    Palette
-        { text = invisible Color.black
-        , background = invisible Color.white
-        , border = invisible Color.white
-        }
+text : Color -> ColorElement
+text color =
+    Internal.ColorElement "color" color
 
 
-{-| Replace the text color with the text color from another palette
--}
-text : Palette -> Palette -> Palette
-text (Palette { text }) (Palette palette) =
-    Palette
-        { palette | text = text }
+{-| -}
+border : Color -> ColorElement
+border color =
+    Internal.ColorElement "border-color" color
 
 
-{-| Replace the background color with the background color from another palette
--}
-background : Palette -> Palette -> Palette
-background (Palette { background }) (Palette palette) =
-    Palette
-        { palette | background = background }
+{-| -}
+background : Color -> ColorElement
+background color =
+    Internal.ColorElement "background-color" color
 
 
-{-| Replace the border color with the border color from another palette
--}
-border : Palette -> Palette -> Palette
-border (Palette { border }) (Palette palette) =
-    Palette
-        { palette | border = border }
+{-| -}
+decoration : Color -> ColorElement
+decoration color =
+    Internal.ColorElement "text-decoration-color" color
+
+
+{-| -}
+caret : Color -> ColorElement
+caret color =
+    Internal.ColorElement "caret-color" color
+
+
+
+-- Needs to add the color to an existing selection pseudo element
+-- {-| -}
+-- selection : Color -> ColorElement
+-- selection color =
+--     Internal.ColorElement "caret-color" color

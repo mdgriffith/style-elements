@@ -74,6 +74,9 @@ mapPropClass fn prop =
         Visibility v ->
             Visibility v
 
+        Palette p ->
+            Palette p
+
 
 type Property class variation animation
     = Exact String String
@@ -91,6 +94,11 @@ type Property class variation animation
     | Transform (List Transformation)
     | Filters (List Filter)
     | Visibility Visible
+    | Palette (List ColorElement)
+
+
+type ColorElement
+    = ColorElement String Color
 
 
 type Visible

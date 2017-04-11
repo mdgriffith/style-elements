@@ -71,6 +71,7 @@ Such as:
 
   * Move drop shadows to the filter property
   * Visibility should override layout.  Visibility should override previous visibility as well.
+  * Move color palettes to the end
 
 
 -}
@@ -90,77 +91,96 @@ preprocess style =
                         _ ->
                             False
 
-                ( visibility, others ) =
-                    List.partition visible props
-
-                lastVisible =
-                    case List.reverse visibility of
-                        [] ->
-                            []
-
-                        vis :: _ ->
-                            [ vis ]
-
-                dropShadows (ShadowModel { kind }) =
-                    kind == "drop"
-
-                partitionDropShadows prop ( existing, existingDropShadow ) =
+                palette prop =
                     case prop of
-                        Shadows shadowModels ->
-                            let
-                                ( dropShadow, withOutDropShadows ) =
-                                    List.partition dropShadows shadowModels
-                            in
-                                ( Shadows withOutDropShadows :: existing
-                                , [ dropShadow ] ++ existingDropShadow
-                                )
-
-                        _ ->
-                            ( prop :: existing
-                            , existingDropShadow
-                            )
-
-                ( notShadows, dropped ) =
-                    List.foldr partitionDropShadows ( [], [] ) others
-
-                forFilters prop =
-                    case prop of
-                        Filters _ ->
+                        Palette _ ->
                             True
 
                         _ ->
                             False
 
-                notFilters =
-                    List.filter (not << forFilters) notShadows
-
-                filters =
-                    case List.head <| List.reverse dropped of
-                        Nothing ->
-                            List.filter forFilters notShadows
-
-                        Just dropShad ->
-                            notShadows
-                                |> List.filter forFilters
-                                |> List.map (addToFilter (List.map asDropShadow dropShad))
-
-                addToFilter other prop =
+                shadows prop =
                     case prop of
-                        Filters f ->
-                            Filters (f ++ other)
+                        Shadows _ ->
+                            True
 
-                        x ->
-                            x
+                        _ ->
+                            False
 
-                asDropShadow (ShadowModel shadow) =
-                    DropShadow
-                        { offset = shadow.offset
-                        , size = shadow.size
-                        , blur = shadow.blur
-                        , color = shadow.color
-                        }
+                prioritize isPriority props =
+                    let
+                        ( high, low ) =
+                            List.partition isPriority props
+                    in
+                        low ++ high
+
+                overridePrevious overridable props =
+                    let
+                        eliminatePrevious prop ( existing, overridden ) =
+                            if overridable prop && overridden then
+                                ( existing, overridden )
+                            else if overridable prop && not overridden then
+                                ( prop :: existing, True )
+                            else
+                                ( prop :: existing, overridden )
+                    in
+                        List.foldr eliminatePrevious ( [], False ) props
+                            |> Tuple.first
+
+                dropShadow (ShadowModel shade) =
+                    shade.kind == "drop"
+
+                moveDropShadow props =
+                    let
+                        asDropShadow (ShadowModel shadow) =
+                            DropShadow
+                                { offset = shadow.offset
+                                , size = shadow.size
+                                , blur = shadow.blur
+                                , color = shadow.color
+                                }
+
+                        moveDropped prop ( existing, dropped ) =
+                            case prop of
+                                Shadows shadows ->
+                                    ( (Shadows <| List.filter (not << dropShadow) shadows) :: existing
+                                    , case List.filter dropShadow shadows of
+                                        [] ->
+                                            Nothing
+
+                                        d ->
+                                            Just d
+                                    )
+
+                                Filters filters ->
+                                    case dropped of
+                                        Nothing ->
+                                            ( prop :: existing
+                                            , dropped
+                                            )
+
+                                        Just drop ->
+                                            ( Filters (filters ++ (List.map asDropShadow drop)) :: existing
+                                            , dropped
+                                            )
+
+                                _ ->
+                                    ( prop :: existing, dropped )
+                    in
+                        List.foldr moveDropped ( [], Nothing ) props
+                            |> Tuple.first
+
+                processed =
+                    props
+                        |> prioritize visible
+                        |> overridePrevious visible
+                        |> prioritize palette
+                        |> overridePrevious palette
+                        |> prioritize shadows
+                        |> overridePrevious shadows
+                        |> moveDropShadow
             in
-                (Internal.Style class (notFilters ++ lastVisible ++ filters))
+                Internal.Style class processed
 
 
 applyGuard : String -> IntermediateStyle class variation animation -> IntermediateStyle class variation animation
@@ -452,6 +472,9 @@ renderProp parentClass prop =
         Filters filters ->
             ( [], renderFilters filters )
 
+        Palette colors ->
+            ( [], List.map renderColorElement colors )
+
 
 renderVariationProp : Selector class variation animation -> Property class Never animation -> ( List (IntermediateStyle class variation animation), List ( String, String ) )
 renderVariationProp parentClass prop =
@@ -519,6 +542,9 @@ renderVariationProp parentClass prop =
 
         Filters filters ->
             ( [], renderFilters filters )
+
+        Palette colors ->
+            ( [], List.map renderColorElement colors )
 
 
 renderIntermediate : IntermediateStyle class variation animation -> String
@@ -687,6 +713,11 @@ borderProp (BorderElement name val) =
 fontProp : FontElement -> ( String, String )
 fontProp (FontElement name val) =
     ( name, val )
+
+
+renderColorElement : ColorElement -> ( String, String )
+renderColorElement (ColorElement name val) =
+    ( name, color val )
 
 
 renderVisibility : Visible -> List ( String, String )
