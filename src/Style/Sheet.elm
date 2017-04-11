@@ -1,4 +1,4 @@
-module Style.Sheet exposing (embed, render, guarded, merge, map)
+module Style.Sheet exposing (embed, render, renderWith, guard, critical, merge, map)
 
 {-| -}
 
@@ -24,6 +24,23 @@ type ChildSheet class variation animation
     = ChildSheet (List (Style class variation animation))
 
 
+type Option class
+    = Guard
+    | Critical (List class)
+
+
+{-| -}
+guard : Option class
+guard =
+    Guard
+
+
+{-| -}
+critical : List class -> Option class
+critical =
+    Critical
+
+
 {-| -}
 render : List (Style class variation animation) -> StyleSheet class variation animation msg
 render styles =
@@ -31,9 +48,24 @@ render styles =
 
 
 {-| -}
-guarded : List (Style class variation animation) -> StyleSheet class variation animation msg
-guarded styles =
-    prepareSheet (Render.stylesheet True styles)
+renderWith : List (Option class) -> List (Style class variation animation) -> StyleSheet class variation animation msg
+renderWith opts styles =
+    let
+        guard =
+            List.any ((==) Guard) opts
+
+        critical =
+            List.concatMap criticalClasses opts
+
+        criticalClasses opt =
+            case opt of
+                Critical class ->
+                    class
+
+                _ ->
+                    []
+    in
+        prepareSheet (Render.stylesheet guard styles)
 
 
 prepareSheet : List ( String, List (Find.Element class variation animation) ) -> StyleSheet class variation animation msg
@@ -69,7 +101,7 @@ prepareSheet rendered =
 {-| -}
 embed : StyleSheet class variation animation msg -> Html msg
 embed stylesheet =
-    Html.node "style" [] [ Html.text "" ]
+    Html.node "style" [] [ Html.text stylesheet.css ]
 
 
 {-| -}
