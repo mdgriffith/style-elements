@@ -15,13 +15,22 @@ color bgColor =
 
 
 {-| -}
-image :
+image : String -> Background
+image src =
+    Internal.BackgroundImage
+        { src = src
+        , position = ( 0, 0 )
+        , repeat = noRepeat
+        }
+
+
+{-| -}
+imageWith :
     { src : String
     , position : ( Float, Float )
     , repeat : Repeat
     }
-    -> Background
-image =
+imageWith =
     Internal.BackgroundImage
 
 
