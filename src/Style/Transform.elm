@@ -23,9 +23,18 @@ origin x y z =
 
 Use `degrees` or `turns` from the standard library if you want to use a different set of units.
 -}
-rotate : Float -> Float -> Float -> Transform
-rotate x y z =
-    Internal.Rotate x y z
+rotate : Float -> Transform
+rotate a =
+    Internal.Rotate a
+
+
+{-| Units always rendered as `radians`.
+
+Use `degrees` or `turns` from the standard library if you want to use a different set of units.
+-}
+rotateAround : ( Float, Float, Float ) -> Float -> Transform
+rotateAround ( x, y, z ) angle =
+    Internal.RotateAround x y z angle
 
 
 {-| Units are always as pixels

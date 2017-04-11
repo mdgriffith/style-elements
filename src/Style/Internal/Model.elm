@@ -196,7 +196,8 @@ type Filter
 
 type Transformation
     = Translate Float Float Float
-    | Rotate Float Float Float
+    | Rotate Float
+    | RotateAround Float Float Float Float
     | Scale Float Float Float
     | Origin Float Float Float
 

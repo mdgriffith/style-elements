@@ -229,7 +229,9 @@ renderStyle : Bool -> Style class variation animation -> ( String, List (Findabl
 renderStyle guarded style =
     case style of
         Internal.Import str ->
-            ( "@import " ++ str ++ ";\n", [] )
+            ( "@import " ++ str ++ ";\n"
+            , []
+            )
 
         Internal.Style class props ->
             let
@@ -841,8 +843,11 @@ renderTransformations transforms =
                 Translate x y z ->
                     ("translate3d(" ++ toString x ++ "px, " ++ toString y ++ "px, " ++ toString z ++ "px)")
 
-                Rotate x y z ->
-                    ("rotateX(" ++ toString x ++ "rad) rotateY(" ++ toString y ++ "rad) rotateZ(" ++ toString z ++ "rad)")
+                RotateAround x y z angle ->
+                    ("rotate3d(" ++ toString x ++ "," ++ toString y ++ "," ++ toString z ++ "," ++ toString angle ++ "rad)")
+
+                Rotate x ->
+                    ("rotate(" ++ toString x ++ "rad)")
 
                 Scale x y z ->
                     ("scale3d(" ++ toString x ++ ", " ++ toString y ++ ", " ++ toString z ++ ")")
