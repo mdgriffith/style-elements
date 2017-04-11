@@ -7,6 +7,7 @@ import Murmur3
 import Color exposing (Color)
 import Style.Internal.Model as Internal exposing (..)
 import Style.Internal.Find as Findable
+import Time
 
 
 (=>) : x -> y -> ( x, y )
@@ -477,6 +478,28 @@ renderProp parentClass prop =
         Palette colors ->
             ( [], List.map renderColorElement colors )
 
+        Transitions trans ->
+            ( []
+            , [ ( "transition"
+                , trans
+                    |> List.map renderTransitionProp
+                    |> String.join ", "
+                )
+              ]
+            )
+
+
+renderTransitionProp : Transition -> String
+renderTransitionProp (Transition { delay, duration, easing, props }) =
+    let
+        formatTrans prop =
+            String.join " "
+                [ prop, toString (duration * Time.millisecond) ++ "ms", easing, toString (delay * Time.millisecond) ++ "ms" ]
+    in
+        props
+            |> List.map formatTrans
+            |> String.join ", "
+
 
 renderVariationProp : Selector class variation animation -> Property class Never animation -> ( List (IntermediateStyle class variation animation), List ( String, String ) )
 renderVariationProp parentClass prop =
@@ -547,6 +570,16 @@ renderVariationProp parentClass prop =
 
         Palette colors ->
             ( [], List.map renderColorElement colors )
+
+        Transitions trans ->
+            ( []
+            , [ ( "transition"
+                , trans
+                    |> List.map renderTransitionProp
+                    |> String.join ", "
+                )
+              ]
+            )
 
 
 renderIntermediate : IntermediateStyle class variation animation -> String

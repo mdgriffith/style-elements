@@ -3,6 +3,7 @@ module Style.Internal.Model exposing (..)
 {-| -}
 
 import Color exposing (Color)
+import Time exposing (Time)
 
 
 type Style class variation animation
@@ -77,6 +78,9 @@ mapPropClass fn prop =
         Palette p ->
             Palette p
 
+        Transitions t ->
+            Transitions t
+
 
 type Property class variation animation
     = Exact String String
@@ -95,10 +99,20 @@ type Property class variation animation
     | Filters (List Filter)
     | Visibility Visible
     | Palette (List ColorElement)
+    | Transitions (List Transition)
 
 
 type ColorElement
     = ColorElement String Color
+
+
+type Transition
+    = Transition
+        { delay : Time
+        , duration : Time
+        , easing : String
+        , props : List String
+        }
 
 
 type Visible
