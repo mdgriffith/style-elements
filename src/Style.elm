@@ -51,6 +51,10 @@ module Style
         , top
         , bottom
         , hover
+        , focus
+        , after
+        , before
+        , pseudo
         )
 
 {-|
@@ -64,6 +68,8 @@ module Style
 @docs prop
 
 @docs hidden, invisible, opacity
+
+@docs palette, ColorElement
 
 @docs position
 
