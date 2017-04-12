@@ -3,7 +3,7 @@ module Style.Border exposing (..)
 {-| -}
 
 import Style.Internal.Model as Internal exposing (Property(..))
-import Style.Internal.Render as Render
+import Style.Internal.Render.Value as Render
 import Style exposing (Border)
 import Color exposing (Color)
 

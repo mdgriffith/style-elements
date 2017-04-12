@@ -97,7 +97,7 @@ module Style
 -}
 
 import Style.Internal.Model as Internal
-import Style.Internal.Render as Render
+import Style.Internal.Render.Value as Value
 
 
 {-| -}
@@ -247,43 +247,43 @@ percent =
 {-| -}
 width : Length -> Box
 width len =
-    Internal.BoxProp "width" (Render.length len)
+    Internal.BoxProp "width" (Value.length len)
 
 
 {-| -}
 minWidth : Length -> Box
 minWidth len =
-    Internal.BoxProp "min-width" (Render.length len)
+    Internal.BoxProp "min-width" (Value.length len)
 
 
 {-| -}
 maxWidth : Length -> Box
 maxWidth len =
-    Internal.BoxProp "max-width" (Render.length len)
+    Internal.BoxProp "max-width" (Value.length len)
 
 
 {-| -}
 height : Length -> Box
 height len =
-    Internal.BoxProp "height" (Render.length len)
+    Internal.BoxProp "height" (Value.length len)
 
 
 {-| -}
 minHeight : Length -> Box
 minHeight len =
-    Internal.BoxProp "min-height" (Render.length len)
+    Internal.BoxProp "min-height" (Value.length len)
 
 
 {-| -}
 maxHeight : Length -> Box
 maxHeight len =
-    Internal.BoxProp "max-height" (Render.length len)
+    Internal.BoxProp "max-height" (Value.length len)
 
 
 {-| -}
 padding : ( Float, Float, Float, Float ) -> Box
 padding pad =
-    Internal.BoxProp "padding" (Render.box pad)
+    Internal.BoxProp "padding" (Value.box pad)
 
 
 {-| Same as `display:none`.

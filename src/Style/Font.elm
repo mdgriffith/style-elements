@@ -43,7 +43,7 @@ class FontExample
 -}
 
 import Style.Internal.Model as Internal
-import Style.Internal.Render as Render
+import Style.Internal.Render.Value as Render
 import Style exposing (Font)
 import Color exposing (Color)
 import String
