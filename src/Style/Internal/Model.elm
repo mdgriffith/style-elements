@@ -170,6 +170,25 @@ type BackgroundElement
         , repeat : Repeat
         }
     | BackgroundElement String String
+    | BackgroundLinearGradient GradientDirection (List GradientStep)
+
+
+type GradientDirection
+    = ToUp
+    | ToDown
+    | ToRight
+    | ToTopRight
+    | ToBottomRight
+    | ToLeft
+    | ToTopLeft
+    | ToBottomLeft
+    | ToAngle Float
+
+
+type GradientStep
+    = ColorStep Color
+    | PercentStep Color Float
+    | PxStep Color Float
 
 
 type ShadowModel

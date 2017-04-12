@@ -221,6 +221,46 @@ position posEls =
 background : List BackgroundElement -> List ( String, String )
 background props =
     let
+        directionName dir =
+            case dir of
+                ToUp ->
+                    "to top"
+
+                ToDown ->
+                    "to bottomn"
+
+                ToRight ->
+                    "to rightt"
+
+                ToTopRight ->
+                    "to top right"
+
+                ToBottomRight ->
+                    "to bottom right"
+
+                ToLeft ->
+                    "to left"
+
+                ToTopLeft ->
+                    "to top left"
+
+                ToBottomLeft ->
+                    "to bottom left"
+
+                ToAngle angle ->
+                    toString angle ++ "rad"
+
+        renderStep step =
+            case step of
+                ColorStep color ->
+                    Value.color color
+
+                PercentStep color percent ->
+                    (Value.color color ++ " " ++ toString percent ++ "%")
+
+                PxStep color percent ->
+                    (Value.color color ++ " " ++ toString percent ++ "px")
+
         bgElement bg =
             case bg of
                 BackgroundElement name val ->
@@ -249,6 +289,9 @@ background props =
                                 "no-repeat"
                     , "background-position" => (toString (Tuple.first position) ++ "px " ++ toString (Tuple.second position) ++ "px")
                     ]
+
+                BackgroundLinearGradient dir steps ->
+                    [ "background-image" => ("linear-gradient(" ++ (String.join ", " <| directionName dir :: List.map renderStep steps) ++ ")") ]
     in
         List.concatMap bgElement props
 

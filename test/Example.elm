@@ -4,9 +4,11 @@ import Html
 import Style exposing (..)
 import Style.Font as Font
 import Style.Border as Border
+import Style.Background as Background
 import Style.Shadow as Shadow
 import Style.Filter as Filter
 import Style.Transform as Transform
+import Style.Transitions as Transitions
 import Style.Media
 import Style.Sheet
 import Color
@@ -39,9 +41,10 @@ type Variation
 
 
 stylesheet =
-    Style.Sheet.guarded
+    Style.Sheet.renderWith [ Style.Sheet.guard ]
         [ style Button
-            [ hidden
+            [ Transitions.performant
+            , hidden
             , invisible
             , block
             , font
@@ -51,6 +54,14 @@ stylesheet =
                 , Font.light
                 , Font.center
                 , Font.uppercase
+                ]
+            , background
+                [ Background.gradient
+                    Background.toTopRight
+                    [ Background.step Color.red
+                    , Background.percent Color.blue 20
+                    , Background.step Color.yellow
+                    ]
                 ]
             , box
                 [ width (px 10)
@@ -69,19 +80,19 @@ stylesheet =
                     }
                 ]
             , transforms
-                [ Transform.rotate 0 0 0
+                [ Transform.rotate 0
                 , Transform.origin 50 50 50
                 , Transform.translate 0 0 0
                 ]
             , filters
                 [ Filter.sepia 0.5
                 ]
-            , Style.variation Error
+            , variation Error
                 [ font
                     [ Font.color Color.red
                     ]
                 ]
-            , Style.child OtherButton
+            , child OtherButton
                 [ blockSpaced (all 10)
                 , variation Error
                     [ font
@@ -89,7 +100,7 @@ stylesheet =
                         ]
                     ]
                 ]
-            , Style.hover
+            , hover
                 [ font
                     [ Font.color Color.blue ]
                 ]

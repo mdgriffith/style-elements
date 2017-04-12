@@ -11,6 +11,8 @@ module Style
         , Filter
         , FlexBox
         , ColorElement
+        , GradientDirection
+        , GradientStep
         , hidden
         , invisible
         , opacity
@@ -29,6 +31,7 @@ module Style
         , child
         , prop
         , font
+        , background
         , shadows
         , position
         , border
@@ -87,7 +90,7 @@ module Style
 
 @docs Font, font
 
-@docs Background, Repeat
+@docs background, Background, Repeat, GradientDirection, GradientStep
 
 @docs all, top, left, right, bottom
 
@@ -162,6 +165,16 @@ type alias ColorElement =
 
 
 {-| -}
+type alias GradientDirection =
+    Internal.GradientDirection
+
+
+{-| -}
+type alias GradientStep =
+    Internal.GradientStep
+
+
+{-| -}
 style : class -> List (Property class variation animation) -> Style class variation animation
 style cls props =
     Batchable.one (Internal.Style cls props)
@@ -201,6 +214,12 @@ prop =
 border : List Border -> Property class variation animation
 border elems =
     Internal.Border (Internal.BorderElement "border-style" "solid" :: elems)
+
+
+{-| -}
+background : List Background -> Property class variation animation
+background =
+    Internal.Background
 
 
 {-| -}
