@@ -5,6 +5,7 @@ module Style.Sheet exposing (embed, render, renderWith, guard, critical, merge, 
 import Style.Internal.Model as Internal
 import Style.Internal.Render as Render
 import Style.Internal.Find as Find
+import Style.Internal.Batchable as Batchable
 import Style exposing (Style)
 import Html.Attributes
 import Html exposing (Html)
@@ -68,6 +69,7 @@ renderWith opts styles =
         prepareSheet (Render.stylesheet guard styles)
 
 
+{-| -}
 prepareSheet : List ( String, List (Find.Element class variation animation) ) -> StyleSheet class variation animation msg
 prepareSheet rendered =
     let
@@ -107,29 +109,11 @@ embed stylesheet =
 {-| -}
 map : (class -> parent) -> List (Style class variation animation) -> ChildSheet parent variation animation
 map toParent styles =
-    let
-        updateClass fn style =
-            case style of
-                Internal.Single internal ->
-                    Internal.Single <| Internal.mapClass toParent internal
-
-                Internal.Many styles ->
-                    Internal.Many <| List.map (Internal.mapClass toParent) styles
-    in
-        ChildSheet (List.map (updateClass toParent) styles)
+    ChildSheet (List.map (Batchable.map (Internal.mapClass toParent)) styles)
 
 
 {-| Merge a child stylesheet into a parent.
 -}
 merge : ChildSheet class variation animation -> Style class variation animation
 merge (ChildSheet styles) =
-    let
-        flatten node existing =
-            case node of
-                Internal.Single style ->
-                    style :: existing
-
-                Internal.Many styles ->
-                    styles ++ existing
-    in
-        Internal.Many (List.foldr flatten [] styles)
+    Batchable.many (Batchable.toList styles)

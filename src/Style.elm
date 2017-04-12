@@ -98,11 +98,12 @@ module Style
 
 import Style.Internal.Model as Internal
 import Style.Internal.Render.Value as Value
+import Style.Internal.Batchable as Batchable exposing (Batchable)
 
 
 {-| -}
 type alias Style class variation animation =
-    Internal.BatchedStyle class variation animation
+    Batchable (Internal.Style class variation animation)
 
 
 {-| -}
@@ -163,7 +164,7 @@ type alias ColorElement =
 {-| -}
 style : class -> List (Property class variation animation) -> Style class variation animation
 style cls props =
-    Internal.Single (Internal.Style cls props)
+    Batchable.one (Internal.Style cls props)
 
 
 {-| -}
@@ -181,13 +182,13 @@ child class props =
 {-| -}
 importCss : String -> Style class variation animation
 importCss css =
-    Internal.Single <| Internal.Import css
+    Batchable.one <| Internal.Import css
 
 
 {-| -}
 importUrl : String -> Style class variation animation
 importUrl url =
-    Internal.Single <| Internal.Import <| "url('" ++ url ++ "')"
+    Batchable.one <| Internal.Import <| "url('" ++ url ++ "')"
 
 
 {-| -}

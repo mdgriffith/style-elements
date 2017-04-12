@@ -11,12 +11,6 @@ type Style class variation animation
     | Import String
 
 
-{-| -}
-type BatchedStyle class variation animation
-    = Single (Style class variation animation)
-    | Many (List (Style class variation animation))
-
-
 mapClass : (class -> classB) -> Style class variation animation -> Style classB variation animation
 mapClass fn style =
     case style of

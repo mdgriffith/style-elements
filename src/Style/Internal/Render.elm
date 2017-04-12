@@ -11,6 +11,7 @@ import Style.Internal.Render.Property as Render
 import Style.Internal.Render.Value as Value
 import Style.Internal.Render.Css as Css
 import Style.Internal.Selector as Selector exposing (Selector)
+import Style.Internal.Batchable as Batchable exposing (Batchable)
 import Time
 
 
@@ -19,24 +20,10 @@ import Time
     (,)
 
 
-concatStyles : List (Internal.BatchedStyle class variation animation) -> List (Internal.Style class variation animation)
-concatStyles batched =
-    let
-        flatten batch =
-            case batch of
-                Internal.Single style ->
-                    [ style ]
-
-                Internal.Many styles ->
-                    styles
-    in
-        List.concatMap flatten batched
-
-
-stylesheet : Bool -> List (Internal.BatchedStyle class variation animation) -> List ( String, List (Findable.Element class variation animation) )
+stylesheet : Bool -> List (Batchable (Internal.Style class variation animation)) -> List ( String, List (Findable.Element class variation animation) )
 stylesheet guard batched =
     batched
-        |> concatStyles
+        |> Batchable.toList
         |> List.map (renderStyle guard << preprocess)
 
 
