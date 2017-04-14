@@ -1,7 +1,7 @@
-module Style.Transitions exposing (..)
+module Style.Transitions exposing (all, performant, transitions)
 
 {-|
-
+@docs all, performant, transitions
 
 -}
 
@@ -18,6 +18,7 @@ type alias Transition =
     }
 
 
+{-| -}
 all : Property class variation animation
 all =
     Internal.Transitions
@@ -30,6 +31,7 @@ all =
         ]
 
 
+{-| -}
 performant : Property class variation animation
 performant =
     Internal.Transitions
@@ -42,6 +44,7 @@ performant =
         ]
 
 
+{-| -}
 transitions : List Transition -> Property class variation animation
 transitions trans =
     Internal.Transitions (List.map Internal.Transition trans)

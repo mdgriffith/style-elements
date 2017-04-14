@@ -1,44 +1,39 @@
-module Style.Font exposing (..)
+module Style.Font
+    exposing
+        ( stack
+        , size
+        , color
+        , height
+        , letterSpacing
+        , wordSpacing
+        , left
+        , right
+        , center
+        , justify
+        , justifyAll
+        , wrap
+        , pre
+        , preWrap
+        , preLine
+        , noWrap
+        , underline
+        , strike
+        , italicize
+        , bold
+        , weight
+        , light
+        , uppercase
+        , capitalize
+        , lowercase
+        )
 
 {-|
 
+@docs stack, size, color, height, letterSpacing, wordSpacing, left, right, center, justify, justifyAll
 
+@docs wrap, pre, preWrap, preLine, noWrap
 
-## Example Usage
-
-
-{-| We define a font we want to use in a similar way.
--}
-roboto : Style.Font
-roboto =
-    Style.Font.font
-        { stack = [ "Roboto", "San Serif" ]
-        , size = 20  --always given as px
-        , lineHeight = 1
-        }
-
-
-
-class FontExample
-    [ Font.named roboto
-        |^ Font.size 18
-        |- Font.letterSpacing 20
-        |- Font.light
-        |- Font.align center
-        |- Font.uppercase
-        |- Font.color Color.blue
-    ]
-
-
-class FontExample
-    [ Font.current
-        |^ Font.size 18
-        |- Font.letterSpacing 20
-        |- Font.light
-        |- Font.align center
-        |- Font.uppercase
-        |- Font.color Color.blue
-    ]
+@docs uppercase, capitalize, lowercase, underline, strike, italicize, bold, weight, light
 
 -}
 

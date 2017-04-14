@@ -4,20 +4,30 @@
     "repository": "https://github.com/mdgriffith/style-elements.git",
     "license": "BSD3",
     "source-directories": [
-        "src"
+        "src",
+        "elm-style-animation/src"
     ],
     "exposed-modules": [
         "Style",
         "Style.Media",
-        "Style.Animation"
+        "Style.Animation",
+        "Style.Border",
+        "Style.Font",
+        "Style.Color",
+        "Style.Filter",
+        "Style.Position",
+        "Style.Shadow",
+        "Style.Sheet",
+        "Style.Transform",
+        "Style.Transitions",
+        "Style.Layout"
     ],
     "dependencies": {
         "Skinney/murmur3": "2.0.4 <= v < 3.0.0",
         "elm-community/list-extra": "4.0.0 <= v < 5.0.0",
         "elm-community/string-extra": "1.1.1 <= v < 2.0.0",
         "elm-lang/core": "5.0.0 <= v < 6.0.0",
-        "elm-lang/html": "2.0.0 <= v < 3.0.0",
-        "mdgriffith/elm-style-animation": "3.5.1 <= v < 4.0.0"
+        "elm-lang/html": "2.0.0 <= v < 3.0.0"
     },
     "elm-version": "0.18.0 <= v < 0.19.0"
 }

@@ -1,6 +1,10 @@
-module Style.Filter exposing (..)
+module Style.Filter exposing (url, blur, brightness, contrast, grayscale, hueRotate, invert, opacity, saturate, sepia)
 
-{-| -}
+{-|
+
+@docs url, blur, brightness, contrast, grayscale, hueRotate, invert, opacity, saturate, sepia
+
+-}
 
 import Style.Internal.Model as Internal
 import Style exposing (Filter)

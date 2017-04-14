@@ -1,28 +1,8 @@
-module Style.Shadow exposing (..)
+module Style.Shadow exposing (box, drop, inset)
 
 {-|
 
-
-
-
-class ShadowExample
-    [ Style.shadows
-        |^ Shadow.box
-            { offset = (0,0)
-            , size = 5
-            , blur = 0
-            , color = Color.black
-            }
-        |- Shadow.inset
-            { offset = (0,0)
-            , size = 5
-            , blur = 0
-            , color = Color.black
-            }
-
-    ]
-
-
+@docs box, drop, inset
 
 -}
 

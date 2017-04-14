@@ -1,6 +1,10 @@
 module Style.Sheet exposing (embed, render, renderWith, guard, critical, merge, map)
 
-{-| -}
+{-|
+
+@docs embed, render, renderWith, guard, critical, merge, map
+
+-}
 
 import Style.Internal.Model as Internal
 import Style.Internal.Render as Render
