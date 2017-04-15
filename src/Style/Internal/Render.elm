@@ -12,6 +12,7 @@ import Style.Internal.Render.Value as Value
 import Style.Internal.Render.Css as Css
 import Style.Internal.Selector as Selector exposing (Selector)
 import Style.Internal.Batchable as Batchable exposing (Batchable)
+import Style.Internal.Intermediate as Intermediate
 import Time
 
 
@@ -20,11 +21,12 @@ import Time
     (,)
 
 
-stylesheet : Bool -> List (Batchable (Internal.Style class variation animation)) -> List ( String, List (Findable.Element class variation animation) )
+stylesheet : Bool -> List (Batchable (Internal.Style class variation animation)) -> Intermediate.Rendered class variation animation
 stylesheet guard batched =
     batched
         |> Batchable.toList
         |> List.map (renderStyle guard << preprocess)
+        |> Intermediate.finalize
 
 
 {-| This handles rearranging some properties before they're rendered.
@@ -145,349 +147,225 @@ preprocess style =
                 Internal.Style class processed
 
 
-applyGuard : String -> IntermediateStyle class variation animation -> IntermediateStyle class variation animation
-applyGuard guard intermediate =
-    case intermediate of
-        Intermediate select props ->
-            Intermediate (Selector.guard guard select) props
-
-        MediaIntermediate query select props ->
-            MediaIntermediate query (Selector.guard guard select) props
-
-
-renderStyle : Bool -> Style class variation animation -> ( String, List (Findable.Element class variation animation) )
+renderStyle : Bool -> Style class variation animation -> Intermediate.Class class variation animation
 renderStyle guarded style =
     case style of
         Internal.Import str ->
-            ( "@import " ++ str ++ ";\n"
-            , []
-            )
+            Intermediate.Free <| "@import " ++ str ++ ";"
 
         Internal.Style class props ->
             let
-                className =
+                selector =
                     Selector.select class
 
-                ( embeddedElements, renderedProps ) =
-                    renderAllProps className props
+                inter =
+                    Intermediate.Class
+                        { selector = selector
+                        , props = List.map (renderProp selector) props
+                        }
 
-                intermediates =
-                    (Intermediate className renderedProps :: embeddedElements)
-                        |> guard
-
-                guard inter =
+                guard i =
                     if guarded then
-                        let
-                            g =
-                                calculateGuard inter
-                        in
-                            List.map (applyGuard g) inter
+                        Intermediate.guard i
                     else
-                        inter
+                        i
             in
-                ( intermediates
-                    |> List.map renderIntermediate
-                    |> String.join "\n"
-                , intermediates
-                    |> List.concatMap renderFindable
-                )
+                inter
+                    |> guard
 
 
-calculateGuard : List (IntermediateStyle class variation animation) -> String
-calculateGuard intermediates =
-    let
-        propToString ( x, y ) =
-            x ++ y
-
-        asString inter =
-            case inter of
-                Intermediate class props ->
-                    String.concat <| List.map propToString props
-
-                MediaIntermediate query class props ->
-                    query ++ (String.concat <| List.map propToString props)
-    in
-        intermediates
-            |> List.map asString
-            |> String.concat
-            |> hash
-
-
-{-| -}
-renderFindable : IntermediateStyle class variation animation -> List (Findable.Element class variation animation)
-renderFindable intermediate =
-    case intermediate of
-        Intermediate selector _ ->
-            Selector.getFindable selector
-
-        _ ->
-            []
-
-
-{-| -}
-hash : String -> String
-hash value =
-    Murmur3.hashString 8675309 value
-        |> toString
-
-
-type IntermediateStyle class variation animation
-    = Intermediate (Selector class variation animation) (List ( String, String ))
-      --              query  class  props  intermediates
-    | MediaIntermediate String (Selector class variation animation) (List ( String, String ))
-
-
-asMediaQuery : String -> IntermediateStyle class variation animation -> IntermediateStyle class variation animation
-asMediaQuery query style =
-    case style of
-        Intermediate class props ->
-            MediaIntermediate query class props
-
-        x ->
-            x
-
-
-renderAllProps : Selector class variation animation -> List (Property class variation animation) -> ( List (IntermediateStyle class variation animation), List ( String, String ) )
-renderAllProps parent allProps =
-    let
-        renderPropsAndChildren prop ( existing, rendered ) =
-            let
-                ( children, renderedProp ) =
-                    renderProp parent prop
-            in
-                ( children ++ existing
-                , renderedProp ++ rendered
-                )
-    in
-        List.foldr renderPropsAndChildren ( [], [] ) allProps
-
-
-renderVariationProps : Selector class variation animation -> List (Property class Never animation) -> ( List (IntermediateStyle class variation animation), List ( String, String ) )
-renderVariationProps parent allProps =
-    let
-        renderPropsAndChildren prop ( existing, rendered ) =
-            let
-                ( children, renderedProp ) =
-                    renderVariationProp parent prop
-            in
-                ( children ++ existing
-                , renderedProp ++ rendered
-                )
-    in
-        List.foldr renderPropsAndChildren ( [], [] ) allProps
-
-
-renderProp : Selector class variation animation -> Property class variation animation -> ( List (IntermediateStyle class variation animation), List ( String, String ) )
+renderProp : Selector class variation animation -> Property class variation animation -> Intermediate.Prop class variation animation
 renderProp parentClass prop =
     case prop of
         Child class props ->
-            let
-                selector =
-                    Selector.child parentClass (Selector.select class)
-
-                ( intermediates, renderedProps ) =
-                    renderAllProps selector props
-            in
-                ( (Intermediate selector renderedProps) :: intermediates
-                , []
-                )
+            (Intermediate.SubClass << Intermediate.Class)
+                { selector = Selector.child parentClass (Selector.select class)
+                , props = List.map (renderProp parentClass) props
+                }
 
         Variation var props ->
-            let
-                ( intermediates, renderedProps ) =
-                    renderVariationProps parentClass props
-            in
-                ( (Intermediate (Selector.variant parentClass var) renderedProps) :: intermediates
-                , []
-                )
+            (Intermediate.SubClass << Intermediate.Class)
+                { selector = Selector.variant parentClass var
+                , props = List.filterMap (renderVariationProp parentClass) props
+                }
 
         PseudoElement class props ->
-            let
-                ( intermediates, renderedProps ) =
-                    renderAllProps parentClass props
-            in
-                ( Intermediate (Selector.pseudo class parentClass) renderedProps :: intermediates
-                , []
-                )
+            (Intermediate.SubClass << Intermediate.Class)
+                { selector = Selector.pseudo class parentClass
+                , props = List.map (renderProp parentClass) props
+                }
 
         MediaQuery query props ->
-            let
-                ( intermediates, renderedProps ) =
-                    renderAllProps parentClass props
-
-                mediaQueries =
-                    List.map (asMediaQuery query) intermediates
-            in
-                ( (MediaIntermediate ("@media " ++ query) parentClass renderedProps) :: mediaQueries
-                , []
-                )
+            (Intermediate.SubClass << Intermediate.Media)
+                { query = "@media " ++ query
+                , selector = parentClass
+                , props =
+                    props
+                        |> List.map (renderProp parentClass)
+                        |> List.map (Intermediate.asMediaQuery query)
+                }
 
         Exact name val ->
-            ( [], [ ( name, val ) ] )
+            Intermediate.props <| [ ( name, val ) ]
 
         Visibility vis ->
-            ( [], Render.visibility vis )
+            Intermediate.props <| Render.visibility vis
 
         Border props ->
-            ( [], List.map Render.border props )
+            Intermediate.props <| List.map Render.border props
 
         Box props ->
-            ( [], List.map Render.box props )
+            Intermediate.props <| List.map Render.box props
 
         Position pos ->
-            ( [], Render.position pos )
+            Intermediate.props <| Render.position pos
 
         Font props ->
-            ( [], List.map Render.font props )
+            Intermediate.props <| List.map Render.font props
 
         Layout lay ->
-            ( layoutSpacing parentClass lay
-            , Render.layout lay
-            )
+            case layoutSpacing parentClass lay of
+                Nothing ->
+                    Intermediate.props (Render.layout lay)
+
+                Just spacing ->
+                    Intermediate.PropsAndSub
+                        (Render.layout lay)
+                        spacing
 
         Background props ->
-            ( [], Render.background props )
+            Intermediate.props <| Render.background props
 
         Shadows shadows ->
-            ( [], Render.shadow shadows )
+            Intermediate.props <| Render.shadow shadows
 
         Transform transformations ->
-            ( [], Render.transformations transformations )
+            Intermediate.props <| Render.transformations transformations
 
         Filters filters ->
-            ( [], Render.filters filters )
+            Intermediate.props <| Render.filters filters
 
         Palette colors ->
-            ( [], List.map Render.colorElement colors )
+            Intermediate.props <| List.map Render.colorElement colors
 
         Transitions trans ->
-            ( []
-            , [ ( "transition"
-                , trans
-                    |> List.map Render.transition
-                    |> String.join ", "
-                )
-              ]
-            )
+            Intermediate.props <|
+                [ ( "transition"
+                  , trans
+                        |> List.map Render.transition
+                        |> String.join ", "
+                  )
+                ]
 
 
-renderVariationProp : Selector class variation animation -> Property class Never animation -> ( List (IntermediateStyle class variation animation), List ( String, String ) )
+renderVariationProp : Selector class variation animation -> Property class Never animation -> Maybe (Intermediate.Prop class variation animation)
 renderVariationProp parentClass prop =
     case prop of
         Child class props ->
-            ( []
-            , []
-            )
+            Nothing
 
         Variation var props ->
-            ( [], [] )
+            Nothing
 
         PseudoElement class props ->
-            let
-                ( intermediates, renderedProps ) =
-                    renderVariationProps parentClass props
-            in
-                ( Intermediate (Selector.pseudo class parentClass) renderedProps :: intermediates
-                , []
-                )
+            (Just << Intermediate.SubClass << Intermediate.Class)
+                { selector = Selector.pseudo class parentClass
+                , props = List.filterMap (renderVariationProp parentClass) props
+                }
 
         MediaQuery query props ->
-            let
-                ( intermediates, renderedProps ) =
-                    renderVariationProps parentClass props
-
-                mediaQueries =
-                    List.map (asMediaQuery query) intermediates
-            in
-                ( (MediaIntermediate ("@media " ++ query) parentClass renderedProps) :: mediaQueries
-                , []
-                )
+            (Just << Intermediate.SubClass << Intermediate.Media)
+                { query = "@media " ++ query
+                , selector = parentClass
+                , props =
+                    props
+                        |> List.filterMap (renderVariationProp parentClass)
+                        |> List.map (Intermediate.asMediaQuery query)
+                }
 
         Exact name val ->
-            ( [], [ ( name, val ) ] )
+            (Just << Intermediate.props) [ ( name, val ) ]
 
         Visibility vis ->
-            ( [], Render.visibility vis )
+            (Just << Intermediate.props) <| Render.visibility vis
 
         Border props ->
-            ( [], List.map Render.border props )
+            (Just << Intermediate.props) <| List.map Render.border props
 
         Box props ->
-            ( [], List.map Render.box props )
+            (Just << Intermediate.props) <| List.map Render.box props
 
         Position pos ->
-            ( [], Render.position pos )
+            (Just << Intermediate.props) <| Render.position pos
 
         Font props ->
-            ( [], List.map Render.font props )
+            (Just << Intermediate.props) <| List.map Render.font props
 
         Layout lay ->
-            ( layoutSpacing parentClass lay
-            , Render.layout lay
-            )
+            case layoutSpacing parentClass lay of
+                Nothing ->
+                    (Just << Intermediate.props) (Render.layout lay)
+
+                Just spacing ->
+                    Just <|
+                        Intermediate.PropsAndSub
+                            (Render.layout lay)
+                            spacing
 
         Background props ->
-            ( [], Render.background props )
+            (Just << Intermediate.props) <| Render.background props
 
         Shadows shadows ->
-            ( [], Render.shadow shadows )
+            (Just << Intermediate.props) <| Render.shadow shadows
 
         Transform transformations ->
-            ( [], Render.transformations transformations )
+            (Just << Intermediate.props) <| Render.transformations transformations
 
         Filters filters ->
-            ( [], Render.filters filters )
+            (Just << Intermediate.props) <| Render.filters filters
 
         Palette colors ->
-            ( [], List.map Render.colorElement colors )
+            (Just << Intermediate.props) <| List.map Render.colorElement colors
 
         Transitions trans ->
-            ( []
-            , [ ( "transition"
-                , trans
-                    |> List.map Render.transition
-                    |> String.join ", "
-                )
-              ]
-            )
-
-
-renderIntermediate : IntermediateStyle class variation animation -> String
-renderIntermediate intermediate =
-    case intermediate of
-        Intermediate class props ->
-            (Selector.render Nothing class ++ Css.brace 0 (String.join "\n" <| List.map (Css.prop 2) props) ++ "\n")
-
-        MediaIntermediate query class props ->
-            query ++ Css.brace 0 ("  " ++ Selector.render Nothing class ++ Css.brace 2 (String.join "\n" <| List.map (Css.prop 4) props))
+            Just <|
+                Intermediate.props
+                    [ ( "transition"
+                      , trans
+                            |> List.map Render.transition
+                            |> String.join ", "
+                      )
+                    ]
 
 
 {-| -}
-layoutSpacing : Selector class variation animation -> LayoutModel -> List (IntermediateStyle class variation animation)
+layoutSpacing : Selector class variation animation -> LayoutModel -> Maybe (Intermediate.Class class variation animation)
 layoutSpacing parent layout =
     case layout of
         Internal.TextLayout { spacing } ->
             case spacing of
                 Nothing ->
-                    []
+                    Nothing
 
                 Just space ->
-                    [ Intermediate
-                        (Selector.child parent <| Selector.free "*:not(.nospacing)")
-                        [ ( "margin", Value.box space ) ]
-                    ]
+                    (Just << Intermediate.Class)
+                        { selector = Selector.child parent <| Selector.free "*:not(.nospacing)"
+                        , props = [ Intermediate.Props [ ( "margin", Value.box space ) ] ]
+                        }
 
         Internal.FlexLayout _ props ->
             let
                 spacing prop =
                     case prop of
-                        Spacing spaced ->
-                            Just <|
-                                Intermediate
-                                    (Selector.child parent <| Selector.free "*:not(.nospacing)")
-                                    [ ( "margin", Value.box spaced ) ]
+                        Spacing space ->
+                            (Just << Intermediate.Class)
+                                { selector = Selector.child parent <| Selector.free "*:not(.nospacing)"
+                                , props = [ Intermediate.Props [ ( "margin", Value.box space ) ] ]
+                                }
 
                         _ ->
                             Nothing
             in
                 List.filterMap spacing props
+                    |> List.reverse
+                    |> List.head

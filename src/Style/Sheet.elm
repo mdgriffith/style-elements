@@ -10,6 +10,7 @@ import Style.Internal.Model as Internal
 import Style.Internal.Render as Render
 import Style.Internal.Find as Find
 import Style.Internal.Batchable as Batchable
+import Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
 import Style exposing (Style)
 import Html.Attributes
 import Html exposing (Html)
@@ -20,7 +21,7 @@ import Html exposing (Html)
 type alias StyleSheet class variation animation msg =
     { style : class -> Html.Attribute msg
     , variations : class -> List ( variation, Bool ) -> Html.Attribute msg
-    , animate : class -> List ( animation, Bool ) -> Html.Attribute msg
+    , animations : List animation --(Internal.Animation animation msg)
     , css : String
     }
 
@@ -74,20 +75,16 @@ renderWith opts styles =
 
 
 {-| -}
-prepareSheet : List ( String, List (Find.Element class variation animation) ) -> StyleSheet class variation animation msg
-prepareSheet rendered =
+prepareSheet : Intermediate.Rendered class variation animation -> StyleSheet class variation animation msg
+prepareSheet (Rendered { css, findable }) =
     let
-        findable =
-            rendered
-                |> List.concatMap Tuple.second
-
-        variations class variations =
+        variations class vs =
             let
                 parent =
                     Find.style class findable
 
                 varys =
-                    variations
+                    vs
                         |> List.filter Tuple.second
                         |> List.map ((\vary -> Find.variation class vary findable) << Tuple.first)
                         |> List.map (\cls -> ( cls, True ))
@@ -96,11 +93,9 @@ prepareSheet rendered =
     in
         { style = \class -> Html.Attributes.class (Find.style class findable)
         , variations = \class varys -> variations class varys
-        , animate = \class variations -> Html.Attributes.class "test"
+        , animations = []
         , css =
-            rendered
-                |> List.map Tuple.first
-                |> String.join "\n"
+            css
         }
 
 
