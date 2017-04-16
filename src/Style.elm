@@ -70,6 +70,8 @@ module Style
         , after
         , before
         , pseudo
+        , importUrl
+        , importCss
         )
 
 {-|
@@ -110,6 +112,7 @@ module Style
 
 @docs hover, focus, pseudo, after, before
 
+@docs importUrl, importCss
 
 -}
 
