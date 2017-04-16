@@ -1,8 +1,8 @@
-module Style.Shadow exposing (box, drop, inset)
+module Style.Shadow exposing (box, drop, inset, text)
 
 {-|
 
-@docs box, drop, inset
+@docs box, drop, inset, text
 
 -}
 
