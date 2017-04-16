@@ -4,6 +4,7 @@ module Style
         , Property
         , Font
         , Background
+        , Position
         , Border
         , Repeat
         , Shadow
@@ -30,6 +31,7 @@ module Style
         , variation
         , child
         , prop
+        , cursor
         , font
         , background
         , shadows
@@ -39,6 +41,8 @@ module Style
         , box
         , width
         , height
+        , padding
+        , margin
         , maxHeight
         , minHeight
         , maxWidth
@@ -53,6 +57,14 @@ module Style
         , right
         , top
         , bottom
+        , topBottom
+        , leftRight
+        , leftRightAndTopBottom
+        , leftRightTopBottom
+        , allButTop
+        , allButLeft
+        , allButRight
+        , allButBottom
         , hover
         , focus
         , after
@@ -70,6 +82,8 @@ module Style
 
 @docs prop
 
+@docs cursor
+
 @docs hidden, invisible, opacity
 
 @docs palette, ColorElement
@@ -80,7 +94,7 @@ module Style
 
 @docs Border, border
 
-@docs box, px, auto, percent, width, maxWidth, minWidth, height, maxHeight, minHeight
+@docs box, px, auto, percent, width, maxWidth, minWidth, height, maxHeight, minHeight, padding, margin
 
 @docs Shadow, shadows
 
@@ -92,7 +106,7 @@ module Style
 
 @docs background, Background, Repeat, GradientDirection, GradientStep
 
-@docs all, top, left, right, bottom
+@docs all, top, left, right, bottom, leftRight, leftRightAndTopBottom, leftRightTopBottom, allButTop, allButLeft, allButRight, allButBottom
 
 @docs hover, focus, pseudo, after, before
 
@@ -211,6 +225,12 @@ prop =
 
 
 {-| -}
+cursor : String -> Property class variation animation
+cursor =
+    Internal.Exact "cursor"
+
+
+{-| -}
 border : List Border -> Property class variation animation
 border elems =
     Internal.Border (Internal.BorderElement "border-style" "solid" :: elems)
@@ -304,6 +324,15 @@ maxHeight len =
 padding : ( Float, Float, Float, Float ) -> Box
 padding pad =
     Internal.BoxProp "padding" (Value.box pad)
+
+
+{-| Check out Layout.spacing, which sets the margin for all children elements.  Usually
+
+
+-}
+margin : ( Float, Float, Float, Float ) -> Box
+margin pad =
+    Internal.BoxProp "margin" (Value.box pad)
 
 
 {-| Same as `display:none`.
@@ -491,6 +520,54 @@ top x =
 bottom : Float -> ( Float, Float, Float, Float )
 bottom x =
     ( 0, 0, x, 0 )
+
+
+{-| -}
+topBottom : Float -> ( Float, Float, Float, Float )
+topBottom x =
+    ( x, 0, x, 0 )
+
+
+{-| -}
+leftRight : Float -> ( Float, Float, Float, Float )
+leftRight x =
+    ( 0, x, 0, x )
+
+
+{-| -}
+leftRightAndTopBottom : Float -> Float -> ( Float, Float, Float, Float )
+leftRightAndTopBottom x y =
+    ( y, x, y, x )
+
+
+{-| -}
+leftRightTopBottom : Float -> Float -> Float -> Float -> ( Float, Float, Float, Float )
+leftRightTopBottom l r t b =
+    ( t, r, b, l )
+
+
+{-| -}
+allButRight : Float -> ( Float, Float, Float, Float )
+allButRight x =
+    ( x, 0, x, x )
+
+
+{-| -}
+allButLeft : Float -> ( Float, Float, Float, Float )
+allButLeft x =
+    ( x, x, x, 0 )
+
+
+{-| -}
+allButTop : Float -> ( Float, Float, Float, Float )
+allButTop x =
+    ( 0, x, x, x )
+
+
+{-| -}
+allButBottom : Float -> ( Float, Float, Float, Float )
+allButBottom x =
+    ( x, x, 0, x )
 
 
 {-| -}
