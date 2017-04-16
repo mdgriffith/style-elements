@@ -1,4 +1,4 @@
-module Style.Color exposing (..)
+module Style.Palette exposing (..)
 
 {-|
 

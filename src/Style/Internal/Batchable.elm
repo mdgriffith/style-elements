@@ -6,6 +6,7 @@ module Style.Internal.Batchable exposing (..)
 type Batchable thing
     = One thing
     | Many (List thing)
+    | Batch (List (Batchable thing))
 
 
 one : thing -> Batchable thing
@@ -18,6 +19,11 @@ many =
     Many
 
 
+batch : List (Batchable thing) -> Batchable thing
+batch =
+    Batch
+
+
 toList : List (Batchable thing) -> List thing
 toList batchables =
     let
@@ -28,6 +34,9 @@ toList batchables =
 
                 Many things ->
                     things
+
+                Batch embedded ->
+                    toList embedded
     in
         List.concatMap flatten batchables
 
@@ -41,3 +50,6 @@ map fn batchable =
 
         Many elems ->
             Many <| List.map fn elems
+
+        Batch embedded ->
+            Batch (List.map (map fn) embedded)

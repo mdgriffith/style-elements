@@ -1,8 +1,8 @@
-module Style.Sheet exposing (embed, render, renderWith, guard, critical, merge, map)
+module Style.Sheet exposing (embed, render, renderWith, guard, critical, merge, map, mix)
 
 {-|
 
-@docs embed, render, renderWith, guard, critical, merge, map
+@docs embed, render, renderWith, guard, critical, merge, map, mix
 
 -}
 
@@ -116,3 +116,8 @@ map toParent styles =
 merge : ChildSheet class variation animation -> Style class variation animation
 merge (ChildSheet styles) =
     Batchable.many (Batchable.toList styles)
+
+
+mix : List (Style class variation animation) -> Style class variation animation
+mix =
+    Batchable.batch

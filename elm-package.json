@@ -13,7 +13,7 @@
         "Style.Animation",
         "Style.Border",
         "Style.Font",
-        "Style.Color",
+        "Style.Palette",
         "Style.Filter",
         "Style.Position",
         "Style.Shadow",
