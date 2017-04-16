@@ -47,20 +47,6 @@ type Rendered class variation animation
         }
 
 
-emptyRendered =
-    Rendered
-        { css = ""
-        , findable = []
-        , animations = []
-        }
-
-
-
--- merge : Rendered class variation animation -> Rendered class variation animation -> Rendered class variation animation
--- merge =
---     Debug.crash "TODO"
-
-
 finalize : List (Class class variation animation) -> Rendered class variation animation
 finalize intermediates =
     let
@@ -239,9 +225,21 @@ makeRenderable cls =
 {-| -}
 asFindable : Class class variation animation -> List (Findable.Element class variation animation)
 asFindable intermediate =
-    case intermediate of
-        Class { selector } ->
-            Selector.getFindable selector
+    let
+        findableProp prop =
+            case prop of
+                SubClass cls ->
+                    asFindable cls
 
-        _ ->
-            []
+                PropsAndSub _ cls ->
+                    asFindable cls
+
+                _ ->
+                    []
+    in
+        case intermediate of
+            Class { selector, props } ->
+                Selector.getFindable selector ++ List.concatMap findableProp props
+
+            _ ->
+                []
