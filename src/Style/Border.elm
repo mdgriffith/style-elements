@@ -6,7 +6,7 @@ module Style.Border exposing (color, width, radius, solid, dashed, dotted)
 
 import Style.Internal.Model as Internal exposing (Property(..))
 import Style.Internal.Render.Value as Render
-import Style exposing (Border)
+import Style exposing (Border, Corners)
 import Color exposing (Color)
 
 
@@ -23,7 +23,7 @@ width box =
 
 
 {-| -}
-radius : ( Float, Float, Float, Float ) -> Border
+radius : Corners -> Border
 radius box =
     Internal.BorderElement "border-radius" (Render.box box)
 

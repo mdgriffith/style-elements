@@ -11,23 +11,9 @@ import Style.Internal.Render as Render
 import Style.Internal.Find as Find
 import Style.Internal.Batchable as Batchable
 import Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
-import Style exposing (Style)
+import Style exposing (Style, StyleSheet, ChildSheet)
 import Html.Attributes
 import Html exposing (Html)
-
-
-{-| The stylesheet contains the rendered css as a string, and two functions to lookup
--}
-type alias StyleSheet class variation animation msg =
-    { style : class -> Html.Attribute msg
-    , variations : class -> List ( variation, Bool ) -> Html.Attribute msg
-    , animations : List animation --(Internal.Animation animation msg)
-    , css : String
-    }
-
-
-type ChildSheet class variation animation
-    = ChildSheet (List (Style class variation animation))
 
 
 type Option class
@@ -118,6 +104,7 @@ merge (ChildSheet styles) =
     Batchable.many (Batchable.toList styles)
 
 
+{-| -}
 mix : List (Style class variation animation) -> Style class variation animation
 mix =
     Batchable.batch

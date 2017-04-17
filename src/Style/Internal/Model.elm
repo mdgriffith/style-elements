@@ -4,6 +4,22 @@ module Style.Internal.Model exposing (..)
 
 import Color exposing (Color)
 import Time exposing (Time)
+import Html
+
+
+{-| The stylesheet contains the rendered css as a string, and two functions to lookup
+-}
+type alias StyleSheet class variation animation msg =
+    { style : class -> Html.Attribute msg
+    , variations : class -> List ( variation, Bool ) -> Html.Attribute msg
+    , animations : List animation --(Internal.Animation animation msg)
+    , css : String
+    }
+
+
+{-| -}
+type ChildSheet class variation animation
+    = ChildSheet (List (Style class variation animation))
 
 
 type Style class variation animation

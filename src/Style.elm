@@ -14,6 +14,8 @@ module Style
         , ColorElement
         , GradientDirection
         , GradientStep
+        , StyleSheet
+        , ChildSheet
         , hidden
         , invisible
         , opacity
@@ -78,7 +80,7 @@ module Style
 # Welcome to the Style Elements Library!
 
 
-@docs Style, Property
+@docs StyleSheet, ChildSheet, Style, Property
 
 @docs style, variation, child
 
@@ -90,7 +92,7 @@ module Style
 
 @docs palette, ColorElement
 
-@docs position
+@docs Position, position
 
 @docs block, blockSpaced, row, rowSpaced, column, columnSpaced,  FlexBox, flowRight, flowDown, flowUp, flowLeft
 
@@ -108,7 +110,7 @@ module Style
 
 @docs background, Background, Repeat, GradientDirection, GradientStep
 
-@docs all, top, left, right, bottom, leftRight, leftRightAndTopBottom, leftRightTopBottom, allButTop, allButLeft, allButRight, allButBottom
+@docs all, top, left, right, bottom, leftRight, topBottom, leftRightAndTopBottom, leftRightTopBottom, allButTop, allButLeft, allButRight, allButBottom
 
 @docs hover, focus, pseudo, after, before
 
@@ -119,6 +121,18 @@ module Style
 import Style.Internal.Model as Internal
 import Style.Internal.Render.Value as Value
 import Style.Internal.Batchable as Batchable exposing (Batchable)
+import Html exposing (Attribute, Html)
+
+
+{-| The stylesheet contains the rendered css as a string, and two functions to lookup
+-}
+type alias StyleSheet class variation animation msg =
+    Internal.StyleSheet class variation animation msg
+
+
+{-| -}
+type alias ChildSheet class variation animation =
+    Internal.ChildSheet class variation animation
 
 
 {-| -}
@@ -495,82 +509,135 @@ filters =
 -}
 
 
-{-| -}
+{-| A tuple of four floats to define any property with edges, such as:
+
+  * `padding`
+  * `margin`
+  * `Layout.spacing`
+  * `Border.width`
+
+`(top, right, bottom, left)`
+
+-}
+type alias Edges =
+    ( Float, Float, Float, Float )
+
+
+{-| Can be used for any property that takes `Edges` or `Corners`.
+
+-}
 all : Float -> ( Float, Float, Float, Float )
 all x =
     ( x, x, x, x )
 
 
 {-| -}
-left : Float -> ( Float, Float, Float, Float )
-left x =
-    ( 0, 0, 0, x )
-
-
-{-| -}
-right : Float -> ( Float, Float, Float, Float )
-right x =
-    ( 0, x, 0, 0 )
-
-
-{-| -}
-top : Float -> ( Float, Float, Float, Float )
+top : Float -> Edges
 top x =
     ( x, 0, 0, 0 )
 
 
 {-| -}
-bottom : Float -> ( Float, Float, Float, Float )
+right : Float -> Edges
+right x =
+    ( 0, x, 0, 0 )
+
+
+{-| -}
+bottom : Float -> Edges
 bottom x =
     ( 0, 0, x, 0 )
 
 
 {-| -}
-topBottom : Float -> ( Float, Float, Float, Float )
+left : Float -> Edges
+left x =
+    ( 0, 0, 0, x )
+
+
+{-| -}
+topBottom : Float -> Edges
 topBottom x =
     ( x, 0, x, 0 )
 
 
 {-| -}
-leftRight : Float -> ( Float, Float, Float, Float )
+leftRight : Float -> Edges
 leftRight x =
     ( 0, x, 0, x )
 
 
 {-| -}
-leftRightAndTopBottom : Float -> Float -> ( Float, Float, Float, Float )
+leftRightAndTopBottom : Float -> Float -> Edges
 leftRightAndTopBottom x y =
     ( y, x, y, x )
 
 
 {-| -}
-leftRightTopBottom : Float -> Float -> Float -> Float -> ( Float, Float, Float, Float )
+leftRightTopBottom : Float -> Float -> Float -> Float -> Edges
 leftRightTopBottom l r t b =
     ( t, r, b, l )
 
 
 {-| -}
-allButRight : Float -> ( Float, Float, Float, Float )
+allButRight : Float -> Edges
 allButRight x =
     ( x, 0, x, x )
 
 
 {-| -}
-allButLeft : Float -> ( Float, Float, Float, Float )
+allButLeft : Float -> Edges
 allButLeft x =
     ( x, x, x, 0 )
 
 
 {-| -}
-allButTop : Float -> ( Float, Float, Float, Float )
+allButTop : Float -> Edges
 allButTop x =
     ( 0, x, x, x )
 
 
 {-| -}
-allButBottom : Float -> ( Float, Float, Float, Float )
+allButBottom : Float -> Edges
 allButBottom x =
     ( x, x, 0, x )
+
+
+{-| This is used to define border-radius.
+
+It's still a four element tuple like `Edges`, but the numbers are semantically different.
+
+`(topLeft, topRight, bottomRight, bottomLeft)`
+
+The function `all` works for both Corners and Edges.
+
+-}
+type alias Corners =
+    ( Float, Float, Float, Float )
+
+
+{-| -}
+topLeft : Float -> Corners
+topLeft x =
+    ( x, 0, 0, 0 )
+
+
+{-| -}
+topRight : Float -> Corners
+topRight x =
+    ( 0, x, 0, 0 )
+
+
+{-| -}
+bottomRight : Float -> Corners
+bottomRight x =
+    ( 0, 0, x, 0 )
+
+
+{-| -}
+bottomLeft : Float -> Corners
+bottomLeft x =
+    ( 0, 0, 0, x )
 
 
 {-| -}
@@ -607,3 +674,9 @@ after content props =
 before : String -> List (Property class variation animation) -> Property class variation animation
 before content props =
     Internal.PseudoElement ":before" (prop "content" ("'" ++ content ++ "'") :: props)
+
+
+{-| -}
+element : StyleSheet class variation animation msg -> (List (Attribute msg) -> List (Html msg) -> Html msg) -> class -> List (Attribute msg) -> List (Html msg) -> Html msg
+element stylesheet node class attr children =
+    node (stylesheet.style class :: attr) children
