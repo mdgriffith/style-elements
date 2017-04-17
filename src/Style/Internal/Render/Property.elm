@@ -230,7 +230,7 @@ background props =
                     "to bottomn"
 
                 ToRight ->
-                    "to rightt"
+                    "to right"
 
                 ToTopRight ->
                     "to top right"
