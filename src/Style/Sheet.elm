@@ -11,7 +11,7 @@ import Style.Internal.Render as Render
 import Style.Internal.Find as Find
 import Style.Internal.Batchable as Batchable
 import Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
-import Style exposing (Style, StyleSheet, ChildSheet)
+import Style exposing (Style, StyleSheet)
 import Html.Attributes
 import Html exposing (Html)
 
@@ -19,6 +19,11 @@ import Html exposing (Html)
 type Option class
     = Guard
     | Critical (List class)
+
+
+{-| -}
+type ChildSheet class variation animation
+    = ChildSheet (List (Style class variation animation))
 
 
 {-| -}

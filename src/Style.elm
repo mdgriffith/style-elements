@@ -15,7 +15,8 @@ module Style
         , GradientDirection
         , GradientStep
         , StyleSheet
-        , ChildSheet
+        , Edges
+        , Corners
         , hidden
         , invisible
         , opacity
@@ -80,7 +81,7 @@ module Style
 # Welcome to the Style Elements Library!
 
 
-@docs StyleSheet, ChildSheet, Style, Property
+@docs StyleSheet, Style, Property
 
 @docs style, variation, child
 
@@ -96,9 +97,9 @@ module Style
 
 @docs block, blockSpaced, row, rowSpaced, column, columnSpaced,  FlexBox, flowRight, flowDown, flowUp, flowLeft
 
-@docs Border, border
+@docs Border, border, Corners
 
-@docs box, px, auto, percent, width, maxWidth, minWidth, height, maxHeight, minHeight, padding, margin
+@docs box, px, auto, percent, width, maxWidth, minWidth, height, maxHeight, minHeight, padding, margin, Edges
 
 @docs Shadow, shadows
 
@@ -128,11 +129,6 @@ import Html exposing (Attribute, Html)
 -}
 type alias StyleSheet class variation animation msg =
     Internal.StyleSheet class variation animation msg
-
-
-{-| -}
-type alias ChildSheet class variation animation =
-    Internal.ChildSheet class variation animation
 
 
 {-| -}

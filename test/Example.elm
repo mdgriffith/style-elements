@@ -18,7 +18,6 @@ main : Html.Html msg
 main =
     Html.pre []
         [ Html.div [ Debug.log "button" (stylesheet.style Button) ] []
-        , Html.div [ Debug.log "button" (stylesheet.variations Button [ ( Error, True ) ]) ] []
         , Html.text stylesheet.css
         ]
 

@@ -17,11 +17,6 @@ type alias StyleSheet class variation animation msg =
     }
 
 
-{-| -}
-type ChildSheet class variation animation
-    = ChildSheet (List (Style class variation animation))
-
-
 type Style class variation animation
     = Style class (List (Property class variation animation))
     | Import String
