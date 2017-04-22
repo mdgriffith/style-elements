@@ -3,140 +3,15 @@ module Elements exposing (..)
 {-| -}
 
 import Html exposing (Html)
-import Html.Attributes
-import Style.Internal.Model as Internal
-import Style.Internal.Render.Value as Value
-import Style.Internal.Cache as StyleCache
-import Style.Internal.Render as Render
-import Style.Internal.Selector as Selector
-import Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
+import Style.Internal.Model as Internal exposing (Length)
+import Element.Internal.Model exposing (..)
+import Window
+import Time exposing (Time)
+import Element.Device as Device exposing (Device)
+import Element.Internal.Render as Render
 
 
-type Element elem variation
-    = Empty
-    | Layout Internal.LayoutModel elem (List (LayoutAttribute variation)) (List (Element elem variation))
-    | Element elem (List (LayoutAttribute variation)) (Element elem variation)
-    | Text String
-
-
-type LayoutAttribute variation
-    = Variations (List ( Bool, variation ))
-    | Height Internal.Length
-    | Width Internal.Length
-    | Position Int Int
-    | Spacing Float Float Float Float
-    | Hidden
-    | Transparency Int
-
-
-(=>) =
-    (,)
-
-
-type WithSpacing
-    = InlineSpacing
-    | NoSpacing
-
-
-renderInline : WithSpacing -> List (LayoutAttribute variation) -> List ( String, String )
-renderInline spacing adjustments =
-    let
-        renderAdjustment adj =
-            case adj of
-                Variations variations ->
-                    []
-
-                Height len ->
-                    [ "height" => Value.length len ]
-
-                Width len ->
-                    [ "width" => Value.length len ]
-
-                Position x y ->
-                    []
-
-                Spacing a b c d ->
-                    case spacing of
-                        InlineSpacing ->
-                            [ "margin" => Value.box ( a, b, c, d ) ]
-
-                        NoSpacing ->
-                            []
-
-                Hidden ->
-                    [ "display" => "none" ]
-
-                Transparency t ->
-                    [ "opacity" => (toString <| 1 - t) ]
-    in
-        List.concatMap renderAdjustment adjustments
-
-
-
--- toInternalProps : Maybe Internal.LayoutModel -> List LayoutAttribute variation -> List (Internal.Property class variation animation)
--- toInternalProps maybeLayout attributes =
---     let
---         renderProp attr ( mLayout, props ) =
---             case attr of
---                 Variations _ ->
---                     ( mLayout, props )
---                 Height len ->
---                     ( mLayout, Internal.Exact "height" (Value.length len) :: props )
---                 Width len ->
---                     ( mLayout, Internal.Exact "width" (Value.length len) :: props )
---                 Position x y ->
---                     ( mLayout
---                     , Internal.Position
---                         [ Internal.RelativeTo Internal.Current
---                         , Internal.PosLeft x
---                         , Internal.PosTop y
---                         ]
---                         :: props
---                     )
---                 Spacing a b c d ->
---                     case mLayout of
---                         Nothing ->
---                             ( mLayout, Internal.Exact "margin" (Value.box ( a, b, c, d )) :: props )
---                         Just layout ->
---                             let
---                                 newLayout =
---                                     case layout of
---                                         Internal.TextLayout _ ->
---                                             Internal.TextLayout { spacing = Just ( a, b, c, d ) }
---                                         Internal.FlexLayout dir layoutProps ->
---                                             Internal.FlexLayout dir (layoutProps ++ Internal.Spacing ( a, b, c, d ))
---                             in
---                                 ( Just newLayout, props )
---                 Hidden ->
---                     ( mLayout, Internal.Visibility (Internal.Hidden) :: props )
---                 Transparency o ->
---                     ( mLayout, Internal.Visibility (Internal.Opacity (1.0 - o)) :: props )
---     in
---         List.foldr renderProp ( maybeLayout, [] ) attributes
-
-
-type alias HtmlFn msg =
-    List (Html.Attribute msg) -> List (Html msg) -> Html msg
-
-
-type Styled elem variation animation msg
-    = El (HtmlFn msg) (List (Attributes elem variation animation msg))
-
-
-type Attributes elem variation animation msg
-    = Attr (Html.Attribute msg)
-    | Style (Internal.Property elem variation animation)
-
-
-attr =
-    Attr
-
-
-style =
-    Style
-
-
-{-| In Heirarchy
+{-| In Hierarchy
 
 -}
 empty : Element elem variation
@@ -149,26 +24,42 @@ text =
     Text
 
 
-el : elem -> List (LayoutAttribute variation) -> Element elem variation -> Element elem variation
+el : elem -> List (Attribute variation) -> Element elem variation -> Element elem variation
 el =
     Element
 
 
-row : elem -> List (LayoutAttribute variation) -> List (Element elem variation) -> Element elem variation
+row : elem -> List (Attribute variation) -> List (Element elem variation) -> Element elem variation
 row elem attrs children =
     Layout (Internal.FlexLayout Internal.GoRight []) elem attrs children
 
 
-column : elem -> List (LayoutAttribute variation) -> List (Element elem variation) -> Element elem variation
+column : elem -> List (Attribute variation) -> List (Element elem variation) -> Element elem variation
 column elem attrs children =
     Layout (Internal.FlexLayout Internal.Down []) elem attrs children
 
 
 
--- centered : elem -> List (LayoutAttribute variation) -> Element elem variation -> Element elem variation
+-- centered : elem -> List (Attribute variation) -> Element elem variation -> Element elem variation
 -- centered elem attrs child =
 --     Element elem (HCenter :: attrs) child
+--
+
+
+{-|
+-}
+when : Bool -> Element elem variation -> Element elem variation
+when bool elm =
+    if bool then
+        elm
+    else
+        empty
+
+
+
+--
 -- Relative Positioning
+--
 
 
 above : Element elem variation -> Element elem variation -> Element elem variation
@@ -210,166 +101,144 @@ nevermind =
 
 
 
+{- Layout Attributes -}
+
+
+{-| -}
+width : Length -> Attribute variation
+width =
+    Width
+
+
+{-| -}
+height : Length -> Attribute variation
+height =
+    Height
+
+
+{-| -}
+vary : List ( Bool, variation ) -> Attribute variation
+vary =
+    Variations
+
+
+spacing : Float -> Float -> Float -> Float -> Attribute variation
+spacing =
+    Spacing
+
+
+hidden : Attribute variation
+hidden =
+    Hidden
+
+
+transparency : Int -> Attribute variation
+transparency =
+    Transparency
+
+
+
 --
 -- In your attribute sheet
 
 
-element : List (Attributes elem variation animation msg) -> Styled elem variation animation msg
+element : List (StyleAttribute elem variation animation msg) -> Styled elem variation animation msg
 element =
     El Html.div
 
 
-elementAs : HtmlFn msg -> List (Attributes elem variation animation msg) -> Styled elem variation animation msg
+elementAs : HtmlFn msg -> List (StyleAttribute elem variation animation msg) -> Styled elem variation animation msg
 elementAs =
     El
 
 
-
---- Rendering
-
-
-render : (elem -> Styled elem variation animation msg) -> Element elem variation -> Html msg
-render findNode elm =
-    let
-        ( html, stylecache ) =
-            renderElement findNode elm
-    in
-        Html.div []
-            [ StyleCache.render stylecache renderStyle findNode
-            , html
-            ]
-
-
-renderElement : (elem -> Styled elem variation animation msg) -> Element elem variation -> ( Html msg, StyleCache.Cache elem )
-renderElement findNode elm =
-    case elm of
-        Empty ->
-            ( Html.text "", StyleCache.empty )
-
-        Text str ->
-            ( Html.text str, StyleCache.empty )
-
-        Element element position child ->
-            let
-                ( childHtml, styleset ) =
-                    renderElement findNode child
-
-                elemHtml =
-                    renderNode element (renderInline InlineSpacing position) (findNode element) [ childHtml ]
-            in
-                ( elemHtml
-                , styleset
-                    |> StyleCache.insert element
-                )
-
-        Layout layout element position children ->
-            let
-                -- parentPositionalStyle =
-                --     Internal.Style
-                --         [ Internal.Layout layout :: List.map toInternalProps
-                --         ]
-                ( childHtml, styleset ) =
-                    List.foldr renderAndCombine ( [], StyleCache.empty ) children
-
-                renderAndCombine child ( html, styles ) =
-                    let
-                        ( childHtml, childStyle ) =
-                            renderElement findNode child
-                    in
-                        ( childHtml :: html, StyleCache.combine childStyle styles )
-
-                forSpacing posAttr =
-                    case posAttr of
-                        Spacing a b c d ->
-                            Just ( a, b, c, d )
-
-                        _ ->
-                            Nothing
-
-                spacing =
-                    position
-                        |> List.filterMap forSpacing
-                        |> List.head
-
-                spacingName ( a, b, c, d ) =
-                    "spacing-" ++ toString a ++ "-" ++ toString b ++ "-" ++ toString c ++ "-" ++ toString d
-
-                addSpacing cache =
-                    case spacing of
-                        Nothing ->
-                            cache
-
-                        Just space ->
-                            let
-                                ( name, rendered ) =
-                                    Render.spacing space
-                            in
-                                StyleCache.embed name rendered cache
-
-                parent =
-                    renderLayoutNode element (Maybe.map spacingName spacing) (renderInline NoSpacing position) (findNode element) childHtml
-            in
-                ( parent
-                , styleset
-                    |> StyleCache.insert element
-                    |> addSpacing
-                )
+program :
+    { elements : elem -> Styled elem variation animation msg
+    , init : ( model, Cmd msg )
+    , update : msg -> model -> ( model, Cmd msg )
+    , subscriptions : model -> Sub msg
+    , view : Device -> model -> Element elem variation
+    }
+    -> Program Never (ElemModel elem variation animation model msg) (ElementMsg msg)
+program prog =
+    Html.program
+        { init = init prog.elements prog.init
+        , update = update prog.update
+        , view = (\model -> Html.map Send <| view prog.view model)
+        , subscriptions =
+            (\(ElemModel { model }) ->
+                Sub.batch
+                    [ Window.resizes Resize
+                    , Sub.map Send <| prog.subscriptions model
+                    ]
+            )
+        }
 
 
-renderNode : elem -> List ( String, String ) -> Styled elem variation animation msg -> List (Html msg) -> Html msg
-renderNode elem inlineStyle (El node attrs) children =
-    let
-        normalAttrs attr =
-            case attr of
-                Attr a ->
-                    Just a
 
-                _ ->
-                    Nothing
-
-        attributes =
-            List.filterMap normalAttrs attrs
-
-        styleName =
-            Html.Attributes.class (Selector.formatName elem)
-    in
-        node (Html.Attributes.style inlineStyle :: styleName :: attributes) children
+-- Wiring Functions
+-- program : -> Program Never model msg
 
 
-renderLayoutNode : elem -> Maybe String -> List ( String, String ) -> Styled elem variation animation msg -> List (Html msg) -> Html msg
-renderLayoutNode elem mSpacingClass inlineStyle (El node attrs) children =
-    let
-        normalAttrs attr =
-            case attr of
-                Attr a ->
-                    Just a
-
-                _ ->
-                    Nothing
-
-        attributes =
-            List.filterMap normalAttrs attrs
-
-        classes =
-            case mSpacingClass of
-                Nothing ->
-                    Html.Attributes.class (Selector.formatName elem)
-
-                Just space ->
-                    Html.Attributes.class <| Selector.formatName elem ++ " " ++ space
-    in
-        node (Html.Attributes.style inlineStyle :: classes :: attributes) children
+init : (elem -> Styled elem variation animation msg) -> ( model, Cmd msg ) -> ( ElemModel elem variation animation model msg, Cmd (ElementMsg msg) )
+init elem ( model, cmd ) =
+    ( emptyModel elem model
+    , Cmd.batch
+        [ Cmd.map Send cmd
+        ]
+    )
 
 
-renderStyle : elem -> Styled elem variation animation msg -> Internal.Style elem variation animation
-renderStyle elem (El node attrs) =
-    let
-        styleProps attr =
-            case attr of
-                Style a ->
-                    Just a
 
-                _ ->
-                    Nothing
-    in
-        Internal.Style elem (List.filterMap styleProps attrs)
+-- emptyModel : ElemModel
+
+
+emptyModel :
+    (elem -> Styled elem variation animation msg)
+    -> model
+    -> ElemModel elem variation animation model msg
+emptyModel elem model =
+    ElemModel
+        { time = 0
+        , device =
+            Device.match { width = 1000, height = 1200 }
+        , elements = elem
+        , model = model
+        }
+
+
+type ElementMsg msg
+    = Send msg
+    | Tick Time
+    | Resize Window.Size
+
+
+type ElemModel elem variation animation model msg
+    = ElemModel
+        { time : Time
+        , device : Device
+        , elements : elem -> Styled elem variation animation msg
+        , model : model
+        }
+
+
+update : (msg -> model -> ( model, Cmd msg )) -> ElementMsg msg -> ElemModel elem variation animation model msg -> ( ElemModel elem variation animation model msg, Cmd (ElementMsg msg) )
+update appUpdate elemMsg elemModel =
+    case elemMsg of
+        Send msg ->
+            ( elemModel, Cmd.none )
+
+        Tick time ->
+            ( elemModel, Cmd.none )
+
+        Resize size ->
+            ( case elemModel of
+                ElemModel elmRecord ->
+                    ElemModel { elmRecord | device = Device.match size }
+            , Cmd.none
+            )
+
+
+view : (Device -> model -> Element elem variation) -> ElemModel elem variation animation model msg -> Html msg
+view appView (ElemModel { device, elements, model }) =
+    Render.render elements <| appView device model
