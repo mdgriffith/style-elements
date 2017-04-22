@@ -1,19 +1,15 @@
-module Style.Internal.Render exposing (stylesheet)
+module Style.Internal.Render exposing (stylesheet, unbatchedStylesheet, spacing)
 
 {-|
 -}
 
-import Murmur3
-import Color exposing (Color)
 import Style.Internal.Model as Internal exposing (..)
-import Style.Internal.Find as Findable
 import Style.Internal.Render.Property as Render
 import Style.Internal.Render.Value as Value
-import Style.Internal.Render.Css as Css
 import Style.Internal.Selector as Selector exposing (Selector)
 import Style.Internal.Batchable as Batchable exposing (Batchable)
 import Style.Internal.Intermediate as Intermediate
-import Time
+import Style.Internal.Render.Css as Css
 
 
 (=>) : x -> y -> ( x, y )
@@ -21,10 +17,35 @@ import Time
     (,)
 
 
+single : Bool -> Internal.Style class variation animation -> ( String, String )
+single guard style =
+    Intermediate.raw << renderStyle guard << preprocess <| style
+
+
+spacing : ( Float, Float, Float, Float ) -> ( String, String )
+spacing box =
+    let
+        name =
+            case box of
+                ( a, b, c, d ) ->
+                    "spacing-" ++ toString a ++ "-" ++ toString b ++ "-" ++ toString c ++ "-" ++ toString d ++ " > *:not(.nospacing)"
+    in
+        Css.prop 2 ( "margin", Value.box box )
+            |> Css.brace 0
+            |> (\cls -> ( name, "." ++ name ++ cls ))
+
+
 stylesheet : Bool -> List (Batchable (Internal.Style class variation animation)) -> Intermediate.Rendered class variation animation
 stylesheet guard batched =
     batched
         |> Batchable.toList
+        |> List.map (renderStyle guard << preprocess)
+        |> Intermediate.finalize
+
+
+unbatchedStylesheet : Bool -> List (Internal.Style class variation animation) -> Intermediate.Rendered class variation animation
+unbatchedStylesheet guard styles =
+    styles
         |> List.map (renderStyle guard << preprocess)
         |> Intermediate.finalize
 

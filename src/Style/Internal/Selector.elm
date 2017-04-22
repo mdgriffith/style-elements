@@ -34,6 +34,25 @@ uncapitalize str =
         head ++ tail
 
 
+topName : Selector class variation animation -> String
+topName selector =
+    case selector of
+        Select sel _ ->
+            sel
+
+        SelectChild selector ->
+            topName selector
+
+        Stack selectors ->
+            List.map topName selectors
+                |> List.reverse
+                |> List.head
+                |> Maybe.withDefault ""
+
+        _ ->
+            ""
+
+
 guard : String -> Selector class variation animation -> Selector class variation animation
 guard guard selector =
     let
