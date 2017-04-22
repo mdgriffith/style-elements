@@ -163,7 +163,7 @@ type FontElement
 
 
 type LayoutModel
-    = TextLayout { spacing : Maybe ( Float, Float, Float, Float ) }
+    = TextLayout
     | FlexLayout Direction (List FlexBoxElement)
 
 
@@ -171,7 +171,6 @@ type FlexBoxElement
     = Wrap Bool
     | Horz (Centerable Horizontal)
     | Vert (Centerable Vertical)
-    | Spacing ( Float, Float, Float, Float )
 
 
 type BackgroundElement

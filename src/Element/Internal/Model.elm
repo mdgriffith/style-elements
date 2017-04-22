@@ -18,9 +18,26 @@ type Attribute variation
     | Height Internal.Length
     | Width Internal.Length
     | Position Int Int
+    | PositionFrame Frame
+      -- | Anchor AnchorPoint
     | Spacing Float Float Float Float
     | Hidden
     | Transparency Int
+
+
+type Frame
+    = Below
+    | Above
+    | OnLeft
+    | OnRight
+
+
+
+-- type AnchorPoint
+--     = TopLeft
+--     | TopRight
+--     | BottomLeft
+--     | BottomRight
 
 
 type alias HtmlFn msg =
@@ -32,5 +49,5 @@ type Styled elem variation animation msg
 
 
 type StyleAttribute elem variation animation msg
-    = Attr (Html.Attribute msg)
-    | Style (Internal.Property elem variation animation)
+    = Attr (List (Html.Attribute msg))
+    | Style (List (Internal.Property elem variation animation))

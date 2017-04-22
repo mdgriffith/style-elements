@@ -47,6 +47,28 @@ type Rendered class variation animation
         }
 
 
+raw : Class class variation animation -> ( String, String )
+raw cls =
+    let
+        topName =
+            case cls of
+                Class { selector } ->
+                    Selector.topName selector
+
+                Media { selector } ->
+                    Selector.topName selector
+
+                Free _ ->
+                    ""
+    in
+        ( topName
+        , cls
+            |> makeRenderable
+            |> List.map render
+            |> String.join "\n"
+        )
+
+
 finalize : List (Class class variation animation) -> Rendered class variation animation
 finalize intermediates =
     let
@@ -180,7 +202,7 @@ render renderable =
             str
 
 
-makeRenderable : Class class ariation animation -> List Renderable
+makeRenderable : Class class variation animation -> List Renderable
 makeRenderable cls =
     let
         renderableProps prop ( rendered, subEls ) =

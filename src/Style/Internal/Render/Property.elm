@@ -300,7 +300,7 @@ background props =
 layout : LayoutModel -> List ( String, String )
 layout lay =
     case lay of
-        Internal.TextLayout _ ->
+        Internal.TextLayout ->
             [ "display" => "block" ]
 
         Internal.FlexLayout dir flexProps ->
@@ -343,9 +343,6 @@ flexbox dir el =
                 "flex-wrap" => "wrap"
             else
                 "flex-wrap" => "nowrap"
-
-        Spacing _ ->
-            ( "", "" )
 
         Horz horizontal ->
             case dir of

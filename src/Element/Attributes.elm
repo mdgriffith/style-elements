@@ -2,10 +2,16 @@ module Element.Attributes exposing (..)
 
 {-| -}
 
+import Element.Internal.Model as Internal exposing (StyleAttribute(..))
+import Style exposing (Property)
+import Html
 
-attr =
+
+attributes : List (Html.Attribute msg) -> StyleAttribute elem variation animation msg
+attributes =
     Attr
 
 
+style : List (Property elem variation animation) -> StyleAttribute elem variation animation msg
 style =
     Style

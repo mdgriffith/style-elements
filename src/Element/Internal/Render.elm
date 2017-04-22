@@ -9,6 +9,7 @@ import Style.Internal.Render.Value as Value
 import Style.Internal.Cache as StyleCache
 import Style.Internal.Render as Render
 import Style.Internal.Selector as Selector
+import Style.Internal.Render.Property
 import Element.Internal.Model exposing (..)
 
 
@@ -52,10 +53,9 @@ renderElement findNode elm =
 
         Layout layout element position children ->
             let
-                -- parentPositionalStyle =
-                --     Internal.Style
-                --         [ Internal.Layout layout :: List.map toInternalProps
-                --         ]
+                parentStyle =
+                    Style.Internal.Render.Property.layout layout ++ renderInline NoSpacing position
+
                 ( childHtml, styleset ) =
                     List.foldr renderAndCombine ( [], StyleCache.empty ) children
 
@@ -95,7 +95,7 @@ renderElement findNode elm =
                                 StyleCache.embed name rendered cache
 
                 parent =
-                    renderLayoutNode element (Maybe.map spacingName spacing) (renderInline NoSpacing position) (findNode element) childHtml
+                    renderLayoutNode element (Maybe.map spacingName spacing) parentStyle (findNode element) childHtml
             in
                 ( parent
                 , styleset
@@ -117,6 +117,7 @@ renderNode elem inlineStyle (El node attrs) children =
 
         attributes =
             List.filterMap normalAttrs attrs
+                |> List.concat
 
         styleName =
             Html.Attributes.class (Selector.formatName elem)
@@ -137,6 +138,7 @@ renderLayoutNode elem mSpacingClass inlineStyle (El node attrs) children =
 
         attributes =
             List.filterMap normalAttrs attrs
+                |> List.concat
 
         classes =
             case mSpacingClass of
@@ -160,7 +162,7 @@ renderStyle elem (El node attrs) =
                 _ ->
                     Nothing
     in
-        Internal.Style elem (List.filterMap styleProps attrs)
+        Internal.Style elem (List.concat <| List.filterMap styleProps attrs)
 
 
 type WithSpacing
@@ -183,7 +185,28 @@ renderInline spacing adjustments =
                     [ "width" => Value.length len ]
 
                 Position x y ->
-                    []
+                    [ "transform" => ("translate(" ++ toString x ++ "px " ++ toString y ++ ")")
+                    ]
+
+                PositionFrame Above ->
+                    [ "position" => "absolute"
+                    , "bottom" => "100%"
+                    ]
+
+                PositionFrame Below ->
+                    [ "position" => "absolute"
+                    , "top" => "100%"
+                    ]
+
+                PositionFrame OnLeft ->
+                    [ "position" => "absolute"
+                    , "right" => "100%"
+                    ]
+
+                PositionFrame OnRight ->
+                    [ "position" => "absolute"
+                    , "left" => "100%"
+                    ]
 
                 Spacing a b c d ->
                     case spacing of

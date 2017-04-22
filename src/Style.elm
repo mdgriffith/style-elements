@@ -4,57 +4,28 @@ module Style
         , Property
         , Font
         , Background
-        , Position
         , Border
         , Repeat
         , Shadow
         , Transform
         , Filter
-        , FlexBox
         , ColorElement
         , GradientDirection
         , GradientStep
         , StyleSheet
         , Edges
         , Corners
-        , hidden
-        , invisible
-        , opacity
-        , block
-        , blockSpaced
-        , row
-        , rowSpaced
-        , column
-        , columnSpaced
-        , flowRight
-        , flowDown
-        , flowUp
-        , flowLeft
-        , style
         , variation
-        , child
         , prop
         , cursor
         , font
         , background
         , shadows
-        , position
         , border
         , palette
-        , box
-        , width
-        , height
         , padding
-        , margin
-        , maxHeight
-        , minHeight
-        , maxWidth
-        , minWidth
         , transforms
         , filters
-        , px
-        , percent
-        , auto
         , all
         , left
         , right
@@ -73,8 +44,6 @@ module Style
         , after
         , before
         , pseudo
-        , importUrl
-        , importCss
         )
 
 {-|
@@ -83,23 +52,18 @@ module Style
 
 @docs StyleSheet, Style, Property
 
-@docs style, variation, child
+@docs variation
 
 @docs prop
 
 @docs cursor
 
-@docs hidden, invisible, opacity
 
 @docs palette, ColorElement
 
-@docs Position, position
-
-@docs block, blockSpaced, row, rowSpaced, column, columnSpaced,  FlexBox, flowRight, flowDown, flowUp, flowLeft
-
 @docs Border, border, Corners
 
-@docs box, px, auto, percent, width, maxWidth, minWidth, height, maxHeight, minHeight, padding, margin, Edges
+@docs padding, Edges
 
 @docs Shadow, shadows
 
@@ -115,14 +79,11 @@ module Style
 
 @docs hover, focus, pseudo, after, before
 
-@docs importUrl, importCss
-
 -}
 
 import Style.Internal.Model as Internal
 import Style.Internal.Render.Value as Value
 import Style.Internal.Batchable as Batchable exposing (Batchable)
-import Html exposing (Attribute, Html)
 
 
 {-| The stylesheet contains the rendered css as a string, and two functions to lookup
@@ -144,11 +105,6 @@ type alias Property class variation animation =
 {-| -}
 type alias Length =
     Internal.Length
-
-
-{-| -}
-type alias FlexBox =
-    Internal.FlexBoxElement
 
 
 {-| -}
@@ -201,34 +157,17 @@ type alias GradientStep =
     Internal.GradientStep
 
 
-{-| -}
-style : class -> List (Property class variation animation) -> Style class variation animation
-style cls props =
-    Batchable.one (Internal.Style cls props)
+
+-- {-| -}
+-- style : class -> List (Property class variation animation) -> Style class variation animation
+-- style cls props =
+--     Batchable.one (Internal.Style cls props)
 
 
 {-| -}
 variation : variation -> List (Property class Never animation) -> Property class variation animation
 variation variation props =
     Internal.Variation variation props
-
-
-{-| -}
-child : class -> List (Property class variation animation) -> Property class variation animation
-child class props =
-    Internal.Child class props
-
-
-{-| -}
-importCss : String -> Style class variation animation
-importCss css =
-    Batchable.one <| Internal.Import css
-
-
-{-| -}
-importUrl : String -> Style class variation animation
-importUrl url =
-    Batchable.one <| Internal.Import <| "url('" ++ url ++ "')"
 
 
 {-| -}
@@ -262,206 +201,15 @@ font =
 
 
 {-| -}
-position : List Position -> Property class variation animation
-position =
-    Internal.Position
-
-
-{-| -}
-box : List Box -> Property class variation animation
-box =
-    Internal.Box
-
-
-{-| -}
 palette : List ColorElement -> Property class variation animation
 palette =
     Internal.Palette
 
 
 {-| -}
-px : Float -> Length
-px =
-    Internal.Px
-
-
-{-| -}
-auto : Length
-auto =
-    Internal.Auto
-
-
-{-| -}
-percent : Float -> Length
-percent =
-    Internal.Percent
-
-
-{-| -}
-width : Length -> Box
-width len =
-    Internal.BoxProp "width" (Value.length len)
-
-
-{-| -}
-minWidth : Length -> Box
-minWidth len =
-    Internal.BoxProp "min-width" (Value.length len)
-
-
-{-| -}
-maxWidth : Length -> Box
-maxWidth len =
-    Internal.BoxProp "max-width" (Value.length len)
-
-
-{-| -}
-height : Length -> Box
-height len =
-    Internal.BoxProp "height" (Value.length len)
-
-
-{-| -}
-minHeight : Length -> Box
-minHeight len =
-    Internal.BoxProp "min-height" (Value.length len)
-
-
-{-| -}
-maxHeight : Length -> Box
-maxHeight len =
-    Internal.BoxProp "max-height" (Value.length len)
-
-
-{-| -}
 padding : ( Float, Float, Float, Float ) -> Box
 padding pad =
     Internal.BoxProp "padding" (Value.box pad)
-
-
-{-| Check out Layout.spacing, which sets the margin for all children elements.  Usually
-
-
--}
-margin : ( Float, Float, Float, Float ) -> Box
-margin pad =
-    Internal.BoxProp "margin" (Value.box pad)
-
-
-{-| Same as `display:none`.
--}
-hidden : Property class variation animation
-hidden =
-    Internal.Visibility Internal.Hidden
-
-
-{-| Same as `visibility: hidden`.
-
-Meaning the element will be:
-  * present in the flow
-  * transparent
-  * not respond to events
-
--}
-invisible : Property class variation animation
-invisible =
-    Internal.Visibility Internal.Invisible
-
-
-{-| A value between 0 and 1
--}
-opacity : Float -> Property class variation animation
-opacity x =
-    Internal.Visibility <| Internal.Opacity <| (toFloat ((round (x * 1000)) % 1000)) / 1000
-
-
-
-------------------------------
--- Layouts!
-------------------------------
-
-
-{-| This is the familiar block layout.
-
-It's called `text` because this layout should generally only be used for doing text layouts.
-
-__Note:__ It's the only layout that allows for child elements to use `Position.float` or `Position.inline`.
-
--}
-block : Property class variation animation
-block =
-    Internal.Layout <|
-        Internal.TextLayout { spacing = Nothing }
-
-
-{-| Same as `Layout.text`, but sets margin on all children.
-
--}
-blockSpaced : ( Float, Float, Float, Float ) -> Property class variation animation
-blockSpaced space =
-    Internal.Layout <|
-        Internal.TextLayout { spacing = (Just space) }
-
-
-{-| -}
-row : Property class variation animation
-row =
-    Internal.Layout <|
-        Internal.FlexLayout Internal.GoRight []
-
-
-{-| -}
-rowSpaced : ( Float, Float, Float, Float ) -> Property class variation animation
-rowSpaced i =
-    Internal.Layout <|
-        Internal.FlexLayout Internal.GoRight
-            [ Internal.Spacing i
-            ]
-
-
-{-| -}
-column : Property class variation animation
-column =
-    Internal.Layout <|
-        Internal.FlexLayout Internal.Down
-            []
-
-
-{-| -}
-columnSpaced : ( Float, Float, Float, Float ) -> Property class variation animation
-columnSpaced i =
-    Internal.Layout <|
-        Internal.FlexLayout Internal.Down
-            [ Internal.Spacing i
-            ]
-
-
-{-| -}
-flowRight : List FlexBox -> Property class variation animation
-flowRight flexbox =
-    Internal.FlexLayout Internal.GoRight flexbox
-        |> Internal.Layout
-
-
-{-| -}
-flowLeft : List FlexBox -> Property class variation animation
-flowLeft flexbox =
-    Internal.FlexLayout Internal.GoLeft flexbox
-        |> Internal.Layout
-
-
-{-| -}
-flowDown : List FlexBox -> Property class variation animation
-flowDown flexbox =
-    Internal.FlexLayout Internal.Down flexbox
-        |> Internal.Layout
-
-
-{-| -}
-flowUp : List FlexBox -> Property class variation animation
-flowUp flexbox =
-    Internal.FlexLayout Internal.Up flexbox
-        |> Internal.Layout
 
 
 
@@ -670,9 +418,3 @@ after content props =
 before : String -> List (Property class variation animation) -> Property class variation animation
 before content props =
     Internal.PseudoElement ":before" (prop "content" ("'" ++ content ++ "'") :: props)
-
-
-{-| -}
-element : StyleSheet class variation animation msg -> (List (Attribute msg) -> List (Html msg) -> Html msg) -> class -> List (Attribute msg) -> List (Html msg) -> Html msg
-element stylesheet node class attr children =
-    node (stylesheet.style class :: attr) children

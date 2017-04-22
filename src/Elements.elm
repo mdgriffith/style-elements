@@ -62,35 +62,78 @@ when bool elm =
 --
 
 
-above : Element elem variation -> Element elem variation -> Element elem variation
-above a b =
-    b
+above : Element elem variation -> Element elem variation
+above el =
+    case el of
+        Empty ->
+            Empty
+
+        Layout layout elem attrs els ->
+            Layout layout elem (PositionFrame Above :: attrs) els
+
+        Element elem attrs el ->
+            Element elem (PositionFrame Above :: attrs) el
+
+        Text content ->
+            Text content
 
 
-below : Element elem variation -> Element elem variation -> Element elem variation
-below a b =
-    b
+below : Element elem variation -> Element elem variation
+below el =
+    case el of
+        Empty ->
+            Empty
+
+        Layout layout elem attrs els ->
+            Layout layout elem (PositionFrame Below :: attrs) els
+
+        Element elem attrs el ->
+            Element elem (PositionFrame Below :: attrs) el
+
+        Text content ->
+            Text content
 
 
-toRight : Element elem variation -> Element elem variation -> Element elem variation
-toRight a b =
-    b
+onRight : Element elem variation -> Element elem variation
+onRight el =
+    case el of
+        Empty ->
+            Empty
+
+        Layout layout elem attrs els ->
+            Layout layout elem (PositionFrame OnRight :: attrs) els
+
+        Element elem attrs el ->
+            Element elem (PositionFrame OnRight :: attrs) el
+
+        Text content ->
+            Text content
 
 
-toLeft : Element elem variation -> Element elem variation -> Element elem variation
-toLeft a b =
-    b
+onLeft : Element elem variation -> Element elem variation
+onLeft el =
+    case el of
+        Empty ->
+            Empty
+
+        Layout layout elem attrs els ->
+            Layout layout elem (PositionFrame OnLeft :: attrs) els
+
+        Element elem attrs el ->
+            Element elem (PositionFrame OnLeft :: attrs) el
+
+        Text content ->
+            Text content
 
 
+screen : Element elem variation -> Element elem variation
+screen =
+    identity
 
---
--- from topLeft
--- screen : Element elem variation -> Element elem variation
--- screen =
---     identity
--- overlay : elem -> Element elem variation -> Element elem variation
--- overlay bg child =
---     screen <| Element bg [ width (percent 100), height (percent 100) ] child
+
+overlay : elem -> Element elem variation -> Element elem variation
+overlay bg child =
+    screen <| Element bg [ width (percent 100), height (percent 100) ] child
 
 
 {-| A synonym for the identity function.  Useful for relative
@@ -117,6 +160,18 @@ height =
 
 
 {-| -}
+px : Float -> Length
+px =
+    Internal.Px
+
+
+{-| -}
+percent : Float -> Length
+percent =
+    Internal.Percent
+
+
+{-| -}
 vary : List ( Bool, variation ) -> Attribute variation
 vary =
     Variations
@@ -135,6 +190,11 @@ hidden =
 transparency : Int -> Attribute variation
 transparency =
     Transparency
+
+
+opacity : Int -> Attribute variation
+opacity o =
+    Transparency (1 - o)
 
 
 
@@ -175,11 +235,6 @@ program prog =
         }
 
 
-
--- Wiring Functions
--- program : -> Program Never model msg
-
-
 init : (elem -> Styled elem variation animation msg) -> ( model, Cmd msg ) -> ( ElemModel elem variation animation model msg, Cmd (ElementMsg msg) )
 init elem ( model, cmd ) =
     ( emptyModel elem model
@@ -187,10 +242,6 @@ init elem ( model, cmd ) =
         [ Cmd.map Send cmd
         ]
     )
-
-
-
--- emptyModel : ElemModel
 
 
 emptyModel :

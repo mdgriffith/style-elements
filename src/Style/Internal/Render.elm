@@ -245,14 +245,7 @@ renderProp parentClass prop =
             Intermediate.props <| List.map Render.font props
 
         Layout lay ->
-            case layoutSpacing parentClass lay of
-                Nothing ->
-                    Intermediate.props (Render.layout lay)
-
-                Just spacing ->
-                    Intermediate.PropsAndSub
-                        (Render.layout lay)
-                        spacing
+            Intermediate.props (Render.layout lay)
 
         Background props ->
             Intermediate.props <| Render.background props
@@ -323,15 +316,7 @@ renderVariationProp parentClass prop =
             (Just << Intermediate.props) <| List.map Render.font props
 
         Layout lay ->
-            case layoutSpacing parentClass lay of
-                Nothing ->
-                    (Just << Intermediate.props) (Render.layout lay)
-
-                Just spacing ->
-                    Just <|
-                        Intermediate.PropsAndSub
-                            (Render.layout lay)
-                            spacing
+            (Just << Intermediate.props) (Render.layout lay)
 
         Background props ->
             (Just << Intermediate.props) <| Render.background props
@@ -357,36 +342,3 @@ renderVariationProp parentClass prop =
                             |> String.join ", "
                       )
                     ]
-
-
-{-| -}
-layoutSpacing : Selector class variation animation -> LayoutModel -> Maybe (Intermediate.Class class variation animation)
-layoutSpacing parent layout =
-    case layout of
-        Internal.TextLayout { spacing } ->
-            case spacing of
-                Nothing ->
-                    Nothing
-
-                Just space ->
-                    (Just << Intermediate.Class)
-                        { selector = Selector.child parent <| Selector.free "*:not(.nospacing)"
-                        , props = [ Intermediate.Props [ ( "margin", Value.box space ) ] ]
-                        }
-
-        Internal.FlexLayout _ props ->
-            let
-                spacing prop =
-                    case prop of
-                        Spacing space ->
-                            (Just << Intermediate.Class)
-                                { selector = Selector.child parent <| Selector.free "*:not(.nospacing)"
-                                , props = [ Intermediate.Props [ ( "margin", Value.box space ) ] ]
-                                }
-
-                        _ ->
-                            Nothing
-            in
-                List.filterMap spacing props
-                    |> List.reverse
-                    |> List.head
