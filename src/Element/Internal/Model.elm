@@ -8,9 +8,9 @@ import Html exposing (Html)
 
 type Element elem variation
     = Empty
-    | Layout Internal.LayoutModel (Maybe elem) (List (Attribute variation)) (List (Element elem variation))
+    | Text Decoration String
     | Element (Maybe elem) (List (Attribute variation)) (Element elem variation)
-    | Text String
+    | Layout Internal.LayoutModel (Maybe elem) (List (Attribute variation)) (List (Element elem variation))
 
 
 type Attribute variation
@@ -23,6 +23,14 @@ type Attribute variation
     | Spacing ( Float, Float, Float, Float )
     | Hidden
     | Transparency Int
+
+
+type Decoration
+    = NoDecoration
+    | Bold
+    | Italic
+    | Underline
+    | Strike
 
 
 type Frame

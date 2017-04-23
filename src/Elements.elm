@@ -9,6 +9,7 @@ import Window
 import Time exposing (Time)
 import Element.Device as Device exposing (Device)
 import Element.Internal.Render as Render
+import Task
 
 
 {-| In Hierarchy
@@ -21,7 +22,7 @@ empty =
 
 text : String -> Element elem variation
 text =
-    Text
+    Text NoDecoration
 
 
 el : elem -> List (Attribute variation) -> Element elem variation -> Element elem variation
@@ -68,8 +69,8 @@ addProp prop el =
         Element elem attrs el ->
             Element elem (prop :: attrs) el
 
-        Text content ->
-            Element Nothing [ prop ] (Text content)
+        Text dec content ->
+            Element Nothing [ prop ] (Text dec content)
 
 
 removeProps : List (Attribute variation) -> Element elem variation -> Element elem variation
@@ -88,8 +89,8 @@ removeProps props el =
             Element elem attrs el ->
                 Element elem (List.filter match attrs) el
 
-            Text content ->
-                Text content
+            Text dec content ->
+                Text dec content
 
 
 frame : Frame -> Element elem variation -> Element elem variation -> Element elem variation
@@ -108,8 +109,8 @@ frame frame el parent =
             Element elem attrs el ->
                 Layout Internal.TextLayout elem (attrs) (el :: positioned :: [])
 
-            Text content ->
-                Layout Internal.TextLayout Nothing [] (positioned :: [ Text content ])
+            Text dec content ->
+                Layout Internal.TextLayout Nothing [] (positioned :: [ Text dec content ])
 
 
 addChild : Element elem variation -> Element elem variation -> Element elem variation
@@ -124,8 +125,8 @@ addChild parent el =
         Element elem attrs child ->
             Layout Internal.TextLayout elem (attrs) (el :: child :: [])
 
-        Text content ->
-            Layout Internal.TextLayout Nothing [] (el :: [ Text content ])
+        Text dec content ->
+            Layout Internal.TextLayout Nothing [] (el :: [ Text dec content ])
 
 
 above : Element elem variation -> Element elem variation -> Element elem variation
@@ -299,6 +300,7 @@ init elem ( model, cmd ) =
     ( emptyModel elem model
     , Cmd.batch
         [ Cmd.map Send cmd
+        , Task.perform Resize Window.size
         ]
     )
 

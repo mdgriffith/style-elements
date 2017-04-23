@@ -35,8 +35,22 @@ renderElement findNode elm =
         Empty ->
             ( Html.text "", StyleCache.empty )
 
-        Text str ->
-            ( Html.text str, StyleCache.empty )
+        Text dec str ->
+            case dec of
+                NoDecoration ->
+                    ( Html.text str, StyleCache.empty )
+
+                Bold ->
+                    ( Html.strong [] [ Html.text str ], StyleCache.empty )
+
+                Italic ->
+                    ( Html.em [] [ Html.text str ], StyleCache.empty )
+
+                Underline ->
+                    ( Html.u [] [ Html.text str ], StyleCache.empty )
+
+                Strike ->
+                    ( Html.s [] [ Html.text str ], StyleCache.empty )
 
         Element element position child ->
             let
