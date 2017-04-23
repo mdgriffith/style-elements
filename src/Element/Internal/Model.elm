@@ -20,7 +20,7 @@ type Attribute variation
     | Position Int Int
     | PositionFrame Frame
     | Anchor AnchorPoint
-    | Spacing Float Float Float Float
+    | Spacing ( Float, Float, Float, Float )
     | Hidden
     | Transparency Int
 

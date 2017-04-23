@@ -236,7 +236,7 @@ vary =
     Variations
 
 
-spacing : Float -> Float -> Float -> Float -> Attribute variation
+spacing : ( Float, Float, Float, Float ) -> Attribute variation
 spacing =
     Spacing
 

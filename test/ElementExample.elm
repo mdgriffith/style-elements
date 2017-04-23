@@ -24,7 +24,7 @@ main =
 
 view device model =
     Elements.row UnStyled
-        [ spacing 25 25 25 25 ]
+        [ spacing (all 25) ]
         [ el Test
             [ width (px 500)
             , height (px 80)
@@ -39,6 +39,7 @@ view device model =
                 (el TestEmbed
                     [ width (px 50)
                     , height (px 50)
+                    , alignBottom
                     , adjust 0 0
                     ]
                     (text "I'm below!")

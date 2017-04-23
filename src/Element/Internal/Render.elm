@@ -72,8 +72,8 @@ renderElement findNode elm =
 
                 forSpacing posAttr =
                     case posAttr of
-                        Spacing a b c d ->
-                            Just ( a, b, c, d )
+                        Spacing box ->
+                            Just box
 
                         _ ->
                             Nothing
@@ -257,10 +257,10 @@ renderInline spacing adjustments =
                 Anchor Right ->
                     [ "right" => "0" ]
 
-                Spacing a b c d ->
+                Spacing box ->
                     case spacing of
                         InlineSpacing ->
-                            [ "margin" => Value.box ( a, b, c, d ) ]
+                            [ "margin" => Value.box box ]
 
                         NoSpacing ->
                             []
