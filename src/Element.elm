@@ -3,6 +3,7 @@ module Element exposing (..)
 {-| -}
 
 import Html exposing (Html)
+import Html.Attributes
 import Element.Style.Internal.Model as Internal exposing (Length)
 import Element.Internal.Model exposing (..)
 import Time exposing (Time)
@@ -49,6 +50,11 @@ text =
 el : elem -> List (Attribute variation) -> Element elem variation -> Element elem variation
 el elem attrs child =
     Element (Just elem) attrs child
+
+
+full : elem -> List (Attribute variation) -> Element elem variation -> Element elem variation
+full elem attrs child =
+    Element (Just elem) (Spacing ( 0, 0, 0, 0 ) :: attrs) child
 
 
 row : elem -> List (Attribute variation) -> List (Element elem variation) -> Element elem variation
