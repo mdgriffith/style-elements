@@ -140,7 +140,7 @@ below : Element elem variation -> Element elem variation -> Element elem variati
 below el parent =
     el
         |> addProp (PositionFrame Below)
-        |> removeProps [ Anchor Right, Anchor Left ]
+        |> removeProps [ Anchor Top, Anchor Bottom ]
         |> addChild parent
 
 
@@ -156,7 +156,7 @@ onLeft : Element elem variation -> Element elem variation -> Element elem variat
 onLeft el parent =
     el
         |> addProp (PositionFrame OnLeft)
-        |> removeProps [ Anchor Top, Anchor Bottom ]
+        |> removeProps [ Anchor Right, Anchor Left ]
         |> addChild parent
 
 
