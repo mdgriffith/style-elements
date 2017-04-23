@@ -1,4 +1,4 @@
-module Element.Style.Internal.Render exposing (stylesheet, unbatchedStylesheet, spacing)
+module Element.Style.Internal.Render exposing (stylesheet, unbatchedStylesheet, spacing, class)
 
 {-|
 -}
@@ -20,6 +20,17 @@ import Element.Style.Internal.Render.Css as Css
 single : Bool -> Internal.Style class variation animation -> ( String, String )
 single guard style =
     Intermediate.raw << renderStyle guard << preprocess <| style
+
+
+class : String -> List ( String, String ) -> String
+class name props =
+    let
+        renderedProps =
+            props
+                |> List.map (Css.prop 2)
+                |> String.join "\n"
+    in
+        "." ++ name ++ Css.brace 0 renderedProps
 
 
 spacing : ( Float, Float, Float, Float ) -> ( String, String )

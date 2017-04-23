@@ -5,11 +5,32 @@ module Element exposing (..)
 import Html exposing (Html)
 import Element.Style.Internal.Model as Internal exposing (Length)
 import Element.Internal.Model exposing (..)
-import Window
 import Time exposing (Time)
 import Element.Device as Device exposing (Device)
 import Element.Internal.Render as Render
 import Task
+import Window
+import Color exposing (Color)
+
+
+defaults : Defaults
+defaults =
+    { typeface = [ "georgia" ]
+    , fontSize = 16
+    , lineHeight = 1.7
+    , spacing = ( 10, 10, 10, 10 )
+    , textColor = Color.black
+    }
+
+
+elements : (elem -> Styled elem variation animation msg) -> ElementSheet elem variation animation msg
+elements lookup =
+    ElementSheet defaults lookup
+
+
+elementsWith : Defaults -> (elem -> Styled elem variation animation msg) -> ElementSheet elem variation animation msg
+elementsWith =
+    ElementSheet
 
 
 {-| In Hierarchy
@@ -32,12 +53,12 @@ el elem attrs child =
 
 row : elem -> List (Attribute variation) -> List (Element elem variation) -> Element elem variation
 row elem attrs children =
-    Layout (Internal.FlexLayout Internal.GoRight []) (Just elem) attrs children
+    Layout (Internal.FlexLayout Internal.GoRight []) SpacingAllowed (Just elem) attrs children
 
 
 column : elem -> List (Attribute variation) -> List (Element elem variation) -> Element elem variation
 column elem attrs children =
-    Layout (Internal.FlexLayout Internal.Down []) (Just elem) attrs children
+    Layout (Internal.FlexLayout Internal.Down []) SpacingAllowed (Just elem) attrs children
 
 
 
@@ -63,8 +84,8 @@ addProp prop el =
         Empty ->
             Empty
 
-        Layout layout elem attrs els ->
-            Layout layout elem (prop :: attrs) els
+        Layout layout spacing elem attrs els ->
+            Layout layout spacing elem (prop :: attrs) els
 
         Element elem attrs el ->
             Element elem (prop :: attrs) el
@@ -83,8 +104,8 @@ removeProps props el =
             Empty ->
                 Empty
 
-            Layout layout elem attrs els ->
-                Layout layout elem (List.filter match attrs) els
+            Layout layout spacing elem attrs els ->
+                Layout layout spacing elem (List.filter match attrs) els
 
             Element elem attrs el ->
                 Element elem (List.filter match attrs) el
@@ -93,40 +114,38 @@ removeProps props el =
                 Text dec content
 
 
-frame : Frame -> Element elem variation -> Element elem variation -> Element elem variation
-frame frame el parent =
-    let
-        positioned =
-            addProp (PositionFrame frame) el
-    in
-        case parent of
-            Empty ->
-                Layout Internal.TextLayout Nothing [] [ positioned ]
 
-            Layout layout elem attrs els ->
-                Layout layout elem attrs (positioned :: els)
-
-            Element elem attrs el ->
-                Layout Internal.TextLayout elem (attrs) (el :: positioned :: [])
-
-            Text dec content ->
-                Layout Internal.TextLayout Nothing [] (positioned :: [ Text dec content ])
+-- frame : Frame -> Element elem variation -> Element elem variation -> Element elem variation
+-- frame frame el parent =
+--     let
+--         positioned =
+--             addProp (PositionFrame frame) el
+--     in
+--         case parent of
+--             Empty ->
+--                 Layout Internal.TextLayout Nothing [] [ positioned ]
+--             Layout layout spacingAllowed elem attrs els ->
+--                 Layout layout spacingAllowed elem attrs (positioned :: els)
+--             Element elem attrs el ->
+--                 Layout Internal.TextLayout NoSpacing elem (attrs) (el :: positioned :: [])
+--             Text dec content ->
+--                 Layout Internal.TextLayout NoSpacing Nothing [] (positioned :: [ Text dec content ])
 
 
 addChild : Element elem variation -> Element elem variation -> Element elem variation
 addChild parent el =
     case parent of
         Empty ->
-            Layout Internal.TextLayout Nothing [] [ el ]
+            Layout Internal.TextLayout NoSpacing Nothing [] [ el ]
 
-        Layout layout elem attrs children ->
-            Layout layout elem attrs (el :: children)
+        Layout layout spacingAllowed elem attrs children ->
+            Layout layout spacingAllowed elem attrs (el :: children)
 
         Element elem attrs child ->
-            Layout Internal.TextLayout elem (attrs) (el :: child :: [])
+            Layout Internal.TextLayout NoSpacing elem (attrs) (el :: child :: [])
 
         Text dec content ->
-            Layout Internal.TextLayout Nothing [] (el :: [ Text dec content ])
+            Layout Internal.TextLayout NoSpacing Nothing [] (el :: [ Text dec content ])
 
 
 above : Element elem variation -> Element elem variation -> Element elem variation
@@ -274,7 +293,7 @@ elementAs =
 
 programWithFlags :
     { init : flags -> ( model, Cmd msg )
-    , elements : elem -> Styled elem variation animation msg
+    , elements : ElementSheet elem variation animation msg
     , device : { width : Int, height : Int } -> device
     , update : msg -> model -> ( model, Cmd msg )
     , subscriptions : model -> Sub msg
@@ -297,7 +316,7 @@ programWithFlags prog =
 
 
 program :
-    { elements : elem -> Styled elem variation animation msg
+    { elements : ElementSheet elem variation animation msg
     , init : ( model, Cmd msg )
     , update : msg -> model -> ( model, Cmd msg )
     , subscriptions : model -> Sub msg
@@ -321,7 +340,7 @@ program prog =
 
 
 beginnerProgram :
-    { elements : elem -> Styled elem variation animation msg
+    { elements : ElementSheet elem variation animation msg
     , model : model
     , view : model -> Element elem variation
     , update : msg -> model -> model
@@ -346,7 +365,7 @@ withCmdNone model =
     ( model, Cmd.none )
 
 
-init : (elem -> Styled elem variation animation msg) -> ({ width : Int, height : Int } -> device) -> ( model, Cmd msg ) -> ( ElemModel device elem variation animation model msg, Cmd (ElementMsg device msg) )
+init : ElementSheet elem variation animation msg -> ({ width : Int, height : Int } -> device) -> ( model, Cmd msg ) -> ( ElemModel device elem variation animation model msg, Cmd (ElementMsg device msg) )
 init elem match ( model, cmd ) =
     ( emptyModel elem match model
     , Cmd.batch
@@ -357,7 +376,7 @@ init elem match ( model, cmd ) =
 
 
 emptyModel :
-    (elem -> Styled elem variation animation msg)
+    ElementSheet elem variation animation msg
     -> (Window.Size -> device)
     -> model
     -> ElemModel device elem variation animation model msg
@@ -381,7 +400,7 @@ type ElemModel device elem variation animation model msg
     = ElemModel
         { time : Time
         , device : device
-        , elements : elem -> Styled elem variation animation msg
+        , elements : ElementSheet elem variation animation msg
         , model : model
         }
 

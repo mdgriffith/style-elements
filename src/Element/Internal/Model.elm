@@ -4,13 +4,32 @@ module Element.Internal.Model exposing (..)
 
 import Element.Style.Internal.Model as Internal
 import Html exposing (Html)
+import Color exposing (Color)
+
+
+type ElementSheet elem variation animation msg
+    = ElementSheet Defaults (elem -> Styled elem variation animation msg)
+
+
+type alias Defaults =
+    { typeface : List String
+    , fontSize : Float
+    , lineHeight : Float
+    , spacing : ( Float, Float, Float, Float )
+    , textColor : Color
+    }
 
 
 type Element elem variation
     = Empty
     | Text Decoration String
     | Element (Maybe elem) (List (Attribute variation)) (Element elem variation)
-    | Layout Internal.LayoutModel (Maybe elem) (List (Attribute variation)) (List (Element elem variation))
+    | Layout Internal.LayoutModel SpacingRestriction (Maybe elem) (List (Attribute variation)) (List (Element elem variation))
+
+
+type SpacingRestriction
+    = SpacingAllowed
+    | NoSpacing
 
 
 type Attribute variation

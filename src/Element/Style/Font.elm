@@ -1,6 +1,6 @@
 module Element.Style.Font
     exposing
-        ( stack
+        ( typeface
         , size
         , color
         , height
@@ -29,7 +29,7 @@ module Element.Style.Font
 
 {-|
 
-@docs stack, size, color, height, letterSpacing, wordSpacing, left, right, center, justify, justifyAll
+@docs typeface, size, color, height, letterSpacing, wordSpacing, left, right, center, justify, justifyAll
 
 @docs wrap, pre, preWrap, preLine, noWrap
 
@@ -46,8 +46,8 @@ import String
 
 {-|
 -}
-stack : List String -> Font
-stack families =
+typeface : List String -> Font
+typeface families =
     families
         |> List.map (\fam -> "\"" ++ fam ++ "\"")
         |> \fams -> Internal.FontElement "font-family" (String.join ", " fams)

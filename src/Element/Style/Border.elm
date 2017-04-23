@@ -1,7 +1,7 @@
-module Element.Style.Border exposing (color, width, radius, solid, dashed, dotted)
+module Element.Style.Border exposing (color, width, rounded, solid, dashed, dotted)
 
 {-|
-@docs color, width, radius, solid, dashed, dotted
+@docs color, width, rounded, solid, dashed, dotted
 -}
 
 import Element.Style.Internal.Model as Internal exposing (Property(..))
@@ -23,8 +23,8 @@ width box =
 
 
 {-| -}
-radius : Corners -> Border
-radius box =
+rounded : Corners -> Border
+rounded box =
     Internal.BorderElement "border-radius" (Render.box box)
 
 

@@ -13,18 +13,39 @@ import Element.Style.Internal.Render.Property
 import Element.Internal.Model exposing (..)
 
 
+(=>) : a -> b -> ( a, b )
 (=>) =
     (,)
 
 
-render : (elem -> Styled elem variation animation msg) -> Element elem variation -> Html msg
-render findNode elm =
+render : ElementSheet elem variation animation msg -> Element elem variation -> Html msg
+render (ElementSheet defaults findNode) elm =
     let
         ( html, stylecache ) =
             renderElement findNode elm
+
+        withDefaults =
+            stylecache
+                |> StyleCache.embed "default-typeface"
+                    (Render.class "default-typeface"
+                        [ "font-family"
+                            => (defaults.typeface
+                                    |> List.map (\fam -> "\"" ++ fam ++ "\"")
+                                    |> String.join ", "
+                               )
+                        , "color" => Value.color defaults.textColor
+                        , "line-height" => toString defaults.lineHeight
+                        , "font-size" => (toString defaults.fontSize ++ "px")
+                        ]
+                    )
+                |> StyleCache.embed "default-spacing"
+                    (Render.class "default-spacing > *:not(.nospacing)"
+                        [ "margin" => Value.box defaults.spacing
+                        ]
+                    )
     in
-        Html.div []
-            [ StyleCache.render stylecache renderStyle findNode
+        Html.div [ Html.Attributes.class "default-typeface" ]
+            [ StyleCache.render withDefaults renderStyle findNode
             , html
             ]
 
@@ -38,19 +59,29 @@ renderElement findNode elm =
         Text dec str ->
             case dec of
                 NoDecoration ->
-                    ( Html.text str, StyleCache.empty )
+                    ( Html.text str
+                    , StyleCache.empty
+                    )
 
                 Bold ->
-                    ( Html.strong [] [ Html.text str ], StyleCache.empty )
+                    ( Html.strong [] [ Html.text str ]
+                    , StyleCache.empty
+                    )
 
                 Italic ->
-                    ( Html.em [] [ Html.text str ], StyleCache.empty )
+                    ( Html.em [] [ Html.text str ]
+                    , StyleCache.empty
+                    )
 
                 Underline ->
-                    ( Html.u [] [ Html.text str ], StyleCache.empty )
+                    ( Html.u [] [ Html.text str ]
+                    , StyleCache.empty
+                    )
 
                 Strike ->
-                    ( Html.s [] [ Html.text str ], StyleCache.empty )
+                    ( Html.s [] [ Html.text str ]
+                    , StyleCache.empty
+                    )
 
         Element element position child ->
             let
@@ -69,10 +100,10 @@ renderElement findNode elm =
                             |> StyleCache.insert el
                         )
 
-        Layout layout maybeElement position children ->
+        Layout layout spacingAllowed maybeElement position children ->
             let
                 parentStyle =
-                    Element.Style.Internal.Render.Property.layout layout ++ renderInline NoSpacing position
+                    Element.Style.Internal.Render.Property.layout layout ++ renderInline NoInlineSpacing position
 
                 ( childHtml, styleset ) =
                     List.foldr renderAndCombine ( [], StyleCache.empty ) children
@@ -97,30 +128,45 @@ renderElement findNode elm =
                         |> List.filterMap forSpacing
                         |> List.head
 
-                spacingName ( a, b, c, d ) =
-                    "spacing-" ++ toString a ++ "-" ++ toString b ++ "-" ++ toString c ++ "-" ++ toString d
+                spacingName maybeSpacing =
+                    case spacingAllowed of
+                        NoSpacing ->
+                            Nothing
+
+                        SpacingAllowed ->
+                            case maybeSpacing of
+                                Just ( a, b, c, d ) ->
+                                    Just <| "spacing-" ++ toString a ++ "-" ++ toString b ++ "-" ++ toString c ++ "-" ++ toString d
+
+                                Nothing ->
+                                    Just <| "default-spacing"
 
                 addSpacing cache =
-                    case spacing of
-                        Nothing ->
+                    case spacingAllowed of
+                        NoSpacing ->
                             cache
 
-                        Just space ->
-                            let
-                                ( name, rendered ) =
-                                    Render.spacing space
-                            in
-                                StyleCache.embed name rendered cache
+                        SpacingAllowed ->
+                            case spacing of
+                                Nothing ->
+                                    cache
+
+                                Just space ->
+                                    let
+                                        ( name, rendered ) =
+                                            Render.spacing space
+                                    in
+                                        StyleCache.embed name rendered cache
             in
                 case maybeElement of
                     Nothing ->
-                        ( renderLayoutNode Nothing (Maybe.map spacingName spacing) parentStyle Nothing childHtml
+                        ( renderLayoutNode Nothing (spacingName spacing) parentStyle Nothing childHtml
                         , styleset
                             |> addSpacing
                         )
 
                     Just element ->
-                        ( renderLayoutNode (Just element) (Maybe.map spacingName spacing) parentStyle (Just <| findNode element) childHtml
+                        ( renderLayoutNode (Just element) (spacingName spacing) parentStyle (Just <| findNode element) childHtml
                         , styleset
                             |> StyleCache.insert element
                             |> addSpacing
@@ -161,7 +207,7 @@ renderNode maybeElem inlineStyle maybeNode children =
 
 
 renderLayoutNode : Maybe elem -> Maybe String -> List ( String, String ) -> Maybe (Styled elem variation animation msg) -> List (Html msg) -> Html msg
-renderLayoutNode maybeElem mSpacingClass inlineStyle maybeNode children =
+renderLayoutNode maybeElem maybeSpacingClass inlineStyle maybeNode children =
     let
         ( node, attrs ) =
             case maybeNode of
@@ -191,7 +237,7 @@ renderLayoutNode maybeElem mSpacingClass inlineStyle maybeNode children =
                     Just <| Selector.formatName elem
 
         classes =
-            Html.Attributes.class (String.join " " <| List.filterMap identity [ elemClass, mSpacingClass ])
+            Html.Attributes.class (String.join " " <| List.filterMap identity [ elemClass, maybeSpacingClass ])
     in
         node (Html.Attributes.style inlineStyle :: classes :: attributes) children
 
@@ -212,7 +258,7 @@ renderStyle elem (El node attrs) =
 
 type WithSpacing
     = InlineSpacing
-    | NoSpacing
+    | NoInlineSpacing
 
 
 renderInline : WithSpacing -> List (Attribute variation) -> List ( String, String )
@@ -278,7 +324,7 @@ renderInline spacing adjustments =
                         InlineSpacing ->
                             [ "margin" => Value.box box ]
 
-                        NoSpacing ->
+                        NoInlineSpacing ->
                             []
 
                 Hidden ->

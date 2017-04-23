@@ -3,6 +3,7 @@ module Main exposing (..)
 {-| -}
 
 import Element exposing (..)
+import Element.Device
 import Element.Attributes exposing (..)
 import Html.Events
 import Element.Style exposing (..)
@@ -13,7 +14,8 @@ import Color
 
 main =
     Element.program
-        { elements = elements
+        { elements = Element.elements elements
+        , device = Element.Device.match
         , view = view
         , init = ( 5, Cmd.none )
         , update = update
@@ -26,7 +28,8 @@ main =
 
 view device model =
     Element.row UnStyled
-        [ spacing (all 25) ]
+        []
+        --spacing (all 25) ]
         [ el Test
             [ width (px 500)
             , height (px 80)
