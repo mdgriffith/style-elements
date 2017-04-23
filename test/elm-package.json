@@ -5,7 +5,8 @@
     "license": "BSD3",
     "source-directories": [
         "../src",
-        "."
+        ".",
+        "../elm-style-animation/src"
     ],
     "exposed-modules": [
        
@@ -14,6 +15,7 @@
         "Skinney/murmur3": "2.0.4 <= v < 3.0.0",
         "elm-lang/core": "5.0.0 <= v < 6.0.0",
         "elm-lang/html": "2.0.0 <= v < 3.0.0",
+        "elm-lang/svg": "2.0.0 <= v < 3.0.0",
         "BrianHicks/elm-benchmark": "1.0.0 <= v < 2.0.0",
         "elm-lang/animation-frame": "1.0.0 <= v < 2.0.0"
     },

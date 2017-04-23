@@ -1,12 +1,12 @@
-module Style.Border exposing (color, width, radius, solid, dashed, dotted)
+module Element.Style.Border exposing (color, width, radius, solid, dashed, dotted)
 
 {-|
 @docs color, width, radius, solid, dashed, dotted
 -}
 
-import Style.Internal.Model as Internal exposing (Property(..))
-import Style.Internal.Render.Value as Render
-import Style exposing (Border, Corners)
+import Element.Style.Internal.Model as Internal exposing (Property(..))
+import Element.Style.Internal.Render.Value as Render
+import Element.Style exposing (Border, Corners)
 import Color exposing (Color)
 
 

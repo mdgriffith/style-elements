@@ -4,12 +4,12 @@ module Element.Internal.Render exposing (..)
 
 import Html exposing (Html)
 import Html.Attributes
-import Style.Internal.Model as Internal exposing (Length)
-import Style.Internal.Render.Value as Value
-import Style.Internal.Cache as StyleCache
-import Style.Internal.Render as Render
-import Style.Internal.Selector as Selector
-import Style.Internal.Render.Property
+import Element.Style.Internal.Model as Internal exposing (Length)
+import Element.Style.Internal.Render.Value as Value
+import Element.Style.Internal.Cache as StyleCache
+import Element.Style.Internal.Render as Render
+import Element.Style.Internal.Selector as Selector
+import Element.Style.Internal.Render.Property
 import Element.Internal.Model exposing (..)
 
 
@@ -72,7 +72,7 @@ renderElement findNode elm =
         Layout layout maybeElement position children ->
             let
                 parentStyle =
-                    Style.Internal.Render.Property.layout layout ++ renderInline NoSpacing position
+                    Element.Style.Internal.Render.Property.layout layout ++ renderInline NoSpacing position
 
                 ( childHtml, styleset ) =
                     List.foldr renderAndCombine ( [], StyleCache.empty ) children
@@ -220,6 +220,10 @@ type WithSpacing
 renderInline : WithSpacing -> List (Attribute variation) -> List ( String, String )
 renderInline spacing adjustments =
     let
+        defaults =
+            [ "position" => "relative"
+            ]
+
         renderAdjustment adj =
             case adj of
                 Variations variations ->
@@ -285,4 +289,4 @@ renderInline spacing adjustments =
                 Transparency t ->
                     [ "opacity" => (toString <| 1 - t) ]
     in
-        ( "position", "relative" ) :: List.concatMap renderAdjustment adjustments
+        defaults ++ List.concatMap renderAdjustment adjustments

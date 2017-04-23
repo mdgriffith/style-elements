@@ -2,7 +2,7 @@ module Element.Internal.Model exposing (..)
 
 {-| -}
 
-import Style.Internal.Model as Internal
+import Element.Style.Internal.Model as Internal
 import Html exposing (Html)
 
 

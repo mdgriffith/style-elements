@@ -1,9 +1,9 @@
-module Style.Internal.Render.Value exposing (..)
+module Element.Style.Internal.Render.Value exposing (..)
 
 {-| -}
 
 import Color exposing (Color)
-import Style.Internal.Model as Internal exposing (..)
+import Element.Style.Internal.Model as Internal exposing (..)
 
 
 box : ( Float, Float, Float, Float ) -> String

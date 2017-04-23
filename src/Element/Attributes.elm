@@ -3,7 +3,7 @@ module Element.Attributes exposing (..)
 {-| -}
 
 import Element.Internal.Model as Internal exposing (StyleAttribute(..))
-import Style exposing (Property)
+import Element.Style exposing (Property)
 import Html
 
 

@@ -1,4 +1,4 @@
-module Style
+module Element.Style
     exposing
         ( Style
         , Property
@@ -81,9 +81,9 @@ module Style
 
 -}
 
-import Style.Internal.Model as Internal
-import Style.Internal.Render.Value as Value
-import Style.Internal.Batchable as Batchable exposing (Batchable)
+import Element.Style.Internal.Model as Internal
+import Element.Style.Internal.Render.Value as Value
+import Element.Style.Internal.Batchable as Batchable exposing (Batchable)
 
 
 {-| The stylesheet contains the rendered css as a string, and two functions to lookup

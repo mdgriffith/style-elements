@@ -1,9 +1,9 @@
-module Elements exposing (..)
+module Element exposing (..)
 
 {-| -}
 
 import Html exposing (Html)
-import Style.Internal.Model as Internal exposing (Length)
+import Element.Style.Internal.Model as Internal exposing (Length)
 import Element.Internal.Model exposing (..)
 import Window
 import Time exposing (Time)

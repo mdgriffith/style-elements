@@ -1,4 +1,4 @@
-module Style.Internal.Render.Css exposing (..)
+module Element.Style.Internal.Render.Css exposing (..)
 
 import String
 

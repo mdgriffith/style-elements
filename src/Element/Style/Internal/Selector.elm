@@ -1,8 +1,8 @@
-module Style.Internal.Selector exposing (..)
+module Element.Style.Internal.Selector exposing (..)
 
 {-| -}
 
-import Style.Internal.Find as Findable
+import Element.Style.Internal.Find as Findable
 
 
 type Selector class variation animation

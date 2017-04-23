@@ -1,12 +1,12 @@
-module Style.Internal.Cache exposing (..)
+module Element.Style.Internal.Cache exposing (..)
 
 {-| -}
 
 import Dict exposing (Dict)
 import Html
-import Style.Internal.Render as Render
-import Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
-import Style.Internal.Model as Internal
+import Element.Style.Internal.Render as Render
+import Element.Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
+import Element.Style.Internal.Model as Internal
 
 
 type Cache elem

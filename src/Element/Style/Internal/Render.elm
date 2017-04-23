@@ -1,15 +1,15 @@
-module Style.Internal.Render exposing (stylesheet, unbatchedStylesheet, spacing)
+module Element.Style.Internal.Render exposing (stylesheet, unbatchedStylesheet, spacing)
 
 {-|
 -}
 
-import Style.Internal.Model as Internal exposing (..)
-import Style.Internal.Render.Property as Render
-import Style.Internal.Render.Value as Value
-import Style.Internal.Selector as Selector exposing (Selector)
-import Style.Internal.Batchable as Batchable exposing (Batchable)
-import Style.Internal.Intermediate as Intermediate
-import Style.Internal.Render.Css as Css
+import Element.Style.Internal.Model as Internal exposing (..)
+import Element.Style.Internal.Render.Property as Render
+import Element.Style.Internal.Render.Value as Value
+import Element.Style.Internal.Selector as Selector exposing (Selector)
+import Element.Style.Internal.Batchable as Batchable exposing (Batchable)
+import Element.Style.Internal.Intermediate as Intermediate
+import Element.Style.Internal.Render.Css as Css
 
 
 (=>) : x -> y -> ( x, y )
@@ -233,7 +233,7 @@ renderProp parentClass prop =
             Intermediate.props <| Render.visibility vis
 
         Border props ->
-            Intermediate.props <| List.map Render.border props
+            Intermediate.props <| ( "border-style", "solid" ) :: List.map Render.border props
 
         Box props ->
             Intermediate.props <| List.map Render.box props

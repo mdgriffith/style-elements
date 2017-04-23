@@ -1,4 +1,4 @@
-module Style.Filter exposing (url, blur, brightness, contrast, grayscale, hueRotate, invert, opacity, saturate, sepia)
+module Element.Style.Filter exposing (url, blur, brightness, contrast, grayscale, hueRotate, invert, opacity, saturate, sepia)
 
 {-|
 
@@ -6,8 +6,8 @@ module Style.Filter exposing (url, blur, brightness, contrast, grayscale, hueRot
 
 -}
 
-import Style.Internal.Model as Internal
-import Style exposing (Filter)
+import Element.Style.Internal.Model as Internal
+import Element.Style exposing (Filter)
 
 
 {-| -}

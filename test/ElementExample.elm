@@ -2,15 +2,16 @@ module Main exposing (..)
 
 {-| -}
 
-import Elements exposing (..)
+import Element exposing (..)
 import Element.Attributes exposing (..)
-import Style exposing (..)
-import Style.Background as Background
+import Html.Events
+import Element.Style exposing (..)
+import Element.Style.Background as Background
 import Color
 
 
 main =
-    Elements.program
+    Element.program
         { elements = elements
         , view = view
         , init = ( 5, Cmd.none )
@@ -23,7 +24,7 @@ main =
 
 
 view device model =
-    Elements.row UnStyled
+    Element.row UnStyled
         [ spacing (all 25) ]
         [ el Test
             [ width (px 500)
@@ -42,6 +43,15 @@ view device model =
                     , alignBottom
                     , adjust 0 0
                     ]
+                    (text "I'm right!")
+                )
+            |> below
+                (el TestEmbed
+                    [ width (px 50)
+                    , height (px 50)
+                    , alignRight
+                    , adjust 0 0
+                    ]
                     (text "I'm below!")
                 )
         ]
@@ -49,6 +59,10 @@ view device model =
 
 update msg model =
     ( model, Cmd.none )
+
+
+type Msg
+    = Blink
 
 
 type Elements
@@ -73,9 +87,12 @@ elements elem =
 
         TestEmbed ->
             element
-                [ style
-                    [ background
-                        [ Background.color Color.red
-                        ]
-                    ]
-                ]
+                []
+
+
+
+-- [ Html.Events.onClick Blink
+-- , background
+--     [ Background.color Color.red
+--     ]
+-- ]

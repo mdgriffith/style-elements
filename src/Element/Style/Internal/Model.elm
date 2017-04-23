@@ -1,4 +1,4 @@
-module Style.Internal.Model exposing (..)
+module Element.Style.Internal.Model exposing (..)
 
 {-| -}
 

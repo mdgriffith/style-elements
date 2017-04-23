@@ -1,4 +1,4 @@
-module Style.Palette exposing (..)
+module Element.Style.Palette exposing (..)
 
 {-|
 
@@ -30,9 +30,9 @@ All CSS Properties that relate to color
 
 -}
 
-import Style.Internal.Model as Internal exposing (Property)
+import Element.Style.Internal.Model as Internal exposing (Property)
 import Color exposing (Color)
-import Style exposing (ColorElement)
+import Element.Style exposing (ColorElement)
 
 
 {-| -}

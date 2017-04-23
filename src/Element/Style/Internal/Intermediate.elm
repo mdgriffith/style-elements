@@ -1,11 +1,11 @@
-module Style.Internal.Intermediate exposing (..)
+module Element.Style.Internal.Intermediate exposing (..)
 
 {-| -}
 
 import Murmur3
-import Style.Internal.Selector as Selector exposing (Selector)
-import Style.Internal.Render.Css as Css
-import Style.Internal.Find as Findable
+import Element.Style.Internal.Selector as Selector exposing (Selector)
+import Element.Style.Internal.Render.Css as Css
+import Element.Style.Internal.Find as Findable
 
 
 type Class class variation animation

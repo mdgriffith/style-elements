@@ -1,4 +1,4 @@
-module Style.Font
+module Element.Style.Font
     exposing
         ( stack
         , size
@@ -37,9 +37,9 @@ module Style.Font
 
 -}
 
-import Style.Internal.Model as Internal
-import Style.Internal.Render.Value as Render
-import Style exposing (Font)
+import Element.Style.Internal.Model as Internal
+import Element.Style.Internal.Render.Value as Render
+import Element.Style exposing (Font)
 import Color exposing (Color)
 import String
 
