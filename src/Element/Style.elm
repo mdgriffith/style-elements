@@ -23,7 +23,7 @@ module Element.Style
         , shadows
         , border
         , palette
-        , marginHint
+        , paddingHint
         , transforms
         , filters
         , all

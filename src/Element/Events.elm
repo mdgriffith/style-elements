@@ -24,10 +24,10 @@ The only difference is that the HTML.Events are turned into Element.Events
 
 -}
 
-import Html exposing (Attribute)
+import Html
 import Html.Events
 import Json.Decode as Json
-import Element.Internal.Model as Internal exposing (StyleAttribute(..))
+import Element.Internal.Model as Internal exposing (Attribute(..))
 
 
 -- MOUSE EVENTS
@@ -35,57 +35,57 @@ import Element.Internal.Model as Internal exposing (StyleAttribute(..))
 
 {-| Turn an Html Event into an Element event
 -}
-event : Html.Attribute msg -> StyleAttribute elem variation animation msg
+event : Html.Attribute msg -> Attribute variation msg
 event =
-    Attr
+    Event
 
 
 {-| -}
-onClick : msg -> StyleAttribute elem variation animation msg
+onClick : msg -> Attribute variation msg
 onClick =
-    Attr << Html.Events.onClick
+    Event << Html.Events.onClick
 
 
 {-| -}
-onDoubleClick : msg -> StyleAttribute elem variation animation msg
+onDoubleClick : msg -> Attribute variation msg
 onDoubleClick =
-    Attr << Html.Events.onDoubleClick
+    Event << Html.Events.onDoubleClick
 
 
 {-| -}
-onMouseDown : msg -> StyleAttribute elem variation animation msg
+onMouseDown : msg -> Attribute variation msg
 onMouseDown =
-    Attr << Html.Events.onMouseDown
+    Event << Html.Events.onMouseDown
 
 
 {-| -}
-onMouseUp : msg -> StyleAttribute elem variation animation msg
+onMouseUp : msg -> Attribute variation msg
 onMouseUp =
-    Attr << Html.Events.onMouseUp
+    Event << Html.Events.onMouseUp
 
 
 {-| -}
-onMouseEnter : msg -> StyleAttribute elem variation animation msg
+onMouseEnter : msg -> Attribute variation msg
 onMouseEnter =
-    Attr << Html.Events.onMouseEnter
+    Event << Html.Events.onMouseEnter
 
 
 {-| -}
-onMouseLeave : msg -> StyleAttribute elem variation animation msg
+onMouseLeave : msg -> Attribute variation msg
 onMouseLeave =
-    Attr << Html.Events.onMouseLeave
+    Event << Html.Events.onMouseLeave
 
 
 {-| -}
-onMouseOver : msg -> StyleAttribute elem variation animation msg
+onMouseOver : msg -> Attribute variation msg
 onMouseOver =
-    Attr << Html.Events.onMouseOver
+    Event << Html.Events.onMouseOver
 
 
 {-| -}
-onMouseOut : msg -> StyleAttribute elem variation animation msg
+onMouseOut : msg -> Attribute variation msg
 onMouseOut =
-    Attr << Html.Events.onMouseOut
+    Event << Html.Events.onMouseOut
 
 
 
@@ -99,9 +99,9 @@ you need some other type of information. For example, if you want to track
 inputs on a range slider, make a custom handler with [`on`](#on).
 For more details on how `onInput` works, check out [targetValue](#targetValue).
 -}
-onInput : (String -> msg) -> StyleAttribute elem variation animation msg
+onInput : (String -> msg) -> Attribute variation msg
 onInput =
-    Attr << Html.Events.onInput
+    Event << Html.Events.onInput
 
 
 {-| Capture [change](https://developer.mozilla.org/en-US/docs/Web/Events/change)
@@ -109,9 +109,9 @@ events on checkboxes. It will grab the boolean value from `event.target.checked`
 on any input event.
 Check out [targetChecked](#targetChecked) for more details on how this works.
 -}
-onCheck : (Bool -> msg) -> StyleAttribute elem variation animation msg
+onCheck : (Bool -> msg) -> Attribute variation msg
 onCheck =
-    Attr << Html.Events.onCheck
+    Event << Html.Events.onCheck
 
 
 {-| Capture a [submit](https://developer.mozilla.org/en-US/docs/Web/Events/submit)
@@ -120,9 +120,9 @@ in order to prevent the form from changing the page’s location. If you need
 different behavior, use `onWithOptions` to create a customized version of
 `onSubmit`.
 -}
-onSubmit : msg -> StyleAttribute elem variation animation msg
+onSubmit : msg -> Attribute variation msg
 onSubmit =
-    Attr << Html.Events.onSubmit
+    Event << Html.Events.onSubmit
 
 
 
@@ -130,15 +130,15 @@ onSubmit =
 
 
 {-| -}
-onBlur : msg -> StyleAttribute elem variation animation msg
+onBlur : msg -> Attribute variation msg
 onBlur =
-    Attr << Html.Events.onBlur
+    Event << Html.Events.onBlur
 
 
 {-| -}
-onFocus : msg -> StyleAttribute elem variation animation msg
+onFocus : msg -> Attribute variation msg
 onFocus =
-    Attr << Html.Events.onFocus
+    Event << Html.Events.onFocus
 
 
 
@@ -148,7 +148,7 @@ onFocus =
 {-| Create a custom event listener. Normally this will not be necessary, but
 you have the power! Here is how `onClick` is defined for example:
     import Json.Decode as Json
-    onClick : msg -> StyleAttribute elem variation animation msg
+    onClick : msg -> Attribute variation msg
     onClick message =
       on "click" (Json.succeed message)
 The first argument is the event name in the same format as with JavaScript's
@@ -163,13 +163,13 @@ It really does help!
 [decoder]: http://package.elm-lang.org/packages/elm-lang/core/latest/Json-Decode
 [tutorial]: https://github.com/evancz/elm-architecture-tutorial/
 -}
-on : String -> Json.Decoder msg -> StyleAttribute elem variation animation msg
+on : String -> Json.Decoder msg -> Attribute variation msg
 on event decode =
-    Attr <| Html.Events.on event decode
+    Event <| Html.Events.on event decode
 
 
 {-| Same as `on` but you can set a few options.
 -}
-onWithOptions : String -> Html.Events.Options -> Json.Decoder msg -> StyleAttribute elem variation animation msg
+onWithOptions : String -> Html.Events.Options -> Json.Decoder msg -> Attribute variation msg
 onWithOptions event options decode =
-    Attr <| Html.Events.onWithOptions event options decode
+    Event <| Html.Events.onWithOptions event options decode

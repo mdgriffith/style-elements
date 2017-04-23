@@ -37,38 +37,38 @@ elementsWith =
 {-| In Hierarchy
 
 -}
-empty : Element elem variation
+empty : Element elem variation msg
 empty =
     Empty
 
 
-text : String -> Element elem variation
+text : String -> Element elem variation msg
 text =
     Text NoDecoration
 
 
-el : elem -> List (Attribute variation) -> Element elem variation -> Element elem variation
+el : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
 el elem attrs child =
     Element (Just elem) attrs child Nothing
 
 
-full : elem -> List (Attribute variation) -> Element elem variation -> Element elem variation
+full : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
 full elem attrs child =
     Element (Just elem) (Spacing ( 0, 0, 0, 0 ) :: attrs) child Nothing
 
 
-row : elem -> List (Attribute variation) -> List (Element elem variation) -> Element elem variation
+row : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 row elem attrs children =
     Layout (Internal.FlexLayout Internal.GoRight []) SpacingAllowed (Just elem) attrs children
 
 
-column : elem -> List (Attribute variation) -> List (Element elem variation) -> Element elem variation
+column : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 column elem attrs children =
     Layout (Internal.FlexLayout Internal.Down []) SpacingAllowed (Just elem) attrs children
 
 
 
--- centered : elem -> List (Attribute variation) -> Element elem variation -> Element elem variation
+-- centered : elem -> List (Attribute variation msg) -> Element elem variation -> Element elem variation
 -- centered elem attrs child =
 --     Element elem (HCenter :: attrs) child
 --
@@ -76,7 +76,7 @@ column elem attrs children =
 
 {-|
 -}
-when : Bool -> Element elem variation -> Element elem variation
+when : Bool -> Element elem variation msg -> Element elem variation msg
 when bool elm =
     if bool then
         elm
@@ -84,7 +84,7 @@ when bool elm =
         empty
 
 
-addProp : Attribute variation -> Element elem variation -> Element elem variation
+addProp : Attribute variation msg -> Element elem variation msg -> Element elem variation msg
 addProp prop el =
     case el of
         Empty ->
@@ -100,7 +100,7 @@ addProp prop el =
             Element Nothing [ prop ] (Text dec content) Nothing
 
 
-removeProps : List (Attribute variation) -> Element elem variation -> Element elem variation
+removeProps : List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
 removeProps props el =
     let
         match p =
@@ -120,7 +120,7 @@ removeProps props el =
                 Text dec content
 
 
-addChild : Element elem variation -> Element elem variation -> Element elem variation
+addChild : Element elem variation msg -> Element elem variation msg -> Element elem variation msg
 addChild parent el =
     case parent of
         Empty ->
@@ -141,7 +141,7 @@ addChild parent el =
             Element Nothing [] (Text dec content) (Just [ el ])
 
 
-above : Element elem variation -> Element elem variation -> Element elem variation
+above : Element elem variation msg -> Element elem variation msg -> Element elem variation msg
 above el parent =
     el
         |> addProp (PositionFrame Above)
@@ -149,7 +149,7 @@ above el parent =
         |> addChild parent
 
 
-below : Element elem variation -> Element elem variation -> Element elem variation
+below : Element elem variation msg -> Element elem variation msg -> Element elem variation msg
 below el parent =
     el
         |> addProp (PositionFrame Below)
@@ -157,7 +157,7 @@ below el parent =
         |> addChild parent
 
 
-onRight : Element elem variation -> Element elem variation -> Element elem variation
+onRight : Element elem variation msg -> Element elem variation msg -> Element elem variation msg
 onRight el parent =
     el
         |> addProp (PositionFrame OnRight)
@@ -165,7 +165,7 @@ onRight el parent =
         |> addChild parent
 
 
-onLeft : Element elem variation -> Element elem variation -> Element elem variation
+onLeft : Element elem variation msg -> Element elem variation msg -> Element elem variation msg
 onLeft el parent =
     el
         |> addProp (PositionFrame OnLeft)
@@ -173,12 +173,12 @@ onLeft el parent =
         |> addChild parent
 
 
-screen : Element elem variation -> Element elem variation
+screen : Element elem variation msg -> Element elem variation msg
 screen el =
     addProp (PositionFrame Screen) el
 
 
-overlay : elem -> Int -> Element elem variation -> Element elem variation
+overlay : elem -> Int -> Element elem variation msg -> Element elem variation msg
 overlay bg opac child =
     screen <| el bg [ width (percent 100), height (percent 100), opacity opac ] child
 
@@ -190,22 +190,22 @@ nevermind =
     identity
 
 
-alignTop : Attribute variation
+alignTop : Attribute variation msg
 alignTop =
     Anchor Top
 
 
-alignBottom : Attribute variation
+alignBottom : Attribute variation msg
 alignBottom =
     Anchor Bottom
 
 
-alignLeft : Attribute variation
+alignLeft : Attribute variation msg
 alignLeft =
     Anchor Left
 
 
-alignRight : Attribute variation
+alignRight : Attribute variation msg
 alignRight =
     Anchor Right
 
@@ -215,13 +215,13 @@ alignRight =
 
 
 {-| -}
-width : Length -> Attribute variation
+width : Length -> Attribute variation msg
 width =
     Width
 
 
 {-| -}
-height : Length -> Attribute variation
+height : Length -> Attribute variation msg
 height =
     Height
 
@@ -232,7 +232,7 @@ px =
     Internal.Px
 
 
-adjust : Int -> Int -> Attribute variation
+adjust : Int -> Int -> Attribute variation msg
 adjust =
     Position
 
@@ -244,13 +244,13 @@ percent =
 
 
 {-| -}
-vary : List ( Bool, variation ) -> Attribute variation
+vary : List ( Bool, variation ) -> Attribute variation msg
 vary =
     Variations
 
 
 {-| -}
-spacing : ( Float, Float, Float, Float ) -> Attribute variation
+spacing : ( Float, Float, Float, Float ) -> Attribute variation msg
 spacing =
     Spacing
 
@@ -260,22 +260,22 @@ spacing =
 If you're new to this library, make sure to check out http://elm.style first!
 
 -}
-padding : ( Float, Float, Float, Float ) -> Attribute variation
+padding : ( Float, Float, Float, Float ) -> Attribute variation msg
 padding =
     Padding
 
 
-hidden : Attribute variation
+hidden : Attribute variation msg
 hidden =
     Hidden
 
 
-transparency : Int -> Attribute variation
+transparency : Int -> Attribute variation msg
 transparency =
     Transparency
 
 
-opacity : Int -> Attribute variation
+opacity : Int -> Attribute variation msg
 opacity o =
     Transparency (1 - o)
 
@@ -301,7 +301,7 @@ programWithFlags :
     , device : { width : Int, height : Int } -> device
     , update : msg -> model -> ( model, Cmd msg )
     , subscriptions : model -> Sub msg
-    , view : device -> model -> Element elem variation
+    , view : device -> model -> Element elem variation msg
     }
     -> Program flags (ElemModel device elem variation animation model msg) (ElementMsg device msg)
 programWithFlags prog =
@@ -324,7 +324,7 @@ program :
     , init : ( model, Cmd msg )
     , update : msg -> model -> ( model, Cmd msg )
     , subscriptions : model -> Sub msg
-    , view : device -> model -> Element elem variation
+    , view : device -> model -> Element elem variation msg
     , device : { width : Int, height : Int } -> device
     }
     -> Program Never (ElemModel device elem variation animation model msg) (ElementMsg device msg)
@@ -346,7 +346,7 @@ program prog =
 beginnerProgram :
     { elements : ElementSheet elem variation animation msg
     , model : model
-    , view : model -> Element elem variation
+    , view : model -> Element elem variation msg
     , update : msg -> model -> model
     }
     -> Program Never (ElemModel Device elem variation animation model msg) (ElementMsg Device msg)
@@ -426,11 +426,11 @@ update appUpdate elemMsg elemModel =
             )
 
 
-deviceView : (device -> model -> Element elem variation) -> ElemModel device elem variation animation model msg -> Html msg
+deviceView : (device -> model -> Element elem variation msg) -> ElemModel device elem variation animation model msg -> Html msg
 deviceView appView (ElemModel { device, elements, model }) =
     Render.render elements <| appView device model
 
 
-view : (model -> Element elem variation) -> ElemModel Device elem variation animation model msg -> Html msg
+view : (model -> Element elem variation msg) -> ElemModel Device elem variation animation model msg -> Html msg
 view appView (ElemModel { device, elements, model }) =
     Render.render elements <| appView model

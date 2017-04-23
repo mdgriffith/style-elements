@@ -32,7 +32,7 @@ view device model =
         [ el Test
             [ width (px 500)
             , height (px 80)
-            , margin (all 20)
+            , padding (all 20)
             ]
             (text "Hello World!")
         , el Test
@@ -46,6 +46,7 @@ view device model =
                     , height (px 50)
                     , alignBottom
                     , adjust 0 0
+                    , onClick Blink
                     ]
                     (text "I'm right!")
                 )
@@ -85,12 +86,12 @@ elements elem =
                 [ background
                     [ Background.color Color.blue
                     ]
+                , paddingHint (all 200)
                 ]
 
         TestEmbed ->
             element
-                [ onClick Blink
-                , background
+                [ background
                     [ Background.color Color.red
                     ]
                 ]

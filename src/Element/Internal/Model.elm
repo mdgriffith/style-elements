@@ -20,11 +20,11 @@ type alias Defaults =
     }
 
 
-type Element elem variation
+type Element elem variation msg
     = Empty
     | Text Decoration String
-    | Element (Maybe elem) (List (Attribute variation)) (Element elem variation) (Maybe (List (Element elem variation)))
-    | Layout Internal.LayoutModel SpacingRestriction (Maybe elem) (List (Attribute variation)) (List (Element elem variation))
+    | Element (Maybe elem) (List (Attribute variation msg)) (Element elem variation msg) (Maybe (List (Element elem variation msg)))
+    | Layout Internal.LayoutModel SpacingRestriction (Maybe elem) (List (Attribute variation msg)) (List (Element elem variation msg))
 
 
 type SpacingRestriction
@@ -32,7 +32,7 @@ type SpacingRestriction
     | NoSpacing
 
 
-type Attribute variation
+type Attribute variation msg
     = Variations (List ( Bool, variation ))
     | Height Internal.Length
     | Width Internal.Length
@@ -43,6 +43,7 @@ type Attribute variation
     | Transparency Int
     | Spacing ( Float, Float, Float, Float )
     | Padding ( Float, Float, Float, Float )
+    | Event (Html.Attribute msg)
 
 
 type Decoration

@@ -18,7 +18,7 @@ import Element.Internal.Model exposing (..)
     (,)
 
 
-render : ElementSheet elem variation animation msg -> Element elem variation -> Html msg
+render : ElementSheet elem variation animation msg -> Element elem variation msg -> Html msg
 render (ElementSheet defaults findNode) elm =
     let
         ( html, stylecache ) =
@@ -50,7 +50,7 @@ render (ElementSheet defaults findNode) elm =
             ]
 
 
-renderElement : List (Attribute variation) -> (elem -> Styled elem variation animation msg) -> Element elem variation -> ( Html msg, StyleCache.Cache elem )
+renderElement : List (Attribute variation msg) -> (elem -> Styled elem variation animation msg) -> Element elem variation msg -> ( Html msg, StyleCache.Cache elem )
 renderElement inherited findNode elm =
     case elm of
         Empty ->
@@ -212,7 +212,7 @@ type WithSpacing
     | NoInlineSpacing
 
 
-renderInline : List (Attribute variation) -> List ( String, String )
+renderInline : List (Attribute variation msg) -> List ( String, String )
 renderInline adjustments =
     let
         defaults =
@@ -282,5 +282,8 @@ renderInline adjustments =
 
                 Transparency t ->
                     [ "opacity" => (toString <| 1 - t) ]
+
+                Event ev ->
+                    []
     in
         defaults ++ List.concatMap renderAdjustment adjustments
