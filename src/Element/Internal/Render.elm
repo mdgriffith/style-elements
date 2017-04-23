@@ -22,7 +22,7 @@ render : ElementSheet elem variation animation msg -> Element elem variation -> 
 render (ElementSheet defaults findNode) elm =
     let
         ( html, stylecache ) =
-            renderElement findNode elm
+            renderElement [] findNode elm
 
         withDefaults =
             stylecache
@@ -50,8 +50,8 @@ render (ElementSheet defaults findNode) elm =
             ]
 
 
-renderElement : (elem -> Styled elem variation animation msg) -> Element elem variation -> ( Html msg, StyleCache.Cache elem )
-renderElement findNode elm =
+renderElement : List (Attribute variation) -> (elem -> Styled elem variation animation msg) -> Element elem variation -> ( Html msg, StyleCache.Cache elem )
+renderElement inherited findNode elm =
     case elm of
         Empty ->
             ( Html.text "", StyleCache.empty )
@@ -83,27 +83,56 @@ renderElement findNode elm =
                     , StyleCache.empty
                     )
 
-        Element element position child ->
+        Element element position child otherChildren ->
             let
                 ( childHtml, styleset ) =
-                    renderElement findNode child
+                    case otherChildren of
+                        Nothing ->
+                            let
+                                ( chil, sty ) =
+                                    renderElement [] findNode child
+                            in
+                                ( [ chil ]
+                                , sty
+                                )
+
+                        Just others ->
+                            List.foldr renderAndCombine ( [], StyleCache.empty ) (child :: others)
+
+                renderAndCombine child ( html, styles ) =
+                    let
+                        ( childHtml, childStyle ) =
+                            renderElement [] findNode child
+                    in
+                        ( childHtml :: html, StyleCache.combine childStyle styles )
+
+                attributes =
+                    inherited ++ position
             in
                 case element of
                     Nothing ->
-                        ( renderNode Nothing (renderInline InlineSpacing position) Nothing [ childHtml ]
+                        ( renderNode Nothing (renderInline attributes) Nothing childHtml
                         , styleset
                         )
 
                     Just el ->
-                        ( renderNode element (renderInline InlineSpacing position) (Just <| findNode el) [ childHtml ]
+                        ( renderNode element (renderInline attributes) (Just <| findNode el) childHtml
                         , styleset
                             |> StyleCache.insert el
                         )
 
         Layout layout spacingAllowed maybeElement position children ->
             let
-                parentStyle =
-                    Element.Style.Internal.Render.Property.layout layout ++ renderInline NoInlineSpacing position
+                ( spacing, attributes ) =
+                    List.partition forSpacing position
+
+                forSpacing posAttr =
+                    case posAttr of
+                        Spacing _ ->
+                            True
+
+                        _ ->
+                            False
 
                 ( childHtml, styleset ) =
                     List.foldr renderAndCombine ( [], StyleCache.empty ) children
@@ -111,65 +140,23 @@ renderElement findNode elm =
                 renderAndCombine child ( html, styles ) =
                     let
                         ( childHtml, childStyle ) =
-                            renderElement findNode child
+                            renderElement spacing findNode child
                     in
                         ( childHtml :: html, StyleCache.combine childStyle styles )
 
-                forSpacing posAttr =
-                    case posAttr of
-                        Spacing box ->
-                            Just box
-
-                        _ ->
-                            Nothing
-
-                spacing =
-                    position
-                        |> List.filterMap forSpacing
-                        |> List.head
-
-                spacingName maybeSpacing =
-                    case spacingAllowed of
-                        NoSpacing ->
-                            Nothing
-
-                        SpacingAllowed ->
-                            case maybeSpacing of
-                                Just ( a, b, c, d ) ->
-                                    Just <| "spacing-" ++ toString a ++ "-" ++ toString b ++ "-" ++ toString c ++ "-" ++ toString d
-
-                                Nothing ->
-                                    Just <| "default-spacing"
-
-                addSpacing cache =
-                    case spacingAllowed of
-                        NoSpacing ->
-                            cache
-
-                        SpacingAllowed ->
-                            case spacing of
-                                Nothing ->
-                                    cache
-
-                                Just space ->
-                                    let
-                                        ( name, rendered ) =
-                                            Render.spacing space
-                                    in
-                                        StyleCache.embed name rendered cache
+                parentStyle =
+                    Element.Style.Internal.Render.Property.layout layout ++ renderInline attributes
             in
                 case maybeElement of
                     Nothing ->
-                        ( renderLayoutNode Nothing (spacingName spacing) parentStyle Nothing childHtml
+                        ( renderNode Nothing parentStyle Nothing childHtml
                         , styleset
-                            |> addSpacing
                         )
 
                     Just element ->
-                        ( renderLayoutNode (Just element) (spacingName spacing) parentStyle (Just <| findNode element) childHtml
+                        ( renderNode (Just element) parentStyle (Just <| findNode element) childHtml
                         , styleset
                             |> StyleCache.insert element
-                            |> addSpacing
                         )
 
 
@@ -206,42 +193,6 @@ renderNode maybeElem inlineStyle maybeNode children =
         node renderedAttrs children
 
 
-renderLayoutNode : Maybe elem -> Maybe String -> List ( String, String ) -> Maybe (Styled elem variation animation msg) -> List (Html msg) -> Html msg
-renderLayoutNode maybeElem maybeSpacingClass inlineStyle maybeNode children =
-    let
-        ( node, attrs ) =
-            case maybeNode of
-                Nothing ->
-                    ( Html.div, [] )
-
-                Just (El node attrs) ->
-                    ( node, attrs )
-
-        normalAttrs attr =
-            case attr of
-                Attr a ->
-                    Just a
-
-                _ ->
-                    Nothing
-
-        attributes =
-            List.filterMap normalAttrs attrs
-
-        elemClass =
-            case maybeElem of
-                Nothing ->
-                    Nothing
-
-                Just elem ->
-                    Just <| Selector.formatName elem
-
-        classes =
-            Html.Attributes.class (String.join " " <| List.filterMap identity [ elemClass, maybeSpacingClass ])
-    in
-        node (Html.Attributes.style inlineStyle :: classes :: attributes) children
-
-
 renderStyle : elem -> Styled elem variation animation msg -> Internal.Style elem variation animation
 renderStyle elem (El node attrs) =
     let
@@ -261,8 +212,8 @@ type WithSpacing
     | NoInlineSpacing
 
 
-renderInline : WithSpacing -> List (Attribute variation) -> List ( String, String )
-renderInline spacing adjustments =
+renderInline : List (Attribute variation) -> List ( String, String )
+renderInline adjustments =
     let
         defaults =
             [ "position" => "relative"
@@ -320,12 +271,10 @@ renderInline spacing adjustments =
                     [ "right" => "0" ]
 
                 Spacing box ->
-                    case spacing of
-                        InlineSpacing ->
-                            [ "margin" => Value.box box ]
+                    [ "margin" => Value.box box ]
 
-                        NoInlineSpacing ->
-                            []
+                Margin box ->
+                    [ "padding" => Value.box box ]
 
                 Hidden ->
                     [ "display" => "none" ]

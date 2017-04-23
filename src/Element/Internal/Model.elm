@@ -23,7 +23,7 @@ type alias Defaults =
 type Element elem variation
     = Empty
     | Text Decoration String
-    | Element (Maybe elem) (List (Attribute variation)) (Element elem variation)
+    | Element (Maybe elem) (List (Attribute variation)) (Element elem variation) (Maybe (List (Element elem variation)))
     | Layout Internal.LayoutModel SpacingRestriction (Maybe elem) (List (Attribute variation)) (List (Element elem variation))
 
 
@@ -36,12 +36,13 @@ type Attribute variation
     = Variations (List ( Bool, variation ))
     | Height Internal.Length
     | Width Internal.Length
+    | Anchor AnchorPoint
     | Position Int Int
     | PositionFrame Frame
-    | Anchor AnchorPoint
-    | Spacing ( Float, Float, Float, Float )
     | Hidden
     | Transparency Int
+    | Spacing ( Float, Float, Float, Float )
+    | Margin ( Float, Float, Float, Float )
 
 
 type Decoration

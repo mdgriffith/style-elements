@@ -28,11 +28,11 @@ main =
 
 view device model =
     Element.row UnStyled
-        []
-        --spacing (all 25) ]
+        [ spacing (all 25) ]
         [ el Test
             [ width (px 500)
             , height (px 80)
+            , margin (all 20)
             ]
             (text "Hello World!")
         , el Test

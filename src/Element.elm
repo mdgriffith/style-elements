@@ -49,12 +49,12 @@ text =
 
 el : elem -> List (Attribute variation) -> Element elem variation -> Element elem variation
 el elem attrs child =
-    Element (Just elem) attrs child
+    Element (Just elem) attrs child Nothing
 
 
 full : elem -> List (Attribute variation) -> Element elem variation -> Element elem variation
 full elem attrs child =
-    Element (Just elem) (Spacing ( 0, 0, 0, 0 ) :: attrs) child
+    Element (Just elem) (Spacing ( 0, 0, 0, 0 ) :: attrs) child Nothing
 
 
 row : elem -> List (Attribute variation) -> List (Element elem variation) -> Element elem variation
@@ -93,11 +93,11 @@ addProp prop el =
         Layout layout spacing elem attrs els ->
             Layout layout spacing elem (prop :: attrs) els
 
-        Element elem attrs el ->
-            Element elem (prop :: attrs) el
+        Element elem attrs el children ->
+            Element elem (prop :: attrs) el children
 
         Text dec content ->
-            Element Nothing [ prop ] (Text dec content)
+            Element Nothing [ prop ] (Text dec content) Nothing
 
 
 removeProps : List (Attribute variation) -> Element elem variation -> Element elem variation
@@ -113,45 +113,32 @@ removeProps props el =
             Layout layout spacing elem attrs els ->
                 Layout layout spacing elem (List.filter match attrs) els
 
-            Element elem attrs el ->
-                Element elem (List.filter match attrs) el
+            Element elem attrs el children ->
+                Element elem (List.filter match attrs) el children
 
             Text dec content ->
                 Text dec content
-
-
-
--- frame : Frame -> Element elem variation -> Element elem variation -> Element elem variation
--- frame frame el parent =
---     let
---         positioned =
---             addProp (PositionFrame frame) el
---     in
---         case parent of
---             Empty ->
---                 Layout Internal.TextLayout Nothing [] [ positioned ]
---             Layout layout spacingAllowed elem attrs els ->
---                 Layout layout spacingAllowed elem attrs (positioned :: els)
---             Element elem attrs el ->
---                 Layout Internal.TextLayout NoSpacing elem (attrs) (el :: positioned :: [])
---             Text dec content ->
---                 Layout Internal.TextLayout NoSpacing Nothing [] (positioned :: [ Text dec content ])
 
 
 addChild : Element elem variation -> Element elem variation -> Element elem variation
 addChild parent el =
     case parent of
         Empty ->
-            Layout Internal.TextLayout NoSpacing Nothing [] [ el ]
+            Element Nothing [] Empty (Just [ el ])
 
         Layout layout spacingAllowed elem attrs children ->
             Layout layout spacingAllowed elem attrs (el :: children)
 
-        Element elem attrs child ->
-            Layout Internal.TextLayout NoSpacing elem (attrs) (el :: child :: [])
+        Element elem attrs child otherChildren ->
+            case otherChildren of
+                Nothing ->
+                    Element elem attrs child (Just [ el ])
+
+                Just others ->
+                    Element elem attrs child (Just (el :: others))
 
         Text dec content ->
-            Layout Internal.TextLayout NoSpacing Nothing [] (el :: [ Text dec content ])
+            Element Nothing [] (Text dec content) (Just [ el ])
 
 
 above : Element elem variation -> Element elem variation -> Element elem variation
@@ -262,9 +249,21 @@ vary =
     Variations
 
 
+{-| -}
 spacing : ( Float, Float, Float, Float ) -> Attribute variation
 spacing =
     Spacing
+
+
+{-| This isn't your grandfather's margin!
+
+If you're new to this library, make sure to check out http://elm.style first!
+
+
+-}
+margin : ( Float, Float, Float, Float ) -> Attribute variation
+margin =
+    Margin
 
 
 hidden : Attribute variation
