@@ -42,7 +42,7 @@ type Attribute variation
     | Hidden
     | Transparency Int
     | Spacing ( Float, Float, Float, Float )
-    | Margin ( Float, Float, Float, Float )
+    | Padding ( Float, Float, Float, Float )
 
 
 type Decoration

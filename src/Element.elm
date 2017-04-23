@@ -255,15 +255,14 @@ spacing =
     Spacing
 
 
-{-| This isn't your grandfather's margin!
+{-| This isn't your grandpa's padding!
 
 If you're new to this library, make sure to check out http://elm.style first!
 
-
 -}
-margin : ( Float, Float, Float, Float ) -> Attribute variation
-margin =
-    Margin
+padding : ( Float, Float, Float, Float ) -> Attribute variation
+padding =
+    Padding
 
 
 hidden : Attribute variation

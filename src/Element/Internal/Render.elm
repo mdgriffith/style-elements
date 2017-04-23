@@ -217,6 +217,7 @@ renderInline adjustments =
     let
         defaults =
             [ "position" => "relative"
+            , "box-sizing" => "border-box"
             ]
 
         renderAdjustment adj =
@@ -273,7 +274,7 @@ renderInline adjustments =
                 Spacing box ->
                     [ "margin" => Value.box box ]
 
-                Margin box ->
+                Padding box ->
                     [ "padding" => Value.box box ]
 
                 Hidden ->

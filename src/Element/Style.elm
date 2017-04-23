@@ -23,7 +23,7 @@ module Element.Style
         , shadows
         , border
         , palette
-        , padding
+        , marginHint
         , transforms
         , filters
         , all
@@ -63,7 +63,7 @@ module Element.Style
 
 @docs Border, border, Corners
 
-@docs padding, Edges
+@docs marginHint, Edges
 
 @docs Shadow, shadows
 
@@ -199,10 +199,12 @@ palette colors =
     Element.Style <| Internal.Palette colors
 
 
-{-| -}
-padding : ( Float, Float, Float, Float ) -> Box
-padding pad =
-    Internal.BoxProp "padding" (Value.box pad)
+{-| You can give a hint about what the padding should be for this element, but the layout can override it.
+
+-}
+paddingHint : ( Float, Float, Float, Float ) -> StyleAttribute class variation animation msg
+paddingHint pad =
+    Element.Style <| Internal.Box <| [ Internal.BoxProp "padding" (Value.box pad) ]
 
 
 
