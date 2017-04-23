@@ -25,18 +25,18 @@ text =
 
 
 el : elem -> List (Attribute variation) -> Element elem variation -> Element elem variation
-el =
-    Element
+el elem attrs child =
+    Element (Just elem) attrs child
 
 
 row : elem -> List (Attribute variation) -> List (Element elem variation) -> Element elem variation
 row elem attrs children =
-    Layout (Internal.FlexLayout Internal.GoRight []) elem attrs children
+    Layout (Internal.FlexLayout Internal.GoRight []) (Just elem) attrs children
 
 
 column : elem -> List (Attribute variation) -> List (Element elem variation) -> Element elem variation
 column elem attrs children =
-    Layout (Internal.FlexLayout Internal.Down []) elem attrs children
+    Layout (Internal.FlexLayout Internal.Down []) (Just elem) attrs children
 
 
 
@@ -56,84 +56,77 @@ when bool elm =
         empty
 
 
+frame : Frame -> Element elem variation -> Element elem variation -> Element elem variation
+frame frame el parent =
+    let
+        positioned =
+            case el of
+                Empty ->
+                    Empty
 
---
--- Relative Positioning
---
+                Layout layout elem attrs els ->
+                    Layout layout elem (PositionFrame frame :: attrs) els
 
+                Element elem attrs el ->
+                    Element elem (PositionFrame frame :: attrs) el
 
-above : Element elem variation -> Element elem variation
-above el =
-    case el of
-        Empty ->
-            Empty
+                Text content ->
+                    Text content
+    in
+        case parent of
+            Empty ->
+                Layout Internal.TextLayout Nothing [] [ positioned ]
 
-        Layout layout elem attrs els ->
-            Layout layout elem (PositionFrame Above :: attrs) els
+            Layout layout elem attrs els ->
+                Layout layout elem attrs (positioned :: els)
 
-        Element elem attrs el ->
-            Element elem (PositionFrame Above :: attrs) el
+            Element elem attrs el ->
+                Layout Internal.TextLayout elem (attrs) (el :: positioned :: [])
 
-        Text content ->
-            Text content
-
-
-below : Element elem variation -> Element elem variation
-below el =
-    case el of
-        Empty ->
-            Empty
-
-        Layout layout elem attrs els ->
-            Layout layout elem (PositionFrame Below :: attrs) els
-
-        Element elem attrs el ->
-            Element elem (PositionFrame Below :: attrs) el
-
-        Text content ->
-            Text content
+            Text content ->
+                Layout Internal.TextLayout Nothing [] (positioned :: [ Text content ])
 
 
-onRight : Element elem variation -> Element elem variation
-onRight el =
-    case el of
-        Empty ->
-            Empty
-
-        Layout layout elem attrs els ->
-            Layout layout elem (PositionFrame OnRight :: attrs) els
-
-        Element elem attrs el ->
-            Element elem (PositionFrame OnRight :: attrs) el
-
-        Text content ->
-            Text content
+above : Element elem variation -> Element elem variation -> Element elem variation
+above el parent =
+    frame Above el parent
 
 
-onLeft : Element elem variation -> Element elem variation
-onLeft el =
-    case el of
-        Empty ->
-            Empty
+below : Element elem variation -> Element elem variation -> Element elem variation
+below el parent =
+    frame Below el parent
 
-        Layout layout elem attrs els ->
-            Layout layout elem (PositionFrame OnLeft :: attrs) els
 
-        Element elem attrs el ->
-            Element elem (PositionFrame OnLeft :: attrs) el
+onRight : Element elem variation -> Element elem variation -> Element elem variation
+onRight el parent =
+    frame OnRight el parent
 
-        Text content ->
-            Text content
+
+onLeft : Element elem variation -> Element elem variation -> Element elem variation
+onLeft el parent =
+    frame OnLeft el parent
 
 
 screen : Element elem variation -> Element elem variation
-screen =
-    identity
+screen el =
+    case el of
+        Empty ->
+            Empty
+
+        Layout layout elem attrs els ->
+            Layout layout elem (PositionFrame Screen :: attrs) els
+
+        Element elem attrs el ->
+            Element elem (PositionFrame Screen :: attrs) el
+
+        Text content ->
+            Text content
 
 
-overlay : elem -> Element elem variation -> Element elem variation
-overlay bg child =
-    screen <| Element bg [ width (percent 100), height (percent 100) ] child
+
+-- overlay : elem -> Element elem variation -> Element elem variation
+-- overlay bg child =
+--     screen <| Element bg [ width (percent 100), height (percent 100) ] child
 
 
 {-| A synonym for the identity function.  Useful for relative
@@ -163,6 +156,11 @@ height =
 px : Float -> Length
 px =
     Internal.Px
+
+
+adjust : Int -> Int -> Attribute variation
+adjust =
+    Position
 
 
 {-| -}

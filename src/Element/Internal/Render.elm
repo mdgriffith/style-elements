@@ -42,16 +42,20 @@ renderElement findNode elm =
             let
                 ( childHtml, styleset ) =
                     renderElement findNode child
-
-                elemHtml =
-                    renderNode element (renderInline InlineSpacing position) (findNode element) [ childHtml ]
             in
-                ( elemHtml
-                , styleset
-                    |> StyleCache.insert element
-                )
+                case element of
+                    Nothing ->
+                        ( renderNode Nothing (renderInline InlineSpacing position) Nothing [ childHtml ]
+                        , styleset
+                        )
 
-        Layout layout element position children ->
+                    Just el ->
+                        ( renderNode element (renderInline InlineSpacing position) (Just <| findNode el) [ childHtml ]
+                        , styleset
+                            |> StyleCache.insert el
+                        )
+
+        Layout layout maybeElement position children ->
             let
                 parentStyle =
                     Style.Internal.Render.Property.layout layout ++ renderInline NoSpacing position
@@ -93,20 +97,33 @@ renderElement findNode elm =
                                     Render.spacing space
                             in
                                 StyleCache.embed name rendered cache
-
-                parent =
-                    renderLayoutNode element (Maybe.map spacingName spacing) parentStyle (findNode element) childHtml
             in
-                ( parent
-                , styleset
-                    |> StyleCache.insert element
-                    |> addSpacing
-                )
+                case maybeElement of
+                    Nothing ->
+                        ( renderLayoutNode Nothing (Maybe.map spacingName spacing) parentStyle Nothing childHtml
+                        , styleset
+                            |> addSpacing
+                        )
+
+                    Just element ->
+                        ( renderLayoutNode (Just element) (Maybe.map spacingName spacing) parentStyle (Just <| findNode element) childHtml
+                        , styleset
+                            |> StyleCache.insert element
+                            |> addSpacing
+                        )
 
 
-renderNode : elem -> List ( String, String ) -> Styled elem variation animation msg -> List (Html msg) -> Html msg
-renderNode elem inlineStyle (El node attrs) children =
+renderNode : Maybe elem -> List ( String, String ) -> Maybe (Styled elem variation animation msg) -> List (Html msg) -> Html msg
+renderNode maybeElem inlineStyle maybeNode children =
     let
+        ( node, attrs ) =
+            case maybeNode of
+                Nothing ->
+                    ( Html.div, [] )
+
+                Just (El node attrs) ->
+                    ( node, attrs )
+
         normalAttrs attr =
             case attr of
                 Attr a ->
@@ -119,15 +136,28 @@ renderNode elem inlineStyle (El node attrs) children =
             List.filterMap normalAttrs attrs
                 |> List.concat
 
-        styleName =
-            Html.Attributes.class (Selector.formatName elem)
+        renderedAttrs =
+            case maybeElem of
+                Nothing ->
+                    (Html.Attributes.style inlineStyle :: attributes)
+
+                Just elem ->
+                    (Html.Attributes.style inlineStyle :: Html.Attributes.class (Selector.formatName elem) :: attributes)
     in
-        node (Html.Attributes.style inlineStyle :: styleName :: attributes) children
+        node renderedAttrs children
 
 
-renderLayoutNode : elem -> Maybe String -> List ( String, String ) -> Styled elem variation animation msg -> List (Html msg) -> Html msg
-renderLayoutNode elem mSpacingClass inlineStyle (El node attrs) children =
+renderLayoutNode : Maybe elem -> Maybe String -> List ( String, String ) -> Maybe (Styled elem variation animation msg) -> List (Html msg) -> Html msg
+renderLayoutNode maybeElem mSpacingClass inlineStyle maybeNode children =
     let
+        ( node, attrs ) =
+            case maybeNode of
+                Nothing ->
+                    ( Html.div, [] )
+
+                Just (El node attrs) ->
+                    ( node, attrs )
+
         normalAttrs attr =
             case attr of
                 Attr a ->
@@ -139,14 +169,17 @@ renderLayoutNode elem mSpacingClass inlineStyle (El node attrs) children =
         attributes =
             List.filterMap normalAttrs attrs
                 |> List.concat
+
+        elemClass =
+            case maybeElem of
+                Nothing ->
+                    Nothing
+
+                Just elem ->
+                    Just <| Selector.formatName elem
 
         classes =
-            case mSpacingClass of
-                Nothing ->
-                    Html.Attributes.class (Selector.formatName elem)
-
-                Just space ->
-                    Html.Attributes.class <| Selector.formatName elem ++ " " ++ space
+            Html.Attributes.class (String.join " " <| List.filterMap identity [ elemClass, mSpacingClass ])
     in
         node (Html.Attributes.style inlineStyle :: classes :: attributes) children
 
@@ -185,7 +218,11 @@ renderInline spacing adjustments =
                     [ "width" => Value.length len ]
 
                 Position x y ->
-                    [ "transform" => ("translate(" ++ toString x ++ "px " ++ toString y ++ ")")
+                    [ "transform" => ("translate(" ++ toString x ++ "px, " ++ toString y ++ "px)")
+                    ]
+
+                PositionFrame Screen ->
+                    [ "position" => "fixed"
                     ]
 
                 PositionFrame Above ->
@@ -222,4 +259,4 @@ renderInline spacing adjustments =
                 Transparency t ->
                     [ "opacity" => (toString <| 1 - t) ]
     in
-        List.concatMap renderAdjustment adjustments
+        ( "position", "relative" ) :: List.concatMap renderAdjustment adjustments

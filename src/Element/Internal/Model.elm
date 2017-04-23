@@ -8,8 +8,8 @@ import Html exposing (Html)
 
 type Element elem variation
     = Empty
-    | Layout Internal.LayoutModel elem (List (Attribute variation)) (List (Element elem variation))
-    | Element elem (List (Attribute variation)) (Element elem variation)
+    | Layout Internal.LayoutModel (Maybe elem) (List (Attribute variation)) (List (Element elem variation))
+    | Element (Maybe elem) (List (Attribute variation)) (Element elem variation)
     | Text String
 
 
@@ -30,6 +30,7 @@ type Frame
     | Above
     | OnLeft
     | OnRight
+    | Screen
 
 
 
