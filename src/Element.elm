@@ -272,69 +272,121 @@ elementAs =
     El
 
 
-program :
-    { elements : elem -> Styled elem variation animation msg
-    , init : ( model, Cmd msg )
+programWithFlags :
+    { init : flags -> ( model, Cmd msg )
+    , elements : elem -> Styled elem variation animation msg
+    , device : { width : Int, height : Int } -> device
     , update : msg -> model -> ( model, Cmd msg )
     , subscriptions : model -> Sub msg
-    , view : Device -> model -> Element elem variation
+    , view : device -> model -> Element elem variation
     }
-    -> Program Never (ElemModel elem variation animation model msg) (ElementMsg msg)
-program prog =
-    Html.program
-        { init = init prog.elements prog.init
+    -> Program flags (ElemModel device elem variation animation model msg) (ElementMsg device msg)
+programWithFlags prog =
+    Html.programWithFlags
+        { init = (\flags -> init prog.elements prog.device (prog.init flags))
         , update = update prog.update
-        , view = (\model -> Html.map Send <| view prog.view model)
+        , view = (\model -> Html.map Send <| deviceView prog.view model)
         , subscriptions =
             (\(ElemModel { model }) ->
                 Sub.batch
-                    [ Window.resizes Resize
+                    [ Window.resizes (Resize prog.device)
                     , Sub.map Send <| prog.subscriptions model
                     ]
             )
         }
 
 
-init : (elem -> Styled elem variation animation msg) -> ( model, Cmd msg ) -> ( ElemModel elem variation animation model msg, Cmd (ElementMsg msg) )
-init elem ( model, cmd ) =
-    ( emptyModel elem model
+program :
+    { elements : elem -> Styled elem variation animation msg
+    , init : ( model, Cmd msg )
+    , update : msg -> model -> ( model, Cmd msg )
+    , subscriptions : model -> Sub msg
+    , view : device -> model -> Element elem variation
+    , device : { width : Int, height : Int } -> device
+    }
+    -> Program Never (ElemModel device elem variation animation model msg) (ElementMsg device msg)
+program prog =
+    Html.program
+        { init = init prog.elements prog.device prog.init
+        , update = update prog.update
+        , view = (\model -> Html.map Send <| deviceView prog.view model)
+        , subscriptions =
+            (\(ElemModel { model }) ->
+                Sub.batch
+                    [ Window.resizes (Resize prog.device)
+                    , Sub.map Send <| prog.subscriptions model
+                    ]
+            )
+        }
+
+
+beginnerProgram :
+    { elements : elem -> Styled elem variation animation msg
+    , model : model
+    , view : model -> Element elem variation
+    , update : msg -> model -> model
+    }
+    -> Program Never (ElemModel Device elem variation animation model msg) (ElementMsg Device msg)
+beginnerProgram prog =
+    Html.program
+        { init = init prog.elements Device.match <| withCmdNone prog.model
+        , update = update (\msg model -> withCmdNone <| prog.update msg model)
+        , view = (\model -> Html.map Send <| view prog.view model)
+        , subscriptions =
+            (\(ElemModel { model }) ->
+                Sub.batch
+                    [ Window.resizes (Resize Device.match)
+                    ]
+            )
+        }
+
+
+withCmdNone : model -> ( model, Cmd msg )
+withCmdNone model =
+    ( model, Cmd.none )
+
+
+init : (elem -> Styled elem variation animation msg) -> ({ width : Int, height : Int } -> device) -> ( model, Cmd msg ) -> ( ElemModel device elem variation animation model msg, Cmd (ElementMsg device msg) )
+init elem match ( model, cmd ) =
+    ( emptyModel elem match model
     , Cmd.batch
         [ Cmd.map Send cmd
-        , Task.perform Resize Window.size
+        , Task.perform (Resize match) Window.size
         ]
     )
 
 
 emptyModel :
     (elem -> Styled elem variation animation msg)
+    -> (Window.Size -> device)
     -> model
-    -> ElemModel elem variation animation model msg
-emptyModel elem model =
+    -> ElemModel device elem variation animation model msg
+emptyModel elem match model =
     ElemModel
         { time = 0
         , device =
-            Device.match { width = 1000, height = 1200 }
+            match { width = 1000, height = 1200 }
         , elements = elem
         , model = model
         }
 
 
-type ElementMsg msg
+type ElementMsg device msg
     = Send msg
     | Tick Time
-    | Resize Window.Size
+    | Resize (Window.Size -> device) Window.Size
 
 
-type ElemModel elem variation animation model msg
+type ElemModel device elem variation animation model msg
     = ElemModel
         { time : Time
-        , device : Device
+        , device : device
         , elements : elem -> Styled elem variation animation msg
         , model : model
         }
 
 
-update : (msg -> model -> ( model, Cmd msg )) -> ElementMsg msg -> ElemModel elem variation animation model msg -> ( ElemModel elem variation animation model msg, Cmd (ElementMsg msg) )
+update : (msg -> model -> ( model, Cmd msg )) -> ElementMsg device msg -> ElemModel device elem variation animation model msg -> ( ElemModel device elem variation animation model msg, Cmd (ElementMsg device msg) )
 update appUpdate elemMsg elemModel =
     case elemMsg of
         Send msg ->
@@ -343,14 +395,19 @@ update appUpdate elemMsg elemModel =
         Tick time ->
             ( elemModel, Cmd.none )
 
-        Resize size ->
+        Resize match size ->
             ( case elemModel of
                 ElemModel elmRecord ->
-                    ElemModel { elmRecord | device = Device.match size }
+                    ElemModel { elmRecord | device = match size }
             , Cmd.none
             )
 
 
-view : (Device -> model -> Element elem variation) -> ElemModel elem variation animation model msg -> Html msg
-view appView (ElemModel { device, elements, model }) =
+deviceView : (device -> model -> Element elem variation) -> ElemModel device elem variation animation model msg -> Html msg
+deviceView appView (ElemModel { device, elements, model }) =
     Render.render elements <| appView device model
+
+
+view : (model -> Element elem variation) -> ElemModel Device elem variation animation model msg -> Html msg
+view appView (ElemModel { device, elements, model }) =
+    Render.render elements <| appView model
