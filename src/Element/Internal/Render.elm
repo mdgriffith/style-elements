@@ -245,6 +245,18 @@ renderInline spacing adjustments =
                     , "left" => "100%"
                     ]
 
+                Anchor Left ->
+                    [ "left" => "0" ]
+
+                Anchor Top ->
+                    [ "top" => "0" ]
+
+                Anchor Bottom ->
+                    [ "bottom" => "0" ]
+
+                Anchor Right ->
+                    [ "right" => "0" ]
+
                 Spacing a b c d ->
                     case spacing of
                         InlineSpacing ->

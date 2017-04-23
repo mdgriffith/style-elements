@@ -35,11 +35,11 @@ view device model =
             , height (px 80)
             ]
             (text "Hello World!")
-            |> below
+            |> onRight
                 (el TestEmbed
                     [ width (px 50)
                     , height (px 50)
-                    , adjust 0 10
+                    , adjust 0 0
                     ]
                     (text "I'm below!")
                 )

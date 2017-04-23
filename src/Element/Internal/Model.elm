@@ -19,7 +19,7 @@ type Attribute variation
     | Width Internal.Length
     | Position Int Int
     | PositionFrame Frame
-      -- | Anchor AnchorPoint
+    | Anchor AnchorPoint
     | Spacing Float Float Float Float
     | Hidden
     | Transparency Int
@@ -33,12 +33,11 @@ type Frame
     | Screen
 
 
-
--- type AnchorPoint
---     = TopLeft
---     | TopRight
---     | BottomLeft
---     | BottomRight
+type AnchorPoint
+    = Left
+    | Right
+    | Top
+    | Bottom
 
 
 type alias HtmlFn msg =

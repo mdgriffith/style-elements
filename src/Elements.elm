@@ -56,22 +56,47 @@ when bool elm =
         empty
 
 
+addProp : Attribute variation -> Element elem variation -> Element elem variation
+addProp prop el =
+    case el of
+        Empty ->
+            Empty
+
+        Layout layout elem attrs els ->
+            Layout layout elem (prop :: attrs) els
+
+        Element elem attrs el ->
+            Element elem (prop :: attrs) el
+
+        Text content ->
+            Element Nothing [ prop ] (Text content)
+
+
+removeProps : List (Attribute variation) -> Element elem variation -> Element elem variation
+removeProps props el =
+    let
+        match p =
+            not <| List.member p props
+    in
+        case el of
+            Empty ->
+                Empty
+
+            Layout layout elem attrs els ->
+                Layout layout elem (List.filter match attrs) els
+
+            Element elem attrs el ->
+                Element elem (List.filter match attrs) el
+
+            Text content ->
+                Text content
+
+
 frame : Frame -> Element elem variation -> Element elem variation -> Element elem variation
 frame frame el parent =
     let
         positioned =
-            case el of
-                Empty ->
-                    Empty
-
-                Layout layout elem attrs els ->
-                    Layout layout elem (PositionFrame frame :: attrs) els
-
-                Element elem attrs el ->
-                    Element elem (PositionFrame frame :: attrs) el
-
-                Text content ->
-                    Text content
+            addProp (PositionFrame frame) el
     in
         case parent of
             Empty ->
@@ -87,46 +112,62 @@ frame frame el parent =
                 Layout Internal.TextLayout Nothing [] (positioned :: [ Text content ])
 
 
+addChild : Element elem variation -> Element elem variation -> Element elem variation
+addChild parent el =
+    case parent of
+        Empty ->
+            Layout Internal.TextLayout Nothing [] [ el ]
+
+        Layout layout elem attrs children ->
+            Layout layout elem attrs (el :: children)
+
+        Element elem attrs child ->
+            Layout Internal.TextLayout elem (attrs) (el :: child :: [])
+
+        Text content ->
+            Layout Internal.TextLayout Nothing [] (el :: [ Text content ])
+
+
 above : Element elem variation -> Element elem variation -> Element elem variation
 above el parent =
-    frame Above el parent
+    el
+        |> addProp (PositionFrame Above)
+        |> removeProps [ Anchor Top, Anchor Bottom ]
+        |> addChild parent
 
 
 below : Element elem variation -> Element elem variation -> Element elem variation
 below el parent =
-    frame Below el parent
+    el
+        |> addProp (PositionFrame Below)
+        |> removeProps [ Anchor Right, Anchor Left ]
+        |> addChild parent
 
 
 onRight : Element elem variation -> Element elem variation -> Element elem variation
 onRight el parent =
-    frame OnRight el parent
+    el
+        |> addProp (PositionFrame OnRight)
+        |> removeProps [ Anchor Right, Anchor Left ]
+        |> addChild parent
 
 
 onLeft : Element elem variation -> Element elem variation -> Element elem variation
 onLeft el parent =
-    frame OnLeft el parent
+    el
+        |> addProp (PositionFrame OnLeft)
+        |> removeProps [ Anchor Top, Anchor Bottom ]
+        |> addChild parent
 
 
 screen : Element elem variation -> Element elem variation
 screen el =
-    case el of
-        Empty ->
-            Empty
-
-        Layout layout elem attrs els ->
-            Layout layout elem (PositionFrame Screen :: attrs) els
-
-        Element elem attrs el ->
-            Element elem (PositionFrame Screen :: attrs) el
-
-        Text content ->
-            Text content
+    addProp (PositionFrame Screen) el
 
 
-
--- overlay : elem -> Element elem variation -> Element elem variation
--- overlay bg child =
---     screen <| Element bg [ width (percent 100), height (percent 100) ] child
+overlay : elem -> Int -> Element elem variation -> Element elem variation
+overlay bg opac child =
+    screen <| el bg [ width (percent 100), height (percent 100), opacity opac ] child
 
 
 {-| A synonym for the identity function.  Useful for relative
@@ -134,6 +175,26 @@ screen el =
 nevermind : a -> a
 nevermind =
     identity
+
+
+alignTop : Attribute variation
+alignTop =
+    Anchor Top
+
+
+alignBottom : Attribute variation
+alignBottom =
+    Anchor Bottom
+
+
+alignLeft : Attribute variation
+alignLeft =
+    Anchor Left
+
+
+alignRight : Attribute variation
+alignRight =
+    Anchor Right
 
 
 
