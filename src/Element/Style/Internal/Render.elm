@@ -233,7 +233,7 @@ renderProp parentClass prop =
             Intermediate.props <| Render.visibility vis
 
         Border props ->
-            Intermediate.props <| ( "border-style", "solid" ) :: List.map Render.border props
+            Intermediate.props <| List.map Render.border props
 
         Box props ->
             Intermediate.props <| List.map Render.box props

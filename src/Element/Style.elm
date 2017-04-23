@@ -41,8 +41,8 @@ module Element.Style
         , allButBottom
         , hover
         , focus
-        , after
-        , before
+          -- , after
+          -- , before
         , pseudo
         )
 
@@ -77,13 +77,13 @@ module Element.Style
 
 @docs all, top, left, right, bottom, leftRight, topBottom, leftRightAndTopBottom, leftRightTopBottom, allButTop, allButLeft, allButRight, allButBottom
 
-@docs hover, focus, pseudo, after, before
-
+@docs hover, focus, pseudo
 -}
 
 import Element.Style.Internal.Model as Internal
 import Element.Style.Internal.Render.Value as Value
 import Element.Style.Internal.Batchable as Batchable exposing (Batchable)
+import Element.Internal.Model as Element exposing (StyleAttribute)
 
 
 {-| The stylesheet contains the rendered css as a string, and two functions to lookup
@@ -157,53 +157,46 @@ type alias GradientStep =
     Internal.GradientStep
 
 
-
--- {-| -}
--- style : class -> List (Property class variation animation) -> Style class variation animation
--- style cls props =
---     Batchable.one (Internal.Style cls props)
-
-
 {-| -}
-variation : variation -> List (Property class Never animation) -> Property class variation animation
+variation : variation -> List (Property class Never animation) -> StyleAttribute class variation animation msg
 variation variation props =
-    Internal.Variation variation props
+    Element.Style <| Internal.Variation variation props
 
 
 {-| -}
-prop : String -> String -> Property class variation animation
-prop =
-    Internal.Exact
+prop : String -> String -> StyleAttribute class variation animation msg
+prop name val =
+    Element.Style <| Internal.Exact name val
 
 
 {-| -}
-cursor : String -> Property class variation animation
-cursor =
-    Internal.Exact "cursor"
+cursor : String -> StyleAttribute class variation animation msg
+cursor name =
+    Element.Style <| Internal.Exact "cursor" name
 
 
 {-| -}
-border : List Border -> Property class variation animation
+border : List Border -> StyleAttribute class variation animation msg
 border elems =
-    Internal.Border (Internal.BorderElement "border-style" "solid" :: elems)
+    Element.Style <| Internal.Border (Internal.BorderElement "border-style" "solid" :: elems)
 
 
 {-| -}
-background : List Background -> Property class variation animation
-background =
-    Internal.Background
+background : List Background -> StyleAttribute class variation animation msg
+background bgs =
+    Element.Style <| Internal.Background bgs
 
 
 {-| -}
-font : List Font -> Property class variation animation
-font =
-    Internal.Font
+font : List Font -> StyleAttribute class variation animation msg
+font f =
+    Element.Style <| Internal.Font f
 
 
 {-| -}
-palette : List ColorElement -> Property class variation animation
-palette =
-    Internal.Palette
+palette : List ColorElement -> StyleAttribute class variation animation msg
+palette colors =
+    Element.Style <| Internal.Palette colors
 
 
 {-| -}
@@ -224,15 +217,15 @@ type alias Shadow =
 
 
 {-| -}
-shadows : List Shadow -> Property class variation animation
-shadows =
-    Internal.Shadows
+shadows : List Shadow -> StyleAttribute class variation animation msg
+shadows shades =
+    Element.Style <| Internal.Shadows shades
 
 
 {-| -}
-transforms : List Transform -> Property class variation animation
-transforms =
-    Internal.Transform
+transforms : List Transform -> StyleAttribute class variation animation msg
+transforms ts =
+    Element.Style <| Internal.Transform ts
 
 
 {-| -}
@@ -241,9 +234,9 @@ type alias Filter =
 
 
 {-| -}
-filters : List Filter -> Property class variation animation
-filters =
-    Internal.Filters
+filters : List Filter -> StyleAttribute class variation animation msg
+filters fs =
+    Element.Style <| Internal.Filters fs
 
 
 
@@ -385,36 +378,35 @@ bottomLeft x =
 
 
 {-| -}
-hover : List (Property class variation animation) -> Property class variation animation
-hover =
-    Internal.PseudoElement ":hover"
+hover : List (Property class variation animation) -> StyleAttribute class variation animation msg
+hover props =
+    Element.Style <| Internal.PseudoElement ":hover" props
 
 
 {-| -}
-focus : List (Property class variation animation) -> Property class variation animation
-focus =
-    Internal.PseudoElement ":focus"
+focus : List (Property class variation animation) -> StyleAttribute class variation animation msg
+focus props =
+    Element.Style <| Internal.PseudoElement ":focus" props
 
 
 {-| -}
-checked : List (Property class variation animation) -> Property class variation animation
-checked =
-    Internal.PseudoElement ":checked"
+checked : List (Property class variation animation) -> StyleAttribute class variation animation msg
+checked props =
+    Element.Style <| Internal.PseudoElement ":checked" props
 
 
 {-| -}
-pseudo : String -> List (Property class variation animation) -> Property class variation animation
-pseudo psu =
-    Internal.PseudoElement (":" ++ psu)
+pseudo : String -> List (Property class variation animation) -> StyleAttribute class variation animation msg
+pseudo psu props =
+    Element.Style <| Internal.PseudoElement (":" ++ psu) props
 
 
-{-| -}
-after : String -> List (Property class variation animation) -> Property class variation animation
-after content props =
-    Internal.PseudoElement ":after" (prop "content" ("'" ++ content ++ "'") :: props)
 
-
-{-| -}
-before : String -> List (Property class variation animation) -> Property class variation animation
-before content props =
-    Internal.PseudoElement ":before" (prop "content" ("'" ++ content ++ "'") :: props)
+-- {-| -}
+-- after : String -> List (Property class variation animation) -> StyleAttribute class variation animation msg
+-- after content props =
+--     Element.Style <| Internal.PseudoElement ":after" (prop "content" ("'" ++ content ++ "'") :: props)
+-- {-| -}
+-- before : String -> List (Property class variation animation) -> StyleAttribute class variation animation msg
+-- before content props =
+--     Element.Style <| Internal.PseudoElement ":before" (prop "content" ("'" ++ content ++ "'") :: props)

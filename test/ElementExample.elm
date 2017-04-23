@@ -7,6 +7,7 @@ import Element.Attributes exposing (..)
 import Html.Events
 import Element.Style exposing (..)
 import Element.Style.Background as Background
+import Element.Events exposing (..)
 import Color
 
 
@@ -78,21 +79,15 @@ elements elem =
 
         Test ->
             element
-                [ style
-                    [ background
-                        [ Background.color Color.blue
-                        ]
+                [ background
+                    [ Background.color Color.blue
                     ]
                 ]
 
         TestEmbed ->
             element
-                []
-
-
-
--- [ Html.Events.onClick Blink
--- , background
---     [ Background.color Color.red
---     ]
--- ]
+                [ onClick Blink
+                , background
+                    [ Background.color Color.red
+                    ]
+                ]

@@ -148,7 +148,6 @@ renderNode maybeElem inlineStyle maybeNode children =
 
         attributes =
             List.filterMap normalAttrs attrs
-                |> List.concat
 
         renderedAttrs =
             case maybeElem of
@@ -182,7 +181,6 @@ renderLayoutNode maybeElem mSpacingClass inlineStyle maybeNode children =
 
         attributes =
             List.filterMap normalAttrs attrs
-                |> List.concat
 
         elemClass =
             case maybeElem of
@@ -209,7 +207,7 @@ renderStyle elem (El node attrs) =
                 _ ->
                     Nothing
     in
-        Internal.Style elem (List.concat <| List.filterMap styleProps attrs)
+        Internal.Style elem (List.filterMap styleProps attrs)
 
 
 type WithSpacing

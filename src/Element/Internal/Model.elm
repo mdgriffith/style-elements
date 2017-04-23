@@ -57,5 +57,5 @@ type Styled elem variation animation msg
 
 
 type StyleAttribute elem variation animation msg
-    = Attr (List (Html.Attribute msg))
-    | Style (List (Internal.Property elem variation animation))
+    = Attr (Html.Attribute msg)
+    | Style (Internal.Property elem variation animation)
