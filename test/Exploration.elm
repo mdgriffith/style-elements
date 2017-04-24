@@ -104,13 +104,23 @@ view device model =
                     ]
                 ]
                 (text "style-elements")
-            , el Success [] <|
-                paragraph
+            , textLayout UnStyled
+                [ el (Image "style-elements.gif") [ alignLeft ] []
+                , paragraph Success
+                    []
                     [ bold "Well done! "
                     , text "You've successfully read "
                     , bold "this important alert message. "
                     , link "/home" "Go Home!"
                     ]
+                , paragraph Success
+                    []
+                    [ bold "Well done! "
+                    , text "You've successfully read "
+                    , bold "this important alert message. "
+                    , link "/home" "Go Home!"
+                    ]
+                ]
             , lazy searchView model.search
             , screen <| el PullRequests [] (text "issues")
             , el Issues [] (text "issues")

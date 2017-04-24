@@ -39,11 +39,6 @@ module Element.Style
         , allButLeft
         , allButRight
         , allButBottom
-        , hover
-        , focus
-          -- , after
-          -- , before
-        , pseudo
         )
 
 {-|
@@ -77,7 +72,6 @@ module Element.Style
 
 @docs all, top, left, right, bottom, leftRight, topBottom, leftRightAndTopBottom, leftRightTopBottom, allButTop, allButLeft, allButRight, allButBottom
 
-@docs hover, focus, pseudo
 -}
 
 import Element.Style.Internal.Model as Internal
@@ -377,30 +371,6 @@ bottomRight x =
 bottomLeft : Float -> Corners
 bottomLeft x =
     ( 0, 0, 0, x )
-
-
-{-| -}
-hover : List (Property class variation animation) -> StyleAttribute class variation animation msg
-hover props =
-    Element.Style <| Internal.PseudoElement ":hover" props
-
-
-{-| -}
-focus : List (Property class variation animation) -> StyleAttribute class variation animation msg
-focus props =
-    Element.Style <| Internal.PseudoElement ":focus" props
-
-
-{-| -}
-checked : List (Property class variation animation) -> StyleAttribute class variation animation msg
-checked props =
-    Element.Style <| Internal.PseudoElement ":checked" props
-
-
-{-| -}
-pseudo : String -> List (Property class variation animation) -> StyleAttribute class variation animation msg
-pseudo psu props =
-    Element.Style <| Internal.PseudoElement (":" ++ psu) props
 
 
 

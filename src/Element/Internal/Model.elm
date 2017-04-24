@@ -24,12 +24,7 @@ type Element elem variation msg
     = Empty
     | Text Decoration String
     | Element (Maybe elem) (List (Attribute variation msg)) (Element elem variation msg) (Maybe (List (Element elem variation msg)))
-    | Layout Internal.LayoutModel SpacingRestriction (Maybe elem) (List (Attribute variation msg)) (List (Element elem variation msg))
-
-
-type SpacingRestriction
-    = SpacingAllowed
-    | NoSpacing
+    | Layout Internal.LayoutModel (Maybe elem) (List (Attribute variation msg)) (List (Element elem variation msg))
 
 
 type Attribute variation msg
@@ -44,6 +39,7 @@ type Attribute variation msg
     | Spacing ( Float, Float, Float, Float )
     | Padding ( Float, Float, Float, Float )
     | Event (Html.Attribute msg)
+    | Pseudo String (List (Attribute variation msg))
 
 
 type Decoration
@@ -55,11 +51,15 @@ type Decoration
 
 
 type Frame
-    = Below
+    = Screen
+    | Below
     | Above
     | OnLeft
     | OnRight
-    | Screen
+
+
+type Nearby element
+    = Nearby element
 
 
 type AnchorPoint

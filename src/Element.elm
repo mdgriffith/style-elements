@@ -3,7 +3,6 @@ module Element exposing (..)
 {-| -}
 
 import Html exposing (Html)
-import Html.Attributes
 import Element.Style.Internal.Model as Internal exposing (Length)
 import Element.Internal.Model exposing (..)
 import Time exposing (Time)
@@ -47,6 +46,26 @@ text =
     Text NoDecoration
 
 
+bold : String -> Element elem variation msg
+bold =
+    Text Bold
+
+
+italic : String -> Element elem variation msg
+italic =
+    Text Italic
+
+
+strike : String -> Element elem variation msg
+strike =
+    Text Strike
+
+
+underline : String -> Element elem variation msg
+underline =
+    Text Underline
+
+
 el : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
 el elem attrs child =
     Element (Just elem) attrs child Nothing
@@ -54,17 +73,22 @@ el elem attrs child =
 
 full : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
 full elem attrs child =
-    Element (Just elem) (Spacing ( 0, 0, 0, 0 ) :: attrs) child Nothing
+    Element (Just elem) (Spacing ( 0, 0, 0, 0 ) :: width (percent 100) :: height (percent 100) :: attrs) child Nothing
+
+
+textLayout : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
+textLayout elem attrs children =
+    Layout (Internal.TextLayout) (Just elem) attrs children
 
 
 row : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 row elem attrs children =
-    Layout (Internal.FlexLayout Internal.GoRight []) SpacingAllowed (Just elem) attrs children
+    Layout (Internal.FlexLayout Internal.GoRight []) (Just elem) attrs children
 
 
 column : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 column elem attrs children =
-    Layout (Internal.FlexLayout Internal.Down []) SpacingAllowed (Just elem) attrs children
+    Layout (Internal.FlexLayout Internal.Down []) (Just elem) attrs children
 
 
 
@@ -90,8 +114,8 @@ addProp prop el =
         Empty ->
             Empty
 
-        Layout layout spacing elem attrs els ->
-            Layout layout spacing elem (prop :: attrs) els
+        Layout layout elem attrs els ->
+            Layout layout elem (prop :: attrs) els
 
         Element elem attrs el children ->
             Element elem (prop :: attrs) el children
@@ -110,8 +134,8 @@ removeProps props el =
             Empty ->
                 Empty
 
-            Layout layout spacing elem attrs els ->
-                Layout layout spacing elem (List.filter match attrs) els
+            Layout layout elem attrs els ->
+                Layout layout elem (List.filter match attrs) els
 
             Element elem attrs el children ->
                 Element elem (List.filter match attrs) el children
@@ -126,8 +150,8 @@ addChild parent el =
         Empty ->
             Element Nothing [] Empty (Just [ el ])
 
-        Layout layout spacingAllowed elem attrs children ->
-            Layout layout spacingAllowed elem attrs (el :: children)
+        Layout layout elem attrs children ->
+            Layout layout elem attrs (el :: children)
 
         Element elem attrs child otherChildren ->
             case otherChildren of
@@ -141,36 +165,41 @@ addChild parent el =
             Element Nothing [] (Text dec content) (Just [ el ])
 
 
-above : Element elem variation msg -> Element elem variation msg -> Element elem variation msg
-above el parent =
+nearby : List (Nearby (Element elem variation msg)) -> Element elem variation msg -> Element elem variation msg
+nearby nearbys parent =
+    List.foldl (\(Nearby el) p -> addChild p el) parent nearbys
+
+
+above : Element elem variation msg -> Nearby (Element elem variation msg)
+above el =
     el
         |> addProp (PositionFrame Above)
         |> removeProps [ Anchor Top, Anchor Bottom ]
-        |> addChild parent
+        |> Nearby
 
 
-below : Element elem variation msg -> Element elem variation msg -> Element elem variation msg
-below el parent =
+below : Element elem variation msg -> Nearby (Element elem variation msg)
+below el =
     el
         |> addProp (PositionFrame Below)
         |> removeProps [ Anchor Top, Anchor Bottom ]
-        |> addChild parent
+        |> Nearby
 
 
-onRight : Element elem variation msg -> Element elem variation msg -> Element elem variation msg
-onRight el parent =
+onRight : Element elem variation msg -> Nearby (Element elem variation msg)
+onRight el =
     el
         |> addProp (PositionFrame OnRight)
         |> removeProps [ Anchor Right, Anchor Left ]
-        |> addChild parent
+        |> Nearby
 
 
-onLeft : Element elem variation msg -> Element elem variation msg -> Element elem variation msg
-onLeft el parent =
+onLeft : Element elem variation msg -> Nearby (Element elem variation msg)
+onLeft el =
     el
         |> addProp (PositionFrame OnLeft)
         |> removeProps [ Anchor Right, Anchor Left ]
-        |> addChild parent
+        |> Nearby
 
 
 screen : Element elem variation msg -> Element elem variation msg
@@ -181,13 +210,6 @@ screen el =
 overlay : elem -> Int -> Element elem variation msg -> Element elem variation msg
 overlay bg opac child =
     screen <| el bg [ width (percent 100), height (percent 100), opacity opac ] child
-
-
-{-| A synonym for the identity function.  Useful for relative
--}
-nevermind : a -> a
-nevermind =
-    identity
 
 
 alignTop : Attribute variation msg
@@ -232,8 +254,13 @@ px =
     Internal.Px
 
 
-adjust : Int -> Int -> Attribute variation msg
-adjust =
+{-| Adjust the position of the element.
+
+Arguemnts are given as x and y coordinates, where positive is right and down.
+
+-}
+move : Int -> Int -> Attribute variation msg
+move =
     Position
 
 
@@ -278,6 +305,30 @@ transparency =
 opacity : Int -> Attribute variation msg
 opacity o =
     Transparency (1 - o)
+
+
+{-| -}
+hover : List (Attribute variation msg) -> Attribute variation msg
+hover props =
+    Pseudo ":hover" props
+
+
+{-| -}
+focus : List (Attribute variation msg) -> Attribute variation msg
+focus props =
+    Pseudo ":focus" props
+
+
+{-| -}
+checked : List (Attribute variation msg) -> Attribute variation msg
+checked props =
+    Pseudo ":checked" props
+
+
+{-| -}
+pseudo : String -> List (Attribute variation msg) -> Attribute variation msg
+pseudo psu props =
+    Pseudo (":" ++ psu) props
 
 
 

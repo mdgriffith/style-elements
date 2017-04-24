@@ -121,7 +121,7 @@ renderElement inherited findNode elm =
                             |> StyleCache.insert el
                         )
 
-        Layout layout spacingAllowed maybeElement position children ->
+        Layout layout maybeElement position children ->
             let
                 ( spacing, attributes ) =
                     List.partition forSpacing position
@@ -284,6 +284,9 @@ renderInline adjustments =
                     [ "opacity" => (toString <| 1 - t) ]
 
                 Event ev ->
+                    []
+
+                Pseudo str props ->
                     []
     in
         defaults ++ List.concatMap renderAdjustment adjustments

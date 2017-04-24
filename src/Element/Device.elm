@@ -26,3 +26,29 @@ match { width, height } =
     , bigDesktop = width > 1800
     , portrait = width > height
     }
+
+
+{-|
+Define two ranges that should match up with each other.
+
+Provide a value for the first and receive the calculated value for the second.
+
+
+
+  fontsize = responsive (600, 1200) (16, 20) device.width
+
+
+
+-}
+responsive : ( Float, Float ) -> ( Float, Float ) -> Float -> Float
+responsive ( aMin, aMax ) ( bMin, bMax ) a =
+    if a < aMin then
+        bMin
+    else if a > aMax then
+        bMax
+    else
+        let
+            deltaA =
+                (a - aMin) / (aMax - aMin)
+        in
+            (deltaA * (bMax - bMin)) + bMin

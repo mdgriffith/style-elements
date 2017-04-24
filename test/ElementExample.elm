@@ -40,25 +40,41 @@ view device model =
             , height (px 80)
             ]
             (text "Hello World!")
-            |> onRight
-                (el TestEmbed
-                    [ width (px 50)
-                    , height (px 50)
-                    , alignBottom
-                    , adjust 0 0
-                    , onClick Blink
-                    ]
-                    (text "I'm right!")
-                )
-            |> below
-                (el TestEmbed
-                    [ width (px 50)
-                    , height (px 50)
-                    , alignRight
-                    , adjust 0 0
-                    ]
-                    (text "I'm below!")
-                )
+            |> nearby
+                [ onRight <|
+                    el TestEmbed
+                        [ width (px 50)
+                        , height (px 50)
+                        , alignBottom
+                        , move 0 0
+                        , onClick Blink
+                        ]
+                        (text "I'm right!")
+                , below <|
+                    el TestEmbed
+                        [ width (px 50)
+                        , height (px 50)
+                        , alignRight
+                        , move 0 0
+                        ]
+                        (text "I'm below!")
+                ]
+        , el Test
+            [ width (px 500)
+            , height (px 80)
+            ]
+            (text "Hello World!")
+            |> nearby
+                [ onRight <|
+                    el TestEmbed
+                        [ width (px 50)
+                        , height (px 50)
+                        , alignBottom
+                        , move 0 0
+                        , onClick Blink
+                        ]
+                        (text "I'm right!")
+                ]
         ]
 
 
