@@ -9,7 +9,7 @@ import Element.Style.Internal.Render.Value as Value
 import Element.Style.Internal.Cache as StyleCache
 import Element.Style.Internal.Render as Render
 import Element.Style.Internal.Selector as Selector
-import Element.Style.Internal.Render.Property
+import Element.Style.Internal.Render.Property as Property
 import Element.Style.Sheet
 import Element.Internal.Model exposing (..)
 
@@ -22,28 +22,28 @@ import Element.Internal.Model exposing (..)
 render : ElementSheet elem variation animation msg -> Element elem variation msg -> Html msg
 render (ElementSheet { defaults, stylesheet }) elm =
     let
-        ( html, stylecache ) =
-            renderElement Nothing elm
+        html =
+            renderElement Nothing stylesheet elm
 
-        withDefaults =
-            stylecache
-                |> StyleCache.embed "default-typeface"
-                    (Render.class "default-typeface"
-                        [ "font-family"
-                            => (defaults.typeface
-                                    |> List.map (\fam -> "\"" ++ fam ++ "\"")
-                                    |> String.join ", "
-                               )
-                        , "color" => Value.color defaults.textColor
-                        , "line-height" => toString defaults.lineHeight
-                        , "font-size" => (toString defaults.fontSize ++ "px")
-                        ]
-                    )
-                |> StyleCache.embed "default-spacing"
-                    (Render.class "default-spacing > *:not(.nospacing)"
-                        [ "margin" => Value.box defaults.spacing
-                        ]
-                    )
+        -- withDefaults =
+        --     stylecache
+        --         |> StyleCache.embed "default-typeface"
+        --             (Render.class "default-typeface"
+        --                 [ "font-family"
+        --                     => (defaults.typeface
+        --                             |> List.map (\fam -> "\"" ++ fam ++ "\"")
+        --                             |> String.join ", "
+        --                        )
+        --                 , "color" => Value.color defaults.textColor
+        --                 , "line-height" => toString defaults.lineHeight
+        --                 , "font-size" => (toString defaults.fontSize ++ "px")
+        --                 ]
+        --             )
+        --         |> StyleCache.embed "default-spacing"
+        --             (Render.class "default-spacing > *:not(.nospacing)"
+        --                 [ "margin" => Value.box defaults.spacing
+        --                 ]
+        --             )
     in
         Html.div [ Html.Attributes.class "default-typeface" ]
             [ Element.Style.Sheet.embed stylesheet
@@ -57,61 +57,42 @@ type alias Context variation msg =
     }
 
 
-renderElement : Maybe (Context variation msg) -> Element elem variation msg -> ( Html msg, StyleCache.Cache elem )
-renderElement context elm =
+renderElement : Maybe (Context variation msg) -> Internal.StyleSheet elem variation animation msg -> Element elem variation msg -> Html msg
+renderElement context stylesheet elm =
     case elm of
         Empty ->
-            ( Html.text "", StyleCache.empty )
+            Html.text ""
 
         Text dec str ->
             case dec of
                 NoDecoration ->
-                    ( Html.text str
-                    , StyleCache.empty
-                    )
+                    Html.text str
 
                 Bold ->
-                    ( Html.strong [] [ Html.text str ]
-                    , StyleCache.empty
-                    )
+                    Html.strong [] [ Html.text str ]
 
                 Italic ->
-                    ( Html.em [] [ Html.text str ]
-                    , StyleCache.empty
-                    )
+                    Html.em [] [ Html.text str ]
 
                 Underline ->
-                    ( Html.u [] [ Html.text str ]
-                    , StyleCache.empty
-                    )
+                    Html.u [] [ Html.text str ]
 
                 Strike ->
-                    ( Html.s [] [ Html.text str ]
-                    , StyleCache.empty
-                    )
+                    Html.s [] [ Html.text str ]
 
         Element element position child otherChildren ->
             let
-                ( childHtml, styleset ) =
+                childHtml =
                     case otherChildren of
                         Nothing ->
                             let
-                                ( chil, sty ) =
-                                    renderElement Nothing child
+                                chil =
+                                    renderElement Nothing stylesheet child
                             in
-                                ( [ chil ]
-                                , sty
-                                )
+                                [ chil ]
 
                         Just others ->
-                            List.foldr renderAndCombine ( [], StyleCache.empty ) (child :: others)
-
-                renderAndCombine child ( html, styles ) =
-                    let
-                        ( childHtml, childStyle ) =
-                            renderElement Nothing child
-                    in
-                        ( childHtml :: html, StyleCache.combine childStyle styles )
+                            List.map (renderElement Nothing stylesheet) (child :: others)
 
                 attributes =
                     case context of
@@ -120,20 +101,13 @@ renderElement context elm =
 
                         Just ctxt ->
                             ctxt.inherited ++ position
+
+                htmlAttrs =
+                    renderAttributes element context stylesheet attributes
             in
-                case element of
-                    Nothing ->
-                        ( renderNode Nothing (renderInline context attributes) childHtml
-                        , styleset
-                        )
+                Html.div htmlAttrs childHtml
 
-                    Just el ->
-                        ( renderNode element (renderInline context attributes) childHtml
-                        , styleset
-                            |> StyleCache.insert el
-                        )
-
-        Layout layout maybeElement position children ->
+        Layout layout element position children ->
             let
                 ( spacing, attributes ) =
                     List.partition forSpacing position
@@ -146,102 +120,26 @@ renderElement context elm =
                         _ ->
                             False
 
-                ( childHtml, styleset ) =
-                    List.foldr renderAndCombine ( [], StyleCache.empty ) children
+                childHtml =
+                    List.map (renderElement (Just { inherited = spacing, layout = layout }) stylesheet) children
 
-                renderAndCombine child ( html, styles ) =
-                    let
-                        ( childHtml, childStyle ) =
-                            renderElement (Just { inherited = spacing, layout = layout }) child
-                    in
-                        ( childHtml :: html, StyleCache.combine childStyle styles )
-
-                intermediate =
-                    renderInline context attributes
-
-                parentStyle =
-                    { intermediate
-                        | inline = intermediate.inline ++ Element.Style.Internal.Render.Property.layout layout
-                    }
+                htmlAttrs =
+                    renderAttributes element context stylesheet (LayoutAttr layout :: attributes)
             in
-                case maybeElement of
-                    Nothing ->
-                        ( renderNode Nothing parentStyle childHtml
-                        , styleset
-                        )
-
-                    Just element ->
-                        ( renderNode (Just element) parentStyle childHtml
-                        , styleset
-                            |> StyleCache.insert element
-                        )
+                Html.div htmlAttrs childHtml
 
 
-renderNode : Maybe elem -> IntermediateProps variation msg -> List (Html msg) -> Html msg
-renderNode maybeElem intermediate children =
-    let
-        node =
-            Html.div
-
-        normalAttrs attr =
-            case attr of
-                Attr a ->
-                    Just a
-
-                _ ->
-                    Nothing
-
-        variationClasses =
-            if List.length intermediate.variations > 0 then
-                List.map Selector.formatName intermediate.variations
-                    |> String.join " "
-            else
-                ""
-
-        renderedAttrs =
-            case maybeElem of
-                Nothing ->
-                    (Html.Attributes.style intermediate.inline
-                        :: intermediate.attrs
-                    )
-
-                Just elem ->
-                    (Html.Attributes.style intermediate.inline
-                        :: Html.Attributes.class (Selector.formatName elem ++ variationClasses)
-                        :: intermediate.attrs
-                    )
-    in
-        node renderedAttrs children
-
-
-renderStyle : elem -> Styled elem variation animation msg -> Internal.Style elem variation animation
-renderStyle elem (El node attrs) =
-    -- let
-    --     -- styleProps attr =
-    --     --     case attr of
-    --     --         Style a ->
-    --     --             Just a
-    --     --         _ ->
-    --     --             Nothing
-    -- in
-    Internal.Style elem attrs
-
-
-type alias IntermediateProps variation msg =
-    { inline : List ( String, String )
-    , variations : List variation
-    , attrs : List (Html.Attribute msg)
-    }
-
-
-renderInline : Maybe (Context variation msg) -> List (Attribute variation msg) -> IntermediateProps variation msg
-renderInline maybeContext attrs =
+renderAttributes : Maybe elem -> Maybe (Context variation msg) -> Internal.StyleSheet elem variation animation msg -> List (Attribute variation msg) -> List (Html.Attribute msg)
+renderAttributes maybeElem maybeContext stylesheet attrs =
     let
         gather adj found =
             case adj of
+                LayoutAttr layout ->
+                    { found | inline = Property.layout layout ++ found.inline }
+
                 Vary vary on ->
                     if on then
-                        { found | variations = vary :: found.variations }
+                        { found | variations = ( vary, on ) :: found.variations }
                     else
                         found
 
@@ -299,13 +197,13 @@ renderInline maybeContext attrs =
                                 ++ found.inline
                     }
 
-                Anchor Top ->
+                Align Top ->
                     { found | inline = ( "top", "0" ) :: found.inline }
 
-                Anchor Bottom ->
+                Align Bottom ->
                     { found | inline = ( "bottom", "0" ) :: found.inline }
 
-                Anchor Left ->
+                Align Left ->
                     case maybeContext of
                         Just { layout } ->
                             case layout of
@@ -318,7 +216,7 @@ renderInline maybeContext attrs =
                         _ ->
                             { found | inline = ( "left", "0" ) :: found.inline }
 
-                Anchor Right ->
+                Align Right ->
                     case maybeContext of
                         Just { layout } ->
                             case layout of
@@ -362,5 +260,21 @@ renderInline maybeContext attrs =
 
         withProps =
             List.foldr gather empty attrs
+
+        classes =
+            case maybeElem of
+                Nothing ->
+                    Nothing
+
+                Just elem ->
+                    if List.length withProps.variations > 0 then
+                        Just <| stylesheet.variations elem withProps.variations
+                    else
+                        Just <| stylesheet.style elem
     in
-        { withProps | inline = defaults ++ withProps.inline }
+        case classes of
+            Nothing ->
+                Html.Attributes.style (defaults ++ withProps.inline) :: withProps.attrs
+
+            Just cls ->
+                cls :: Html.Attributes.style (defaults ++ withProps.inline) :: withProps.attrs

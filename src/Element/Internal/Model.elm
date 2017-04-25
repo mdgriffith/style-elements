@@ -32,9 +32,10 @@ type Element elem variation msg
 
 type Attribute variation msg
     = Vary variation Bool
+    | LayoutAttr Internal.LayoutModel
     | Height Internal.Length
     | Width Internal.Length
-    | Anchor AnchorPoint
+    | Align Alignment
     | Position Int Int
     | PositionFrame Frame
     | Hidden
@@ -62,6 +63,10 @@ type Frame
 
 
 
+-- type Frame1
+--     = Screen Anchor
+--     | NearbyEl
+--     | WithinEl Anchor
 -- | TopRight
 -- | TopLeft
 -- | BottomRight
@@ -72,7 +77,11 @@ type Nearby element
     = Nearby element
 
 
-type AnchorPoint
+type Inside element
+    = Inside element
+
+
+type Alignment
     = Left
     | Right
     | Top

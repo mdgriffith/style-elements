@@ -27,7 +27,7 @@ main =
 
 
 view device model =
-    Element.row UnStyled
+    row UnStyled
         [ spacing (all 25) ]
         [ el Test
             [ width (px 500)

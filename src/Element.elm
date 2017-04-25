@@ -25,12 +25,6 @@ defaults =
     }
 
 
-
--- elements : (elem -> Styled elem variation animation msg) -> ElementSheet elem variation animation msg
--- elements lookup =
---     ElementSheet defaults lookup
-
-
 elements : List (Element.Style.Style elem variation animation) -> ElementSheet elem variation animation msg
 elements stylesheet =
     ElementSheet
@@ -39,13 +33,15 @@ elements stylesheet =
         }
 
 
+elementsWith : Defaults -> List (Element.Style.Style elem variation animation) -> ElementSheet elem variation animation msg
+elementsWith defaults stylesheet =
+    ElementSheet
+        { defaults = defaults
+        , stylesheet = Element.Style.Sheet.render stylesheet
+        }
 
--- elementsWith : Defaults -> (elem -> Styled elem variation animation msg) -> ElementSheet elem variation animation msg
--- elementsWith =
---     ElementSheet
 
-
-{-| In Hierarchy
+{-|
 
 -}
 empty : Element elem variation msg
@@ -208,7 +204,7 @@ above : Element elem variation msg -> Nearby (Element elem variation msg)
 above el =
     el
         |> addProp (PositionFrame Above)
-        |> removeProps [ Anchor Top, Anchor Bottom ]
+        |> removeProps [ Align Top, Align Bottom ]
         |> Nearby
 
 
@@ -216,7 +212,7 @@ below : Element elem variation msg -> Nearby (Element elem variation msg)
 below el =
     el
         |> addProp (PositionFrame Below)
-        |> removeProps [ Anchor Top, Anchor Bottom ]
+        |> removeProps [ Align Top, Align Bottom ]
         |> Nearby
 
 
@@ -224,7 +220,7 @@ onRight : Element elem variation msg -> Nearby (Element elem variation msg)
 onRight el =
     el
         |> addProp (PositionFrame OnRight)
-        |> removeProps [ Anchor Right, Anchor Left ]
+        |> removeProps [ Align Right, Align Left ]
         |> Nearby
 
 
@@ -232,7 +228,7 @@ onLeft : Element elem variation msg -> Nearby (Element elem variation msg)
 onLeft el =
     el
         |> addProp (PositionFrame OnLeft)
-        |> removeProps [ Anchor Right, Anchor Left ]
+        |> removeProps [ Align Right, Align Left ]
         |> Nearby
 
 
@@ -248,22 +244,22 @@ overlay bg opac child =
 
 alignTop : Attribute variation msg
 alignTop =
-    Anchor Top
+    Align Top
 
 
 alignBottom : Attribute variation msg
 alignBottom =
-    Anchor Bottom
+    Align Bottom
 
 
 alignLeft : Attribute variation msg
 alignLeft =
-    Anchor Left
+    Align Left
 
 
 alignRight : Attribute variation msg
 alignRight =
-    Anchor Right
+    Align Right
 
 
 
