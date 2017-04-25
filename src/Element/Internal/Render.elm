@@ -80,7 +80,7 @@ renderElement context stylesheet elm =
                 Strike ->
                     Html.s [] [ Html.text str ]
 
-        Element element position child otherChildren ->
+        Element node element position child otherChildren ->
             let
                 childHtml =
                     case otherChildren of
@@ -105,9 +105,9 @@ renderElement context stylesheet elm =
                 htmlAttrs =
                     renderAttributes element context stylesheet attributes
             in
-                Html.div htmlAttrs childHtml
+                node htmlAttrs childHtml
 
-        Layout layout element position children ->
+        Layout node layout element position children ->
             let
                 ( spacing, attributes ) =
                     List.partition forSpacing position
@@ -126,7 +126,7 @@ renderElement context stylesheet elm =
                 htmlAttrs =
                     renderAttributes element context stylesheet (LayoutAttr layout :: attributes)
             in
-                Html.div htmlAttrs childHtml
+                node htmlAttrs childHtml
 
 
 renderAttributes : Maybe elem -> Maybe (Context variation msg) -> Internal.StyleSheet elem variation animation msg -> List (Attribute variation msg) -> List (Html.Attribute msg)

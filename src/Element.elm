@@ -76,7 +76,7 @@ underline =
 
 el : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
 el elem attrs child =
-    Element (Just elem) attrs child Nothing
+    Element Html.div (Just elem) attrs child Nothing
 
 
 
@@ -103,22 +103,22 @@ el elem attrs child =
 
 full : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
 full elem attrs child =
-    Element (Just elem) (Spacing ( 0, 0, 0, 0 ) :: width (percent 100) :: height (percent 100) :: attrs) child Nothing
+    Element Html.div (Just elem) (Spacing ( 0, 0, 0, 0 ) :: width (percent 100) :: height (percent 100) :: attrs) child Nothing
 
 
 textLayout : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 textLayout elem attrs children =
-    Layout (Style.TextLayout) (Just elem) attrs children
+    Layout Html.div (Style.TextLayout) (Just elem) attrs children
 
 
 row : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 row elem attrs children =
-    Layout (Style.FlexLayout Style.GoRight []) (Just elem) attrs children
+    Layout Html.div (Style.FlexLayout Style.GoRight []) (Just elem) attrs children
 
 
 column : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 column elem attrs children =
-    Layout (Style.FlexLayout Style.Down []) (Just elem) attrs children
+    Layout Html.div (Style.FlexLayout Style.Down []) (Just elem) attrs children
 
 
 
@@ -144,14 +144,14 @@ addProp prop el =
         Empty ->
             Empty
 
-        Layout layout elem attrs els ->
-            Layout layout elem (prop :: attrs) els
+        Layout node layout elem attrs els ->
+            Layout node layout elem (prop :: attrs) els
 
-        Element elem attrs el children ->
-            Element elem (prop :: attrs) el children
+        Element node elem attrs el children ->
+            Element node elem (prop :: attrs) el children
 
         Text dec content ->
-            Element Nothing [ prop ] (Text dec content) Nothing
+            Element Html.div Nothing [ prop ] (Text dec content) Nothing
 
 
 removeProps : List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
@@ -164,11 +164,11 @@ removeProps props el =
             Empty ->
                 Empty
 
-            Layout layout elem attrs els ->
-                Layout layout elem (List.filter match attrs) els
+            Layout node layout elem attrs els ->
+                Layout node layout elem (List.filter match attrs) els
 
-            Element elem attrs el children ->
-                Element elem (List.filter match attrs) el children
+            Element node elem attrs el children ->
+                Element node elem (List.filter match attrs) el children
 
             Text dec content ->
                 Text dec content
@@ -178,21 +178,21 @@ addChild : Element elem variation msg -> Element elem variation msg -> Element e
 addChild parent el =
     case parent of
         Empty ->
-            Element Nothing [] Empty (Just [ el ])
+            Element Html.div Nothing [] Empty (Just [ el ])
 
-        Layout layout elem attrs children ->
-            Layout layout elem attrs (el :: children)
+        Layout node layout elem attrs children ->
+            Layout node layout elem attrs (el :: children)
 
-        Element elem attrs child otherChildren ->
+        Element node elem attrs child otherChildren ->
             case otherChildren of
                 Nothing ->
-                    Element elem attrs child (Just [ el ])
+                    Element node elem attrs child (Just [ el ])
 
                 Just others ->
-                    Element elem attrs child (Just (el :: others))
+                    Element node elem attrs child (Just (el :: others))
 
         Text dec content ->
-            Element Nothing [] (Text dec content) (Just [ el ])
+            Element Html.div Nothing [] (Text dec content) (Just [ el ])
 
 
 nearby : List (Nearby (Element elem variation msg)) -> Element elem variation msg -> Element elem variation msg
@@ -335,22 +335,6 @@ transparency =
 opacity : Int -> Attribute variation msg
 opacity o =
     Transparency (1 - o)
-
-
-
---
--- In your attribute sheet
-
-
-element : List (Style.Property elem variation animation) -> Styled elem variation animation msg
-element =
-    El Html.div
-
-
-
--- elementAs : HtmlFn msg -> List (StyleAttribute elem variation animation msg) -> Styled elem variation animation msg
--- elementAs =
---     El
 
 
 programWithFlags :

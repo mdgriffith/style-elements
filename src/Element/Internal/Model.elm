@@ -26,8 +26,12 @@ type alias Defaults =
 type Element elem variation msg
     = Empty
     | Text Decoration String
-    | Element (Maybe elem) (List (Attribute variation msg)) (Element elem variation msg) (Maybe (List (Element elem variation msg)))
-    | Layout Internal.LayoutModel (Maybe elem) (List (Attribute variation msg)) (List (Element elem variation msg))
+    | Element (HtmlFn msg) (Maybe elem) (List (Attribute variation msg)) (Element elem variation msg) (Maybe (List (Element elem variation msg)))
+    | Layout (HtmlFn msg) Internal.LayoutModel (Maybe elem) (List (Attribute variation msg)) (List (Element elem variation msg))
+
+
+type alias HtmlFn msg =
+    List (Html.Attribute msg) -> List (Html msg) -> Html msg
 
 
 type Attribute variation msg
@@ -86,11 +90,3 @@ type Alignment
     | Right
     | Top
     | Bottom
-
-
-type alias HtmlFn msg =
-    List (Html.Attribute msg) -> List (Html msg) -> Html msg
-
-
-type Styled elem variation animation msg
-    = El (HtmlFn msg) (List (Internal.Property elem variation animation))
