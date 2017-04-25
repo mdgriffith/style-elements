@@ -33,6 +33,7 @@ view device model =
             [ width (px 500)
             , height (px 80)
             , padding (all 20)
+            , vary Success True
             ]
             (text "Hello World!")
         , el Test
@@ -54,26 +55,9 @@ view device model =
                     el TestEmbed
                         [ width (px 50)
                         , height (px 50)
-                        , alignRight
                         , move 0 0
                         ]
                         (text "I'm below!")
-                ]
-        , el Test
-            [ width (px 500)
-            , height (px 80)
-            ]
-            (text "Hello World!")
-            |> nearby
-                [ onRight <|
-                    el TestEmbed
-                        [ width (px 50)
-                        , height (px 50)
-                        , alignBottom
-                        , move 0 0
-                        , onClick Blink
-                        ]
-                        (text "I'm right!")
                 ]
         ]
 
@@ -92,22 +76,27 @@ type Elements
     | TestEmbed
 
 
-elements elem =
-    case elem of
-        UnStyled ->
-            element []
+type Variations
+    = Success
 
-        Test ->
-            element
-                [ background
-                    [ Background.color Color.blue
-                    ]
-                , paddingHint (all 200)
-                ]
 
-        TestEmbed ->
-            element
-                [ background
-                    [ Background.color Color.red
-                    ]
+elements =
+    [ style UnStyled []
+    , style Test
+        [ background
+            [ Background.color Color.blue
+            ]
+        , variation Success
+            [ background
+                [ Background.color Color.green
                 ]
+            ]
+
+        -- , paddingHint (all 200)
+        ]
+    , style TestEmbed
+        [ background
+            [ Background.color Color.red
+            ]
+        ]
+    ]

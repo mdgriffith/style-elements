@@ -15,6 +15,7 @@ module Element.Style
         , StyleSheet
         , Edges
         , Corners
+        , style
         , variation
         , prop
         , cursor
@@ -45,7 +46,7 @@ module Element.Style
 # Welcome to the Style Elements Library!
 
 
-@docs StyleSheet, Style, Property
+@docs StyleSheet, Style,style,  Property
 
 @docs variation
 
@@ -77,7 +78,6 @@ module Element.Style
 import Element.Style.Internal.Model as Internal
 import Element.Style.Internal.Render.Value as Value
 import Element.Style.Internal.Batchable as Batchable exposing (Batchable)
-import Element.Internal.Model as Element exposing (StyleAttribute)
 
 
 {-| The stylesheet contains the rendered css as a string, and two functions to lookup
@@ -152,53 +152,59 @@ type alias GradientStep =
 
 
 {-| -}
-variation : variation -> List (Property class Never animation) -> StyleAttribute class variation animation msg
+style : class -> List (Property class variation animation) -> Style class variation animation
+style cls props =
+    Batchable.one (Internal.Style cls props)
+
+
+{-| -}
+variation : variation -> List (Property class Never animation) -> Property class variation animation
 variation variation props =
-    Element.Style <| Internal.Variation variation props
+    Internal.Variation variation props
 
 
 {-| -}
-prop : String -> String -> StyleAttribute class variation animation msg
+prop : String -> String -> Property class variation animation
 prop name val =
-    Element.Style <| Internal.Exact name val
+    Internal.Exact name val
 
 
 {-| -}
-cursor : String -> StyleAttribute class variation animation msg
+cursor : String -> Property class variation animation
 cursor name =
-    Element.Style <| Internal.Exact "cursor" name
+    Internal.Exact "cursor" name
 
 
 {-| -}
-border : List Border -> StyleAttribute class variation animation msg
+border : List Border -> Property class variation animation
 border elems =
-    Element.Style <| Internal.Border (Internal.BorderElement "border-style" "solid" :: elems)
+    Internal.Border (Internal.BorderElement "border-style" "solid" :: elems)
 
 
 {-| -}
-background : List Background -> StyleAttribute class variation animation msg
+background : List Background -> Property class variation animation
 background bgs =
-    Element.Style <| Internal.Background bgs
+    Internal.Background bgs
 
 
 {-| -}
-font : List Font -> StyleAttribute class variation animation msg
+font : List Font -> Property class variation animation
 font f =
-    Element.Style <| Internal.Font f
+    Internal.Font f
 
 
 {-| -}
-palette : List ColorElement -> StyleAttribute class variation animation msg
+palette : List ColorElement -> Property class variation animation
 palette colors =
-    Element.Style <| Internal.Palette colors
+    Internal.Palette colors
 
 
 {-| You can give a hint about what the padding should be for this element, but the layout can override it.
 
 -}
-paddingHint : ( Float, Float, Float, Float ) -> StyleAttribute class variation animation msg
+paddingHint : ( Float, Float, Float, Float ) -> Property class variation animation
 paddingHint pad =
-    Element.Style <| Internal.Box <| [ Internal.BoxProp "padding" (Value.box pad) ]
+    Internal.Box <| [ Internal.BoxProp "padding" (Value.box pad) ]
 
 
 
@@ -213,15 +219,15 @@ type alias Shadow =
 
 
 {-| -}
-shadows : List Shadow -> StyleAttribute class variation animation msg
+shadows : List Shadow -> Property class variation animation
 shadows shades =
-    Element.Style <| Internal.Shadows shades
+    Internal.Shadows shades
 
 
 {-| -}
-transforms : List Transform -> StyleAttribute class variation animation msg
+transforms : List Transform -> Property class variation animation
 transforms ts =
-    Element.Style <| Internal.Transform ts
+    Internal.Transform ts
 
 
 {-| -}
@@ -230,9 +236,9 @@ type alias Filter =
 
 
 {-| -}
-filters : List Filter -> StyleAttribute class variation animation msg
+filters : List Filter -> Property class variation animation
 filters fs =
-    Element.Style <| Internal.Filters fs
+    Internal.Filters fs
 
 
 
@@ -375,10 +381,26 @@ bottomLeft x =
 
 
 -- {-| -}
--- after : String -> List (Property class variation animation) -> StyleAttribute class variation animation msg
+-- after : String -> List (Property class variation animation) -> Property class variation animation
 -- after content props =
---     Element.Style <| Internal.PseudoElement ":after" (prop "content" ("'" ++ content ++ "'") :: props)
+--      Internal.PseudoElement ":after" (prop "content" ("'" ++ content ++ "'") :: props)
 -- {-| -}
--- before : String -> List (Property class variation animation) -> StyleAttribute class variation animation msg
+-- before : String -> List (Property class variation animation) -> Property class variation animation
 -- before content props =
---     Element.Style <| Internal.PseudoElement ":before" (prop "content" ("'" ++ content ++ "'") :: props)
+--      Internal.PseudoElement ":before" (prop "content" ("'" ++ content ++ "'") :: props)
+-- {-| -}
+-- hover : List (Attribute variation msg) -> Attribute variation msg
+-- hover props =
+--     Pseudo ":hover" props
+-- {-| -}
+-- focus : List (Attribute variation msg) -> Attribute variation msg
+-- focus props =
+--     Pseudo ":focus" props
+-- {-| -}
+-- checked : List (Attribute variation msg) -> Attribute variation msg
+-- checked props =
+--     Pseudo ":checked" props
+-- {-| -}
+-- pseudo : String -> List (Attribute variation msg) -> Attribute variation msg
+-- pseudo psu props =
+--     Pseudo (":" ++ psu) props

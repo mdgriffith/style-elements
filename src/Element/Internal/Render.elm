@@ -10,6 +10,7 @@ import Element.Style.Internal.Cache as StyleCache
 import Element.Style.Internal.Render as Render
 import Element.Style.Internal.Selector as Selector
 import Element.Style.Internal.Render.Property
+import Element.Style.Sheet
 import Element.Internal.Model exposing (..)
 
 
@@ -19,10 +20,10 @@ import Element.Internal.Model exposing (..)
 
 
 render : ElementSheet elem variation animation msg -> Element elem variation msg -> Html msg
-render (ElementSheet defaults findNode) elm =
+render (ElementSheet { defaults, stylesheet }) elm =
     let
         ( html, stylecache ) =
-            renderElement [] findNode elm
+            renderElement Nothing elm
 
         withDefaults =
             stylecache
@@ -45,13 +46,19 @@ render (ElementSheet defaults findNode) elm =
                     )
     in
         Html.div [ Html.Attributes.class "default-typeface" ]
-            [ StyleCache.render withDefaults renderStyle findNode
+            [ Element.Style.Sheet.embed stylesheet
             , html
             ]
 
 
-renderElement : List (Attribute variation msg) -> (elem -> Styled elem variation animation msg) -> Element elem variation msg -> ( Html msg, StyleCache.Cache elem )
-renderElement inherited findNode elm =
+type alias Context variation msg =
+    { inherited : List (Attribute variation msg)
+    , layout : Internal.LayoutModel
+    }
+
+
+renderElement : Maybe (Context variation msg) -> Element elem variation msg -> ( Html msg, StyleCache.Cache elem )
+renderElement context elm =
     case elm of
         Empty ->
             ( Html.text "", StyleCache.empty )
@@ -90,7 +97,7 @@ renderElement inherited findNode elm =
                         Nothing ->
                             let
                                 ( chil, sty ) =
-                                    renderElement [] findNode child
+                                    renderElement Nothing child
                             in
                                 ( [ chil ]
                                 , sty
@@ -102,21 +109,26 @@ renderElement inherited findNode elm =
                 renderAndCombine child ( html, styles ) =
                     let
                         ( childHtml, childStyle ) =
-                            renderElement [] findNode child
+                            renderElement Nothing child
                     in
                         ( childHtml :: html, StyleCache.combine childStyle styles )
 
                 attributes =
-                    inherited ++ position
+                    case context of
+                        Nothing ->
+                            position
+
+                        Just ctxt ->
+                            ctxt.inherited ++ position
             in
                 case element of
                     Nothing ->
-                        ( renderNode Nothing (renderInline attributes) Nothing childHtml
+                        ( renderNode Nothing (renderInline context attributes) childHtml
                         , styleset
                         )
 
                     Just el ->
-                        ( renderNode element (renderInline attributes) (Just <| findNode el) childHtml
+                        ( renderNode element (renderInline context attributes) childHtml
                         , styleset
                             |> StyleCache.insert el
                         )
@@ -140,36 +152,36 @@ renderElement inherited findNode elm =
                 renderAndCombine child ( html, styles ) =
                     let
                         ( childHtml, childStyle ) =
-                            renderElement spacing findNode child
+                            renderElement (Just { inherited = spacing, layout = layout }) child
                     in
                         ( childHtml :: html, StyleCache.combine childStyle styles )
 
+                intermediate =
+                    renderInline context attributes
+
                 parentStyle =
-                    Element.Style.Internal.Render.Property.layout layout ++ renderInline attributes
+                    { intermediate
+                        | inline = intermediate.inline ++ Element.Style.Internal.Render.Property.layout layout
+                    }
             in
                 case maybeElement of
                     Nothing ->
-                        ( renderNode Nothing parentStyle Nothing childHtml
+                        ( renderNode Nothing parentStyle childHtml
                         , styleset
                         )
 
                     Just element ->
-                        ( renderNode (Just element) parentStyle (Just <| findNode element) childHtml
+                        ( renderNode (Just element) parentStyle childHtml
                         , styleset
                             |> StyleCache.insert element
                         )
 
 
-renderNode : Maybe elem -> List ( String, String ) -> Maybe (Styled elem variation animation msg) -> List (Html msg) -> Html msg
-renderNode maybeElem inlineStyle maybeNode children =
+renderNode : Maybe elem -> IntermediateProps variation msg -> List (Html msg) -> Html msg
+renderNode maybeElem intermediate children =
     let
-        ( node, attrs ) =
-            case maybeNode of
-                Nothing ->
-                    ( Html.div, [] )
-
-                Just (El node attrs) ->
-                    ( node, attrs )
+        node =
+            Html.div
 
         normalAttrs attr =
             case attr of
@@ -179,114 +191,176 @@ renderNode maybeElem inlineStyle maybeNode children =
                 _ ->
                     Nothing
 
-        attributes =
-            List.filterMap normalAttrs attrs
+        variationClasses =
+            if List.length intermediate.variations > 0 then
+                List.map Selector.formatName intermediate.variations
+                    |> String.join " "
+            else
+                ""
 
         renderedAttrs =
             case maybeElem of
                 Nothing ->
-                    (Html.Attributes.style inlineStyle :: attributes)
+                    (Html.Attributes.style intermediate.inline
+                        :: intermediate.attrs
+                    )
 
                 Just elem ->
-                    (Html.Attributes.style inlineStyle :: Html.Attributes.class (Selector.formatName elem) :: attributes)
+                    (Html.Attributes.style intermediate.inline
+                        :: Html.Attributes.class (Selector.formatName elem ++ variationClasses)
+                        :: intermediate.attrs
+                    )
     in
         node renderedAttrs children
 
 
 renderStyle : elem -> Styled elem variation animation msg -> Internal.Style elem variation animation
 renderStyle elem (El node attrs) =
+    -- let
+    --     -- styleProps attr =
+    --     --     case attr of
+    --     --         Style a ->
+    --     --             Just a
+    --     --         _ ->
+    --     --             Nothing
+    -- in
+    Internal.Style elem attrs
+
+
+type alias IntermediateProps variation msg =
+    { inline : List ( String, String )
+    , variations : List variation
+    , attrs : List (Html.Attribute msg)
+    }
+
+
+renderInline : Maybe (Context variation msg) -> List (Attribute variation msg) -> IntermediateProps variation msg
+renderInline maybeContext attrs =
     let
-        styleProps attr =
-            case attr of
-                Style a ->
-                    Just a
+        gather adj found =
+            case adj of
+                Vary vary on ->
+                    if on then
+                        { found | variations = vary :: found.variations }
+                    else
+                        found
 
-                _ ->
-                    Nothing
-    in
-        Internal.Style elem (List.filterMap styleProps attrs)
+                Height len ->
+                    { found | inline = ( "height", Value.length len ) :: found.inline }
 
+                Width len ->
+                    { found | inline = ( "width", Value.length len ) :: found.inline }
 
-type WithSpacing
-    = InlineSpacing
-    | NoInlineSpacing
+                Position x y ->
+                    { found
+                        | inline =
+                            ( "transform"
+                            , ("translate(" ++ toString x ++ "px, " ++ toString y ++ "px)")
+                            )
+                                :: found.inline
+                    }
 
+                PositionFrame Screen ->
+                    { found | inline = ( "position", "fixed" ) :: found.inline }
 
-renderInline : List (Attribute variation msg) -> List ( String, String )
-renderInline adjustments =
-    let
+                PositionFrame Above ->
+                    { found
+                        | inline =
+                            [ "position" => "absolute"
+                            , "bottom" => "100%"
+                            ]
+                                ++ found.inline
+                    }
+
+                PositionFrame Below ->
+                    { found
+                        | inline =
+                            [ "position" => "absolute"
+                            , "top" => "100%"
+                            ]
+                                ++ found.inline
+                    }
+
+                PositionFrame OnLeft ->
+                    { found
+                        | inline =
+                            [ "position" => "absolute"
+                            , "right" => "100%"
+                            ]
+                                ++ found.inline
+                    }
+
+                PositionFrame OnRight ->
+                    { found
+                        | inline =
+                            [ "position" => "absolute"
+                            , "left" => "100%"
+                            ]
+                                ++ found.inline
+                    }
+
+                Anchor Top ->
+                    { found | inline = ( "top", "0" ) :: found.inline }
+
+                Anchor Bottom ->
+                    { found | inline = ( "bottom", "0" ) :: found.inline }
+
+                Anchor Left ->
+                    case maybeContext of
+                        Just { layout } ->
+                            case layout of
+                                Internal.TextLayout ->
+                                    { found | inline = ( "float", "left" ) :: found.inline }
+
+                                _ ->
+                                    { found | inline = ( "left", "0" ) :: found.inline }
+
+                        _ ->
+                            { found | inline = ( "left", "0" ) :: found.inline }
+
+                Anchor Right ->
+                    case maybeContext of
+                        Just { layout } ->
+                            case layout of
+                                Internal.TextLayout ->
+                                    { found | inline = ( "float", "right" ) :: found.inline }
+
+                                _ ->
+                                    { found | inline = ( "right", "0" ) :: found.inline }
+
+                        _ ->
+                            { found | inline = ( "right", "0" ) :: found.inline }
+
+                Spacing box ->
+                    { found | inline = ( "margin", Value.box box ) :: found.inline }
+
+                Padding box ->
+                    { found | inline = ( "padding", Value.box box ) :: found.inline }
+
+                Hidden ->
+                    { found | inline = ( "display", "none" ) :: found.inline }
+
+                Transparency t ->
+                    { found | inline = ( "opacity", (toString <| 1 - t) ) :: found.inline }
+
+                Event ev ->
+                    { found | attrs = ev :: found.attrs }
+
+                Attr attr ->
+                    { found | attrs = attr :: found.attrs }
+
         defaults =
             [ "position" => "relative"
             , "box-sizing" => "border-box"
             ]
 
-        renderAdjustment adj =
-            case adj of
-                Variations variations ->
-                    []
+        empty =
+            { inline = []
+            , variations = []
+            , attrs = []
+            }
 
-                Height len ->
-                    [ "height" => Value.length len ]
-
-                Width len ->
-                    [ "width" => Value.length len ]
-
-                Position x y ->
-                    [ "transform" => ("translate(" ++ toString x ++ "px, " ++ toString y ++ "px)")
-                    ]
-
-                PositionFrame Screen ->
-                    [ "position" => "fixed"
-                    ]
-
-                PositionFrame Above ->
-                    [ "position" => "absolute"
-                    , "bottom" => "100%"
-                    ]
-
-                PositionFrame Below ->
-                    [ "position" => "absolute"
-                    , "top" => "100%"
-                    ]
-
-                PositionFrame OnLeft ->
-                    [ "position" => "absolute"
-                    , "right" => "100%"
-                    ]
-
-                PositionFrame OnRight ->
-                    [ "position" => "absolute"
-                    , "left" => "100%"
-                    ]
-
-                Anchor Left ->
-                    [ "left" => "0" ]
-
-                Anchor Top ->
-                    [ "top" => "0" ]
-
-                Anchor Bottom ->
-                    [ "bottom" => "0" ]
-
-                Anchor Right ->
-                    [ "right" => "0" ]
-
-                Spacing box ->
-                    [ "margin" => Value.box box ]
-
-                Padding box ->
-                    [ "padding" => Value.box box ]
-
-                Hidden ->
-                    [ "display" => "none" ]
-
-                Transparency t ->
-                    [ "opacity" => (toString <| 1 - t) ]
-
-                Event ev ->
-                    []
-
-                Pseudo str props ->
-                    []
+        withProps =
+            List.foldr gather empty attrs
     in
-        defaults ++ List.concatMap renderAdjustment adjustments
+        { withProps | inline = defaults ++ withProps.inline }

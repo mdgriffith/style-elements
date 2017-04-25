@@ -190,10 +190,8 @@ view device model =
                     nevermind
             , when model.signingUp (overlay BackDrop signupMenu)
             , row Nav
-                [ variations
-                    [ Small => window.phone
-                    , Large => window.desktop
-                    ]
+                [ vary Small window.phone
+                , vary Large winow.desktop
                 ]
                 []
             ]

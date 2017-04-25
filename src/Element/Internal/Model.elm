@@ -8,7 +8,10 @@ import Color exposing (Color)
 
 
 type ElementSheet elem variation animation msg
-    = ElementSheet Defaults (elem -> Styled elem variation animation msg)
+    = ElementSheet
+        { defaults : Defaults
+        , stylesheet : Internal.StyleSheet elem variation animation msg
+        }
 
 
 type alias Defaults =
@@ -28,7 +31,7 @@ type Element elem variation msg
 
 
 type Attribute variation msg
-    = Variations (List ( Bool, variation ))
+    = Vary variation Bool
     | Height Internal.Length
     | Width Internal.Length
     | Anchor AnchorPoint
@@ -39,7 +42,7 @@ type Attribute variation msg
     | Spacing ( Float, Float, Float, Float )
     | Padding ( Float, Float, Float, Float )
     | Event (Html.Attribute msg)
-    | Pseudo String (List (Attribute variation msg))
+    | Attr (Html.Attribute msg)
 
 
 type Decoration
@@ -58,6 +61,13 @@ type Frame
     | OnRight
 
 
+
+-- | TopRight
+-- | TopLeft
+-- | BottomRight
+-- | BottomLeft
+
+
 type Nearby element
     = Nearby element
 
@@ -74,9 +84,4 @@ type alias HtmlFn msg =
 
 
 type Styled elem variation animation msg
-    = El (HtmlFn msg) (List (StyleAttribute elem variation animation msg))
-
-
-type StyleAttribute elem variation animation msg
-    = Attr (Html.Attribute msg)
-    | Style (Internal.Property elem variation animation)
+    = El (HtmlFn msg) (List (Internal.Property elem variation animation))

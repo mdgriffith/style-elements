@@ -3,11 +3,13 @@ module Element exposing (..)
 {-| -}
 
 import Html exposing (Html)
-import Element.Style.Internal.Model as Internal exposing (Length)
 import Element.Internal.Model exposing (..)
+import Element.Style.Internal.Model as Style exposing (Length)
+import Element.Style
 import Time exposing (Time)
 import Element.Device as Device exposing (Device)
 import Element.Internal.Render as Render
+import Element.Style.Sheet
 import Task
 import Window
 import Color exposing (Color)
@@ -23,14 +25,24 @@ defaults =
     }
 
 
-elements : (elem -> Styled elem variation animation msg) -> ElementSheet elem variation animation msg
-elements lookup =
-    ElementSheet defaults lookup
+
+-- elements : (elem -> Styled elem variation animation msg) -> ElementSheet elem variation animation msg
+-- elements lookup =
+--     ElementSheet defaults lookup
 
 
-elementsWith : Defaults -> (elem -> Styled elem variation animation msg) -> ElementSheet elem variation animation msg
-elementsWith =
+elements : List (Element.Style.Style elem variation animation) -> ElementSheet elem variation animation msg
+elements stylesheet =
     ElementSheet
+        { defaults = defaults
+        , stylesheet = Element.Style.Sheet.render stylesheet
+        }
+
+
+
+-- elementsWith : Defaults -> (elem -> Styled elem variation animation msg) -> ElementSheet elem variation animation msg
+-- elementsWith =
+--     ElementSheet
 
 
 {-| In Hierarchy
@@ -71,6 +83,28 @@ el elem attrs child =
     Element (Just elem) attrs child Nothing
 
 
+
+-- header
+-- {-| Sets all children as inline -}
+-- paragraph : List Element -> Element
+-- {-| Provides spcing as a multiple of the parent spacing -}
+-- spacer : Float -> Element
+-- sub
+-- sup
+-- section
+-- nav
+-- article
+-- aside
+-- image
+-- canvas
+-- iframe
+-- nav
+-- audio : [Sources]
+-- video : [sources]
+-- enumerate : Style [] children (Defaults to column layout)
+-- list : Style [] children (Defaults to column layout)
+
+
 full : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
 full elem attrs child =
     Element (Just elem) (Spacing ( 0, 0, 0, 0 ) :: width (percent 100) :: height (percent 100) :: attrs) child Nothing
@@ -78,17 +112,17 @@ full elem attrs child =
 
 textLayout : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 textLayout elem attrs children =
-    Layout (Internal.TextLayout) (Just elem) attrs children
+    Layout (Style.TextLayout) (Just elem) attrs children
 
 
 row : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 row elem attrs children =
-    Layout (Internal.FlexLayout Internal.GoRight []) (Just elem) attrs children
+    Layout (Style.FlexLayout Style.GoRight []) (Just elem) attrs children
 
 
 column : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 column elem attrs children =
-    Layout (Internal.FlexLayout Internal.Down []) (Just elem) attrs children
+    Layout (Style.FlexLayout Style.Down []) (Just elem) attrs children
 
 
 
@@ -251,7 +285,7 @@ height =
 {-| -}
 px : Float -> Length
 px =
-    Internal.Px
+    Style.Px
 
 
 {-| Adjust the position of the element.
@@ -267,13 +301,13 @@ move =
 {-| -}
 percent : Float -> Length
 percent =
-    Internal.Percent
+    Style.Percent
 
 
 {-| -}
-vary : List ( Bool, variation ) -> Attribute variation msg
+vary : variation -> Bool -> Attribute variation msg
 vary =
-    Variations
+    Vary
 
 
 {-| -}
@@ -307,43 +341,20 @@ opacity o =
     Transparency (1 - o)
 
 
-{-| -}
-hover : List (Attribute variation msg) -> Attribute variation msg
-hover props =
-    Pseudo ":hover" props
-
-
-{-| -}
-focus : List (Attribute variation msg) -> Attribute variation msg
-focus props =
-    Pseudo ":focus" props
-
-
-{-| -}
-checked : List (Attribute variation msg) -> Attribute variation msg
-checked props =
-    Pseudo ":checked" props
-
-
-{-| -}
-pseudo : String -> List (Attribute variation msg) -> Attribute variation msg
-pseudo psu props =
-    Pseudo (":" ++ psu) props
-
-
 
 --
 -- In your attribute sheet
 
 
-element : List (StyleAttribute elem variation animation msg) -> Styled elem variation animation msg
+element : List (Style.Property elem variation animation) -> Styled elem variation animation msg
 element =
     El Html.div
 
 
-elementAs : HtmlFn msg -> List (StyleAttribute elem variation animation msg) -> Styled elem variation animation msg
-elementAs =
-    El
+
+-- elementAs : HtmlFn msg -> List (StyleAttribute elem variation animation msg) -> Styled elem variation animation msg
+-- elementAs =
+--     El
 
 
 programWithFlags :
