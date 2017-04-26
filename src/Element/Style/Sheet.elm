@@ -1,19 +1,18 @@
-module Element.Style.Sheet exposing (embed, render, renderWith, guard, critical, merge, map, mix)
+module Element.Style.Sheet exposing (render, renderWith, guard, critical, merge, map, mix)
 
 {-|
 
-@docs embed, render, renderWith, guard, critical, merge, map, mix
+@docs render, renderWith, guard, critical, merge, map, mix
 
 -}
 
-import Element.Style.Internal.Model as Internal
+import Element.Style.Internal.Model as Internal exposing (StyleSheet)
 import Element.Style.Internal.Render as Render
 import Element.Style.Internal.Find as Find
 import Element.Style.Internal.Batchable as Batchable
 import Element.Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
-import Element.Style exposing (Style, StyleSheet)
+import Element.Style exposing (Style)
 import Html.Attributes
-import Html exposing (Html)
 
 
 type Option class
@@ -88,12 +87,6 @@ prepareSheet (Rendered { css, findable }) =
         , css =
             css
         }
-
-
-{-| -}
-embed : StyleSheet class variation animation msg -> Html msg
-embed stylesheet =
-    Html.node "style" [] [ Html.text stylesheet.css ]
 
 
 {-| -}

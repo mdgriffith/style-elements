@@ -16,6 +16,12 @@ import Window
 import Color exposing (Color)
 
 
+{-| The stylesheet contains the rendered css as a string, and two functions to lookup
+-}
+type alias StyleSheet class variation animation msg =
+    Style.StyleSheet class variation animation msg
+
+
 defaults : Defaults
 defaults =
     { typeface = [ "georgia" ]
@@ -26,20 +32,14 @@ defaults =
     }
 
 
-elements : List (Element.Style.Style elem variation animation) -> ElementSheet elem variation animation msg
-elements stylesheet =
-    ElementSheet
-        { defaults = defaults
-        , stylesheet = Element.Style.Sheet.render stylesheet
-        }
+stylesheet : List (Element.Style.Style elem variation animation) -> StyleSheet elem variation animation msg
+stylesheet styles =
+    Element.Style.Sheet.render styles
 
 
-elementsWith : Defaults -> List (Element.Style.Style elem variation animation) -> ElementSheet elem variation animation msg
-elementsWith defaults stylesheet =
-    ElementSheet
-        { defaults = defaults
-        , stylesheet = Element.Style.Sheet.render stylesheet
-        }
+stylesheetWith : Defaults -> List (Element.Style.Style elem variation animation) -> StyleSheet elem variation animation msg
+stylesheetWith defaults styles =
+    Element.Style.Sheet.render styles
 
 
 {-|
@@ -110,10 +110,13 @@ spacer =
     Spacer
 
 
+image : elem -> String -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
+image elem src attrs child =
+    Element Html.img (Just elem) (Attr (Html.Attributes.src src) :: attrs) child Nothing
+
+
 
 -- header
--- {-| Sets all children as inline -}
--- paragraph : List Element -> Element
 -- {-| Provides spcing as a multiple of the parent spacing -}
 -- section
 -- nav
@@ -449,7 +452,7 @@ opacity o =
 
 programWithFlags :
     { init : flags -> ( model, Cmd msg )
-    , elements : ElementSheet elem variation animation msg
+    , stylesheet : StyleSheet elem variation animation msg
     , device : { width : Int, height : Int } -> device
     , update : msg -> model -> ( model, Cmd msg )
     , subscriptions : model -> Sub msg
@@ -458,7 +461,7 @@ programWithFlags :
     -> Program flags (ElemModel device elem variation animation model msg) (ElementMsg device msg)
 programWithFlags prog =
     Html.programWithFlags
-        { init = (\flags -> init prog.elements prog.device (prog.init flags))
+        { init = (\flags -> init prog.stylesheet prog.device (prog.init flags))
         , update = update prog.update
         , view = (\model -> Html.map Send <| deviceView prog.view model)
         , subscriptions =
@@ -472,7 +475,7 @@ programWithFlags prog =
 
 
 program :
-    { elements : ElementSheet elem variation animation msg
+    { stylesheet : StyleSheet elem variation animation msg
     , init : ( model, Cmd msg )
     , update : msg -> model -> ( model, Cmd msg )
     , subscriptions : model -> Sub msg
@@ -482,7 +485,7 @@ program :
     -> Program Never (ElemModel device elem variation animation model msg) (ElementMsg device msg)
 program prog =
     Html.program
-        { init = init prog.elements prog.device prog.init
+        { init = init prog.stylesheet prog.device prog.init
         , update = update prog.update
         , view = (\model -> Html.map Send <| deviceView prog.view model)
         , subscriptions =
@@ -496,7 +499,7 @@ program prog =
 
 
 beginnerProgram :
-    { elements : ElementSheet elem variation animation msg
+    { stylesheet : StyleSheet elem variation animation msg
     , model : model
     , view : model -> Element elem variation msg
     , update : msg -> model -> model
@@ -504,7 +507,7 @@ beginnerProgram :
     -> Program Never (ElemModel Device elem variation animation model msg) (ElementMsg Device msg)
 beginnerProgram prog =
     Html.program
-        { init = init prog.elements Device.match <| withCmdNone prog.model
+        { init = init prog.stylesheet Device.match <| withCmdNone prog.model
         , update = update (\msg model -> withCmdNone <| prog.update msg model)
         , view = (\model -> Html.map Send <| view prog.view model)
         , subscriptions =
@@ -521,7 +524,7 @@ withCmdNone model =
     ( model, Cmd.none )
 
 
-init : ElementSheet elem variation animation msg -> ({ width : Int, height : Int } -> device) -> ( model, Cmd msg ) -> ( ElemModel device elem variation animation model msg, Cmd (ElementMsg device msg) )
+init : StyleSheet elem variation animation msg -> ({ width : Int, height : Int } -> device) -> ( model, Cmd msg ) -> ( ElemModel device elem variation animation model msg, Cmd (ElementMsg device msg) )
 init elem match ( model, cmd ) =
     ( emptyModel elem match model
     , Cmd.batch
@@ -532,16 +535,16 @@ init elem match ( model, cmd ) =
 
 
 emptyModel :
-    ElementSheet elem variation animation msg
+    StyleSheet elem variation animation msg
     -> (Window.Size -> device)
     -> model
     -> ElemModel device elem variation animation model msg
-emptyModel elem match model =
+emptyModel stylesheet match model =
     ElemModel
         { time = 0
         , device =
             match { width = 1000, height = 1200 }
-        , elements = elem
+        , stylesheet = stylesheet
         , model = model
         }
 
@@ -556,7 +559,7 @@ type ElemModel device elem variation animation model msg
     = ElemModel
         { time : Time
         , device : device
-        , elements : ElementSheet elem variation animation msg
+        , stylesheet : StyleSheet elem variation animation msg
         , model : model
         }
 
@@ -579,10 +582,10 @@ update appUpdate elemMsg elemModel =
 
 
 deviceView : (device -> model -> Element elem variation msg) -> ElemModel device elem variation animation model msg -> Html msg
-deviceView appView (ElemModel { device, elements, model }) =
-    Render.render elements <| appView device model
+deviceView appView (ElemModel { device, stylesheet, model }) =
+    Render.render stylesheet <| appView device model
 
 
 view : (model -> Element elem variation msg) -> ElemModel Device elem variation animation model msg -> Html msg
-view appView (ElemModel { device, elements, model }) =
-    Render.render elements <| appView model
+view appView (ElemModel { device, stylesheet, model }) =
+    Render.render stylesheet <| appView model

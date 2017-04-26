@@ -12,7 +12,6 @@ module Element.Style
         , ColorElement
         , GradientDirection
         , GradientStep
-        , StyleSheet
         , Edges
         , Corners
         , style
@@ -78,12 +77,6 @@ module Element.Style
 import Element.Style.Internal.Model as Internal
 import Element.Style.Internal.Render.Value as Value
 import Element.Style.Internal.Batchable as Batchable exposing (Batchable)
-
-
-{-| The stylesheet contains the rendered css as a string, and two functions to lookup
--}
-type alias StyleSheet class variation animation msg =
-    Internal.StyleSheet class variation animation msg
 
 
 {-| -}

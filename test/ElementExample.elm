@@ -14,7 +14,7 @@ import Color
 
 main =
     Element.program
-        { elements = Element.elements elements
+        { stylesheet = Element.stylesheet stylesheet
         , device = Element.Device.match
         , view = view
         , init = ( 5, Cmd.none )
@@ -80,7 +80,7 @@ type Variations
     = Success
 
 
-elements =
+stylesheet =
     [ style UnStyled []
     , style Test
         [ background

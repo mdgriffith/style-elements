@@ -6,11 +6,8 @@ import Html exposing (Html)
 import Html.Attributes
 import Element.Style.Internal.Model as Internal exposing (Length)
 import Element.Style.Internal.Render.Value as Value
-import Element.Style.Internal.Cache as StyleCache
 import Element.Style.Internal.Render as Render
-import Element.Style.Internal.Selector as Selector
 import Element.Style.Internal.Render.Property as Property
-import Element.Style.Sheet
 import Element.Internal.Model exposing (..)
 
 
@@ -19,25 +16,24 @@ import Element.Internal.Model exposing (..)
     (,)
 
 
-render : ElementSheet elem variation animation msg -> Element elem variation msg -> Html msg
-render (ElementSheet { defaults, stylesheet }) elm =
+render : Internal.StyleSheet elem variation animation msg -> Element elem variation msg -> Html msg
+render stylesheet elm =
     let
         html =
             renderElement Nothing stylesheet elm
 
-        defaultTypeface =
-            (Render.class "default-typeface"
-                [ "font-family"
-                    => (defaults.typeface
-                            |> List.map (\fam -> "\"" ++ fam ++ "\"")
-                            |> String.join ", "
-                       )
-                , "color" => Value.color defaults.textColor
-                , "line-height" => toString defaults.lineHeight
-                , "font-size" => (toString defaults.fontSize ++ "px")
-                ]
-            )
-
+        -- defaultTypeface =
+        --     (Render.class "default-typeface"
+        --         [ "font-family"
+        --             => (defaults.typeface
+        --                     |> List.map (\fam -> "\"" ++ fam ++ "\"")
+        --                     |> String.join ", "
+        --                )
+        --         , "color" => Value.color defaults.textColor
+        --         , "line-height" => toString defaults.lineHeight
+        --         , "font-size" => (toString defaults.fontSize ++ "px")
+        --         ]
+        --     )
         -- withDefaults =
         --     stylecache
         --         |> StyleCache.embed "default-typeface"
@@ -59,7 +55,7 @@ render (ElementSheet { defaults, stylesheet }) elm =
         --             )
     in
         Html.div [ Html.Attributes.class "default-typeface" ]
-            [ Element.Style.Sheet.embed stylesheet
+            [ Html.node "style" [] [ Html.text stylesheet.css ]
             , html
             ]
 
