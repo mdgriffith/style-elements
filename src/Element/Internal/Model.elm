@@ -83,7 +83,7 @@ type Nearby element
 
 
 type Anchored element
-    = Anchored element
+    = Anchored Anchor element
 
 
 type Alignment

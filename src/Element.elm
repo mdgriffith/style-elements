@@ -234,49 +234,43 @@ onLeft el =
 
 within : List (Anchored (Element elem variation msg)) -> Element elem variation msg -> Element elem variation msg
 within insideEls parent =
-    List.foldl (\(Anchored el) p -> addChild p el) parent insideEls
+    let
+        applyAnchor (Anchored anchor el) parent =
+            el
+                |> addProp (PositionFrame (Within anchor))
+                |> addChild parent
+    in
+        List.foldl applyAnchor parent insideEls
 
 
 topLeft : Element elem variation msg -> Anchored (Element elem variation msg)
 topLeft el =
-    el
-        |> addProp (PositionFrame (Within TopLeft))
-        |> removeProps [ Align Top, Align Bottom ]
-        |> Anchored
+    Anchored TopLeft el
 
 
 topRight : Element elem variation msg -> Anchored (Element elem variation msg)
 topRight el =
-    el
-        |> addProp (PositionFrame (Within TopRight))
-        |> removeProps [ Align Top, Align Bottom ]
-        |> Anchored
+    Anchored TopRight el
 
 
 bottomRight : Element elem variation msg -> Anchored (Element elem variation msg)
 bottomRight el =
-    el
-        |> addProp (PositionFrame (Within BottomRight))
-        |> removeProps [ Align Top, Align Bottom ]
-        |> Anchored
+    Anchored BottomRight el
 
 
 bottomLeft : Element elem variation msg -> Anchored (Element elem variation msg)
 bottomLeft el =
-    el
-        |> addProp (PositionFrame (Within BottomLeft))
-        |> removeProps [ Align Top, Align Bottom ]
-        |> Anchored
+    Anchored BottomLeft el
 
 
-screen : Element elem variation msg -> Element elem variation msg
-screen el =
-    addProp (PositionFrame (Screen TopLeft)) el
+screen : Anchored (Element elem variation msg) -> Element elem variation msg
+screen (Anchored anchor el) =
+    addProp (PositionFrame (Screen anchor)) el
 
 
 overlay : elem -> Int -> Element elem variation msg -> Element elem variation msg
 overlay bg opac child =
-    screen <| el bg [ width (percent 100), height (percent 100), opacity opac ] child
+    (screen << topLeft) <| el bg [ width (percent 100), height (percent 100), opacity opac ] child
 
 
 alignTop : Attribute variation msg
