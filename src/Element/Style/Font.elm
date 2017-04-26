@@ -1,6 +1,8 @@
 module Element.Style.Font
     exposing
-        ( typeface
+        ( FontScale(..)
+        , scale
+        , typeface
         , size
         , color
         , height
@@ -31,6 +33,8 @@ module Element.Style.Font
 
 @docs typeface, size, color, height, letterSpacing, wordSpacing, left, right, center, justify, justifyAll
 
+@docs FontScale, scale
+
 @docs wrap, pre, preWrap, preLine, noWrap
 
 @docs uppercase, capitalize, lowercase, underline, strike, italicize, bold, weight, light
@@ -45,6 +49,8 @@ import Color exposing (Color)
 import String
 
 
+{-|
+-}
 type FontScale
     = Mini
     | Tiny
@@ -55,7 +61,19 @@ type FontScale
     | Huge
 
 
-{-|
+{-| When dealing with font sizes, it's nice to make them all relate to each other using a ratio.
+
+This function will set font-size and line-height if you give it your normal font size, the ratio to use, and the `FontSize`.
+
+`scale 16 1.618 Normal` results in a font-size of 16px and a line height of 1.618.
+`scale 16 1.618 Large` results in a font-size of 26px(font sizes are always rounded) and a line height or 1.618
+
+It's also nice to use this In one place for your entire app.
+
+So, define  `fontsize = scale 16 1.618` somewhere and then in your stylesheet you can just call `fontsize Big` and everything works out.
+
+`1.618` is a [great place to start for a ratio](https://en.wikipedia.org/wiki/Golden_ratio)!
+
 -}
 scale : Float -> Float -> FontScale -> Font
 scale normal ratio fontScale =
@@ -96,7 +114,7 @@ scale normal ratio fontScale =
                     grow 3 normal
     in
         Batchable.Many
-            [ Internal.FontElement "font-size" (toString resized ++ "px")
+            [ Internal.FontElement "font-size" (toString (round resized) ++ "px")
             , Internal.FontElement "line-height" (toString ratio)
             ]
 
