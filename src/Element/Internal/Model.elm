@@ -47,6 +47,7 @@ type Attribute variation msg
     | Hidden
     | Transparency Int
     | Spacing Float Float
+    | Expand
     | Padding ( Float, Float, Float, Float )
     | Event (Html.Attribute msg)
     | Attr (Html.Attribute msg)

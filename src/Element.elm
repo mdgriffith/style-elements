@@ -163,7 +163,7 @@ enumerate elem attrs children =
 
 full : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
 full elem attrs child =
-    Element Html.div (Just elem) (Spacing 0 0 :: width (percent 100) :: height (percent 100) :: attrs) child Nothing
+    Element Html.div (Just elem) (Expand :: attrs) child Nothing
 
 
 textLayout : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg

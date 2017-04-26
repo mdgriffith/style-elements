@@ -6,7 +6,6 @@ import Html exposing (Html)
 import Html.Attributes
 import Element.Style.Internal.Model as Internal exposing (Length)
 import Element.Style.Internal.Render.Value as Value
-import Element.Style.Internal.Render as Render
 import Element.Style.Internal.Render.Property as Property
 import Element.Internal.Model exposing (..)
 
@@ -20,7 +19,7 @@ render : Internal.StyleSheet elem variation animation msg -> Element elem variat
 render stylesheet elm =
     let
         html =
-            renderElement Nothing stylesheet elm
+            renderElement Nothing stylesheet 0 elm
 
         -- defaultTypeface =
         --     (Render.class "default-typeface"
@@ -63,11 +62,12 @@ render stylesheet elm =
 type alias Context variation msg =
     { inherited : List (Attribute variation msg)
     , layout : Internal.LayoutModel
+    , parentPadding : ( Float, Float, Float, Float )
     }
 
 
-renderElement : Maybe (Context variation msg) -> Internal.StyleSheet elem variation animation msg -> Element elem variation msg -> Html msg
-renderElement context stylesheet elm =
+renderElement : Maybe (Context variation msg) -> Internal.StyleSheet elem variation animation msg -> Int -> Element elem variation msg -> Html msg
+renderElement context stylesheet i elm =
     case elm of
         Empty ->
             Html.text ""
@@ -130,12 +130,12 @@ renderElement context stylesheet elm =
                         Nothing ->
                             let
                                 chil =
-                                    renderElement Nothing stylesheet child
+                                    renderElement Nothing stylesheet 0 child
                             in
                                 [ chil ]
 
                         Just others ->
-                            List.map (renderElement Nothing stylesheet) (child :: others)
+                            List.indexedMap (renderElement Nothing stylesheet) (child :: others)
 
                 attributes =
                     case context of
@@ -146,17 +146,14 @@ renderElement context stylesheet elm =
                             ctxt.inherited ++ position
 
                 htmlAttrs =
-                    renderAttributes element context stylesheet attributes
+                    renderAttributes i element context stylesheet attributes
             in
                 node htmlAttrs childHtml
 
         Layout node layout element position children ->
             let
-                ( spacing, others ) =
+                ( spacing, attributes ) =
                     List.partition forSpacing position
-
-                attributes =
-                    List.map (reducePadding (List.head spacing)) others
 
                 clearfix attrs =
                     case layout of
@@ -174,37 +171,40 @@ renderElement context stylesheet elm =
                         _ ->
                             False
 
+                forPadding posAttr =
+                    case posAttr of
+                        Padding box ->
+                            Just box
+
+                        _ ->
+                            Nothing
+
+                padding =
+                    case List.head (List.filterMap forPadding attributes) of
+                        Nothing ->
+                            ( 0, 0, 0, 0 )
+
+                        Just pad ->
+                            pad
+
                 childHtml =
-                    List.map (renderElement (Just { inherited = spacing, layout = layout }) stylesheet) children
+                    List.indexedMap
+                        (renderElement
+                            (Just
+                                { inherited = spacing
+                                , layout = layout
+                                , parentPadding = padding
+                                }
+                            )
+                            stylesheet
+                        )
+                        children
 
                 htmlAttrs =
-                    renderAttributes element context stylesheet (LayoutAttr layout :: attributes)
+                    renderAttributes 0 element context stylesheet (LayoutAttr layout :: attributes)
                         |> clearfix
             in
                 node (htmlAttrs) childHtml
-
-
-reducePadding : Maybe (Attribute variation msg) -> Attribute variation1 msg -> Attribute variation1 msg
-reducePadding spaced attr =
-    case attr of
-        Padding ( top, right, bottom, left ) ->
-            case spaced of
-                Nothing ->
-                    attr
-
-                Just (Spacing x y) ->
-                    Padding
-                        ( top - (y / 2)
-                        , right - (x / 2)
-                        , bottom - (y / 2)
-                        , left - (x / 2)
-                        )
-
-                x ->
-                    attr
-
-        x ->
-            x
 
 
 renderAnchor : Anchor -> List ( String, String )
@@ -231,8 +231,8 @@ renderAnchor anchor =
             ]
 
 
-renderAttributes : Maybe elem -> Maybe (Context variation msg) -> Internal.StyleSheet elem variation animation msg -> List (Attribute variation msg) -> List (Html.Attribute msg)
-renderAttributes maybeElem maybeContext stylesheet attrs =
+renderAttributes : Int -> Maybe elem -> Maybe (Context variation msg) -> Internal.StyleSheet elem variation animation msg -> List (Attribute variation msg) -> List (Html.Attribute msg)
+renderAttributes order maybeElem maybeContext stylesheet attrs =
     let
         gather adj found =
             case adj of
@@ -241,6 +241,31 @@ renderAttributes maybeElem maybeContext stylesheet attrs =
 
                 Inline ->
                     { found | inline = ( "display", "inline-block" ) :: found.inline }
+
+                Expand ->
+                    case maybeContext of
+                        Nothing ->
+                            found
+
+                        Just { parentPadding } ->
+                            let
+                                ( top, right, bottom, left ) =
+                                    parentPadding
+
+                                props =
+                                    [ "width" => ("calc(100% + " ++ toString (right + left) ++ "px")
+                                    , "height" => ("calc(100% + " ++ toString (top + bottom) ++ "px")
+                                    , "margin" => "0"
+                                    , "margin-left" => (toString (-1 * left) ++ "px")
+                                    , if order == 0 then
+                                        "margin-top" => (toString (-1 * top) ++ "px")
+                                      else
+                                        "margin-top" => "0"
+                                    ]
+                            in
+                                { found
+                                    | inline = props ++ found.inline
+                                }
 
                 Vary vary on ->
                     if on then

@@ -27,10 +27,14 @@ main =
 
 
 view device model =
-    el UnStyled [] <|
-        row MyRow
+    column UnStyled
+        [ spacing 200 200
+        , padding (all 20)
+        ]
+        [ full Test [] (text "wut?")
+        , row MyRow
             [ spacing 25 25
-            , padding (all 25)
+            , padding (all 12.5)
             ]
             [ el Test
                 [ padding (all 20)
@@ -45,6 +49,8 @@ view device model =
                 ]
                 (text "Hello World!")
             ]
+        , full Test [] (text "wut?")
+        ]
 
 
 viewAround =
