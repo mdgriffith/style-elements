@@ -152,8 +152,11 @@ renderElement context stylesheet elm =
 
         Layout node layout element position children ->
             let
-                ( spacing, attributes ) =
+                ( spacing, others ) =
                     List.partition forSpacing position
+
+                attributes =
+                    List.map (reducePadding (List.head spacing)) others
 
                 forSpacing posAttr =
                     case posAttr of
@@ -169,7 +172,29 @@ renderElement context stylesheet elm =
                 htmlAttrs =
                     renderAttributes element context stylesheet (LayoutAttr layout :: attributes)
             in
-                node htmlAttrs childHtml
+                node (htmlAttrs) childHtml
+
+
+reducePadding spaced attr =
+    case attr of
+        Padding ( top, right, bottom, left ) ->
+            case spaced of
+                Nothing ->
+                    attr
+
+                Just (Spacing x y) ->
+                    Padding
+                        ( top - (y / 2)
+                        , right - (x / 2)
+                        , bottom - (y / 2)
+                        , left - (x / 2)
+                        )
+
+                x ->
+                    attr
+
+        x ->
+            x
 
 
 renderAnchor : Anchor -> List ( String, String )

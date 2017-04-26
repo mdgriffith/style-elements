@@ -27,39 +27,50 @@ main =
 
 
 view device model =
-    row UnStyled
-        [ spacing 50 25 ]
-        [ el Test
-            [ width (px 500)
-            , height (px 80)
-            , padding (all 20)
-            , vary Success True
+    el UnStyled [] <|
+        row MyRow
+            [ spacing 25 25
+            , padding (all 25)
             ]
-            (text "Hello World!")
-        , el Test
-            [ width (px 500)
-            , height (px 80)
-            ]
-            (text "Hello World!")
-            |> nearby
-                [ onRight <|
-                    el TestEmbed
-                        [ width (px 50)
-                        , height (px 50)
-                        , alignBottom
-                        , move 0 0
-                        , onClick Blink
-                        ]
-                        (text "I'm right!")
-                , below <|
-                    el TestEmbed
-                        [ width (px 50)
-                        , height (px 50)
-                        , move 0 0
-                        ]
-                        (text "I'm below!")
+            [ el Test
+                [ padding (all 20)
+                , width (percent 50)
+                , vary Success True
                 ]
+                (text "Hello World!")
+            , el Test
+                [ padding (all 20)
+                , width (percent 50)
+                , vary Success True
+                ]
+                (text "Hello World!")
+            ]
+
+
+viewAround =
+    el Test
+        [ width (px 500)
+        , height (px 80)
         ]
+        (text "Hello World!")
+        |> nearby
+            [ onRight <|
+                el TestEmbed
+                    [ width (px 50)
+                    , height (px 50)
+                    , alignBottom
+                    , move 0 0
+                    , onClick Blink
+                    ]
+                    (text "I'm right!")
+            , below <|
+                el TestEmbed
+                    [ width (px 50)
+                    , height (px 50)
+                    , move 0 0
+                    ]
+                    (text "I'm below!")
+            ]
 
 
 update msg model =
@@ -74,6 +85,7 @@ type Elements
     = Test
     | UnStyled
     | TestEmbed
+    | MyRow
 
 
 type Variations
@@ -82,6 +94,11 @@ type Variations
 
 stylesheet =
     [ style UnStyled []
+    , style MyRow
+        [ background
+            [ Background.color Color.purple
+            ]
+        ]
     , style Test
         [ background
             [ Background.color Color.blue
