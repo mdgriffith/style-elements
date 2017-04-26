@@ -80,6 +80,12 @@ renderElement context stylesheet elm =
                 Strike ->
                     Html.s [] [ Html.text str ]
 
+                Super ->
+                    Html.sup [] [ Html.text str ]
+
+                Sub ->
+                    Html.sub [] [ Html.text str ]
+
         Element node element position child otherChildren ->
             let
                 childHtml =

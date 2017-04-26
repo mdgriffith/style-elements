@@ -56,6 +56,8 @@ type Decoration
     | Italic
     | Underline
     | Strike
+    | Super
+    | Sub
 
 
 type Frame

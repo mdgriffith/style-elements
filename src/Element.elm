@@ -3,6 +3,7 @@ module Element exposing (..)
 {-| -}
 
 import Html exposing (Html)
+import Html.Attributes
 import Element.Internal.Model exposing (..)
 import Element.Style.Internal.Model as Style exposing (Length)
 import Element.Style
@@ -74,6 +75,16 @@ underline =
     Text Underline
 
 
+sub : String -> Element elem variation msg
+sub =
+    Text Sub
+
+
+super : String -> Element elem variation msg
+super =
+    Text Super
+
+
 el : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
 el elem attrs child =
     Element Html.div (Just elem) attrs child Nothing
@@ -119,6 +130,11 @@ row elem attrs children =
 column : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 column elem attrs children =
     Layout Html.div (Style.FlexLayout Style.Down []) (Just elem) attrs children
+
+
+linked : String -> Element elem variation msg -> Element elem variation msg
+linked src el =
+    Element Html.a Nothing [ Attr (Html.Attributes.href src), Attr (Html.Attributes.rel "noopener noreferrer") ] el Nothing
 
 
 
