@@ -115,14 +115,23 @@ image elem src attrs child =
     Element Html.img (Just elem) (Attr (Html.Attributes.src src) :: attrs) child Nothing
 
 
+{-| Creates a horizontal hairline.  The Color is set in the defaults of the stylesheet.
 
--- header
+If you want a horizontal rule that is something more specific, craft it with `el`!
+
+-}
+hairline : Element elem variation msg
+hairline =
+    Element Html.hr Nothing (width (percent 100) :: height (px 1) :: []) empty Nothing
+
+
+
+-- header :: List (Elm) -> List (Elm)
 -- {-| Provides spcing as a multiple of the parent spacing -}
 -- section
 -- nav
 -- article
 -- aside
--- image
 -- canvas
 -- iframe
 -- nav
