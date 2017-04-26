@@ -39,9 +39,73 @@ module Element.Style.Font
 
 import Element.Style.Internal.Model as Internal
 import Element.Style.Internal.Render.Value as Render
+import Element.Style.Internal.Batchable as Batchable
 import Element.Style exposing (Font)
 import Color exposing (Color)
 import String
+
+
+type FontScale
+    = Mini
+    | Tiny
+    | Small
+    | Normal
+    | Large
+    | Big
+    | Huge
+
+
+{-|
+-}
+scale : Float -> Float -> FontScale -> Font
+scale normal ratio fontScale =
+    let
+        grow i size =
+            if i <= 0 then
+                size
+            else
+                grow (i - 1) (size * ratio)
+
+        shrink i size =
+            if i <= 0 then
+                size
+            else
+                shrink (i - 1) (size / ratio)
+
+        resized =
+            case fontScale of
+                Mini ->
+                    shrink 3 normal
+
+                Tiny ->
+                    shrink 2 normal
+
+                Small ->
+                    shrink 1 normal
+
+                Normal ->
+                    normal
+
+                Large ->
+                    grow 1 normal
+
+                Big ->
+                    grow 2 normal
+
+                Huge ->
+                    grow 3 normal
+    in
+        Batchable.Many
+            [ Internal.FontElement "font-size" (toString resized ++ "px")
+            , Internal.FontElement "line-height" (toString ratio)
+            ]
+
+
+{-|
+-}
+mix : List Font -> Font
+mix =
+    Batchable.Many
 
 
 {-|
@@ -50,151 +114,151 @@ typeface : List String -> Font
 typeface families =
     families
         |> List.map (\fam -> "\"" ++ fam ++ "\"")
-        |> \fams -> Internal.FontElement "font-family" (String.join ", " fams)
+        |> \fams -> Batchable.Single <| Internal.FontElement "font-family" (String.join ", " fams)
 
 
 {-| Set font-size.  Only px allowed.
 -}
 size : Float -> Font
 size size =
-    Internal.FontElement "font-size" (toString size ++ "px")
+    Batchable.Single <| Internal.FontElement "font-size" (toString size ++ "px")
 
 
 {-| -}
 color : Color -> Font
 color fontColor =
-    Internal.FontElement "color" (Render.color fontColor)
+    Batchable.Single <| Internal.FontElement "color" (Render.color fontColor)
 
 
 {-| Given as unitless lineheight.
 -}
 height : Float -> Font
 height height =
-    Internal.FontElement "line-height" (toString height ++ "px")
+    Batchable.Single <| Internal.FontElement "line-height" (toString height)
 
 
 {-| -}
 letterSpacing : Float -> Font
 letterSpacing offset =
-    Internal.FontElement "letter-spacing" (toString offset ++ "px")
+    Batchable.Single <| Internal.FontElement "letter-spacing" (toString offset ++ "px")
 
 
 {-| -}
 wordSpacing : Float -> Font
 wordSpacing offset =
-    Internal.FontElement "word-spacing" (toString offset ++ "px")
+    Batchable.Single <| Internal.FontElement "word-spacing" (toString offset ++ "px")
 
 
 {-| -}
 left : Font
 left =
-    Internal.FontElement "text-align" "left"
+    Batchable.Single <| Internal.FontElement "text-align" "left"
 
 
 {-| -}
 right : Font
 right =
-    Internal.FontElement "text-align" "right"
+    Batchable.Single <| Internal.FontElement "text-align" "right"
 
 
 {-| -}
 center : Font
 center =
-    Internal.FontElement "text-align" "center"
+    Batchable.Single <| Internal.FontElement "text-align" "center"
 
 
 {-| -}
 justify : Font
 justify =
-    Internal.FontElement "text-align" "justify"
+    Batchable.Single <| Internal.FontElement "text-align" "justify"
 
 
 {-| -}
 justifyAll : Font
 justifyAll =
-    Internal.FontElement "text-align" "justifyAll"
+    Batchable.Single <| Internal.FontElement "text-align" "justifyAll"
 
 
 {-| Renders as "white-space:normal", which is the standard wrapping behavior you're probably used to.
 -}
 wrap : Font
 wrap =
-    Internal.FontElement "white-space" "normal"
+    Batchable.Single <| Internal.FontElement "white-space" "normal"
 
 
 {-| -}
 pre : Font
 pre =
-    Internal.FontElement "white-space" "pre"
+    Batchable.Single <| Internal.FontElement "white-space" "pre"
 
 
 {-| -}
 preWrap : Font
 preWrap =
-    Internal.FontElement "white-space" "pre-wrap"
+    Batchable.Single <| Internal.FontElement "white-space" "pre-wrap"
 
 
 {-| -}
 preLine : Font
 preLine =
-    Internal.FontElement "white-space" "pre-line"
+    Batchable.Single <| Internal.FontElement "white-space" "pre-line"
 
 
 {-| -}
 noWrap : Font
 noWrap =
-    Internal.FontElement "white-space" "nowrap"
+    Batchable.Single <| Internal.FontElement "white-space" "nowrap"
 
 
 {-| -}
 underline : Font
 underline =
-    Internal.FontElement "text-decoration" "underline"
+    Batchable.Single <| Internal.FontElement "text-decoration" "underline"
 
 
 {-| -}
 strike : Font
 strike =
-    Internal.FontElement "text-decoration" "underline"
+    Batchable.Single <| Internal.FontElement "text-decoration" "underline"
 
 
 {-| -}
 italicize : Font
 italicize =
-    Internal.FontElement "font-style" "italics"
+    Batchable.Single <| Internal.FontElement "font-style" "italics"
 
 
 {-| -}
 bold : Font
 bold =
-    Internal.FontElement "font-weight" "700"
+    Batchable.Single <| Internal.FontElement "font-weight" "700"
 
 
 {-| -}
 light : Font
 light =
-    Internal.FontElement "font-weight" "300"
+    Batchable.Single <| Internal.FontElement "font-weight" "300"
 
 
 {-| -}
 weight : Int -> Font
 weight fontWeight =
-    Internal.FontElement "font-weight" (toString fontWeight)
+    Batchable.Single <| Internal.FontElement "font-weight" (toString fontWeight)
 
 
 {-| -}
 uppercase : Font
 uppercase =
-    Internal.FontElement "text-transform" "uppercase"
+    Batchable.Single <| Internal.FontElement "text-transform" "uppercase"
 
 
 {-| -}
 capitalize : Font
 capitalize =
-    Internal.FontElement "text-transform" "capitalize"
+    Batchable.Single <| Internal.FontElement "text-transform" "capitalize"
 
 
 {-| -}
 lowercase : Font
 lowercase =
-    Internal.FontElement "text-transform" "lowercase"
+    Batchable.Single <| Internal.FontElement "text-transform" "lowercase"

@@ -111,7 +111,7 @@ type alias Position =
 
 {-| -}
 type alias Font =
-    Internal.FontElement
+    Batchable Internal.FontElement
 
 
 {-| -}
@@ -183,7 +183,7 @@ background bgs =
 {-| -}
 font : List Font -> Property class variation animation
 font f =
-    Internal.Font f
+    Internal.Font (Batchable.toList f)
 
 
 {-| -}
