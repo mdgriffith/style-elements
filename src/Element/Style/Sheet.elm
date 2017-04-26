@@ -64,6 +64,18 @@ renderWith opts styles =
         prepareSheet (Render.stylesheet guard styles)
 
 
+clearfix : String
+clearfix =
+    """
+.clearfix:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+"""
+
+
 {-| -}
 prepareSheet : Intermediate.Rendered class variation animation -> StyleSheet class variation animation msg
 prepareSheet (Rendered { css, findable }) =
@@ -85,7 +97,7 @@ prepareSheet (Rendered { css, findable }) =
         , variations = \class varys -> variations class varys
         , animations = []
         , css =
-            css
+            clearfix ++ css
         }
 
 

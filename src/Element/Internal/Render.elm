@@ -158,6 +158,14 @@ renderElement context stylesheet elm =
                 attributes =
                     List.map (reducePadding (List.head spacing)) others
 
+                clearfix attrs =
+                    case layout of
+                        Internal.TextLayout ->
+                            Html.Attributes.class "clearfix" :: attrs
+
+                        _ ->
+                            attrs
+
                 forSpacing posAttr =
                     case posAttr of
                         Spacing _ _ ->
@@ -171,10 +179,12 @@ renderElement context stylesheet elm =
 
                 htmlAttrs =
                     renderAttributes element context stylesheet (LayoutAttr layout :: attributes)
+                        |> clearfix
             in
                 node (htmlAttrs) childHtml
 
 
+reducePadding : Maybe (Attribute variation msg) -> Attribute variation1 msg -> Attribute variation1 msg
 reducePadding spaced attr =
     case attr of
         Padding ( top, right, bottom, left ) ->
