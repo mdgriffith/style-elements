@@ -85,9 +85,29 @@ super =
     Text Super
 
 
+{-| Paragraph is actually a layout, if you can believe it!
+
+All of the children are set to 'inline-block' if they are not already text elements.
+
+-}
+paragraph : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
+paragraph elem attrs children =
+    Layout Html.p (Style.TextLayout) (Just elem) attrs (List.map (addProp Inline) children)
+
+
 el : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
 el elem attrs child =
     Element Html.div (Just elem) attrs child Nothing
+
+
+{-| Define a spacer in terms of a multiple of it's spacing.
+
+So, if the parent element is a `column` that set spacing to `5`, and this spacer was a `2`.  Then it would be a 10 pixel spacer.
+
+-}
+spacer : Float -> Element elem variation msg
+spacer =
+    Spacer
 
 
 
@@ -95,9 +115,6 @@ el elem attrs child =
 -- {-| Sets all children as inline -}
 -- paragraph : List Element -> Element
 -- {-| Provides spcing as a multiple of the parent spacing -}
--- spacer : Float -> Element
--- sub
--- sup
 -- section
 -- nav
 -- article
@@ -108,13 +125,33 @@ el elem attrs child =
 -- nav
 -- audio : [Sources]
 -- video : [sources]
--- enumerate : Style [] children (Defaults to column layout)
--- list : Style [] children (Defaults to column layout)
+
+
+{-| A bulleted list.  Rendered as `<ul>`
+
+A 'column' layout is implied.
+
+Automatically sets children to use `<li>`
+-}
+list : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
+list elem attrs children =
+    Layout Html.ul (Style.FlexLayout Style.Down []) (Just elem) attrs (List.map (setNode Html.li) children)
+
+
+{-| A bulleted list.  Rendered as `<ol>`
+
+A 'column' layout is implied.
+
+Automatically sets children to use `<li>`
+-}
+enumerate : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
+enumerate elem attrs children =
+    Layout Html.ol (Style.FlexLayout Style.Down []) (Just elem) attrs (List.map (setNode Html.li) children)
 
 
 full : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
 full elem attrs child =
-    Element Html.div (Just elem) (Spacing ( 0, 0, 0, 0 ) :: width (percent 100) :: height (percent 100) :: attrs) child Nothing
+    Element Html.div (Just elem) (Spacing 0 0 :: width (percent 100) :: height (percent 100) :: attrs) child Nothing
 
 
 textLayout : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
@@ -154,11 +191,33 @@ when bool elm =
         empty
 
 
+setNode : HtmlFn msg -> Element elem variation msg -> Element elem variation msg
+setNode node el =
+    case el of
+        Empty ->
+            Empty
+
+        Spacer x ->
+            Spacer x
+
+        Layout _ layout elem attrs children ->
+            Layout node layout elem attrs children
+
+        Element _ elem attrs child otherChildren ->
+            Element node elem attrs child otherChildren
+
+        Text dec content ->
+            Text dec content
+
+
 addProp : Attribute variation msg -> Element elem variation msg -> Element elem variation msg
 addProp prop el =
     case el of
         Empty ->
             Empty
+
+        Spacer x ->
+            Spacer x
 
         Layout node layout elem attrs els ->
             Layout node layout elem (prop :: attrs) els
@@ -180,6 +239,9 @@ removeProps props el =
             Empty ->
                 Empty
 
+            Spacer x ->
+                Spacer x
+
             Layout node layout elem attrs els ->
                 Layout node layout elem (List.filter match attrs) els
 
@@ -195,6 +257,9 @@ addChild parent el =
     case parent of
         Empty ->
             Element Html.div Nothing [] Empty (Just [ el ])
+
+        Spacer x ->
+            Spacer x
 
         Layout node layout elem attrs children ->
             Layout node layout elem attrs (el :: children)
@@ -353,16 +418,14 @@ vary =
     Vary
 
 
-{-| -}
-spacing : ( Float, Float, Float, Float ) -> Attribute variation msg
+{-| The horizontal and vertical spacing.
+-}
+spacing : Float -> Float -> Attribute variation msg
 spacing =
     Spacing
 
 
-{-| This isn't your grandpa's padding!
-
-If you're new to this library, make sure to check out http://elm.style first!
-
+{-|
 -}
 padding : ( Float, Float, Float, Float ) -> Attribute variation msg
 padding =

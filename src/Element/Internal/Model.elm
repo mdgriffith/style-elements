@@ -25,6 +25,7 @@ type alias Defaults =
 
 type Element elem variation msg
     = Empty
+    | Spacer Float
     | Text Decoration String
     | Element (HtmlFn msg) (Maybe elem) (List (Attribute variation msg)) (Element elem variation msg) (Maybe (List (Element elem variation msg)))
     | Layout (HtmlFn msg) Internal.LayoutModel (Maybe elem) (List (Attribute variation msg)) (List (Element elem variation msg))
@@ -39,12 +40,13 @@ type Attribute variation msg
     | LayoutAttr Internal.LayoutModel
     | Height Internal.Length
     | Width Internal.Length
+    | Inline
     | Align Alignment
     | Position Int Int
     | PositionFrame Frame
     | Hidden
     | Transparency Int
-    | Spacing ( Float, Float, Float, Float )
+    | Spacing Float Float
     | Padding ( Float, Float, Float, Float )
     | Event (Html.Attribute msg)
     | Attr (Html.Attribute msg)

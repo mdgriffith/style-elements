@@ -28,7 +28,7 @@ main =
 
 view device model =
     row UnStyled
-        [ spacing (all 25) ]
+        [ spacing 50 25 ]
         [ el Test
             [ width (px 500)
             , height (px 80)

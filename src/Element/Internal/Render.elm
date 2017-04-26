@@ -25,6 +25,19 @@ render (ElementSheet { defaults, stylesheet }) elm =
         html =
             renderElement Nothing stylesheet elm
 
+        defaultTypeface =
+            (Render.class "default-typeface"
+                [ "font-family"
+                    => (defaults.typeface
+                            |> List.map (\fam -> "\"" ++ fam ++ "\"")
+                            |> String.join ", "
+                       )
+                , "color" => Value.color defaults.textColor
+                , "line-height" => toString defaults.lineHeight
+                , "font-size" => (toString defaults.fontSize ++ "px")
+                ]
+            )
+
         -- withDefaults =
         --     stylecache
         --         |> StyleCache.embed "default-typeface"
@@ -62,6 +75,34 @@ renderElement context stylesheet elm =
     case elm of
         Empty ->
             Html.text ""
+
+        Spacer x ->
+            let
+                ( spacingX, spacingY ) =
+                    case context of
+                        Just ctxt ->
+                            List.filterMap forSpacing ctxt.inherited
+                                |> List.head
+                                |> Maybe.withDefault ( 5, 5 )
+
+                        Nothing ->
+                            ( 5, 5 )
+
+                forSpacing posAttr =
+                    case posAttr of
+                        Spacing spaceX spaceY ->
+                            Just ( spaceX, spaceY )
+
+                        _ ->
+                            Nothing
+
+                inline =
+                    [ "width" => (toString (x * spacingX) ++ "px")
+                    , "height" => (toString (x * spacingY) ++ "px")
+                    , "visibility" => "hidden"
+                    ]
+            in
+                Html.div [ Html.Attributes.style inline ] []
 
         Text dec str ->
             case dec of
@@ -120,7 +161,7 @@ renderElement context stylesheet elm =
 
                 forSpacing posAttr =
                     case posAttr of
-                        Spacing _ ->
+                        Spacing _ _ ->
                             True
 
                         _ ->
@@ -166,6 +207,9 @@ renderAttributes maybeElem maybeContext stylesheet attrs =
             case adj of
                 LayoutAttr layout ->
                     { found | inline = Property.layout layout ++ found.inline }
+
+                Inline ->
+                    { found | inline = ( "display", "inline-block" ) :: found.inline }
 
                 Vary vary on ->
                     if on then
@@ -262,8 +306,19 @@ renderAttributes maybeElem maybeContext stylesheet attrs =
                         _ ->
                             { found | inline = ( "right", "0" ) :: found.inline }
 
-                Spacing box ->
-                    { found | inline = ( "margin", Value.box box ) :: found.inline }
+                Spacing spaceX spaceY ->
+                    { found
+                        | inline =
+                            ( "margin"
+                            , Value.box
+                                ( spaceY / 2
+                                , spaceX / 2
+                                , spaceY / 2
+                                , spaceX / 2
+                                )
+                            )
+                                :: found.inline
+                    }
 
                 Padding box ->
                     { found | inline = ( "padding", Value.box box ) :: found.inline }
