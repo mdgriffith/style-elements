@@ -197,44 +197,81 @@ addChild parent el =
 
 nearby : List (Nearby (Element elem variation msg)) -> Element elem variation msg -> Element elem variation msg
 nearby nearbys parent =
-    List.foldl (\(Nearby el) p -> addChild p el) parent nearbys
+    List.foldl (\(IsNearby el) p -> addChild p el) parent nearbys
 
 
 above : Element elem variation msg -> Nearby (Element elem variation msg)
 above el =
     el
-        |> addProp (PositionFrame Above)
+        |> addProp (PositionFrame (Nearby Above))
         |> removeProps [ Align Top, Align Bottom ]
-        |> Nearby
+        |> IsNearby
 
 
 below : Element elem variation msg -> Nearby (Element elem variation msg)
 below el =
     el
-        |> addProp (PositionFrame Below)
+        |> addProp (PositionFrame (Nearby Below))
         |> removeProps [ Align Top, Align Bottom ]
-        |> Nearby
+        |> IsNearby
 
 
 onRight : Element elem variation msg -> Nearby (Element elem variation msg)
 onRight el =
     el
-        |> addProp (PositionFrame OnRight)
+        |> addProp (PositionFrame (Nearby OnRight))
         |> removeProps [ Align Right, Align Left ]
-        |> Nearby
+        |> IsNearby
 
 
 onLeft : Element elem variation msg -> Nearby (Element elem variation msg)
 onLeft el =
     el
-        |> addProp (PositionFrame OnLeft)
+        |> addProp (PositionFrame (Nearby OnLeft))
         |> removeProps [ Align Right, Align Left ]
-        |> Nearby
+        |> IsNearby
+
+
+within : List (Anchored (Element elem variation msg)) -> Element elem variation msg -> Element elem variation msg
+within insideEls parent =
+    List.foldl (\(Anchored el) p -> addChild p el) parent insideEls
+
+
+topLeft : Element elem variation msg -> Anchored (Element elem variation msg)
+topLeft el =
+    el
+        |> addProp (PositionFrame (Within TopLeft))
+        |> removeProps [ Align Top, Align Bottom ]
+        |> Anchored
+
+
+topRight : Element elem variation msg -> Anchored (Element elem variation msg)
+topRight el =
+    el
+        |> addProp (PositionFrame (Within TopRight))
+        |> removeProps [ Align Top, Align Bottom ]
+        |> Anchored
+
+
+bottomRight : Element elem variation msg -> Anchored (Element elem variation msg)
+bottomRight el =
+    el
+        |> addProp (PositionFrame (Within BottomRight))
+        |> removeProps [ Align Top, Align Bottom ]
+        |> Anchored
+
+
+bottomLeft : Element elem variation msg -> Anchored (Element elem variation msg)
+bottomLeft el =
+    el
+        |> addProp (PositionFrame (Within BottomLeft))
+        |> removeProps [ Align Top, Align Bottom ]
+        |> Anchored
 
 
 screen : Element elem variation msg -> Element elem variation msg
 screen el =
-    addProp (PositionFrame Screen) el
+    addProp (PositionFrame (Screen TopLeft)) el
 
 
 overlay : elem -> Int -> Element elem variation msg -> Element elem variation msg

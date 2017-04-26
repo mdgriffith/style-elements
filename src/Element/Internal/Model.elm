@@ -59,30 +59,31 @@ type Decoration
 
 
 type Frame
-    = Screen
-    | Below
+    = Screen Anchor
+    | Nearby Close
+    | Within Anchor
+
+
+type Close
+    = Below
     | Above
     | OnLeft
     | OnRight
 
 
-
--- type Frame1
---     = Screen Anchor
---     | NearbyEl
---     | WithinEl Anchor
--- | TopRight
--- | TopLeft
--- | BottomRight
--- | BottomLeft
+type Anchor
+    = TopRight
+    | TopLeft
+    | BottomRight
+    | BottomLeft
 
 
 type Nearby element
-    = Nearby element
+    = IsNearby element
 
 
-type Inside element
-    = Inside element
+type Anchored element
+    = Anchored element
 
 
 type Alignment

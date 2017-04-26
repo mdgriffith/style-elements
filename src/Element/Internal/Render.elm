@@ -129,6 +129,30 @@ renderElement context stylesheet elm =
                 node htmlAttrs childHtml
 
 
+renderAnchor : Anchor -> List ( String, String )
+renderAnchor anchor =
+    case anchor of
+        TopRight ->
+            [ ( "top", "0" )
+            , ( "right", "0" )
+            ]
+
+        TopLeft ->
+            [ ( "top", "0" )
+            , ( "left", "0" )
+            ]
+
+        BottomRight ->
+            [ ( "bottom", "0" )
+            , ( "right", "0" )
+            ]
+
+        BottomLeft ->
+            [ ( "bottom", "0" )
+            , ( "left", "0" )
+            ]
+
+
 renderAttributes : Maybe elem -> Maybe (Context variation msg) -> Internal.StyleSheet elem variation animation msg -> List (Attribute variation msg) -> List (Html.Attribute msg)
 renderAttributes maybeElem maybeContext stylesheet attrs =
     let
@@ -158,10 +182,13 @@ renderAttributes maybeElem maybeContext stylesheet attrs =
                                 :: found.inline
                     }
 
-                PositionFrame Screen ->
-                    { found | inline = ( "position", "fixed" ) :: found.inline }
+                PositionFrame (Screen anchor) ->
+                    { found | inline = ( "position", "fixed" ) :: renderAnchor anchor ++ found.inline }
 
-                PositionFrame Above ->
+                PositionFrame (Within anchor) ->
+                    { found | inline = ( "position", "fixed" ) :: renderAnchor anchor ++ found.inline }
+
+                PositionFrame (Nearby Above) ->
                     { found
                         | inline =
                             [ "position" => "absolute"
@@ -170,7 +197,7 @@ renderAttributes maybeElem maybeContext stylesheet attrs =
                                 ++ found.inline
                     }
 
-                PositionFrame Below ->
+                PositionFrame (Nearby Below) ->
                     { found
                         | inline =
                             [ "position" => "absolute"
@@ -179,7 +206,7 @@ renderAttributes maybeElem maybeContext stylesheet attrs =
                                 ++ found.inline
                     }
 
-                PositionFrame OnLeft ->
+                PositionFrame (Nearby OnLeft) ->
                     { found
                         | inline =
                             [ "position" => "absolute"
@@ -188,7 +215,7 @@ renderAttributes maybeElem maybeContext stylesheet attrs =
                                 ++ found.inline
                     }
 
-                PositionFrame OnRight ->
+                PositionFrame (Nearby OnRight) ->
                     { found
                         | inline =
                             [ "position" => "absolute"
