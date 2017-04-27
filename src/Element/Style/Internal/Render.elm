@@ -256,7 +256,7 @@ renderProp parentClass prop =
             Intermediate.props <| List.map Render.font props
 
         Layout lay ->
-            Intermediate.props (Render.layout lay)
+            Intermediate.props (Render.layout False lay)
 
         Background props ->
             Intermediate.props <| Render.background props
@@ -327,7 +327,7 @@ renderVariationProp parentClass prop =
             (Just << Intermediate.props) <| List.map Render.font props
 
         Layout lay ->
-            (Just << Intermediate.props) (Render.layout lay)
+            (Just << Intermediate.props) (Render.layout False lay)
 
         Background props ->
             (Just << Intermediate.props) <| Render.background props

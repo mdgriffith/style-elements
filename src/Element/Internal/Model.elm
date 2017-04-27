@@ -37,7 +37,6 @@ type alias HtmlFn msg =
 
 type Attribute variation msg
     = Vary variation Bool
-    | LayoutAttr Internal.LayoutModel
     | Height Internal.Length
     | Width Internal.Length
     | Inline

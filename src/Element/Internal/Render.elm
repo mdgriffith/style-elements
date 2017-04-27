@@ -19,7 +19,7 @@ render : Internal.StyleSheet elem variation animation msg -> Element elem variat
 render stylesheet elm =
     let
         html =
-            renderElement Nothing stylesheet 0 elm
+            renderElement Nothing stylesheet FirstAndLast elm
 
         -- defaultTypeface =
         --     (Render.class "default-typeface"
@@ -59,15 +59,30 @@ render stylesheet elm =
             ]
 
 
-type alias Context variation msg =
+type alias Parent variation msg =
     { inherited : List (Attribute variation msg)
     , layout : Internal.LayoutModel
     , parentPadding : ( Float, Float, Float, Float )
     }
 
 
-renderElement : Maybe (Context variation msg) -> Internal.StyleSheet elem variation animation msg -> Int -> Element elem variation msg -> Html msg
-renderElement context stylesheet i elm =
+detectOrder list i =
+    let
+        len =
+            List.length list
+    in
+        if i == 0 && len == 1 then
+            FirstAndLast
+        else if i == 0 then
+            First
+        else if i == len - 1 then
+            Last
+        else
+            Middle i
+
+
+renderElement : Maybe (Parent variation msg) -> Internal.StyleSheet elem variation animation msg -> Order -> Element elem variation msg -> Html msg
+renderElement parent stylesheet order elm =
     case elm of
         Empty ->
             Html.text ""
@@ -75,7 +90,7 @@ renderElement context stylesheet i elm =
         Spacer x ->
             let
                 ( spacingX, spacingY ) =
-                    case context of
+                    case parent of
                         Just ctxt ->
                             List.filterMap forSpacing ctxt.inherited
                                 |> List.head
@@ -130,15 +145,15 @@ renderElement context stylesheet i elm =
                         Nothing ->
                             let
                                 chil =
-                                    renderElement Nothing stylesheet 0 child
+                                    renderElement Nothing stylesheet FirstAndLast child
                             in
                                 [ chil ]
 
                         Just others ->
-                            List.indexedMap (renderElement Nothing stylesheet) (child :: others)
+                            List.map (renderElement Nothing stylesheet FirstAndLast) (child :: others)
 
                 attributes =
-                    case context of
+                    case parent of
                         Nothing ->
                             position
 
@@ -146,7 +161,7 @@ renderElement context stylesheet i elm =
                             ctxt.inherited ++ position
 
                 htmlAttrs =
-                    renderAttributes i element context stylesheet attributes
+                    renderPositioned Single order element parent stylesheet (gather attributes)
             in
                 node htmlAttrs childHtml
 
@@ -189,19 +204,22 @@ renderElement context stylesheet i elm =
 
                 childHtml =
                     List.indexedMap
-                        (renderElement
-                            (Just
-                                { inherited = spacing
-                                , layout = layout
-                                , parentPadding = padding
-                                }
-                            )
-                            stylesheet
+                        (\i child ->
+                            renderElement
+                                (Just
+                                    { inherited = spacing
+                                    , layout = layout
+                                    , parentPadding = padding
+                                    }
+                                )
+                                stylesheet
+                                (detectOrder children i)
+                                child
                         )
                         children
 
                 htmlAttrs =
-                    renderAttributes 0 element context stylesheet (LayoutAttr layout :: attributes)
+                    renderPositioned (LayoutElement layout) order element parent stylesheet (gather attributes)
                         |> clearfix
             in
                 node (htmlAttrs) childHtml
@@ -231,194 +249,336 @@ renderAnchor anchor =
             ]
 
 
-renderAttributes : Int -> Maybe elem -> Maybe (Context variation msg) -> Internal.StyleSheet elem variation animation msg -> List (Attribute variation msg) -> List (Html.Attribute msg)
-renderAttributes order maybeElem maybeContext stylesheet attrs =
+type alias Positionable variation msg =
+    { inline : Bool
+    , alignment : Maybe Alignment
+    , frame : Maybe Frame
+    , expand : Bool
+    , hidden : Bool
+    , width : Maybe Internal.Length
+    , height : Maybe Internal.Length
+    , positioned : Maybe ( Int, Int )
+    , spacing : Maybe ( Float, Float )
+    , padding : Maybe ( Float, Float, Float, Float )
+    , variations : List ( variation, Bool )
+    , transparency : Maybe Int
+    , attrs : List (Html.Attribute msg)
+    }
+
+
+emptyPositionable : Positionable variation msg
+emptyPositionable =
+    { inline = False
+    , alignment = Nothing
+    , frame = Nothing
+    , expand = False
+    , hidden = False
+    , width = Nothing
+    , height = Nothing
+    , positioned = Nothing
+    , spacing = Nothing
+    , padding = Nothing
+    , variations = []
+    , transparency = Nothing
+    , attrs = []
+    }
+
+
+gather attrs =
+    List.foldl makePositionable emptyPositionable attrs
+
+
+makePositionable : Attribute variation msg -> Positionable variation msg -> Positionable variation msg
+makePositionable attr pos =
+    case attr of
+        Inline ->
+            { pos | inline = True }
+
+        Expand ->
+            { pos | expand = True }
+
+        Vary vary on ->
+            { pos
+                | variations = ( vary, on ) :: pos.variations
+            }
+
+        Height len ->
+            { pos | height = Just len }
+
+        Width len ->
+            { pos | width = Just len }
+
+        Position x y ->
+            { pos | positioned = Just ( x, y ) }
+
+        PositionFrame frame ->
+            { pos | frame = Just frame }
+
+        Align alignment ->
+            { pos | alignment = Just alignment }
+
+        Spacing spaceX spaceY ->
+            { pos | spacing = Just ( spaceX, spaceY ) }
+
+        Padding box ->
+            { pos | padding = Just box }
+
+        Hidden ->
+            { pos | hidden = True }
+
+        Transparency t ->
+            { pos | transparency = Just t }
+
+        Event ev ->
+            { pos | attrs = ev :: pos.attrs }
+
+        Attr attr ->
+            { pos | attrs = attr :: pos.attrs }
+
+
+type Order
+    = First
+    | Middle Int
+    | Last
+    | FirstAndLast
+
+
+type ElementType
+    = Single
+    | LayoutElement Internal.LayoutModel
+
+
+alignLayout : Alignment -> Internal.LayoutModel -> Internal.LayoutModel
+alignLayout alignment layout =
     let
-        gather adj found =
-            case adj of
-                LayoutAttr layout ->
-                    { found | inline = Property.layout layout ++ found.inline }
+        alignFlexbox align =
+            case align of
+                Left ->
+                    Internal.Horz (Internal.Other Internal.Left)
 
-                Inline ->
-                    { found | inline = ( "display", "inline-block" ) :: found.inline }
+                Right ->
+                    Internal.Horz (Internal.Other Internal.Right)
 
-                Expand ->
-                    case maybeContext of
+                Top ->
+                    Internal.Vert (Internal.Other Internal.Top)
+
+                Bottom ->
+                    Internal.Vert (Internal.Other Internal.Bottom)
+    in
+        case layout of
+            Internal.TextLayout ->
+                Internal.TextLayout
+
+            Internal.FlexLayout dir els ->
+                Internal.FlexLayout dir (alignFlexbox alignment :: els)
+
+
+renderPositioned : ElementType -> Order -> Maybe elem -> Maybe (Parent variation msg) -> Internal.StyleSheet elem variation animation msg -> Positionable variation msg -> List (Html.Attribute msg)
+renderPositioned elType order maybeElemID parent stylesheet elem =
+    let
+        layout attrs =
+            case elType of
+                Single ->
+                    ( "display", "inline-block" ) :: attrs
+
+                LayoutElement lay ->
+                    case elem.alignment of
                         Nothing ->
-                            found
+                            Property.layout elem.inline lay ++ attrs
 
-                        Just { parentPadding } ->
-                            let
-                                ( top, right, bottom, left ) =
-                                    parentPadding
+                        Just align ->
+                            Property.layout elem.inline (alignLayout align lay) ++ attrs
 
-                                props =
-                                    [ "width" => ("calc(100% + " ++ toString (right + left) ++ "px")
-                                    , "height" => ("calc(100% + " ++ toString (top + bottom) ++ "px")
-                                    , "margin" => "0"
-                                    , "margin-left" => (toString (-1 * left) ++ "px")
-                                    , if order == 0 then
-                                        "margin-top" => (toString (-1 * top) ++ "px")
-                                      else
-                                        "margin-top" => "0"
-                                    ]
-                            in
-                                { found
-                                    | inline = props ++ found.inline
-                                }
+        alignment attrs =
+            case elem.alignment of
+                Nothing ->
+                    attrs
 
-                Vary vary on ->
-                    if on then
-                        { found | variations = ( vary, on ) :: found.variations }
+                Just align ->
+                    if elem.inline then
+                        attrs
+                    else if elem.frame /= Nothing then
+                        case align of
+                            Top ->
+                                ( "top", "0" ) :: attrs
+
+                            Bottom ->
+                                ( "bottom", "0" ) :: attrs
+
+                            Left ->
+                                ( "left", "0" ) :: attrs
+
+                            Right ->
+                                ( "right", "0" ) :: attrs
                     else
-                        found
+                        case align of
+                            Top ->
+                                attrs
 
-                Height len ->
-                    { found | inline = ( "height", Value.length len ) :: found.inline }
+                            Bottom ->
+                                attrs
 
-                Width len ->
-                    { found | inline = ( "width", Value.length len ) :: found.inline }
+                            Left ->
+                                case parent of
+                                    Just { layout } ->
+                                        case layout of
+                                            Internal.TextLayout ->
+                                                ( "float", "left" ) :: attrs
 
-                Position x y ->
-                    { found
-                        | inline =
-                            ( "transform"
-                            , ("translate(" ++ toString x ++ "px, " ++ toString y ++ "px)")
-                            )
-                                :: found.inline
-                    }
+                                            _ ->
+                                                attrs
 
-                PositionFrame (Screen anchor) ->
-                    { found | inline = ( "position", "fixed" ) :: renderAnchor anchor ++ found.inline }
+                                    _ ->
+                                        attrs
 
-                PositionFrame (Within anchor) ->
-                    { found | inline = ( "position", "fixed" ) :: renderAnchor anchor ++ found.inline }
+                            Right ->
+                                case parent of
+                                    Just { layout } ->
+                                        case layout of
+                                            Internal.TextLayout ->
+                                                ( "float", "right" ) :: attrs
 
-                PositionFrame (Nearby Above) ->
-                    { found
-                        | inline =
-                            [ "position" => "absolute"
-                            , "bottom" => "100%"
-                            ]
-                                ++ found.inline
-                    }
+                                            _ ->
+                                                attrs
 
-                PositionFrame (Nearby Below) ->
-                    { found
-                        | inline =
-                            [ "position" => "absolute"
-                            , "top" => "100%"
-                            ]
-                                ++ found.inline
-                    }
+                                    _ ->
+                                        attrs
 
-                PositionFrame (Nearby OnLeft) ->
-                    { found
-                        | inline =
-                            [ "position" => "absolute"
-                            , "right" => "100%"
-                            ]
-                                ++ found.inline
-                    }
+        width attrs =
+            case elem.width of
+                Nothing ->
+                    attrs
 
-                PositionFrame (Nearby OnRight) ->
-                    { found
-                        | inline =
-                            [ "position" => "absolute"
-                            , "left" => "100%"
-                            ]
-                                ++ found.inline
-                    }
+                Just len ->
+                    ( "width", Value.length len ) :: attrs
 
-                Align Top ->
-                    { found | inline = ( "top", "0" ) :: found.inline }
+        height attrs =
+            case elem.height of
+                Nothing ->
+                    attrs
 
-                Align Bottom ->
-                    { found | inline = ( "bottom", "0" ) :: found.inline }
+                Just len ->
+                    ( "height", Value.length len ) :: attrs
 
-                Align Left ->
-                    case maybeContext of
-                        Just { layout } ->
-                            case layout of
-                                Internal.TextLayout ->
-                                    { found | inline = ( "float", "left" ) :: found.inline }
+        transparency attrs =
+            case elem.transparency of
+                Nothing ->
+                    attrs
 
-                                _ ->
-                                    { found | inline = ( "left", "0" ) :: found.inline }
+                Just t ->
+                    ( "opacity", (toString <| 1 - t) ) :: attrs
 
-                        _ ->
-                            { found | inline = ( "left", "0" ) :: found.inline }
+        padding attrs =
+            case elem.padding of
+                Nothing ->
+                    attrs
 
-                Align Right ->
-                    case maybeContext of
-                        Just { layout } ->
-                            case layout of
-                                Internal.TextLayout ->
-                                    { found | inline = ( "float", "right" ) :: found.inline }
+                Just pad ->
+                    ( "padding", Value.box pad ) :: attrs
 
-                                _ ->
-                                    { found | inline = ( "right", "0" ) :: found.inline }
+        positionAdjustment attrs =
+            case elem.positioned of
+                Nothing ->
+                    attrs
 
-                        _ ->
-                            { found | inline = ( "right", "0" ) :: found.inline }
-
-                Spacing spaceX spaceY ->
-                    { found
-                        | inline =
-                            ( "margin"
-                            , Value.box
-                                ( spaceY / 2
-                                , spaceX / 2
-                                , spaceY / 2
-                                , spaceX / 2
-                                )
-                            )
-                                :: found.inline
-                    }
-
-                Padding box ->
-                    { found | inline = ( "padding", Value.box box ) :: found.inline }
-
-                Hidden ->
-                    { found | inline = ( "display", "none" ) :: found.inline }
-
-                Transparency t ->
-                    { found | inline = ( "opacity", (toString <| 1 - t) ) :: found.inline }
-
-                Event ev ->
-                    { found | attrs = ev :: found.attrs }
-
-                Attr attr ->
-                    { found | attrs = attr :: found.attrs }
+                Just ( x, y ) ->
+                    ( "transform"
+                    , ("translate(" ++ toString x ++ "px, " ++ toString y ++ "px)")
+                    )
+                        :: attrs
 
         defaults =
             [ "position" => "relative"
             , "box-sizing" => "border-box"
             ]
 
-        empty =
-            { inline = []
-            , variations = []
-            , attrs = []
-            }
-
-        withProps =
-            List.foldr gather empty attrs
-
-        classes =
-            case maybeElem of
+        attributes =
+            case maybeElemID of
                 Nothing ->
-                    Nothing
+                    elem.attrs
 
-                Just elem ->
-                    if List.length withProps.variations > 0 then
-                        Just <| stylesheet.variations elem withProps.variations
+                Just elemID ->
+                    if List.length elem.variations > 0 then
+                        stylesheet.variations elemID elem.variations :: elem.attrs
                     else
-                        Just <| stylesheet.style elem
+                        stylesheet.style elemID :: elem.attrs
     in
-        case classes of
-            Nothing ->
-                Html.Attributes.style (defaults ++ withProps.inline) :: withProps.attrs
+        if elem.hidden then
+            Html.Attributes.style [ ( "display", "none" ) ] :: attributes
+        else if elem.frame /= Nothing then
+            let
+                frame =
+                    case elem.frame of
+                        Nothing ->
+                            []
 
-            Just cls ->
-                cls :: Html.Attributes.style (defaults ++ withProps.inline) :: withProps.attrs
+                        Just frm ->
+                            case frm of
+                                Screen anchor ->
+                                    ( "position", "fixed" ) :: renderAnchor anchor
+
+                                Within anchor ->
+                                    ( "position", "absolute" ) :: renderAnchor anchor
+
+                                Nearby Above ->
+                                    [ "position" => "absolute"
+                                    , "bottom" => "100%"
+                                    ]
+
+                                Nearby Below ->
+                                    [ "position" => "absolute"
+                                    , "top" => "100%"
+                                    ]
+
+                                Nearby OnLeft ->
+                                    [ "position" => "absolute"
+                                    , "right" => "100%"
+                                    ]
+
+                                Nearby OnRight ->
+                                    [ "position" => "absolute"
+                                    , "left" => "100%"
+                                    ]
+            in
+                (Html.Attributes.style
+                    (("box-sizing" => "border-box") :: (layout <| transparency <| width <| height <| positionAdjustment <| padding <| alignment <| frame))
+                )
+                    :: attributes
+        else if elem.expand then
+            let
+                expandedProps =
+                    case parent of
+                        Nothing ->
+                            [ "width" => "100%"
+                            , "height" => "100%"
+                            , "margin" => "0"
+                            ]
+
+                        Just { parentPadding } ->
+                            let
+                                ( top, right, bottom, left ) =
+                                    parentPadding
+                            in
+                                [ "width" => ("calc(100% + " ++ toString (right + left) ++ "px")
+                                , "height" => ("calc(100% + " ++ toString (top + bottom) ++ "px")
+                                , "margin" => "0"
+                                , "margin-left" => (toString (-1 * left) ++ "px")
+                                , if order == First || order == FirstAndLast then
+                                    "margin-top" => (toString (-1 * top) ++ "px")
+                                  else
+                                    "margin-top" => "0"
+                                , if order == Last || order == FirstAndLast then
+                                    "margin-bottom" => (toString (-1 * bottom) ++ "px")
+                                  else
+                                    "margin-bottom" => "0"
+                                ]
+            in
+                (Html.Attributes.style
+                    (("box-sizing" => "border-box") :: (layout <| transparency <| positionAdjustment <| padding <| expandedProps))
+                )
+                    :: attributes
+        else
+            (Html.Attributes.style
+                (layout <| transparency <| width <| height <| positionAdjustment <| padding <| alignment <| defaults)
+            )
+                :: attributes

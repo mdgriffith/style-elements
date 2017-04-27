@@ -297,14 +297,26 @@ background props =
 
 
 {-| -}
-layout : LayoutModel -> List ( String, String )
-layout lay =
+layout : Bool -> LayoutModel -> List ( String, String )
+layout inline lay =
     case lay of
         Internal.TextLayout ->
-            [ "display" => "block" ]
+            [ "display"
+                => if inline then
+                    "inline-block"
+                   else
+                    "block"
+            ]
 
         Internal.FlexLayout dir flexProps ->
-            ("display" => "flex") :: direction dir :: List.map (flexbox dir) flexProps
+            ("display"
+                => if inline then
+                    "inline-flex"
+                   else
+                    "flex"
+            )
+                :: direction dir
+                :: List.map (flexbox dir) flexProps
 
 
 direction : Direction -> ( String, String )
