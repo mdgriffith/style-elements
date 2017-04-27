@@ -2,6 +2,7 @@ module Element.Style.Font
     exposing
         ( FontScale(..)
         , scale
+        , scaleSeparately
         , typeface
         , size
         , color
@@ -68,7 +69,7 @@ This function will set font-size and line-height if you give it your normal font
 `scale 16 1.618 Normal` results in a font-size of 16px and a line height of 1.618.
 `scale 16 1.618 Large` results in a font-size of 26px(font sizes are always rounded) and a line height or 1.618
 
-It's also nice to use this In one place for your entire app.
+It's nice to use this In one place for your entire app.
 
 So, define  `fontsize = scale 16 1.618` somewhere and then in your stylesheet you can just call `fontsize Big` and everything works out.
 
@@ -77,46 +78,61 @@ So, define  `fontsize = scale 16 1.618` somewhere and then in your stylesheet yo
 -}
 scale : Float -> Float -> FontScale -> Font
 scale normal ratio fontScale =
-    let
-        grow i size =
-            if i <= 0 then
-                size
-            else
-                grow (i - 1) (size * ratio)
+    Batchable.Many
+        [ Internal.FontElement "font-size" (toString (round <| resize normal ratio fontScale) ++ "px")
+        , Internal.FontElement "line-height" (toString ratio)
+        ]
 
-        shrink i size =
-            if i <= 0 then
-                size
-            else
-                shrink (i - 1) (size / ratio)
 
-        resized =
-            case fontScale of
-                Mini ->
-                    shrink 3 normal
+{-| Scale font size and line height separately
+-}
+scaleSeparately : Float -> Float -> Float -> FontScale -> Font
+scaleSeparately lineHeight normal ratio fontScale =
+    Batchable.Many
+        [ Internal.FontElement "font-size" (toString (round <| resize normal ratio fontScale) ++ "px")
+        , Internal.FontElement "line-height" (toString lineHeight)
+        ]
 
-                Tiny ->
-                    shrink 2 normal
 
-                Small ->
-                    shrink 1 normal
+grow : Float -> Int -> Float -> Float
+grow ratio i size =
+    if i <= 0 then
+        size
+    else
+        grow (i - 1) (size * ratio)
 
-                Normal ->
-                    normal
 
-                Large ->
-                    grow 1 normal
+shrink : Float -> Int -> Float -> Float
+shrink ratio i size =
+    if i <= 0 then
+        size
+    else
+        shrink (i - 1) (size / ratio)
 
-                Big ->
-                    grow 2 normal
 
-                Huge ->
-                    grow 3 normal
-    in
-        Batchable.Many
-            [ Internal.FontElement "font-size" (toString (round resized) ++ "px")
-            , Internal.FontElement "line-height" (toString ratio)
-            ]
+resize : Float -> Float -> FontScale -> Float
+resize normal ratio fontScale =
+    case fontScale of
+        Mini ->
+            shrink ratio 3 normal
+
+        Tiny ->
+            shrink ratio 2 normal
+
+        Small ->
+            shrink ratio 1 normal
+
+        Normal ->
+            normal
+
+        Large ->
+            grow ratio 1 normal
+
+        Big ->
+            grow ratio 2 normal
+
+        Huge ->
+            grow ratio 3 normal
 
 
 {-|
