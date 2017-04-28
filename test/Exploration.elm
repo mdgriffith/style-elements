@@ -208,8 +208,67 @@ view device model =
                 , text "blah blah"
                 , centered (Button SendHttpRequest) [] (text "Push Me")
                 ]
+            , grid
+                { columns = [ px 100, percent 10, auto, px 200 ]
+                , rows =
+                    [ px 100
+                    , percent 10
+                    , px 200
+                    , fill 2
+                    ]
+                }
+                []
+                [ area ( 1, 2 ) ( 2, 5 ) <|
+                    el Gist [] (text "gist")
+                ]
+            , namedGrid
+                { columns = [ px 100, percent 10, auto, px 200 ]
+                , rows =
+                    [ px 100 => [ spanAll Header ]
+                    , pc 10 => [ span 3 Content, span 3 Ad ]
+                    , px 200 => [ empty 3, span 2 Test ]
+                    , fill 2 => [ spanAll Footer ]
+                    ]
+                }
+                []
+                [ area Header <|
+                    el Gist [] (text "gist")
+                ]
+            , asciiGrid
+                """
+                10px |--10px--|--20%--|--fill 2--|--10px--|
+                10%  |               <-header->           |
+                fill |          content          |  ad    |
+                10px |          content          |  ad    |
+                100px|       footer              | empty  |
+                """
+                []
+                [ cell "header" <|
+                    el Gist [] (text "gist")
+                ]
             ]
         ]
+
+
+myGrid =
+    """
+            10px |--10px--|--20%--|--fill 2--|--10px--|
+            10%  |               <-header->           |
+            fill |             content       |  ad    |
+            10px |          content          |  ad    |
+            100px|       footer                       |
+    """
+
+
+
+-- grid =
+-- Grid
+--     [ px 100, percent 10, px 200 ]
+--     [ px 100, percent 10, px 200, fill 2 ]
+--     [
+--     ]
+--     [
+--     ]
 
 
 singupMenu =

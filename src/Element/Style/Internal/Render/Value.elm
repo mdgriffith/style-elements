@@ -23,6 +23,9 @@ length l =
         Auto ->
             "auto"
 
+        Fill i ->
+            "auto"
+
 
 color : Color -> String
 color color =
@@ -54,3 +57,20 @@ shadow (ShadowModel shadow) =
     ]
         |> List.filterMap identity
         |> String.join " "
+
+
+gridPosition : GridPosition -> String
+gridPosition (GridPosition { rowRange, colRange }) =
+    let
+        ( rowStart, rowEnd ) =
+            rowRange
+
+        ( colStart, colEnd ) =
+            colRange
+    in
+        String.join " / "
+            [ toString rowStart
+            , toString colStart
+            , toString rowEnd
+            , toString colEnd
+            ]

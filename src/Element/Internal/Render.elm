@@ -262,6 +262,7 @@ type alias Positionable variation msg =
     , padding : Maybe ( Float, Float, Float, Float )
     , variations : List ( variation, Bool )
     , transparency : Maybe Int
+    , gridPosition : Maybe String
     , attrs : List (Html.Attribute msg)
     }
 
@@ -280,10 +281,12 @@ emptyPositionable =
     , padding = Nothing
     , variations = []
     , transparency = Nothing
+    , gridPosition = Nothing
     , attrs = []
     }
 
 
+gather : List (Attribute variation msg) -> Positionable variation msg
 gather attrs =
     List.foldl makePositionable emptyPositionable attrs
 
@@ -335,6 +338,12 @@ makePositionable attr pos =
         Attr attr ->
             { pos | attrs = attr :: pos.attrs }
 
+        GridArea name ->
+            { pos | gridPosition = Just name }
+
+        GridCoords coords ->
+            { pos | gridPosition = Just <| Value.gridPosition coords }
+
 
 type Order
     = First
@@ -364,6 +373,20 @@ alignLayout alignment layout =
 
                 Bottom ->
                     Internal.Vert (Internal.Other Internal.Bottom)
+
+        alignGrid align =
+            case align of
+                Left ->
+                    Internal.GridH (Internal.Other Internal.Left)
+
+                Right ->
+                    Internal.GridH (Internal.Other Internal.Right)
+
+                Top ->
+                    Internal.GridV (Internal.Other Internal.Top)
+
+                Bottom ->
+                    Internal.GridV (Internal.Other Internal.Bottom)
     in
         case layout of
             Internal.TextLayout ->
@@ -371,6 +394,9 @@ alignLayout alignment layout =
 
             Internal.FlexLayout dir els ->
                 Internal.FlexLayout dir (alignFlexbox alignment :: els)
+
+            Internal.Grid template els ->
+                Internal.Grid template (alignGrid alignment :: els)
 
 
 renderPositioned : ElementType -> Order -> Maybe elem -> Maybe (Parent variation msg) -> Internal.StyleSheet elem variation animation msg -> Positionable variation msg -> List (Html.Attribute msg)
@@ -487,6 +513,22 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                     )
                         :: attrs
 
+        gridName attrs =
+            case elem.gridPosition of
+                Nothing ->
+                    attrs
+
+                Just area ->
+                    ( "grid-area", area ) :: attrs
+
+        gridPos attrs =
+            case elem.gridPosition of
+                Nothing ->
+                    attrs
+
+                Just area ->
+                    ( "grid-area", area ) :: attrs
+
         defaults =
             [ "position" => "relative"
             , "box-sizing" => "border-box"
@@ -541,7 +583,7 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                                     ]
             in
                 (Html.Attributes.style
-                    (("box-sizing" => "border-box") :: (layout <| transparency <| width <| height <| positionAdjustment <| padding <| alignment <| frame))
+                    (("box-sizing" => "border-box") :: (gridPos <| layout <| transparency <| width <| height <| positionAdjustment <| padding <| alignment <| frame))
                 )
                     :: attributes
         else if elem.expand then
@@ -574,11 +616,11 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                                 ]
             in
                 (Html.Attributes.style
-                    (("box-sizing" => "border-box") :: (layout <| transparency <| positionAdjustment <| padding <| expandedProps))
+                    (("box-sizing" => "border-box") :: (gridPos <| layout <| transparency <| positionAdjustment <| padding <| expandedProps))
                 )
                     :: attributes
         else
             (Html.Attributes.style
-                (layout <| transparency <| width <| height <| positionAdjustment <| padding <| alignment <| defaults)
+                (gridPos <| layout <| transparency <| width <| height <| positionAdjustment <| padding <| alignment <| defaults)
             )
                 :: attributes

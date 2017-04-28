@@ -181,6 +181,61 @@ column elem attrs children =
     Layout Html.div (Style.FlexLayout Style.Down []) (Just elem) attrs children
 
 
+type alias Grid =
+    { rows : List Length
+    , columns : List Length
+    }
+
+
+grid : Grid -> elem -> List (Attribute variation msg) -> List (OnGrid (Element elem variation msg)) -> Element elem variation msg
+grid template elem attrs children =
+    let
+        prepare el =
+            List.map (\(OnGrid x) -> x) el
+    in
+        Layout Html.div (Style.Grid (Style.GridTemplate template) []) (Just elem) attrs (prepare children)
+
+
+type alias NamedGrid =
+    { rows : List ( Length, List Style.NamedGridPosition )
+    , columns : List Length
+    }
+
+
+namedGrid : NamedGrid -> elem -> List (Attribute variation msg) -> List (NamedOnGrid (Element elem variation msg)) -> Element elem variation msg
+namedGrid template elem attrs children =
+    let
+        prepare el =
+            List.map (\(NamedOnGrid x) -> x) el
+    in
+        Layout Html.div (Style.Grid (Style.NamedGridTemplate template) []) (Just elem) attrs (prepare children)
+
+
+type GridBox
+    = GridBox
+        { rowRange : ( Int, Int )
+        , colRange : ( Int, Int )
+        }
+
+
+type OnGrid thing
+    = OnGrid thing
+
+
+type NamedOnGrid thing
+    = NamedOnGrid thing
+
+
+area : GridBox -> Element elem variation msg -> OnGrid (Element elem variation msg)
+area box el =
+    OnGrid el
+
+
+named : String -> Element elem variation msg -> NamedOnGrid (Element elem variation msg)
+named name el =
+    NamedOnGrid el
+
+
 linked : String -> Element elem variation msg -> Element elem variation msg
 linked src el =
     Element Html.a Nothing [ Attr (Html.Attributes.href src), Attr (Html.Attributes.rel "noopener noreferrer") ] el Nothing

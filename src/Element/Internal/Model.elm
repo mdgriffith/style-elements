@@ -50,6 +50,8 @@ type Attribute variation msg
     | Padding ( Float, Float, Float, Float )
     | Event (Html.Attribute msg)
     | Attr (Html.Attribute msg)
+    | GridArea String
+    | GridCoords Internal.GridPosition
 
 
 type Decoration

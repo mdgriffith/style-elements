@@ -12,11 +12,6 @@ import Time
     (,)
 
 
-colorElement : ColorElement -> ( String, String )
-colorElement (ColorElement name val) =
-    ( name, Value.color val )
-
-
 visibility : Visible -> List ( String, String )
 visibility vis =
     case vis of
@@ -317,6 +312,168 @@ layout inline lay =
             )
                 :: direction dir
                 :: List.map (flexbox dir) flexProps
+
+        Internal.Grid (NamedGridTemplate { rows, columns }) options ->
+            let
+                grid =
+                    if inline then
+                        ("display" => "inline-grid")
+                    else
+                        ("display" => "grid")
+
+                renderLen len =
+                    case len of
+                        Px x ->
+                            toString x ++ "px"
+
+                        Percent x ->
+                            toString x ++ "%"
+
+                        Auto ->
+                            "auto"
+
+                        Fill i ->
+                            toString i ++ "fr"
+
+                alignment =
+                    List.map gridAlignment options
+
+                areaSpan (Named span maybeName) =
+                    let
+                        name =
+                            case maybeName of
+                                Nothing ->
+                                    "."
+
+                                Just str ->
+                                    str
+                    in
+                        case span of
+                            SpanAll ->
+                                List.repeat (List.length columns) name
+
+                            SpanJust i ->
+                                List.repeat i name
+
+                areasInRow areas =
+                    let
+                        quote str =
+                            "\"" ++ str ++ "\""
+
+                        areaStrs =
+                            List.concatMap areaSpan areas
+                    in
+                        if List.length areaStrs > List.length columns then
+                            let
+                                _ =
+                                    Debug.log "style-elements" "Named grid row (" ++ toString areas ++ ") is too big for this grid!"
+                            in
+                                areaStrs
+                                    |> List.map quote
+                                    |> String.join " "
+                        else if List.length areaStrs < List.length columns then
+                            let
+                                _ =
+                                    Debug.log "style-elements" "Named grid row (" ++ toString areas ++ ") doesn't have enough names to fit this grid!"
+                            in
+                                areaStrs
+                                    |> List.map quote
+                                    |> String.join " "
+                        else
+                            areaStrs
+                                |> List.map quote
+                                |> String.join " "
+
+                rowAreas rows =
+                    List.map areasInRow rows
+                        |> String.join "\n"
+            in
+                grid
+                    :: ( "grid-template-rows"
+                       , String.join " " <| List.map (renderLen << Tuple.first) rows
+                       )
+                    :: ( "grid-template-columns"
+                       , String.join " " <| List.map renderLen columns
+                       )
+                    :: ( "grid-template-areas"
+                       , String.join "\n" <| List.map (areasInRow << Tuple.second) rows
+                       )
+                    :: alignment
+
+        Internal.Grid (GridTemplate { rows, columns }) options ->
+            let
+                grid =
+                    if inline then
+                        ("display" => "inline-grid")
+                    else
+                        ("display" => "grid")
+
+                renderLen len =
+                    case len of
+                        Px x ->
+                            toString x ++ "px"
+
+                        Percent x ->
+                            toString x ++ "%"
+
+                        Auto ->
+                            "auto"
+
+                        Fill i ->
+                            toString i ++ "fr"
+
+                alignment =
+                    List.map gridAlignment options
+            in
+                grid
+                    :: ( "grid-template-rows"
+                       , String.join " " <| List.map renderLen rows
+                       )
+                    :: ( "grid-template-columns"
+                       , String.join " " <| List.map renderLen columns
+                       )
+                    :: alignment
+
+
+gridAlignment : GridAlignment -> ( String, String )
+gridAlignment align =
+    case align of
+        GridGap row column ->
+            "grid-gap" => (toString row ++ "px " ++ toString column ++ "px")
+
+        GridH horizontal ->
+            case horizontal of
+                Other Left ->
+                    "justify-items" => "flex-start"
+
+                Other Right ->
+                    "justify-items" => "flex-end"
+
+                Center ->
+                    "justify-items" => "center"
+
+                Justify ->
+                    "justify-items" => "stretch"
+
+                JustifyAll ->
+                    "justify-items" => "stretch"
+
+        GridV vertical ->
+            case vertical of
+                Other Top ->
+                    "align-items" => "flex-start"
+
+                Other Bottom ->
+                    "align-items" => "flex-end"
+
+                Center ->
+                    "align-items" => "center"
+
+                Justify ->
+                    "align-items" => "stretch"
+
+                JustifyAll ->
+                    "align-items" => "stretch"
 
 
 direction : Direction -> ( String, String )
