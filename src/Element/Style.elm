@@ -9,7 +9,6 @@ module Element.Style
         , Shadow
         , Transform
         , Filter
-        , ColorElement
         , GradientDirection
         , GradientStep
         , Edges
@@ -22,7 +21,6 @@ module Element.Style
         , background
         , shadows
         , border
-        , palette
         , paddingHint
         , transforms
         , filters
@@ -53,8 +51,6 @@ module Element.Style
 
 @docs cursor
 
-
-@docs palette, ColorElement
 
 @docs Border, border, Corners
 
@@ -130,11 +126,6 @@ type alias Transform =
 
 
 {-| -}
-type alias ColorElement =
-    Internal.ColorElement
-
-
-{-| -}
 type alias GradientDirection =
     Internal.GradientDirection
 
@@ -184,12 +175,6 @@ background bgs =
 font : List Font -> Property class variation animation
 font f =
     Internal.Font (Batchable.toList f)
-
-
-{-| -}
-palette : List ColorElement -> Property class variation animation
-palette colors =
-    Internal.Palette colors
 
 
 {-| You can give a hint about what the padding should be for this element, but the layout can override it.

@@ -83,6 +83,12 @@ mapPropClass fn prop =
         Palette p ->
             Palette p
 
+        TextColor color ->
+            TextColor color
+
+        DecorationPalette p ->
+            DecorationPalette p
+
         Transitions t ->
             Transitions t
 
@@ -103,12 +109,18 @@ type Property class variation animation
     | Transform (List Transformation)
     | Filters (List Filter)
     | Visibility Visible
-    | Palette (List ColorElement)
+    | TextColor Color
+    | DecorationPalette
+        { cursor : Maybe Color
+        , selection : Maybe Color
+        , decoration : Maybe Color
+        }
+    | Palette
+        { text : Color
+        , background : Color
+        , border : Color
+        }
     | Transitions (List Transition)
-
-
-type ColorElement
-    = ColorElement String Color
 
 
 type Transition
@@ -165,12 +177,46 @@ type FontElement
 type LayoutModel
     = TextLayout
     | FlexLayout Direction (List FlexBoxElement)
+    | Grid GridTemplate (List GridAlignment)
 
 
 type FlexBoxElement
     = Wrap Bool
     | Horz (Centerable Horizontal)
     | Vert (Centerable Vertical)
+
+
+type GridAlignment
+    = GridH (Centerable Horizontal)
+    | GridV (Centerable Vertical)
+    | GridGap Float Float
+
+
+type GridTemplate
+    = GridTemplate
+        { rows : List Length
+        , columns : List Length
+        }
+    | NamedGridTemplate
+        { rows : List ( Length, List NamedGridPosition )
+        , columns : List Length
+        }
+
+
+type GridPosition
+    = GridPosition
+        { rowRange : ( Int, Int )
+        , colRange : ( Int, Int )
+        }
+
+
+type NamedGridPosition
+    = Named SpanLength (Maybe String)
+
+
+type SpanLength
+    = SpanAll
+    | SpanJust Int
 
 
 type BackgroundElement
@@ -276,3 +322,4 @@ type Length
     = Px Float
     | Percent Float
     | Auto
+    | Fill Float

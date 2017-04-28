@@ -271,7 +271,41 @@ renderProp parentClass prop =
             Intermediate.props <| Render.filters filters
 
         Palette colors ->
-            Intermediate.props <| List.map Render.colorElement colors
+            Intermediate.props <|
+                [ "color" => Value.color colors.text
+                , "background-color" => Value.color colors.background
+                , "border-color" => Value.color colors.border
+                ]
+
+        DecorationPalette colors ->
+            case colors.selection of
+                Just selectionColor ->
+                    let
+                        props =
+                            List.filterMap identity
+                                [ Maybe.map (\clr -> "cursor-color" => Value.color clr) colors.cursor
+                                , Maybe.map (\clr -> "text-decoration-color" => Value.color clr) colors.decoration
+                                ]
+
+                        sub =
+                            Intermediate.Class
+                                { selector = Selector.pseudo "::selection" parentClass
+                                , props = [ Intermediate.props [ "background-color" => Value.color selectionColor ] ]
+                                }
+                    in
+                        Intermediate.PropsAndSub props sub
+
+                Nothing ->
+                    Intermediate.props <|
+                        List.filterMap identity
+                            [ Maybe.map (\clr -> "cursor-color" => Value.color clr) colors.cursor
+                            , Maybe.map (\clr -> "text-decoration-color" => Value.color clr) colors.decoration
+                            ]
+
+        TextColor color ->
+            Intermediate.props <|
+                [ "color" => Value.color color
+                ]
 
         Transitions trans ->
             Intermediate.props <|
@@ -342,7 +376,23 @@ renderVariationProp parentClass prop =
             (Just << Intermediate.props) <| Render.filters filters
 
         Palette colors ->
-            (Just << Intermediate.props) <| List.map Render.colorElement colors
+            (Just << Intermediate.props) <|
+                [ "color" => Value.color colors.text
+                , "background-color" => Value.color colors.background
+                , "border-color" => Value.color colors.border
+                ]
+
+        TextColor color ->
+            (Just << Intermediate.props) <|
+                [ "color" => Value.color color
+                ]
+
+        DecorationPalette colors ->
+            (Just << Intermediate.props) <|
+                List.filterMap identity
+                    [ Maybe.map (\clr -> "cursor-color" => Value.color clr) colors.cursor
+                    , Maybe.map (\clr -> "text-decoration-color" => Value.color clr) colors.decoration
+                    ]
 
         Transitions trans ->
             Just <|
