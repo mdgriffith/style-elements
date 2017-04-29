@@ -43,14 +43,13 @@ module Element.Style
 # Welcome to the Style Elements Library!
 
 
-@docs StyleSheet, Style,style,  Property
+@docs StyleSheet, Style, style, Property
 
 @docs variation
 
 @docs prop
 
 @docs cursor
-
 
 @docs Border, border, Corners
 

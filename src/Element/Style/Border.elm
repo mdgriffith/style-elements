@@ -1,4 +1,4 @@
-module Element.Style.Border exposing (color, width, rounded, solid, dashed, dotted)
+module Element.Style.Border exposing (width, rounded, solid, dashed, dotted)
 
 {-|
 @docs color, width, rounded, solid, dashed, dotted
@@ -7,13 +7,6 @@ module Element.Style.Border exposing (color, width, rounded, solid, dashed, dott
 import Element.Style.Internal.Model as Internal exposing (Property(..))
 import Element.Style.Internal.Render.Value as Render
 import Element.Style exposing (Border, Corners)
-import Color exposing (Color)
-
-
-{-| -}
-color : Color -> Border
-color borderColor =
-    Internal.BorderElement "border-color" (Render.color borderColor)
 
 
 {-| -}

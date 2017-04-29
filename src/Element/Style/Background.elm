@@ -3,15 +3,8 @@ module Element.Style.Background exposing (..)
 {-| -}
 
 import Element.Style.Internal.Model as Internal
-import Element.Style.Internal.Render.Value as Render
 import Color exposing (Color)
 import Element.Style exposing (Background, Repeat, GradientStep, GradientDirection)
-
-
-{-| -}
-color : Color -> Background
-color bgColor =
-    Internal.BackgroundElement "background-color" (Render.color bgColor)
 
 
 step : Color -> GradientStep
@@ -77,38 +70,7 @@ toAngle =
 
 
 {-|
-lnear gradient
 
-
-linear-gradient(red, orange);
-
-
- background-image:
-    linear-gradient(
-      to right,
-      red, #f06d06
-    );
-
-
- linear-gradient(
-      to top right,
-      red, #f06d06
-    );
-
-background-image:
-    linear-gradient(
-      45deg,
-      red, #f06d06
-    );
-
--- With Stops
-linear-gradient(
-      to right,
-      red,
-      #f06d06,
-      rgb(255, 255, 0),
-      green
-    );
 
 -}
 gradient : GradientDirection -> List GradientStep -> Background
