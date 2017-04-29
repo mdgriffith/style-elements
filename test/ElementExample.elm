@@ -8,6 +8,8 @@ import Element.Attributes exposing (..)
 import Html.Events
 import Element.Style exposing (..)
 import Element.Style.Background as Background
+import Element.Style.Font
+import Element.Style.Color
 import Element.Events exposing (..)
 import Color
 
@@ -32,7 +34,7 @@ view device model =
         , padding (all 20)
         ]
         [ full Test [] (text "wut?")
-        , row MyRow
+        , (section <| row) MyRow
             [ spacing 25 25
             , padding (all 12.5)
             ]
@@ -101,25 +103,17 @@ type Variations
 stylesheet =
     [ style UnStyled []
     , style MyRow
-        [ background
-            [ Background.color Color.purple
-            ]
+        [ Element.Style.Color.text Color.purple
         ]
     , style Test
-        [ background
-            [ Background.color Color.blue
-            ]
+        [ Element.Style.Color.text Color.blue
         , variation Success
-            [ background
-                [ Background.color Color.green
-                ]
+            [ Element.Style.Color.text Color.green
             ]
 
         -- , paddingHint (all 200)
         ]
     , style TestEmbed
-        [ background
-            [ Background.color Color.red
-            ]
+        [ Element.Style.Color.text Color.red
         ]
     ]

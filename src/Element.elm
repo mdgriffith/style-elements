@@ -6,6 +6,7 @@ import Html exposing (Html)
 import Html.Attributes
 import Element.Internal.Model exposing (..)
 import Element.Style.Internal.Model as Style exposing (Length)
+import Element.Attributes as Attr
 import Element.Style
 import Time exposing (Time)
 import Element.Device as Device exposing (Device)
@@ -115,7 +116,7 @@ image elem src attrs child =
     Element Html.img (Just elem) (Attr (Html.Attributes.src src) :: attrs) child Nothing
 
 
-{-| Creates a horizontal hairline.  The Color is set in the defaults of the stylesheet.
+{-| Creates a hairline horizontal.  The Color is set in the defaults of the stylesheet.
 
 If you want a horizontal rule that is something more specific, craft it with `el`!
 
@@ -126,17 +127,257 @@ hairline =
 
 
 
--- header :: List (Elm) -> List (Elm)
--- {-| Provides spcing as a multiple of the parent spacing -}
--- section
--- nav
--- article
--- aside
--- canvas
--- iframe
--- nav
--- audio : [Sources]
--- video : [sources]
+---------------------
+--- Semantic Markup
+---------------------
+
+
+node : String -> (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+node str constructor elem attrs stuff =
+    setNode (Html.node str) (constructor elem attrs stuff)
+
+
+header : (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+header constructor elem attrs stuff =
+    setNode Html.header (constructor elem attrs stuff)
+
+
+section : (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+section constructor elem attrs stuff =
+    setNode Html.section (constructor elem attrs stuff)
+
+
+nav : (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+nav constructor elem attrs stuff =
+    setNode Html.nav (constructor elem attrs stuff)
+
+
+article : (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+article constructor elem attrs stuff =
+    setNode Html.article (constructor elem attrs stuff)
+
+
+aside : (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+aside constructor elem attrs stuff =
+    setNode Html.aside (constructor elem attrs stuff)
+
+
+
+---------------------
+--- Specialized Elements
+---------------------
+
+
+canvas : (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+canvas constructor elem attrs stuff =
+    setNode Html.canvas (constructor elem attrs stuff)
+
+
+iframe : (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+iframe constructor elem attrs stuff =
+    setNode Html.iframe (constructor elem attrs stuff)
+
+
+audio : List (Attribute variation msg) -> List Source -> Element elem variation msg
+audio attrs sources =
+    let
+        renderSource source =
+            case source of
+                Source src kind ->
+                    (Element Html.source
+                        Nothing
+                        [ Attr.type_ kind
+                        , Attr.src src
+                        ]
+                        empty
+                        Nothing
+                    )
+    in
+        Element Html.video
+            Nothing
+            attrs
+            empty
+            (Just (List.map renderSource sources))
+
+
+video : List (Attribute variation msg) -> List Source -> Element elem variation msg
+video attrs sources =
+    let
+        renderSource source =
+            case source of
+                Source src kind ->
+                    (Element Html.source
+                        Nothing
+                        [ Attr.type_ kind
+                        , Attr.src src
+                        ]
+                        empty
+                        Nothing
+                    )
+    in
+        Element Html.video
+            Nothing
+            attrs
+            empty
+            (Just (List.map renderSource sources))
+
+
+type Source
+    = Source String String
+
+
+{-|
+Create a source for video or audio.
+
+Provide a src and a type.
+-}
+source : String -> String -> Source
+source =
+    Source
+
+
+
+---------------------
+--- Form and Input
+---------------------
+
+
+form : (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+form constructor elem attrs stuff =
+    setNode Html.form (constructor elem attrs stuff)
+
+
+{-| Create a labeled radio button.
+
+So, if you wanted to make some radio buttons to choose lunch, here's how it's look:
+
+```
+radio StyleClass [] "lunch" "burrito" True (text "A Burrito!")
+radio StyleClass [] "lunch" "taco" False (text "Some Tacos!")
+
+```
+
+__Advanced Note__
+This creates the following html:
+```
+<label class="styleClass" {attributes provided in arguments}>
+    <input type=radio name="lunch" value="burrito" />
+    A Burrito!
+</label>
+
+```
+
+Events are attached to the radio input element (to capture things like `onInput`, while all other attributes apply to the label element).
+
+
+-}
+radio : elem -> List (Attribute variation msg) -> String -> String -> Bool -> Element elem variation msg -> Element elem variation msg
+radio elem attrs group value on label =
+    let
+        ( events, other ) =
+            List.partition forEvents attrs
+
+        forEvents attr =
+            case attr of
+                Event ev ->
+                    True
+
+                _ ->
+                    False
+
+        attributes =
+            Attr.type_ "radio" :: Attr.name group :: Attr.value value :: Attr.checked on :: events
+
+        radioButton =
+            Element Html.input (Just elem) attributes empty Nothing
+    in
+        Element Html.label
+            (Just elem)
+            other
+            (paragraph elem
+                attributes
+                [ radioButton
+                , label
+                ]
+            )
+            Nothing
+
+
+{-| An automatically labeled checkbox.
+-}
+checkbox : elem -> List (Attribute variation msg) -> Bool -> Element elem variation msg -> Element elem variation msg
+checkbox elem attrs on label =
+    let
+        ( events, other ) =
+            List.partition forEvents attrs
+
+        forEvents attr =
+            case attr of
+                Event ev ->
+                    True
+
+                _ ->
+                    False
+
+        attributes =
+            Attr.type_ "checkbox" :: Attr.checked on :: events
+
+        checkedButton =
+            Element Html.input (Just elem) attributes empty Nothing
+    in
+        Element Html.label
+            (Just elem)
+            other
+            (paragraph elem
+                attributes
+                [ checkedButton
+                , label
+                ]
+            )
+            Nothing
+
+
+{-| For input elements that are not automatically labeled (checkbox, radiobutton, selection), this will attach a label above the element.
+
+label Label [] (text "check this out") <|
+    inputtext Style [] "The Value!"
+
+-}
+label : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg -> Element elem variation msg
+label elem attrs label input =
+    let
+        -- If naked text is provided, then flexbox won't work.
+        -- In that case we wrap it in a div.
+        containedLabel =
+            case label of
+                Text dec content ->
+                    Element Html.div Nothing [] (Text dec content) Nothing
+
+                l ->
+                    l
+    in
+        (node "label" <| column)
+            elem
+            attrs
+            [ label
+            , input
+            ]
+
+
+textarea : elem -> List (Attribute variation msg) -> String -> Element elem variation msg
+textarea elem attrs content =
+    Element Html.textarea (Just elem) attrs (text content) Nothing
+
+
+{-|
+
+labeled Label [] (text "check this out") <|
+    inputtext Style [] "The Value!"
+
+-}
+inputtext : elem -> List (Attribute variation msg) -> String -> Element elem variation msg
+inputtext elem attrs content =
+    Element Html.input (Just elem) (Attr.type_ "text" :: Attr.value content :: attrs) empty Nothing
 
 
 {-| A bulleted list.  Rendered as `<ul>`
@@ -150,7 +391,7 @@ list elem attrs children =
     Layout Html.ul (Style.FlexLayout Style.Down []) (Just elem) attrs (List.map (setNode Html.li) children)
 
 
-{-| A bulleted list.  Rendered as `<ol>`
+{-| A numbered list.  Rendered as `<ol>`
 
 A 'column' layout is implied.
 
@@ -236,6 +477,9 @@ named name el =
     NamedOnGrid el
 
 
+{-| Turn any element into a link.
+
+-}
 linked : String -> Element elem variation msg -> Element elem variation msg
 linked src el =
     Element Html.a Nothing [ Attr (Html.Attributes.href src), Attr (Html.Attributes.rel "noopener noreferrer") ] el Nothing
