@@ -140,35 +140,59 @@ renderElement parent stylesheet order elm =
 
         Element node element position child otherChildren ->
             let
-                childHtml =
-                    case otherChildren of
-                        Nothing ->
-                            let
-                                chil =
-                                    renderElement Nothing stylesheet FirstAndLast child
-                            in
-                                [ chil ]
+                ( centeredProps, others ) =
+                    List.partition (\attr -> attr == Align Center || attr == Align VerticalCenter) position
+            in
+                if not <| List.isEmpty centeredProps then
+                    let
+                        centered =
+                            case otherChildren of
+                                Nothing ->
+                                    Layout Html.div (Internal.FlexLayout Internal.GoRight []) Nothing centeredProps [ Element node element others child otherChildren ]
 
-                        Just others ->
-                            List.map (renderElement Nothing stylesheet FirstAndLast) (child :: others)
+                                Just children ->
+                                    Layout Html.div (Internal.FlexLayout Internal.GoRight []) Nothing centeredProps [ Element node element others child otherChildren ]
+                    in
+                        renderElement parent stylesheet order centered
+                else
+                    let
+                        childHtml =
+                            case otherChildren of
+                                Nothing ->
+                                    let
+                                        chil =
+                                            renderElement Nothing stylesheet FirstAndLast child
+                                    in
+                                        [ chil ]
+
+                                Just others ->
+                                    List.map (renderElement Nothing stylesheet FirstAndLast) (child :: others)
+
+                        attributes =
+                            case parent of
+                                Nothing ->
+                                    position
+
+                                Just ctxt ->
+                                    ctxt.inherited ++ position
+
+                        htmlAttrs =
+                            renderPositioned Single order element parent stylesheet (gather attributes)
+                    in
+                        node htmlAttrs childHtml
+
+        Layout node layout element position children ->
+            let
+                ( spacing, attrs ) =
+                    List.partition forSpacing position
 
                 attributes =
                     case parent of
                         Nothing ->
-                            position
+                            attrs
 
                         Just ctxt ->
-                            ctxt.inherited ++ position
-
-                htmlAttrs =
-                    renderPositioned Single order element parent stylesheet (gather attributes)
-            in
-                node htmlAttrs childHtml
-
-        Layout node layout element position children ->
-            let
-                ( spacing, attributes ) =
-                    List.partition forSpacing position
+                            ctxt.inherited ++ attrs
 
                 clearfix attrs =
                     case layout of
@@ -374,6 +398,12 @@ alignLayout alignment layout =
                 Bottom ->
                     Internal.Vert (Internal.Other Internal.Bottom)
 
+                Center ->
+                    Internal.Horz (Internal.Center)
+
+                VerticalCenter ->
+                    Internal.Vert (Internal.Center)
+
         alignGrid align =
             case align of
                 Left ->
@@ -387,6 +417,12 @@ alignLayout alignment layout =
 
                 Bottom ->
                     Internal.GridV (Internal.Other Internal.Bottom)
+
+                Center ->
+                    Internal.GridH (Internal.Center)
+
+                VerticalCenter ->
+                    Internal.GridV (Internal.Center)
     in
         case layout of
             Internal.TextLayout ->
@@ -436,6 +472,16 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
 
                             Right ->
                                 ( "right", "0" ) :: attrs
+
+                            Center ->
+                                -- If an element is centered,
+                                -- it would be transformed to a single element centered layout before hiting here
+                                attrs
+
+                            VerticalCenter ->
+                                -- If an element is centered,
+                                -- it would be transformed to a single element centered layout before hiting here
+                                attrs
                     else
                         case align of
                             Top ->
@@ -469,6 +515,12 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
 
                                     _ ->
                                         attrs
+
+                            Center ->
+                                attrs
+
+                            VerticalCenter ->
+                                attrs
 
         width attrs =
             case elem.width of
@@ -529,6 +581,14 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                 Just area ->
                     ( "grid-area", area ) :: attrs
 
+        spacing attrs =
+            case elem.spacing of
+                Nothing ->
+                    attrs
+
+                Just ( spaceX, spaceY ) ->
+                    ( "margin", toString spaceY ++ "px " ++ toString spaceX ++ "px" ) :: attrs
+
         defaults =
             [ "position" => "relative"
             , "box-sizing" => "border-box"
@@ -583,7 +643,9 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                                     ]
             in
                 (Html.Attributes.style
-                    (("box-sizing" => "border-box") :: (gridPos <| layout <| transparency <| width <| height <| positionAdjustment <| padding <| alignment <| frame))
+                    (("box-sizing" => "border-box")
+                        :: (gridPos <| layout <| spacing <| transparency <| width <| height <| positionAdjustment <| padding <| alignment <| frame)
+                    )
                 )
                     :: attributes
         else if elem.expand then
@@ -616,11 +678,11 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                                 ]
             in
                 (Html.Attributes.style
-                    (("box-sizing" => "border-box") :: (gridPos <| layout <| transparency <| positionAdjustment <| padding <| expandedProps))
+                    (("box-sizing" => "border-box") :: (gridPos <| layout <| spacing <| transparency <| positionAdjustment <| padding <| expandedProps))
                 )
                     :: attributes
         else
             (Html.Attributes.style
-                (gridPos <| layout <| transparency <| width <| height <| positionAdjustment <| padding <| alignment <| defaults)
+                (gridPos <| layout <| spacing <| transparency <| width <| height <| positionAdjustment <| padding <| alignment <| defaults)
             )
                 :: attributes

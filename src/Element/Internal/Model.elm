@@ -97,3 +97,5 @@ type Alignment
     | Right
     | Top
     | Bottom
+    | Center
+    | VerticalCenter

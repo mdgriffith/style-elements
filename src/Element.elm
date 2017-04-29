@@ -364,6 +364,30 @@ label elem attrs label input =
             ]
 
 
+{-| Same as `label`, but places the label below the input field.
+
+-}
+labelBelow : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg -> Element elem variation msg
+labelBelow elem attrs label input =
+    let
+        -- If naked text is provided, then flexbox won't work.
+        -- In that case we wrap it in a div.
+        containedLabel =
+            case label of
+                Text dec content ->
+                    Element Html.div Nothing [] (Text dec content) Nothing
+
+                l ->
+                    l
+    in
+        (node "label" <| column)
+            elem
+            attrs
+            [ input
+            , label
+            ]
+
+
 textarea : elem -> List (Attribute variation msg) -> String -> Element elem variation msg
 textarea elem attrs content =
     Element Html.textarea (Just elem) attrs (text content) Nothing
@@ -386,8 +410,8 @@ A 'column' layout is implied.
 
 Automatically sets children to use `<li>`
 -}
-list : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
-list elem attrs children =
+bullet : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
+bullet elem attrs children =
     Layout Html.ul (Style.FlexLayout Style.Down []) (Just elem) attrs (List.map (setNode Html.li) children)
 
 
@@ -477,19 +501,16 @@ named name el =
     NamedOnGrid el
 
 
-{-| Turn any element into a link.
+{-| Turn an element into a link.
 
+Changes an element's node to `<a>` and sets the href and rel properties.
 -}
 linked : String -> Element elem variation msg -> Element elem variation msg
 linked src el =
-    Element Html.a Nothing [ Attr (Html.Attributes.href src), Attr (Html.Attributes.rel "noopener noreferrer") ] el Nothing
-
-
-
--- centered : elem -> List (Attribute variation msg) -> Element elem variation -> Element elem variation
--- centered elem attrs child =
---     Element elem (HCenter :: attrs) child
---
+    el
+        |> setNode Html.a
+        |> addProp (Attr (Html.Attributes.href src))
+        |> addProp (Attr (Html.Attributes.rel "noopener noreferrer"))
 
 
 {-|
@@ -518,7 +539,7 @@ setNode node el =
             Element node elem attrs child otherChildren
 
         Text dec content ->
-            Text dec content
+            Element node Nothing [] (Text dec content) Nothing
 
 
 addProp : Attribute variation msg -> Element elem variation msg -> Element elem variation msg
@@ -663,6 +684,16 @@ screen (Anchored anchor el) =
 overlay : elem -> Int -> Element elem variation msg -> Element elem variation msg
 overlay bg opac child =
     (screen << topLeft) <| el bg [ width (percent 100), height (percent 100), opacity opac ] child
+
+
+alignCenter : Attribute variation msg
+alignCenter =
+    Align Center
+
+
+alignVerticalCenter : Attribute variation msg
+alignVerticalCenter =
+    Align VerticalCenter
 
 
 alignTop : Attribute variation msg
