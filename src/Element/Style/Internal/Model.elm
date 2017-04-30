@@ -19,6 +19,7 @@ type alias StyleSheet class variation animation msg =
 
 type Style class variation animation
     = Style class (List (Property class variation animation))
+    | RawStyle String (List ( String, String ))
     | Import String
 
 
@@ -30,6 +31,9 @@ mapClass fn style =
 
         Import str ->
             Import str
+
+        RawStyle str props ->
+            RawStyle str props
 
 
 mapPropClass : (class -> classB) -> Property class variation animation -> Property classB variation animation

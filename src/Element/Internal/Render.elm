@@ -20,40 +20,8 @@ render stylesheet elm =
     let
         html =
             renderElement Nothing stylesheet FirstAndLast elm
-
-        -- defaultTypeface =
-        --     (Render.class "default-typeface"
-        --         [ "font-family"
-        --             => (defaults.typeface
-        --                     |> List.map (\fam -> "\"" ++ fam ++ "\"")
-        --                     |> String.join ", "
-        --                )
-        --         , "color" => Value.color defaults.textColor
-        --         , "line-height" => toString defaults.lineHeight
-        --         , "font-size" => (toString defaults.fontSize ++ "px")
-        --         ]
-        --     )
-        -- withDefaults =
-        --     stylecache
-        --         |> StyleCache.embed "default-typeface"
-        --             (Render.class "default-typeface"
-        --                 [ "font-family"
-        --                     => (defaults.typeface
-        --                             |> List.map (\fam -> "\"" ++ fam ++ "\"")
-        --                             |> String.join ", "
-        --                        )
-        --                 , "color" => Value.color defaults.textColor
-        --                 , "line-height" => toString defaults.lineHeight
-        --                 , "font-size" => (toString defaults.fontSize ++ "px")
-        --                 ]
-        --             )
-        --         |> StyleCache.embed "default-spacing"
-        --             (Render.class "default-spacing > *:not(.nospacing)"
-        --                 [ "margin" => Value.box defaults.spacing
-        --                 ]
-        --             )
     in
-        Html.div [ Html.Attributes.class "default-typeface" ]
+        Html.div [ Html.Attributes.class "style-elements-root" ]
             [ Html.node "style" [] [ Html.text stylesheet.css ]
             , html
             ]

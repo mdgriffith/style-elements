@@ -18,7 +18,6 @@ type alias Defaults =
     { typeface : List String
     , fontSize : Float
     , lineHeight : Float
-    , spacing : ( Float, Float, Float, Float )
     , textColor : Color
     }
 

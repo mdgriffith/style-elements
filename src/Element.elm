@@ -6,6 +6,8 @@ import Html exposing (Html)
 import Html.Attributes
 import Element.Internal.Model exposing (..)
 import Element.Style.Internal.Model as Style exposing (Length)
+import Element.Style.Internal.Render.Value as Value
+import Element.Style.Internal.Batchable as Batchable exposing (Batchable)
 import Element.Attributes as Attr
 import Element.Style
 import Time exposing (Time)
@@ -23,24 +25,129 @@ type alias StyleSheet class variation animation msg =
     Style.StyleSheet class variation animation msg
 
 
-defaults : Defaults
-defaults =
-    { typeface = [ "georgia" ]
+presetDefaults : Defaults
+presetDefaults =
+    { typeface = [ "calibri", "helvetica", "arial", "sans-serif" ]
     , fontSize = 16
-    , lineHeight = 1.7
-    , spacing = ( 10, 10, 10, 10 )
+    , lineHeight = 1.3
     , textColor = Color.black
     }
 
 
+reset : String
+reset =
+    """
+/* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video, hr {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+body {
+  line-height: 1;
+}
+ol, ul {
+  list-style: none;
+}
+blockquote, q {
+  quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+  content: '';
+  content: none;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+/** Borrowed from Normalize.css **/
+
+/**
+ * Prevent `sub` and `sup` elements from affecting the line height in
+ * all browsers.
+ */
+
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+sup {
+  top: -0.5em;
+}
+"""
+
+
 stylesheet : List (Element.Style.Style elem variation animation) -> StyleSheet elem variation animation msg
 stylesheet styles =
-    Element.Style.Sheet.render styles
+    let
+        defaults =
+            Batchable.One
+                (Style.RawStyle "style-elements-root"
+                    [ ( "font-family", Value.typeface presetDefaults.typeface )
+                    , ( "color", Value.color presetDefaults.textColor )
+                    , ( "line-height", toString presetDefaults.lineHeight )
+                    , ( "font-size", toString presetDefaults.fontSize ++ "px" )
+                    ]
+                )
+
+        stylesheet =
+            Element.Style.Sheet.render
+                (defaults :: styles)
+    in
+        { stylesheet | css = reset ++ stylesheet.css }
 
 
 stylesheetWith : Defaults -> List (Element.Style.Style elem variation animation) -> StyleSheet elem variation animation msg
-stylesheetWith defaults styles =
-    Element.Style.Sheet.render styles
+stylesheetWith defaultProps styles =
+    let
+        defaults =
+            Batchable.One
+                (Style.RawStyle "style-elements-root"
+                    [ ( "font-family", Value.typeface defaultProps.typeface )
+                    , ( "color", Value.color defaultProps.textColor )
+                    , ( "line-height", toString defaultProps.lineHeight )
+                    , ( "font-size", toString defaultProps.fontSize ++ "px" )
+                    ]
+                )
+
+        stylesheet =
+            Element.Style.Sheet.render
+                (defaults :: styles)
+    in
+        { stylesheet | css = reset ++ stylesheet.css }
 
 
 {-|
@@ -130,9 +237,9 @@ image elem src attrs child =
 If you want a horizontal rule that is something more specific, craft it with `el`!
 
 -}
-hairline : Element elem variation msg
-hairline =
-    Element Html.hr Nothing (width (percent 100) :: height (px 1) :: []) empty Nothing
+hairline : elem -> Element elem variation msg
+hairline elem =
+    Element Html.hr (Just elem) (height (px 1) :: []) empty Nothing
 
 
 

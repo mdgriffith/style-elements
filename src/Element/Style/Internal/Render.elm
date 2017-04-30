@@ -77,6 +77,9 @@ preprocess style =
         Internal.Import str ->
             Internal.Import str
 
+        Internal.RawStyle cls props ->
+            Internal.RawStyle cls props
+
         Internal.Style class props ->
             let
                 visible prop =
@@ -184,6 +187,9 @@ renderStyle guarded style =
     case style of
         Internal.Import str ->
             Intermediate.Free <| "@import " ++ str ++ ";"
+
+        Internal.RawStyle cls props ->
+            Intermediate.Free <| class cls props
 
         Internal.Style class props ->
             let
