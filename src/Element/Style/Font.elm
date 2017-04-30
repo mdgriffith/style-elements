@@ -43,6 +43,7 @@ module Element.Style.Font
 
 import Element.Style.Internal.Model as Internal
 import Element.Style.Internal.Batchable as Batchable
+import Element.Style.Internal.Render.Value as Value
 import Element.Style exposing (Font)
 import String
 
@@ -143,9 +144,7 @@ mix =
 -}
 typeface : List String -> Font
 typeface families =
-    families
-        |> List.map (\fam -> "\"" ++ fam ++ "\"")
-        |> \fams -> Batchable.One <| Internal.FontElement "font-family" (String.join ", " fams)
+    Batchable.One <| Internal.FontElement "font-family" (Value.typeface families)
 
 
 {-| Set font-size.  Only px allowed.

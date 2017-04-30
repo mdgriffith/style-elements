@@ -74,3 +74,9 @@ gridPosition (GridPosition { rowRange, colRange }) =
             , toString rowEnd
             , toString colEnd
             ]
+
+
+typeface families =
+    families
+        |> List.map (\fam -> "\"" ++ fam ++ "\"")
+        |> String.join ", "
