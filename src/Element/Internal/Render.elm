@@ -183,70 +183,81 @@ renderElement parent stylesheet order elm =
 
         Layout node layout element position children ->
             let
-                ( spacing, attrs ) =
-                    List.partition forSpacing position
-
-                attributes =
-                    case parent of
-                        Nothing ->
-                            attrs
-
-                        Just ctxt ->
-                            ctxt.inherited ++ attrs
-
-                clearfix attrs =
-                    case layout of
-                        Internal.TextLayout ->
-                            Html.Attributes.class "clearfix" :: attrs
-
-                        _ ->
-                            attrs
-
-                forSpacing posAttr =
-                    case posAttr of
-                        Spacing _ _ ->
-                            True
-
-                        _ ->
-                            False
-
-                forPadding posAttr =
-                    case posAttr of
-                        Padding box ->
-                            Just box
-
-                        _ ->
-                            Nothing
-
-                padding =
-                    case List.head (List.filterMap forPadding attributes) of
-                        Nothing ->
-                            ( 0, 0, 0, 0 )
-
-                        Just pad ->
-                            pad
-
-                childHtml =
-                    List.indexedMap
-                        (\i child ->
-                            renderElement
-                                (Just
-                                    { inherited = spacing
-                                    , layout = layout
-                                    , parentPadding = padding
-                                    }
-                                )
-                                stylesheet
-                                (detectOrder children i)
-                                child
-                        )
-                        children
-
-                htmlAttrs =
-                    renderPositioned (LayoutElement layout) order element parent stylesheet (gather attributes)
-                        |> clearfix
+                ( centeredProps, others ) =
+                    List.partition (\attr -> attr == Align Center || attr == Align VerticalCenter) position
             in
-                node (htmlAttrs) childHtml
+                if layout == Internal.TextLayout && (not <| List.isEmpty centeredProps) then
+                    let
+                        centered =
+                            Layout Html.div (Internal.FlexLayout Internal.GoRight []) Nothing centeredProps [ Layout node layout element others children ]
+                    in
+                        renderElement parent stylesheet order centered
+                else
+                    let
+                        ( spacing, attrs ) =
+                            List.partition forSpacing position
+
+                        attributes =
+                            case parent of
+                                Nothing ->
+                                    attrs
+
+                                Just ctxt ->
+                                    ctxt.inherited ++ attrs
+
+                        clearfix attrs =
+                            case layout of
+                                Internal.TextLayout ->
+                                    Html.Attributes.class "clearfix" :: attrs
+
+                                _ ->
+                                    attrs
+
+                        forSpacing posAttr =
+                            case posAttr of
+                                Spacing _ _ ->
+                                    True
+
+                                _ ->
+                                    False
+
+                        forPadding posAttr =
+                            case posAttr of
+                                Padding box ->
+                                    Just box
+
+                                _ ->
+                                    Nothing
+
+                        padding =
+                            case List.head (List.filterMap forPadding attributes) of
+                                Nothing ->
+                                    ( 0, 0, 0, 0 )
+
+                                Just pad ->
+                                    pad
+
+                        childHtml =
+                            List.indexedMap
+                                (\i child ->
+                                    renderElement
+                                        (Just
+                                            { inherited = spacing
+                                            , layout = layout
+                                            , parentPadding = padding
+                                            }
+                                        )
+                                        stylesheet
+                                        (detectOrder children i)
+                                        child
+                                )
+                                children
+
+                        htmlAttrs =
+                            renderPositioned (LayoutElement layout) order element parent stylesheet (gather attributes)
+                                |> clearfix
+                    in
+                        node (htmlAttrs) childHtml
 
 
 renderAnchor : Anchor -> List ( String, String )
@@ -441,7 +452,10 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
         layout attrs =
             case elType of
                 Single ->
-                    ( "display", "inline-block" ) :: attrs
+                    if elem.inline then
+                        ( "display", "inline" ) :: attrs
+                    else
+                        ( "display", "block" ) :: attrs
 
                 LayoutElement lay ->
                     case elem.alignment of
@@ -475,12 +489,12 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
 
                             Center ->
                                 -- If an element is centered,
-                                -- it would be transformed to a single element centered layout before hiting here
+                                -- it would be transformed to a single element centered layout before hitting here
                                 attrs
 
                             VerticalCenter ->
                                 -- If an element is centered,
-                                -- it would be transformed to a single element centered layout before hiting here
+                                -- it would be transformed to a single element centered layout before hitting here
                                 attrs
                     else
                         case align of
@@ -565,14 +579,6 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                     )
                         :: attrs
 
-        gridName attrs =
-            case elem.gridPosition of
-                Nothing ->
-                    attrs
-
-                Just area ->
-                    ( "grid-area", area ) :: attrs
-
         gridPos attrs =
             case elem.gridPosition of
                 Nothing ->
@@ -586,8 +592,62 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                 Nothing ->
                     attrs
 
-                Just ( spaceX, spaceY ) ->
-                    ( "margin", toString spaceY ++ "px " ++ toString spaceX ++ "px" ) :: attrs
+                Just space ->
+                    ( "margin", Value.box <| adjustspacing space ) :: attrs
+
+        -- When an element is floated, it's spacing is affected
+        adjustspacing ( spaceX, spaceY ) =
+            let
+                unchanged =
+                    ( spaceY, spaceX, spaceY, spaceX )
+            in
+                case parent of
+                    Nothing ->
+                        unchanged
+
+                    Just { layout } ->
+                        case layout of
+                            Internal.TextLayout ->
+                                case elem.alignment of
+                                    Nothing ->
+                                        if order == Last || order == FirstAndLast then
+                                            ( 0, 0, 0, 0 )
+                                        else
+                                            ( 0, 0, spaceY, 0 )
+
+                                    Just align ->
+                                        if not elem.inline && elem.frame == Nothing then
+                                            case align of
+                                                Left ->
+                                                    if order == First then
+                                                        ( 0, spaceX, spaceY, 0 )
+                                                    else if order == FirstAndLast then
+                                                        ( 0, spaceX, 0, 0 )
+                                                    else if order == Last then
+                                                        ( spaceY, spaceX, 0, 0 )
+                                                    else
+                                                        ( spaceY, spaceX, spaceY, 0 )
+
+                                                Right ->
+                                                    if order == First then
+                                                        ( 0, 0, spaceY, spaceX )
+                                                    else if order == FirstAndLast then
+                                                        ( 0, 0, 0, spaceX )
+                                                    else if order == Last then
+                                                        ( spaceY, 0, 0, spaceX )
+                                                    else
+                                                        ( spaceY, 0, spaceY, spaceX )
+
+                                                _ ->
+                                                    if order == Last || order == FirstAndLast then
+                                                        ( 0, 0, 0, 0 )
+                                                    else
+                                                        ( 0, 0, spaceY, 0 )
+                                        else
+                                            unchanged
+
+                            _ ->
+                                unchanged
 
         defaults =
             [ "position" => "relative"
@@ -664,7 +724,6 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                                     parentPadding
                             in
                                 [ "width" => ("calc(100% + " ++ toString (right + left) ++ "px")
-                                , "height" => ("calc(100% + " ++ toString (top + bottom) ++ "px")
                                 , "margin" => "0"
                                 , "margin-left" => (toString (-1 * left) ++ "px")
                                 , if order == First || order == FirstAndLast then
