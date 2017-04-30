@@ -5,15 +5,15 @@ module Element exposing (..)
 import Html exposing (Html)
 import Html.Attributes
 import Element.Internal.Model exposing (..)
-import Element.Style.Internal.Model as Style exposing (Length)
-import Element.Style.Internal.Render.Value as Value
-import Element.Style.Internal.Batchable as Batchable exposing (Batchable)
-import Element.Attributes as Attr
-import Element.Style
-import Time exposing (Time)
+import Style exposing (Style)
+import Style.Internal.Model as Style exposing (Length)
+import Style.Internal.Render.Value as Value
+import Style.Internal.Batchable as Batchable exposing (Batchable)
 import Element.Device as Device exposing (Device)
+import Element.Attributes as Attr
 import Element.Internal.Render as Render
-import Element.Style.Sheet
+import Style.Sheet
+import Time exposing (Time)
 import Task
 import Window
 import Color exposing (Color)
@@ -115,7 +115,7 @@ a {
 """
 
 
-stylesheet : List (Element.Style.Style elem variation animation) -> StyleSheet elem variation animation msg
+stylesheet : List (Style elem variation animation) -> StyleSheet elem variation animation msg
 stylesheet styles =
     let
         defaults =
@@ -129,13 +129,13 @@ stylesheet styles =
                 )
 
         stylesheet =
-            Element.Style.Sheet.render
+            Style.Sheet.render
                 (defaults :: styles)
     in
         { stylesheet | css = reset ++ stylesheet.css }
 
 
-stylesheetWith : Defaults -> List (Element.Style.Style elem variation animation) -> StyleSheet elem variation animation msg
+stylesheetWith : Defaults -> List (Style elem variation animation) -> StyleSheet elem variation animation msg
 stylesheetWith defaultProps styles =
     let
         defaults =
@@ -149,7 +149,7 @@ stylesheetWith defaultProps styles =
                 )
 
         stylesheet =
-            Element.Style.Sheet.render
+            Style.Sheet.render
                 (defaults :: styles)
     in
         { stylesheet | css = reset ++ stylesheet.css }

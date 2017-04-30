@@ -1,4 +1,4 @@
-module Element.Style.Font
+module Style.Font
     exposing
         ( FontScale(..)
         , scale
@@ -33,7 +33,7 @@ module Element.Style.Font
 
 @docs typeface, size, height, letterSpacing, wordSpacing, left, right, center, justify, justifyAll
 
-@docs FontScale, scale
+@docs FontScale, scale, scaleSeparately
 
 @docs wrap, pre, preWrap, preLine, noWrap
 
@@ -41,11 +41,10 @@ module Element.Style.Font
 
 -}
 
-import Element.Style.Internal.Model as Internal
-import Element.Style.Internal.Batchable as Batchable
-import Element.Style.Internal.Render.Value as Value
-import Element.Style exposing (Font)
-import String
+import Style.Internal.Model as Internal
+import Style.Internal.Batchable as Batchable
+import Style.Internal.Render.Value as Value
+import Style exposing (Property, Font)
 
 
 {-|
@@ -74,22 +73,34 @@ So, define  `fontsize = scale 16 1.618` somewhere and then in your stylesheet yo
 `1.618` is a [great place to start for a ratio](https://en.wikipedia.org/wiki/Golden_ratio)!
 
 -}
-scale : Float -> Float -> FontScale -> Font
+scale : Float -> Float -> FontScale -> Property class variation animation
 scale normal ratio fontScale =
-    Batchable.Many
-        [ Internal.FontElement "font-size" (toString (round <| resize normal ratio fontScale) ++ "px")
-        , Internal.FontElement "line-height" (toString ratio)
-        ]
+    let
+        ( size, lineHeight ) =
+            resize normal ratio fontScale
+    in
+        Style.font
+            [ Batchable.Many
+                [ Internal.FontElement "font-size" (toString (round size) ++ "px")
+                , Internal.FontElement "line-height" (toString lineHeight)
+                ]
+            ]
 
 
 {-| Scale font size and line height separately
 -}
-scaleSeparately : Float -> Float -> Float -> FontScale -> Font
+scaleSeparately : Float -> Float -> Float -> FontScale -> Property class variation animation
 scaleSeparately lineHeight normal ratio fontScale =
-    Batchable.Many
-        [ Internal.FontElement "font-size" (toString (round <| resize normal ratio fontScale) ++ "px")
-        , Internal.FontElement "line-height" (toString lineHeight)
-        ]
+    let
+        ( size, _ ) =
+            resize normal ratio fontScale
+    in
+        Style.font
+            [ Batchable.Many
+                [ Internal.FontElement "font-size" (toString (round size) ++ "px")
+                , Internal.FontElement "line-height" (toString lineHeight)
+                ]
+            ]
 
 
 grow : Float -> Int -> Float -> Float
@@ -108,29 +119,29 @@ shrink ratio i size =
         shrink ratio (i - 1) (size / ratio)
 
 
-resize : Float -> Float -> FontScale -> Float
+resize : Float -> Float -> FontScale -> ( Float, Float )
 resize normal ratio fontScale =
     case fontScale of
         Mini ->
-            shrink ratio 3 normal
+            ( shrink ratio 3 normal, ratio )
 
         Tiny ->
-            shrink ratio 2 normal
+            ( shrink ratio 2 normal, ratio )
 
         Small ->
-            shrink ratio 1 normal
+            ( shrink ratio 1 normal, ratio )
 
         Normal ->
-            normal
+            ( normal, ratio )
 
         Large ->
-            grow ratio 1 normal
+            ( grow ratio 1 normal, ratio )
 
         Big ->
-            grow ratio 2 normal
+            ( grow ratio 2 normal, ratio )
 
         Huge ->
-            grow ratio 3 normal
+            ( grow ratio 3 normal, ratio )
 
 
 {-|

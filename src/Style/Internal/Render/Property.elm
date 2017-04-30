@@ -1,9 +1,9 @@
-module Element.Style.Internal.Render.Property exposing (..)
+module Style.Internal.Render.Property exposing (..)
 
 {-| -}
 
-import Element.Style.Internal.Model as Internal exposing (..)
-import Element.Style.Internal.Render.Value as Value
+import Style.Internal.Model as Internal exposing (..)
+import Style.Internal.Render.Value as Value
 import Time
 
 

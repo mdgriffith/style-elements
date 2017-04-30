@@ -1,4 +1,4 @@
-module Element.Style.Color exposing (text, palette, decorations)
+module Style.Color exposing (text, palette, decorations)
 
 {-|
 
@@ -6,9 +6,9 @@ module Element.Style.Color exposing (text, palette, decorations)
 
 -}
 
-import Element.Style.Internal.Model as Internal
+import Style.Internal.Model as Internal
 import Color exposing (Color)
-import Element.Style exposing (Property)
+import Style exposing (Property)
 
 
 text : Color -> Property class variation animation

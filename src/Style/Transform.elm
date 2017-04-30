@@ -1,4 +1,4 @@
-module Element.Style.Transform exposing (origin, rotate, translate, scale)
+module Style.Transform exposing (origin, rotate, translate, scale)
 
 {-|
 
@@ -8,8 +8,8 @@ module Element.Style.Transform exposing (origin, rotate, translate, scale)
 
 -}
 
-import Element.Style exposing (Transform)
-import Element.Style.Internal.Model as Internal
+import Style exposing (Transform)
+import Style.Internal.Model as Internal
 
 
 {-| Always rendered as px

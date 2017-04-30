@@ -105,8 +105,7 @@ view device model =
                 ]
                 (text "style-elements")
             , textLayout UnStyled
-                [ el (Image "style-elements.gif") [ alignLeft ] []
-                , paragraph Success
+                [ paragraph Success
                     []
                     [ bold "Well done! "
                     , text "You've successfully read "

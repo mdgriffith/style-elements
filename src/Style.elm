@@ -1,4 +1,4 @@
-module Element.Style
+module Style
     exposing
         ( Style
         , Property
@@ -43,7 +43,7 @@ module Element.Style
 # Welcome to the Style Elements Library!
 
 
-@docs StyleSheet, Style, style, Property
+@docs Style, style, Property
 
 @docs variation
 
@@ -53,7 +53,7 @@ module Element.Style
 
 @docs Border, border, Corners
 
-@docs marginHint, Edges
+@docs paddingHint, Edges
 
 @docs Shadow, shadows
 
@@ -69,9 +69,9 @@ module Element.Style
 
 -}
 
-import Element.Style.Internal.Model as Internal
-import Element.Style.Internal.Render.Value as Value
-import Element.Style.Internal.Batchable as Batchable exposing (Batchable)
+import Style.Internal.Model as Internal
+import Style.Internal.Render.Value as Value
+import Style.Internal.Batchable as Batchable exposing (Batchable)
 
 
 {-| -}

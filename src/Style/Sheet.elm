@@ -1,4 +1,4 @@
-module Element.Style.Sheet exposing (render, renderWith, guard, critical, merge, map, mix)
+module Style.Sheet exposing (render, renderWith, guard, critical, merge, map, mix)
 
 {-|
 
@@ -6,12 +6,12 @@ module Element.Style.Sheet exposing (render, renderWith, guard, critical, merge,
 
 -}
 
-import Element.Style.Internal.Model as Internal exposing (StyleSheet)
-import Element.Style.Internal.Render as Render
-import Element.Style.Internal.Find as Find
-import Element.Style.Internal.Batchable as Batchable
-import Element.Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
-import Element.Style exposing (Style)
+import Style.Internal.Model as Internal exposing (StyleSheet)
+import Style.Internal.Render as Render
+import Style.Internal.Find as Find
+import Style.Internal.Batchable as Batchable
+import Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
+import Style exposing (Style)
 import Html.Attributes
 
 

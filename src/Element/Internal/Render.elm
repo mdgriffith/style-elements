@@ -4,10 +4,10 @@ module Element.Internal.Render exposing (..)
 
 import Html exposing (Html)
 import Html.Attributes
-import Element.Style.Internal.Model as Internal exposing (Length)
-import Element.Style.Internal.Render.Value as Value
-import Element.Style.Internal.Render.Property as Property
 import Element.Internal.Model exposing (..)
+import Style.Internal.Model as Internal exposing (Length)
+import Style.Internal.Render.Value as Value
+import Style.Internal.Render.Property as Property
 
 
 (=>) : a -> b -> ( a, b )

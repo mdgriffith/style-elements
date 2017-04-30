@@ -1,12 +1,12 @@
-module Element.Style.Transitions exposing (all, performant, transitions)
+module Style.Transitions exposing (all, performant, transitions)
 
 {-|
 @docs all, performant, transitions
 
 -}
 
-import Element.Style.Internal.Model as Internal
-import Element.Style exposing (Property)
+import Style.Internal.Model as Internal
+import Style exposing (Property)
 import Time exposing (Time)
 
 

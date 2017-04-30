@@ -1,4 +1,4 @@
-module Element.Style.Internal.Find exposing (Element(..), Findable, style, variation, toVariation)
+module Style.Internal.Find exposing (Element(..), Findable, style, variation, toVariation)
 
 {-| -}
 

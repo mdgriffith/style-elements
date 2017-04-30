@@ -1,4 +1,4 @@
-module Element.Style.Shadow exposing (box, drop, inset, text)
+module Style.Shadow exposing (box, drop, inset, text)
 
 {-|
 
@@ -7,8 +7,8 @@ module Element.Style.Shadow exposing (box, drop, inset, text)
 -}
 
 import Color exposing (Color)
-import Element.Style.Internal.Model as Internal
-import Element.Style exposing (Shadow)
+import Style.Internal.Model as Internal
+import Style exposing (Shadow)
 
 
 {-| -}

@@ -1,10 +1,10 @@
-module Element.Style.Background exposing (..)
+module Style.Background exposing (..)
 
 {-| -}
 
-import Element.Style.Internal.Model as Internal
+import Style.Internal.Model as Internal
 import Color exposing (Color)
-import Element.Style exposing (Background, Repeat, GradientStep, GradientDirection)
+import Style exposing (Background, Repeat, GradientStep, GradientDirection)
 
 
 step : Color -> GradientStep

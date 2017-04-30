@@ -1,4 +1,4 @@
-module Element.Style.Internal.Batchable exposing (..)
+module Style.Internal.Batchable exposing (..)
 
 {-| -}
 
