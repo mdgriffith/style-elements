@@ -198,28 +198,14 @@ super =
     Text Super
 
 
-{-| Paragraph is actually a layout, if you can believe it!
-
-All of the children are set to 'inline-block' if they are not already text elements.
-
--}
-paragraph : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
-paragraph elem attrs children =
-    let
-        ( child, others ) =
-            case children of
-                [] ->
-                    ( empty, Nothing )
-
-                child :: others ->
-                    ( addPropToNonText Inline child, Just <| List.map (addPropToNonText Inline) others )
-    in
-        Element Html.p (Just elem) attrs child others
-
-
 el : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
 el elem attrs child =
     Element Html.div (Just elem) attrs child Nothing
+
+
+circle : Float -> elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
+circle radius elem attrs child =
+    Element Html.div (Just elem) (Attr (Html.Attributes.style [ ( "border-radius", toString radius ++ "px" ) ]) :: width (px (2 * radius)) :: height (px (2 * radius)) :: attrs) child Nothing
 
 
 {-| Define a spacer in terms of a multiple of it's spacing.
@@ -557,6 +543,25 @@ textLayout elem attrs children =
     Layout Html.div (Style.TextLayout) (Just elem) attrs children
 
 
+{-| Paragraph is actually a layout, if you can believe it!
+
+All of the children are set to 'inline-block' if they are not already text elements.
+
+-}
+paragraph : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
+paragraph elem attrs children =
+    let
+        ( child, others ) =
+            case children of
+                [] ->
+                    ( empty, Nothing )
+
+                child :: others ->
+                    ( addPropToNonText Inline child, Just <| List.map (addPropToNonText Inline) others )
+    in
+        Element Html.p (Just elem) attrs child others
+
+
 row : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 row elem attrs children =
     Layout Html.div (Style.FlexLayout Style.GoRight []) (Just elem) attrs children
@@ -865,6 +870,16 @@ alignRight =
 {- Layout Attributes -}
 
 
+{-| Adjust the position of the element.
+
+Arguemnts are given as x and y coordinates, where positive is right and down.
+
+-}
+move : Int -> Int -> Attribute variation msg
+move =
+    Position
+
+
 {-| -}
 width : Length -> Attribute variation msg
 width =
@@ -883,14 +898,10 @@ px =
     Style.Px
 
 
-{-| Adjust the position of the element.
-
-Arguemnts are given as x and y coordinates, where positive is right and down.
-
--}
-move : Int -> Int -> Attribute variation msg
-move =
-    Position
+{-| -}
+fill : Float -> Length
+fill =
+    Style.Fill
 
 
 {-| -}

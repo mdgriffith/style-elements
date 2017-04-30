@@ -25,6 +25,38 @@ visibility vis =
             [ ( "opacity", toString x ) ]
 
 
+flexWidth : Length -> ( String, String )
+flexWidth l =
+    case l of
+        Px x ->
+            ( "width", toString x ++ "px" )
+
+        Percent x ->
+            ( "width", toString x ++ "%" )
+
+        Auto ->
+            ( "width", "auto" )
+
+        Fill i ->
+            ( "flex-grow", toString i )
+
+
+flexHeight : Length -> ( String, String )
+flexHeight l =
+    case l of
+        Px x ->
+            ( "height", toString x ++ "px" )
+
+        Percent x ->
+            ( "height", toString x ++ "%" )
+
+        Auto ->
+            ( "height", "auto" )
+
+        Fill i ->
+            ( "flex-grow", toString i )
+
+
 filters : List Filter -> List ( String, String )
 filters filters =
     let

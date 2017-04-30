@@ -544,7 +544,20 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                     attrs
 
                 Just len ->
-                    ( "width", Value.length len ) :: attrs
+                    case parent of
+                        Just { layout } ->
+                            case layout of
+                                Internal.FlexLayout Internal.GoRight _ ->
+                                    Property.flexWidth len :: attrs
+
+                                Internal.FlexLayout Internal.GoLeft _ ->
+                                    Property.flexWidth len :: attrs
+
+                                _ ->
+                                    ( "width", Value.length len ) :: attrs
+
+                        Nothing ->
+                            ( "width", Value.length len ) :: attrs
 
         height attrs =
             case elem.height of
@@ -552,7 +565,20 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                     attrs
 
                 Just len ->
-                    ( "height", Value.length len ) :: attrs
+                    case parent of
+                        Just { layout } ->
+                            case layout of
+                                Internal.FlexLayout Internal.Down _ ->
+                                    Property.flexHeight len :: attrs
+
+                                Internal.FlexLayout Internal.Up _ ->
+                                    Property.flexHeight len :: attrs
+
+                                _ ->
+                                    ( "height", Value.length len ) :: attrs
+
+                        Nothing ->
+                            ( "height", Value.length len ) :: attrs
 
         transparency attrs =
             case elem.transparency of

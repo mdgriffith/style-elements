@@ -29,7 +29,7 @@ main =
 
 
 view device model =
-    textView
+    exampleNavMenu
 
 
 columnView =
@@ -75,9 +75,12 @@ exampleNavMenu =
             [ el UnStyled [] (text "Logo")
             ]
         , row UnStyled
-            [ spacing 20 10 ]
+            [ spacing 20 10
+            , width (fill 1)
+            ]
             [ el UnStyled [] (text "Options")
             , el UnStyled [] (text "Profile")
+            , circle 25 Test [] empty
             ]
         ]
 
@@ -247,22 +250,6 @@ mainFont =
 
 fullFont i =
     i * (16 * 1.3)
-
-
-
--- _ =
---     Debug.log "full - large" (mainFont (Font.Full 2 Font.Normal))
--- testFont =
---     Font.scaleByLineHeight 20 (1 / 1.3)
--- mainFont
--- _ =
---     Debug.log "large" (mainFont Font.Large)
--- _ =
---     Debug.log "big" (mainFont Font.Big)
--- _ =
---     Debug.log "huge" (mainFont Font.Huge)
--- 16
--- 1.3
 
 
 stylesheet =
