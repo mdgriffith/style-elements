@@ -98,3 +98,4 @@ type Alignment
     | Bottom
     | Center
     | VerticalCenter
+    | Justify

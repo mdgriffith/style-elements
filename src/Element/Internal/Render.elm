@@ -383,6 +383,9 @@ alignLayout alignment layout =
                 VerticalCenter ->
                     Internal.Vert (Internal.Center)
 
+                Justify ->
+                    Internal.Horz (Internal.Justify)
+
         alignGrid align =
             case align of
                 Left ->
@@ -402,6 +405,9 @@ alignLayout alignment layout =
 
                 VerticalCenter ->
                     Internal.GridV (Internal.Center)
+
+                Justify ->
+                    Internal.GridH (Internal.Justify)
     in
         case layout of
             Internal.TextLayout ->
@@ -439,7 +445,29 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                     attrs
 
                 Just align ->
-                    if elem.inline then
+                    if elem.inline && elType == Single then
+                        case align of
+                            Top ->
+                                attrs
+
+                            Bottom ->
+                                attrs
+
+                            Left ->
+                                ( "float", "left" ) :: attrs
+
+                            Right ->
+                                ( "float", "right" ) :: attrs
+
+                            Center ->
+                                attrs
+
+                            VerticalCenter ->
+                                attrs
+
+                            Justify ->
+                                attrs
+                    else if elem.inline then
                         attrs
                     else if elem.frame /= Nothing then
                         case align of
@@ -463,6 +491,9 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                             VerticalCenter ->
                                 -- If an element is centered,
                                 -- it would be transformed to a single element centered layout before hitting here
+                                attrs
+
+                            Justify ->
                                 attrs
                     else
                         case align of
@@ -502,6 +533,9 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                                 attrs
 
                             VerticalCenter ->
+                                attrs
+
+                            Justify ->
                                 attrs
 
         width attrs =
