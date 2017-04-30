@@ -93,7 +93,16 @@ All of the children are set to 'inline-block' if they are not already text eleme
 -}
 paragraph : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 paragraph elem attrs children =
-    Layout Html.p (Style.TextLayout) (Just elem) attrs (List.map (addProp Inline) children)
+    let
+        ( child, others ) =
+            case children of
+                [] ->
+                    ( empty, Nothing )
+
+                child :: others ->
+                    ( addPropToNonText Inline child, Just <| List.map (addPropToNonText Inline) others )
+    in
+        Element Html.p (Just elem) attrs child others
 
 
 el : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
@@ -540,6 +549,25 @@ setNode node el =
 
         Text dec content ->
             Element node Nothing [] (Text dec content) Nothing
+
+
+addPropToNonText : Attribute variation msg -> Element elem variation msg -> Element elem variation msg
+addPropToNonText prop el =
+    case el of
+        Empty ->
+            Empty
+
+        Spacer x ->
+            Spacer x
+
+        Layout node layout elem attrs els ->
+            Layout node layout elem (prop :: attrs) els
+
+        Element node elem attrs el children ->
+            Element node elem (prop :: attrs) el children
+
+        Text dec content ->
+            Text dec content
 
 
 addProp : Attribute variation msg -> Element elem variation msg -> Element elem variation msg
