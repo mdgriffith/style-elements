@@ -107,6 +107,11 @@ sub {
 sup {
   top: -0.5em;
 }
+
+a {
+    text-decoration: none;
+}
+
 """
 
 
@@ -821,14 +826,19 @@ overlay bg opac child =
     (screen << topLeft) <| el bg [ width (percent 100), height (percent 100), opacity opac ] child
 
 
-alignCenter : Attribute variation msg
-alignCenter =
+center : Attribute variation msg
+center =
     Align Center
 
 
-alignVerticalCenter : Attribute variation msg
-alignVerticalCenter =
+vCenter : Attribute variation msg
+vCenter =
     Align VerticalCenter
+
+
+justify : Attribute variation msg
+justify =
+    Align Justify
 
 
 alignTop : Attribute variation msg
