@@ -15,16 +15,22 @@ import Style.Internal.Render.Property as Property
     (,)
 
 
+root : Internal.StyleSheet elem variation animation msg -> Element elem variation msg -> Html msg
+root stylesheet elm =
+    Html.div [ Html.Attributes.class "style-elements-root" ]
+        [ embed stylesheet
+        , render stylesheet elm
+        ]
+
+
+embed : Internal.StyleSheet elem variation animation msg -> Html msg
+embed stylesheet =
+    Html.node "style" [] [ Html.text stylesheet.css ]
+
+
 render : Internal.StyleSheet elem variation animation msg -> Element elem variation msg -> Html msg
 render stylesheet elm =
-    let
-        html =
-            renderElement Nothing stylesheet FirstAndLast elm
-    in
-        Html.div [ Html.Attributes.class "style-elements-root" ]
-            [ Html.node "style" [] [ Html.text stylesheet.css ]
-            , html
-            ]
+    renderElement Nothing stylesheet FirstAndLast elm
 
 
 type alias Parent variation msg =

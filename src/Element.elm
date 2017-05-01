@@ -1090,3 +1090,22 @@ render :
     -> Html msg
 render =
     Render.render
+
+
+{-| Embeds the stylesheet and renders the elements
+-}
+root :
+    Style.StyleSheet elem variation animation msg
+    -> Element elem variation msg
+    -> Html msg
+root =
+    Render.root
+
+
+{-| Embeds the stylesheet and renders the elements
+-}
+embed :
+    Style.StyleSheet elem variation animation msg
+    -> Html msg
+embed =
+    Render.embed
