@@ -4,7 +4,7 @@ module Element exposing (..)
 
 import Html exposing (Html)
 import Html.Attributes
-import Element.Internal.Model exposing (..)
+import Element.Internal.Model as Internal exposing (..)
 import Style exposing (Style)
 import Style.Internal.Model as Style exposing (Length)
 import Style.Internal.Render.Value as Value
@@ -23,6 +23,18 @@ import Color exposing (Color)
 -}
 type alias StyleSheet class variation animation msg =
     Style.StyleSheet class variation animation msg
+
+
+type alias Element class variation msg =
+    Internal.Element class variation msg
+
+
+type alias Attribute variation msg =
+    Internal.Attribute variation msg
+
+
+type alias Defaults =
+    Internal.Defaults
 
 
 presetDefaults : Defaults
@@ -1019,16 +1031,6 @@ withCmdNone model =
     ( model, Cmd.none )
 
 
-init : StyleSheet elem variation animation msg -> ({ width : Int, height : Int } -> device) -> ( model, Cmd msg ) -> ( ElemModel device elem variation animation model msg, Cmd (ElementMsg device msg) )
-init elem match ( model, cmd ) =
-    ( emptyModel elem match model
-    , Cmd.batch
-        [ Cmd.map Send cmd
-        , Task.perform (Resize match) Window.size
-        ]
-    )
-
-
 emptyModel :
     StyleSheet elem variation animation msg
     -> (Window.Size -> device)
@@ -1059,19 +1061,35 @@ type ElemModel device elem variation animation model msg
         }
 
 
+init : StyleSheet elem variation animation msg -> ({ width : Int, height : Int } -> device) -> ( model, Cmd msg ) -> ( ElemModel device elem variation animation model msg, Cmd (ElementMsg device msg) )
+init elem match ( model, cmd ) =
+    ( emptyModel elem match model
+    , Cmd.batch
+        [ Cmd.map Send cmd
+        , Task.perform (Resize match) Window.size
+        ]
+    )
+
+
 update : (msg -> model -> ( model, Cmd msg )) -> ElementMsg device msg -> ElemModel device elem variation animation model msg -> ( ElemModel device elem variation animation model msg, Cmd (ElementMsg device msg) )
-update appUpdate elemMsg elemModel =
+update appUpdate elemMsg (ElemModel elemModel) =
     case elemMsg of
         Send msg ->
-            ( elemModel, Cmd.none )
+            let
+                ( newApp, cmds ) =
+                    appUpdate msg elemModel.model
+            in
+                ( ElemModel { elemModel | model = newApp }
+                , Cmd.map Send Cmd.none
+                )
 
         Tick time ->
-            ( elemModel, Cmd.none )
+            ( ElemModel elemModel
+            , Cmd.none
+            )
 
         Resize match size ->
-            ( case elemModel of
-                ElemModel elmRecord ->
-                    ElemModel { elmRecord | device = match size }
+            ( ElemModel { elemModel | device = match size }
             , Cmd.none
             )
 
