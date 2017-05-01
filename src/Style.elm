@@ -24,6 +24,10 @@ module Style
         , paddingHint
         , transforms
         , filters
+        , hover
+        , checked
+        , focus
+        , pseudo
         , all
         , left
         , right
@@ -62,6 +66,8 @@ module Style
 @docs Filter, filters
 
 @docs Font, font
+
+@docs hover, checked, focus, pseudo
 
 @docs background, Background, Repeat, GradientDirection, GradientStep
 
@@ -365,19 +371,36 @@ bottomLeft x =
 -- before : String -> List (Property class variation animation) -> Property class variation animation
 -- before content props =
 --      Internal.PseudoElement ":before" (prop "content" ("'" ++ content ++ "'") :: props)
--- {-| -}
--- hover : List (Attribute variation msg) -> Attribute variation msg
--- hover props =
---     Pseudo ":hover" props
--- {-| -}
--- focus : List (Attribute variation msg) -> Attribute variation msg
--- focus props =
---     Pseudo ":focus" props
--- {-| -}
--- checked : List (Attribute variation msg) -> Attribute variation msg
--- checked props =
---     Pseudo ":checked" props
--- {-| -}
--- pseudo : String -> List (Attribute variation msg) -> Attribute variation msg
--- pseudo psu props =
---     Pseudo (":" ++ psu) props
+
+
+{-| -}
+hover :
+    List (Property class variation animation)
+    -> Property class variation animation
+hover props =
+    Internal.PseudoElement ":hover" props
+
+
+{-| -}
+focus :
+    List (Property class variation animation)
+    -> Property class variation animation
+focus props =
+    Internal.PseudoElement ":focus" props
+
+
+{-| -}
+checked :
+    List (Property class variation animation)
+    -> Property class variation animation
+checked props =
+    Internal.PseudoElement ":checked" props
+
+
+{-| -}
+pseudo :
+    String
+    -> List (Property class variation animation)
+    -> Property class variation animation
+pseudo psu props =
+    Internal.PseudoElement (":" ++ psu) props
