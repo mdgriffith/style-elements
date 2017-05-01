@@ -957,148 +957,136 @@ opacity o =
     Transparency (1 - o)
 
 
-programWithFlags :
-    { init : flags -> ( model, Cmd msg )
-    , stylesheet : StyleSheet elem variation animation msg
-    , device : { width : Int, height : Int } -> device
-    , update : msg -> model -> ( model, Cmd msg )
-    , subscriptions : model -> Sub msg
-    , view : device -> model -> Element elem variation msg
-    }
-    -> Program flags (ElemModel device elem variation animation model msg) (ElementMsg device msg)
-programWithFlags prog =
-    Html.programWithFlags
-        { init = (\flags -> init prog.stylesheet prog.device (prog.init flags))
-        , update = update prog.update
-        , view = (\model -> Html.map Send <| deviceView prog.view model)
-        , subscriptions =
-            (\(ElemModel { model }) ->
-                Sub.batch
-                    [ Window.resizes (Resize prog.device)
-                    , Sub.map Send <| prog.subscriptions model
-                    ]
-            )
-        }
+
+-- programWithFlags :
+--     { init : flags -> ( model, Cmd msg )
+--     , stylesheet : StyleSheet elem variation animation msg
+--     , device : { width : Int, height : Int } -> device
+--     , update : msg -> model -> ( model, Cmd msg )
+--     , subscriptions : model -> Sub msg
+--     , view : device -> model -> Element elem variation msg
+--     }
+--     -> Program flags (ElemModel device elem variation animation model msg) (ElementMsg device msg)
+-- programWithFlags prog =
+--     Html.programWithFlags
+--         { init = (\flags -> init prog.stylesheet prog.device (prog.init flags))
+--         , update = update prog.update
+--         , view = (\model -> Html.map Send <| deviceView prog.view model)
+--         , subscriptions =
+--             (\(ElemModel { model }) ->
+--                 Sub.batch
+--                     [ Window.resizes (Resize prog.device)
+--                     , Sub.map Send <| prog.subscriptions model
+--                     ]
+--             )
+--         }
+-- program :
+--     { stylesheet : StyleSheet elem variation animation msg
+--     , init : ( model, Cmd msg )
+--     , update : msg -> model -> ( model, Cmd msg )
+--     , subscriptions : model -> Sub msg
+--     , view : device -> model -> Element elem variation msg
+--     , device : { width : Int, height : Int } -> device
+--     }
+--     -> Program Never (ElemModel device elem variation animation model msg) (ElementMsg device msg)
+-- program prog =
+--     Html.program
+--         { init = init prog.stylesheet prog.device prog.init
+--         , update = update prog.update
+--         , view = (\model -> Html.map Send <| deviceView prog.view model)
+--         , subscriptions =
+--             (\(ElemModel { model }) ->
+--                 Sub.batch
+--                     [ Window.resizes (Resize prog.device)
+--                     , Sub.map Send <| prog.subscriptions model
+--                     ]
+--             )
+--         }
+-- beginnerProgram :
+--     { stylesheet : StyleSheet elem variation animation msg
+--     , model : model
+--     , view : model -> Element elem variation msg
+--     , update : msg -> model -> model
+--     }
+--     -> Program Never (ElemModel Device elem variation animation model msg) (ElementMsg Device msg)
+-- beginnerProgram prog =
+--     Html.program
+--         { init = init prog.stylesheet Device.match <| withCmdNone prog.model
+--         , update = update (\msg model -> withCmdNone <| prog.update msg model)
+--         , view = (\model -> Html.map Send <| view prog.view model)
+--         , subscriptions =
+--             (\(ElemModel { model }) ->
+--                 Sub.batch
+--                     [ Window.resizes (Resize Device.match)
+--                     ]
+--             )
+--         }
+-- withCmdNone : model -> ( model, Cmd msg )
+-- withCmdNone model =
+--     ( model, Cmd.none )
+-- emptyModel :
+--     StyleSheet elem variation animation msg
+--     -> (Window.Size -> device)
+--     -> model
+--     -> ElemModel device elem variation animation model msg
+-- emptyModel stylesheet match model =
+--     ElemModel
+--         { time = 0
+--         , device =
+--             match { width = 1000, height = 1200 }
+--         , stylesheet = stylesheet
+--         , model = model
+--         }
+-- type ElementMsg device msg
+--     = Send msg
+--     | Tick Time
+--     | Resize (Window.Size -> device) Window.Size
+-- type ElemModel device elem variation animation model msg
+--     = ElemModel
+--         { time : Time
+--         , device : device
+--         , stylesheet : StyleSheet elem variation animation msg
+--         , model : model
+--         }
+-- init : StyleSheet elem variation animation msg -> ({ width : Int, height : Int } -> device) -> ( model, Cmd msg ) -> ( ElemModel device elem variation animation model msg, Cmd (ElementMsg device msg) )
+-- init elem match ( model, cmd ) =
+--     ( emptyModel elem match model
+--     , Cmd.batch
+--         [ Cmd.map Send cmd
+--         , Task.perform (Resize match) Window.size
+--         ]
+--     )
+-- update : (msg -> model -> ( model, Cmd msg )) -> ElementMsg device msg -> ElemModel device elem variation animation model msg -> ( ElemModel device elem variation animation model msg, Cmd (ElementMsg device msg) )
+-- update appUpdate elemMsg (ElemModel elemModel) =
+--     case elemMsg of
+--         Send msg ->
+--             let
+--                 ( newApp, cmds ) =
+--                     appUpdate msg elemModel.model
+--             in
+--                 ( ElemModel { elemModel | model = newApp }
+--                 , Cmd.map Send Cmd.none
+--                 )
+--         Tick time ->
+--             ( ElemModel elemModel
+--             , Cmd.none
+--             )
+--         Resize match size ->
+--             ( ElemModel { elemModel | device = match size }
+--             , Cmd.none
+--             )
+-- deviceView : (device -> model -> Element elem variation msg) -> ElemModel device elem variation animation model msg -> Html msg
+-- deviceView appView (ElemModel { device, stylesheet, model }) =
+--     Render.render stylesheet <| appView device model
+-- view : (model -> Element elem variation msg) -> ElemModel Device elem variation animation model msg -> Html msg
+-- view appView (ElemModel { device, stylesheet, model }) =
+--     Render.render stylesheet <| appView model
 
 
-program :
-    { stylesheet : StyleSheet elem variation animation msg
-    , init : ( model, Cmd msg )
-    , update : msg -> model -> ( model, Cmd msg )
-    , subscriptions : model -> Sub msg
-    , view : device -> model -> Element elem variation msg
-    , device : { width : Int, height : Int } -> device
-    }
-    -> Program Never (ElemModel device elem variation animation model msg) (ElementMsg device msg)
-program prog =
-    Html.program
-        { init = init prog.stylesheet prog.device prog.init
-        , update = update prog.update
-        , view = (\model -> Html.map Send <| deviceView prog.view model)
-        , subscriptions =
-            (\(ElemModel { model }) ->
-                Sub.batch
-                    [ Window.resizes (Resize prog.device)
-                    , Sub.map Send <| prog.subscriptions model
-                    ]
-            )
-        }
-
-
-beginnerProgram :
-    { stylesheet : StyleSheet elem variation animation msg
-    , model : model
-    , view : model -> Element elem variation msg
-    , update : msg -> model -> model
-    }
-    -> Program Never (ElemModel Device elem variation animation model msg) (ElementMsg Device msg)
-beginnerProgram prog =
-    Html.program
-        { init = init prog.stylesheet Device.match <| withCmdNone prog.model
-        , update = update (\msg model -> withCmdNone <| prog.update msg model)
-        , view = (\model -> Html.map Send <| view prog.view model)
-        , subscriptions =
-            (\(ElemModel { model }) ->
-                Sub.batch
-                    [ Window.resizes (Resize Device.match)
-                    ]
-            )
-        }
-
-
-withCmdNone : model -> ( model, Cmd msg )
-withCmdNone model =
-    ( model, Cmd.none )
-
-
-emptyModel :
-    StyleSheet elem variation animation msg
-    -> (Window.Size -> device)
-    -> model
-    -> ElemModel device elem variation animation model msg
-emptyModel stylesheet match model =
-    ElemModel
-        { time = 0
-        , device =
-            match { width = 1000, height = 1200 }
-        , stylesheet = stylesheet
-        , model = model
-        }
-
-
-type ElementMsg device msg
-    = Send msg
-    | Tick Time
-    | Resize (Window.Size -> device) Window.Size
-
-
-type ElemModel device elem variation animation model msg
-    = ElemModel
-        { time : Time
-        , device : device
-        , stylesheet : StyleSheet elem variation animation msg
-        , model : model
-        }
-
-
-init : StyleSheet elem variation animation msg -> ({ width : Int, height : Int } -> device) -> ( model, Cmd msg ) -> ( ElemModel device elem variation animation model msg, Cmd (ElementMsg device msg) )
-init elem match ( model, cmd ) =
-    ( emptyModel elem match model
-    , Cmd.batch
-        [ Cmd.map Send cmd
-        , Task.perform (Resize match) Window.size
-        ]
-    )
-
-
-update : (msg -> model -> ( model, Cmd msg )) -> ElementMsg device msg -> ElemModel device elem variation animation model msg -> ( ElemModel device elem variation animation model msg, Cmd (ElementMsg device msg) )
-update appUpdate elemMsg (ElemModel elemModel) =
-    case elemMsg of
-        Send msg ->
-            let
-                ( newApp, cmds ) =
-                    appUpdate msg elemModel.model
-            in
-                ( ElemModel { elemModel | model = newApp }
-                , Cmd.map Send Cmd.none
-                )
-
-        Tick time ->
-            ( ElemModel elemModel
-            , Cmd.none
-            )
-
-        Resize match size ->
-            ( ElemModel { elemModel | device = match size }
-            , Cmd.none
-            )
-
-
-deviceView : (device -> model -> Element elem variation msg) -> ElemModel device elem variation animation model msg -> Html msg
-deviceView appView (ElemModel { device, stylesheet, model }) =
-    Render.render stylesheet <| appView device model
-
-
-view : (model -> Element elem variation msg) -> ElemModel Device elem variation animation model msg -> Html msg
-view appView (ElemModel { device, stylesheet, model }) =
-    Render.render stylesheet <| appView model
+{-| -}
+render :
+    Style.StyleSheet elem variation animation msg
+    -> Element elem variation msg
+    -> Html msg
+render =
+    Render.render
