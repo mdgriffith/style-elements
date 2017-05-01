@@ -115,14 +115,18 @@ renderElement parent stylesheet order elm =
         Element node element position child otherChildren ->
             let
                 ( centeredProps, others ) =
-                    List.partition (\attr -> attr == Align Center || attr == Align VerticalCenter) position
+                    List.partition (\attr -> attr == HAlign Center || attr == VAlign VerticalCenter) position
             in
                 if not <| List.isEmpty centeredProps then
                     let
                         centered =
                             case otherChildren of
                                 Nothing ->
-                                    Layout Html.div (Internal.FlexLayout Internal.GoRight []) Nothing centeredProps [ Element node element others child otherChildren ]
+                                    Layout Html.div
+                                        (Internal.FlexLayout Internal.GoRight [])
+                                        Nothing
+                                        (PositionFrame Positioned :: Height (Internal.Percent 100) :: Width (Internal.Percent 100) :: centeredProps)
+                                        [ Element node element others child otherChildren ]
 
                                 Just children ->
                                     Layout Html.div (Internal.FlexLayout Internal.GoRight []) Nothing centeredProps [ Element node element others child otherChildren ]
@@ -158,7 +162,7 @@ renderElement parent stylesheet order elm =
         Layout node layout element position children ->
             let
                 ( centeredProps, others ) =
-                    List.partition (\attr -> attr == Align Center || attr == Align VerticalCenter) position
+                    List.partition (\attr -> attr == HAlign Center || attr == VAlign VerticalCenter) position
             in
                 if layout == Internal.TextLayout && (not <| List.isEmpty centeredProps) then
                     let
@@ -234,39 +238,16 @@ renderElement parent stylesheet order elm =
                         node (htmlAttrs) childHtml
 
 
-renderAnchor : Anchor -> List ( String, String )
-renderAnchor anchor =
-    case anchor of
-        TopRight ->
-            [ ( "top", "0" )
-            , ( "right", "0" )
-            ]
-
-        TopLeft ->
-            [ ( "top", "0" )
-            , ( "left", "0" )
-            ]
-
-        BottomRight ->
-            [ ( "bottom", "0" )
-            , ( "right", "0" )
-            ]
-
-        BottomLeft ->
-            [ ( "bottom", "0" )
-            , ( "left", "0" )
-            ]
-
-
 type alias Positionable variation msg =
     { inline : Bool
-    , alignment : Maybe Alignment
+    , horizontal : Maybe HorizontalAlignment
+    , vertical : Maybe VerticalAlignment
     , frame : Maybe Frame
     , expand : Bool
     , hidden : Bool
     , width : Maybe Internal.Length
     , height : Maybe Internal.Length
-    , positioned : Maybe ( Int, Int )
+    , positioned : Maybe ( Float, Float )
     , spacing : Maybe ( Float, Float )
     , padding : Maybe ( Float, Float, Float, Float )
     , variations : List ( variation, Bool )
@@ -279,7 +260,8 @@ type alias Positionable variation msg =
 emptyPositionable : Positionable variation msg
 emptyPositionable =
     { inline = False
-    , alignment = Nothing
+    , horizontal = Nothing
+    , vertical = Nothing
     , frame = Nothing
     , expand = False
     , hidden = False
@@ -326,8 +308,11 @@ makePositionable attr pos =
         PositionFrame frame ->
             { pos | frame = Just frame }
 
-        Align alignment ->
-            { pos | alignment = Just alignment }
+        HAlign alignment ->
+            { pos | horizontal = Just alignment }
+
+        VAlign alignment ->
+            { pos | vertical = Just alignment }
 
         Spacing spaceX spaceY ->
             { pos | spacing = Just ( spaceX, spaceY ) }
@@ -366,10 +351,10 @@ type ElementType
     | LayoutElement Internal.LayoutModel
 
 
-alignLayout : Alignment -> Internal.LayoutModel -> Internal.LayoutModel
-alignLayout alignment layout =
+alignLayout : Maybe HorizontalAlignment -> Maybe VerticalAlignment -> Internal.LayoutModel -> Internal.LayoutModel
+alignLayout maybeHorizontal maybeVertical layout =
     let
-        alignFlexbox align =
+        alignFlexboxHorizontal align =
             case align of
                 Left ->
                     Internal.Horz (Internal.Other Internal.Left)
@@ -377,22 +362,24 @@ alignLayout alignment layout =
                 Right ->
                     Internal.Horz (Internal.Other Internal.Right)
 
+                Center ->
+                    Internal.Horz (Internal.Center)
+
+                Justify ->
+                    Internal.Horz (Internal.Justify)
+
+        alignFlexboxVertical align =
+            case align of
                 Top ->
                     Internal.Vert (Internal.Other Internal.Top)
 
                 Bottom ->
                     Internal.Vert (Internal.Other Internal.Bottom)
 
-                Center ->
-                    Internal.Horz (Internal.Center)
-
                 VerticalCenter ->
                     Internal.Vert (Internal.Center)
 
-                Justify ->
-                    Internal.Horz (Internal.Justify)
-
-        alignGrid align =
+        alignGridHorizontal align =
             case align of
                 Left ->
                     Internal.GridH (Internal.Other Internal.Left)
@@ -400,30 +387,54 @@ alignLayout alignment layout =
                 Right ->
                     Internal.GridH (Internal.Other Internal.Right)
 
+                Center ->
+                    Internal.GridH (Internal.Center)
+
+                Justify ->
+                    Internal.GridH (Internal.Justify)
+
+        alignGridVertical align =
+            case align of
                 Top ->
                     Internal.GridV (Internal.Other Internal.Top)
 
                 Bottom ->
                     Internal.GridV (Internal.Other Internal.Bottom)
 
-                Center ->
-                    Internal.GridH (Internal.Center)
-
                 VerticalCenter ->
                     Internal.GridV (Internal.Center)
-
-                Justify ->
-                    Internal.GridH (Internal.Justify)
     in
         case layout of
             Internal.TextLayout ->
                 Internal.TextLayout
 
             Internal.FlexLayout dir els ->
-                Internal.FlexLayout dir (alignFlexbox alignment :: els)
+                case ( maybeHorizontal, maybeVertical ) of
+                    ( Nothing, Nothing ) ->
+                        Internal.FlexLayout dir els
+
+                    ( Just h, Nothing ) ->
+                        Internal.FlexLayout dir (alignFlexboxHorizontal h :: els)
+
+                    ( Nothing, Just v ) ->
+                        Internal.FlexLayout dir (alignFlexboxVertical v :: els)
+
+                    ( Just h, Just v ) ->
+                        Internal.FlexLayout dir (alignFlexboxHorizontal h :: alignFlexboxVertical v :: els)
 
             Internal.Grid template els ->
-                Internal.Grid template (alignGrid alignment :: els)
+                case ( maybeHorizontal, maybeVertical ) of
+                    ( Nothing, Nothing ) ->
+                        Internal.Grid template els
+
+                    ( Just h, Nothing ) ->
+                        Internal.Grid template (alignGridHorizontal h :: els)
+
+                    ( Nothing, Just v ) ->
+                        Internal.Grid template (alignGridVertical v :: els)
+
+                    ( Just h, Just v ) ->
+                        Internal.Grid template (alignGridHorizontal h :: alignGridVertical v :: els)
 
 
 renderPositioned : ElementType -> Order -> Maybe elem -> Maybe (Parent variation msg) -> Internal.StyleSheet elem variation animation msg -> Positionable variation msg -> List (Html.Attribute msg)
@@ -438,41 +449,16 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                         ( "display", "block" ) :: attrs
 
                 LayoutElement lay ->
-                    case elem.alignment of
-                        Nothing ->
-                            Property.layout elem.inline lay ++ attrs
+                    Property.layout elem.inline (alignLayout elem.horizontal elem.vertical lay) ++ attrs
 
-                        Just align ->
-                            Property.layout elem.inline (alignLayout align lay) ++ attrs
-
-        alignment attrs =
-            case elem.alignment of
+        vertical attrs =
+            case elem.vertical of
                 Nothing ->
                     attrs
 
                 Just align ->
                     if elem.inline && elType == Single then
-                        case align of
-                            Top ->
-                                attrs
-
-                            Bottom ->
-                                attrs
-
-                            Left ->
-                                ( "float", "left" ) :: attrs
-
-                            Right ->
-                                ( "float", "right" ) :: attrs
-
-                            Center ->
-                                attrs
-
-                            VerticalCenter ->
-                                attrs
-
-                            Justify ->
-                                attrs
+                        attrs
                     else if elem.inline then
                         attrs
                     else if elem.frame /= Nothing then
@@ -483,6 +469,44 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                             Bottom ->
                                 ( "bottom", "0" ) :: attrs
 
+                            VerticalCenter ->
+                                -- If an element is centered,
+                                -- it would be transformed to a single element centered layout before hitting here
+                                attrs
+                    else
+                        case align of
+                            Top ->
+                                attrs
+
+                            Bottom ->
+                                attrs
+
+                            VerticalCenter ->
+                                attrs
+
+        horizontal attrs =
+            case elem.horizontal of
+                Nothing ->
+                    attrs
+
+                Just align ->
+                    if elem.inline && elType == Single then
+                        case align of
+                            Left ->
+                                ( "float", "left" ) :: attrs
+
+                            Right ->
+                                ( "float", "right" ) :: attrs
+
+                            Center ->
+                                attrs
+
+                            Justify ->
+                                attrs
+                    else if elem.inline then
+                        attrs
+                    else if elem.frame /= Nothing then
+                        case align of
                             Left ->
                                 ( "left", "0" ) :: attrs
 
@@ -494,21 +518,10 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                                 -- it would be transformed to a single element centered layout before hitting here
                                 attrs
 
-                            VerticalCenter ->
-                                -- If an element is centered,
-                                -- it would be transformed to a single element centered layout before hitting here
-                                attrs
-
                             Justify ->
                                 attrs
                     else
                         case align of
-                            Top ->
-                                attrs
-
-                            Bottom ->
-                                attrs
-
                             Left ->
                                 case parent of
                                     Just { layout } ->
@@ -536,9 +549,6 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                                         attrs
 
                             Center ->
-                                attrs
-
-                            VerticalCenter ->
                                 attrs
 
                             Justify ->
@@ -642,7 +652,7 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                     Just { layout } ->
                         case layout of
                             Internal.TextLayout ->
-                                case elem.alignment of
+                                case elem.horizontal of
                                     Nothing ->
                                         if order == Last || order == FirstAndLast then
                                             ( 0, 0, 0, 0 )
@@ -738,7 +748,7 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
             in
                 (Html.Attributes.style
                     (("box-sizing" => "border-box")
-                        :: (gridPos <| layout <| spacing <| transparency <| width <| height <| positionAdjustment <| padding <| alignment <| frame)
+                        :: (gridPos <| layout <| spacing <| transparency <| width <| height <| positionAdjustment <| padding <| horizontal <| vertical <| frame)
                     )
                 )
                     :: attributes
@@ -776,6 +786,6 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                     :: attributes
         else
             (Html.Attributes.style
-                (gridPos <| layout <| spacing <| transparency <| width <| height <| positionAdjustment <| padding <| alignment <| defaults)
+                (gridPos <| layout <| spacing <| transparency <| width <| height <| positionAdjustment <| padding <| horizontal <| vertical <| defaults)
             )
                 :: attributes

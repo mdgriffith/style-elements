@@ -2,7 +2,7 @@ module Element.Internal.Model exposing (..)
 
 {-| -}
 
-import Style.Internal.Model as Internal
+import Style.Internal.Model as Style
 import Html exposing (Html)
 import Color exposing (Color)
 
@@ -10,7 +10,7 @@ import Color exposing (Color)
 type ElementSheet elem variation animation msg
     = ElementSheet
         { defaults : Defaults
-        , stylesheet : Internal.StyleSheet elem variation animation msg
+        , stylesheet : Style.StyleSheet elem variation animation msg
         }
 
 
@@ -27,7 +27,7 @@ type Element elem variation msg
     | Spacer Float
     | Text Decoration String
     | Element (HtmlFn msg) (Maybe elem) (List (Attribute variation msg)) (Element elem variation msg) (Maybe (List (Element elem variation msg)))
-    | Layout (HtmlFn msg) Internal.LayoutModel (Maybe elem) (List (Attribute variation msg)) (List (Element elem variation msg))
+    | Layout (HtmlFn msg) Style.LayoutModel (Maybe elem) (List (Attribute variation msg)) (List (Element elem variation msg))
 
 
 type alias HtmlFn msg =
@@ -36,11 +36,12 @@ type alias HtmlFn msg =
 
 type Attribute variation msg
     = Vary variation Bool
-    | Height Internal.Length
-    | Width Internal.Length
+    | Height Style.Length
+    | Width Style.Length
     | Inline
-    | Align Alignment
-    | Position Int Int
+    | HAlign HorizontalAlignment
+    | VAlign VerticalAlignment
+    | Position Float Float
     | PositionFrame Frame
     | Hidden
     | Transparency Int
@@ -50,7 +51,7 @@ type Attribute variation msg
     | Event (Html.Attribute msg)
     | Attr (Html.Attribute msg)
     | GridArea String
-    | GridCoords Internal.GridPosition
+    | GridCoords Style.GridPosition
 
 
 type Decoration
@@ -76,26 +77,14 @@ type Close
     | OnRight
 
 
-type Anchor
-    = TopRight
-    | TopLeft
-    | BottomRight
-    | BottomLeft
-
-
-type Nearby element
-    = IsNearby element
-
-
-type Anchored element
-    = Anchored Anchor element
-
-
-type Alignment
+type HorizontalAlignment
     = Left
     | Right
-    | Top
-    | Bottom
     | Center
-    | VerticalCenter
     | Justify
+
+
+type VerticalAlignment
+    = Top
+    | Bottom
+    | VerticalCenter

@@ -780,28 +780,28 @@ above : Element elem variation msg -> Element elem variation msg
 above el =
     el
         |> addProp (PositionFrame (Nearby Above))
-        |> removeProps [ Align Top, Align Bottom ]
+        |> removeProps [ VAlign Top, VAlign Bottom ]
 
 
 below : Element elem variation msg -> Element elem variation msg
 below el =
     el
         |> addProp (PositionFrame (Nearby Below))
-        |> removeProps [ Align Top, Align Bottom ]
+        |> removeProps [ VAlign Top, VAlign Bottom ]
 
 
 onRight : Element elem variation msg -> Element elem variation msg
 onRight el =
     el
         |> addProp (PositionFrame (Nearby OnRight))
-        |> removeProps [ Align Right, Align Left ]
+        |> removeProps [ HAlign Right, HAlign Left ]
 
 
 onLeft : Element elem variation msg -> Element elem variation msg
 onLeft el =
     el
         |> addProp (PositionFrame (Nearby OnLeft))
-        |> removeProps [ Align Right, Align Left ]
+        |> removeProps [ HAlign Right, HAlign Left ]
 
 
 screen : Element elem variation msg -> Element elem variation msg
@@ -816,37 +816,37 @@ overlay bg opac child =
 
 center : Attribute variation msg
 center =
-    Align Center
+    HAlign Center
 
 
 vCenter : Attribute variation msg
 vCenter =
-    Align VerticalCenter
+    VAlign VerticalCenter
 
 
 justify : Attribute variation msg
 justify =
-    Align Justify
+    HAlign Justify
 
 
 alignTop : Attribute variation msg
 alignTop =
-    Align Top
+    VAlign Top
 
 
 alignBottom : Attribute variation msg
 alignBottom =
-    Align Bottom
+    VAlign Bottom
 
 
 alignLeft : Attribute variation msg
 alignLeft =
-    Align Left
+    HAlign Left
 
 
 alignRight : Attribute variation msg
 alignRight =
-    Align Right
+    HAlign Right
 
 
 
@@ -858,7 +858,7 @@ alignRight =
 Arguemnts are given as x and y coordinates, where positive is right and down.
 
 -}
-move : Int -> Int -> Attribute variation msg
+move : Float -> Float -> Attribute variation msg
 move =
     Position
 
