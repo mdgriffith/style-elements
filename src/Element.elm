@@ -765,82 +765,53 @@ addChild parent el =
             Element Html.div Nothing [] (Text dec content) (Just [ el ])
 
 
-nearby : List (Nearby (Element elem variation msg)) -> Element elem variation msg -> Element elem variation msg
+nearby : List (Element elem variation msg) -> Element elem variation msg -> Element elem variation msg
 nearby nearbys parent =
-    List.foldl (\(IsNearby el) p -> addChild p el) parent nearbys
+    let
+        position el p =
+            el
+                |> addProp (PositionFrame Positioned)
+                |> addChild p
+    in
+        List.foldl position parent nearbys
 
 
-above : Element elem variation msg -> Nearby (Element elem variation msg)
+above : Element elem variation msg -> Element elem variation msg
 above el =
     el
         |> addProp (PositionFrame (Nearby Above))
         |> removeProps [ Align Top, Align Bottom ]
-        |> IsNearby
 
 
-below : Element elem variation msg -> Nearby (Element elem variation msg)
+below : Element elem variation msg -> Element elem variation msg
 below el =
     el
         |> addProp (PositionFrame (Nearby Below))
         |> removeProps [ Align Top, Align Bottom ]
-        |> IsNearby
 
 
-onRight : Element elem variation msg -> Nearby (Element elem variation msg)
+onRight : Element elem variation msg -> Element elem variation msg
 onRight el =
     el
         |> addProp (PositionFrame (Nearby OnRight))
         |> removeProps [ Align Right, Align Left ]
-        |> IsNearby
 
 
-onLeft : Element elem variation msg -> Nearby (Element elem variation msg)
+onLeft : Element elem variation msg -> Element elem variation msg
 onLeft el =
     el
         |> addProp (PositionFrame (Nearby OnLeft))
         |> removeProps [ Align Right, Align Left ]
-        |> IsNearby
 
 
-within : List (Anchored (Element elem variation msg)) -> Element elem variation msg -> Element elem variation msg
-within insideEls parent =
-    let
-        applyAnchor (Anchored anchor el) parent =
-            el
-                |> addProp (PositionFrame (Within anchor))
-                |> addChild parent
-    in
-        List.foldl applyAnchor parent insideEls
-
-
-topLeft : Element elem variation msg -> Anchored (Element elem variation msg)
-topLeft el =
-    Anchored TopLeft el
-
-
-topRight : Element elem variation msg -> Anchored (Element elem variation msg)
-topRight el =
-    Anchored TopRight el
-
-
-bottomRight : Element elem variation msg -> Anchored (Element elem variation msg)
-bottomRight el =
-    Anchored BottomRight el
-
-
-bottomLeft : Element elem variation msg -> Anchored (Element elem variation msg)
-bottomLeft el =
-    Anchored BottomLeft el
-
-
-screen : Anchored (Element elem variation msg) -> Element elem variation msg
-screen (Anchored anchor el) =
-    addProp (PositionFrame (Screen anchor)) el
+screen : Element elem variation msg -> Element elem variation msg
+screen =
+    addProp (PositionFrame Screen)
 
 
 overlay : elem -> Int -> Element elem variation msg -> Element elem variation msg
 overlay bg opac child =
-    (screen << topLeft) <| el bg [ width (percent 100), height (percent 100), opacity opac ] child
+    screen <| el bg [ width (percent 100), height (percent 100), opacity opac ] child
 
 
 center : Attribute variation msg

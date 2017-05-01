@@ -710,11 +710,11 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
 
                         Just frm ->
                             case frm of
-                                Screen anchor ->
-                                    ( "position", "fixed" ) :: renderAnchor anchor
+                                Screen ->
+                                    [ ( "position", "fixed" ) ]
 
-                                Within anchor ->
-                                    ( "position", "absolute" ) :: renderAnchor anchor
+                                Positioned ->
+                                    [ ( "position", "absolute" ) ]
 
                                 Nearby Above ->
                                     [ "position" => "absolute"

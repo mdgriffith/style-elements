@@ -64,9 +64,9 @@ type Decoration
 
 
 type Frame
-    = Screen Anchor
+    = Screen
+    | Positioned
     | Nearby Close
-    | Within Anchor
 
 
 type Close
