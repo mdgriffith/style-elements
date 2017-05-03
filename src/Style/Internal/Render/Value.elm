@@ -59,21 +59,28 @@ shadow (ShadowModel shadow) =
         |> String.join " "
 
 
-gridPosition : GridPosition -> String
-gridPosition (GridPosition { rowRange, colRange }) =
+gridPosition : GridPosition -> Maybe String
+gridPosition (GridPosition { start, width, height }) =
     let
+        ( x, y ) =
+            start
+
         ( rowStart, rowEnd ) =
-            rowRange
+            ( y + 1, y + 1 + height )
 
         ( colStart, colEnd ) =
-            colRange
+            ( x + 1, x + 1 + width )
     in
-        String.join " / "
-            [ toString rowStart
-            , toString colStart
-            , toString rowEnd
-            , toString colEnd
-            ]
+        if width == 0 || height == 0 then
+            Nothing
+        else
+            Just <|
+                String.join " / "
+                    [ toString rowStart
+                    , toString colStart
+                    , toString rowEnd
+                    , toString colEnd
+                    ]
 
 
 typeface families =

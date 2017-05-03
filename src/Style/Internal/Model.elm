@@ -209,8 +209,9 @@ type GridTemplate
 
 type GridPosition
     = GridPosition
-        { rowRange : ( Int, Int )
-        , colRange : ( Int, Int )
+        { start : ( Int, Int )
+        , width : Int
+        , height : Int
         }
 
 

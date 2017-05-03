@@ -386,7 +386,7 @@ This creates the following html:
 
 ```
 
-Events are attached to the radio input element (to capture things like `onInput`, while all other attributes apply to the label element).
+Events are attached to the radio input element (to capture things like `onInput`, while all other attributes apply to the parent label element).
 
 
 -}
@@ -607,8 +607,8 @@ type alias Grid =
     }
 
 
-grid : Grid -> elem -> List (Attribute variation msg) -> List (OnGrid (Element elem variation msg)) -> Element elem variation msg
-grid template elem attrs children =
+grid : elem -> Grid -> List (Attribute variation msg) -> List (OnGrid (Element elem variation msg)) -> Element elem variation msg
+grid elem template attrs children =
     let
         prepare el =
             List.map (\(OnGrid x) -> x) el
@@ -622,8 +622,8 @@ type alias NamedGrid =
     }
 
 
-namedGrid : NamedGrid -> elem -> List (Attribute variation msg) -> List (NamedOnGrid (Element elem variation msg)) -> Element elem variation msg
-namedGrid template elem attrs children =
+namedGrid : elem -> NamedGrid -> List (Attribute variation msg) -> List (NamedOnGrid (Element elem variation msg)) -> Element elem variation msg
+namedGrid elem template attrs children =
     let
         prepare el =
             List.map (\(NamedOnGrid x) -> x) el
@@ -631,11 +631,11 @@ namedGrid template elem attrs children =
         Layout Html.div (Style.Grid (Style.NamedGridTemplate template) []) (Just elem) attrs (prepare children)
 
 
-type GridBox
-    = GridBox
-        { rowRange : ( Int, Int )
-        , colRange : ( Int, Int )
-        }
+type alias GridPosition =
+    { start : ( Int, Int )
+    , width : Int
+    , height : Int
+    }
 
 
 type OnGrid thing
@@ -646,14 +646,37 @@ type NamedOnGrid thing
     = NamedOnGrid thing
 
 
-area : GridBox -> Element elem variation msg -> OnGrid (Element elem variation msg)
+area : GridPosition -> Element elem variation msg -> OnGrid (Element elem variation msg)
 area box el =
-    OnGrid el
+    OnGrid <| addProp (GridCoords <| Style.GridPosition box) el
 
 
 named : String -> Element elem variation msg -> NamedOnGrid (Element elem variation msg)
 named name el =
-    NamedOnGrid el
+    NamedOnGrid <| addProp (GridArea name) el
+
+
+type alias NamedGridPosition =
+    Style.NamedGridPosition
+
+
+span : Int -> String -> NamedGridPosition
+span i name =
+    Style.Named (Style.SpanJust i) (Just name)
+
+
+spanAll : String -> NamedGridPosition
+spanAll name =
+    Style.Named Style.SpanAll (Just name)
+
+
+
+-- empty : Int -> NamedGridPosition
+-- empty i =
+--     Named (SpanJust i) Nothing
+-- allEmpty : Int -> NamedGridPosition
+-- allEmpty i =
+--     Named SpanAll Nothing
 
 
 {-| Turn an element into a link.

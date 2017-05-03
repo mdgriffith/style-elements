@@ -401,24 +401,20 @@ layout inline lay =
                                     Debug.log "style-elements" "Named grid row (" ++ toString areas ++ ") is too big for this grid!"
                             in
                                 areaStrs
-                                    |> List.map quote
                                     |> String.join " "
+                                    |> quote
                         else if List.length areaStrs < List.length columns then
                             let
                                 _ =
                                     Debug.log "style-elements" "Named grid row (" ++ toString areas ++ ") doesn't have enough names to fit this grid!"
                             in
                                 areaStrs
-                                    |> List.map quote
                                     |> String.join " "
+                                    |> quote
                         else
                             areaStrs
-                                |> List.map quote
                                 |> String.join " "
-
-                rowAreas rows =
-                    List.map areasInRow rows
-                        |> String.join "\n"
+                                |> quote
             in
                 grid
                     :: ( "grid-template-rows"

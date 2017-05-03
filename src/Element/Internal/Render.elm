@@ -412,7 +412,13 @@ makePositionable attr pos =
             { pos | gridPosition = Just name }
 
         GridCoords coords ->
-            { pos | gridPosition = Just <| Value.gridPosition coords }
+            case Value.gridPosition coords of
+                Nothing ->
+                    -- Invalid grid position like width = 0, so element should be hidden
+                    { pos | hidden = True }
+
+                Just xy ->
+                    { pos | gridPosition = Just <| xy }
 
 
 type Order
