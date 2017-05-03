@@ -1,7 +1,7 @@
 module Style.Border exposing (width, rounded, solid, dashed, dotted)
 
 {-|
-@docs color, width, rounded, solid, dashed, dotted
+@docs  width, rounded, solid, dashed, dotted
 -}
 
 import Style.Internal.Model as Internal exposing (Property(..))
