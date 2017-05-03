@@ -41,7 +41,7 @@ type Attribute variation msg
     | Inline
     | HAlign HorizontalAlignment
     | VAlign VerticalAlignment
-    | Position Float Float
+    | Position (Maybe Float) (Maybe Float) (Maybe Float)
     | PositionFrame Frame
     | Hidden
     | Transparency Int
@@ -52,6 +52,7 @@ type Attribute variation msg
     | Attr (Html.Attribute msg)
     | GridArea String
     | GridCoords Style.GridPosition
+    | PointerEvents Bool
 
 
 type Decoration

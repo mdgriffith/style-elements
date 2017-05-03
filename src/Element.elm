@@ -853,14 +853,33 @@ alignRight =
 {- Layout Attributes -}
 
 
+moveX : Float -> Attribute variation msg
+moveX x =
+    Position (Just x) Nothing Nothing
+
+
+moveY : Float -> Attribute variation msg
+moveY y =
+    Position Nothing (Just y) Nothing
+
+
+moveZ : Float -> Attribute variation msg
+moveZ z =
+    Position Nothing Nothing (Just z)
+
+
 {-| Adjust the position of the element.
 
-Arguemnts are given as x and y coordinates, where positive is right and down.
 
 -}
-move : Float -> Float -> Attribute variation msg
-move =
-    Position
+moveXY : Float -> Float -> Attribute variation msg
+moveXY x y =
+    Position (Just x) (Just y) Nothing
+
+
+moveXYZ : Float -> Float -> Float -> Attribute variation msg
+moveXYZ x y z =
+    Position (Just x) (Just y) (Just z)
 
 
 {-| -}
