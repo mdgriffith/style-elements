@@ -991,6 +991,20 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                             let
                                 ( top, right, bottom, left ) =
                                     parentPadding
+
+                                borders =
+                                    List.concat
+                                        [ if order == Last then
+                                            [ "border-top-right-radius" => "0"
+                                            , "border-top-left-radius" => "0"
+                                            ]
+                                          else if order == First then
+                                            [ "border-bottom-right-radius" => "0"
+                                            , "border-bottom-left-radius" => "0"
+                                            ]
+                                          else
+                                            []
+                                        ]
                             in
                                 [ "width" => ("calc(100% + " ++ toString (right + left) ++ "px")
                                 , "margin" => "0"
@@ -1003,10 +1017,17 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                                     "margin-bottom" => (toString (-1 * bottom) ++ "px")
                                   else
                                     "margin-bottom" => "0"
+                                , case elem.padding of
+                                    Nothing ->
+                                        ( "padding", Value.box parentPadding )
+
+                                    Just pad ->
+                                        ( "padding", Value.box pad )
                                 ]
+                                    ++ borders
             in
                 (Html.Attributes.style
-                    (("box-sizing" => "border-box") :: (passthrough <| gridPos <| layout <| spacing <| transparency <| positionAdjustment <| padding <| expandedProps))
+                    (("box-sizing" => "border-box") :: (passthrough <| gridPos <| layout <| spacing <| transparency <| positionAdjustment <| expandedProps))
                 )
                     :: attributes
         else
