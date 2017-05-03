@@ -394,28 +394,32 @@ radio : elem -> List (Attribute variation msg) -> String -> String -> Bool -> El
 radio elem attrs group value on label =
     let
         ( events, other ) =
-            List.partition forEvents attrs
+            List.partition forInputEvents attrs
 
-        forEvents attr =
+        forInputEvents attr =
             case attr of
-                Event ev ->
+                InputEvent ev ->
                     True
 
                 _ ->
                     False
-
-        attributes =
-            Attr.type_ "radio" :: Attr.name group :: Attr.value value :: Attr.checked on :: events
-
-        radioButton =
-            Element Html.input (Just elem) attributes empty Nothing
     in
         Element Html.label
             (Just elem)
             other
-            (paragraph elem
-                attributes
-                [ radioButton
+            (inlineChildren Html.div
+                Nothing
+                []
+                [ Element Html.input
+                    (Just elem)
+                    (Attr.type_ "radio"
+                        :: Attr.name group
+                        :: Attr.value value
+                        :: Attr.checked on
+                        :: events
+                    )
+                    empty
+                    Nothing
                 , label
                 ]
             )
@@ -428,28 +432,31 @@ checkbox : elem -> List (Attribute variation msg) -> Bool -> Element elem variat
 checkbox elem attrs on label =
     let
         ( events, other ) =
-            List.partition forEvents attrs
+            List.partition forInputEvents attrs
 
-        forEvents attr =
+        forInputEvents attr =
             case attr of
-                Event ev ->
+                InputEvent ev ->
                     True
 
                 _ ->
                     False
-
-        attributes =
-            Attr.type_ "checkbox" :: Attr.checked on :: events
-
-        checkedButton =
-            Element Html.input (Just elem) attributes empty Nothing
     in
         Element Html.label
             (Just elem)
             other
-            (paragraph elem
-                attributes
-                [ checkedButton
+            (inlineChildren Html.div
+                Nothing
+                []
+                [ Element
+                    Html.input
+                    Nothing
+                    (Attr.type_ "checkbox"
+                        :: Attr.checked on
+                        :: events
+                    )
+                    empty
+                    Nothing
                 , label
                 ]
             )
@@ -562,6 +569,16 @@ All of the children are set to 'inline-block' if they are not already text eleme
 -}
 paragraph : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 paragraph elem attrs children =
+    inlineChildren Html.p (Just elem) attrs children
+
+
+inlineChildren :
+    HtmlFn msg
+    -> Maybe elem
+    -> List (Attribute variation msg)
+    -> List (Element elem variation msg)
+    -> Element elem variation msg
+inlineChildren node elem attrs children =
     let
         ( child, others ) =
             case children of
@@ -571,7 +588,7 @@ paragraph elem attrs children =
                 child :: others ->
                     ( addPropToNonText Inline child, Just <| List.map (addPropToNonText Inline) others )
     in
-        Element Html.p (Just elem) attrs child others
+        Element node elem attrs child others
 
 
 row : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg

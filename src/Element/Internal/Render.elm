@@ -399,6 +399,9 @@ makePositionable attr pos =
         Event ev ->
             { pos | attrs = ev :: pos.attrs }
 
+        InputEvent ev ->
+            { pos | attrs = ev :: pos.attrs }
+
         Attr attr ->
             { pos | attrs = attr :: pos.attrs }
 

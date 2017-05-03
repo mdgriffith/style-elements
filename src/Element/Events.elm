@@ -101,7 +101,7 @@ For more details on how `onInput` works, check out [targetValue](#targetValue).
 -}
 onInput : (String -> msg) -> Attribute variation msg
 onInput =
-    Event << Html.Events.onInput
+    InputEvent << Html.Events.onInput
 
 
 {-| Capture [change](https://developer.mozilla.org/en-US/docs/Web/Events/change)
@@ -111,7 +111,7 @@ Check out [targetChecked](#targetChecked) for more details on how this works.
 -}
 onCheck : (Bool -> msg) -> Attribute variation msg
 onCheck =
-    Event << Html.Events.onCheck
+    InputEvent << Html.Events.onCheck
 
 
 {-| Capture a [submit](https://developer.mozilla.org/en-US/docs/Web/Events/submit)

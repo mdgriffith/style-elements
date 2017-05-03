@@ -49,6 +49,7 @@ type Attribute variation msg
     | Expand
     | Padding ( Float, Float, Float, Float )
     | Event (Html.Attribute msg)
+    | InputEvent (Html.Attribute msg)
     | Attr (Html.Attribute msg)
     | GridArea String
     | GridCoords Style.GridPosition
