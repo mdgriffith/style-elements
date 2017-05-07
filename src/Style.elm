@@ -3,8 +3,6 @@ module Style
         ( Style
         , Property
         , Font
-        , Background
-        , Border
         , Repeat
         , Shadow
         , Transform
@@ -18,9 +16,7 @@ module Style
         , prop
         , cursor
         , font
-        , background
         , shadows
-        , border
         , paddingHint
         , transforms
         , filters
@@ -46,7 +42,6 @@ module Style
 {-|
 # Welcome to the Style Elements Library!
 
-
 @docs Style, style, Property
 
 @docs variation
@@ -55,7 +50,7 @@ module Style
 
 @docs cursor
 
-@docs Border, border, Corners
+@docs Corners
 
 @docs paddingHint, Edges
 
@@ -69,7 +64,7 @@ module Style
 
 @docs hover, checked, focus, pseudo
 
-@docs background, Background, Repeat, GradientDirection, GradientStep
+@docs Repeat, GradientDirection, GradientStep
 
 @docs all, top, left, right, bottom, leftRight, topBottom, leftRightAndTopBottom, leftRightTopBottom, allButTop, allButLeft, allButRight, allButBottom
 
@@ -96,11 +91,6 @@ type alias Length =
 
 
 {-| -}
-type alias Border =
-    Internal.BorderElement
-
-
-{-| -}
 type alias Box =
     Internal.BoxElement
 
@@ -113,11 +103,6 @@ type alias Position =
 {-| -}
 type alias Font =
     Batchable Internal.FontElement
-
-
-{-| -}
-type alias Background =
-    Internal.BackgroundElement
 
 
 {-| -}
@@ -162,18 +147,6 @@ prop name val =
 cursor : String -> Property class variation animation
 cursor name =
     Internal.Exact "cursor" name
-
-
-{-| -}
-border : List Border -> Property class variation animation
-border elems =
-    Internal.Border (Internal.BorderElement "border-style" "solid" :: elems)
-
-
-{-| -}
-background : List Background -> Property class variation animation
-background bgs =
-    Internal.Background bgs
 
 
 {-| -}
@@ -360,17 +333,6 @@ bottomRight x =
 bottomLeft : Float -> Corners
 bottomLeft x =
     ( 0, 0, 0, x )
-
-
-
--- {-| -}
--- after : String -> List (Property class variation animation) -> Property class variation animation
--- after content props =
---      Internal.PseudoElement ":after" (prop "content" ("'" ++ content ++ "'") :: props)
--- {-| -}
--- before : String -> List (Property class variation animation) -> Property class variation animation
--- before content props =
---      Internal.PseudoElement ":before" (prop "content" ("'" ++ content ++ "'") :: props)
 
 
 {-| -}

@@ -48,9 +48,6 @@ mapPropClass fn prop =
         Exact name val ->
             Exact name val
 
-        Border props ->
-            Border props
-
         Box props ->
             Box props
 
@@ -103,12 +100,11 @@ type Property class variation animation
     | Child class (List (Property class variation animation))
     | MediaQuery String (List (Property class variation animation))
     | PseudoElement String (List (Property class variation animation))
-    | Border (List BorderElement)
     | Box (List BoxElement)
     | Position (List PositionElement)
     | Font (List FontElement)
     | Layout LayoutModel
-    | Background (List BackgroundElement)
+    | Background BackgroundElement
     | Shadows (List ShadowModel)
     | Transform (List Transformation)
     | Filters (List Filter)
@@ -164,10 +160,6 @@ type Floating
     | FloatRight
     | FloatTopLeft
     | FloatTopRight
-
-
-type BorderElement
-    = BorderElement String String
 
 
 type BoxElement

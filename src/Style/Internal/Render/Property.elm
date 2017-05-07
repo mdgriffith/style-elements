@@ -148,11 +148,6 @@ box (BoxProp name val) =
     ( name, val )
 
 
-border : BorderElement -> ( String, String )
-border (BorderElement name val) =
-    ( name, val )
-
-
 font : FontElement -> ( String, String )
 font (FontElement name val) =
     ( name, val )
@@ -251,8 +246,8 @@ position posEls =
         List.map renderPos posEls
 
 
-background : List BackgroundElement -> List ( String, String )
-background props =
+background : BackgroundElement -> List ( String, String )
+background prop =
     let
         directionName dir =
             case dir of
@@ -293,40 +288,37 @@ background props =
 
                 PxStep color percent ->
                     (Value.color color ++ " " ++ toString percent ++ "px")
-
-        bgElement bg =
-            case bg of
-                BackgroundElement name val ->
-                    [ ( name, val ) ]
-
-                BackgroundImage { src, position, repeat } ->
-                    [ "background-image" => src
-                    , "background-repeat"
-                        => case repeat of
-                            RepeatX ->
-                                "repeat-x"
-
-                            RepeatY ->
-                                "repeat-y"
-
-                            Repeat ->
-                                "repeat"
-
-                            Space ->
-                                "space"
-
-                            Round ->
-                                "round"
-
-                            NoRepeat ->
-                                "no-repeat"
-                    , "background-position" => (toString (Tuple.first position) ++ "px " ++ toString (Tuple.second position) ++ "px")
-                    ]
-
-                BackgroundLinearGradient dir steps ->
-                    [ "background-image" => ("linear-gradient(" ++ (String.join ", " <| directionName dir :: List.map renderStep steps) ++ ")") ]
     in
-        List.concatMap bgElement props
+        case prop of
+            BackgroundElement name val ->
+                [ ( name, val ) ]
+
+            BackgroundImage { src, position, repeat } ->
+                [ "background-image" => src
+                , "background-repeat"
+                    => case repeat of
+                        RepeatX ->
+                            "repeat-x"
+
+                        RepeatY ->
+                            "repeat-y"
+
+                        Repeat ->
+                            "repeat"
+
+                        Space ->
+                            "space"
+
+                        Round ->
+                            "round"
+
+                        NoRepeat ->
+                            "no-repeat"
+                , "background-position" => (toString (Tuple.first position) ++ "px " ++ toString (Tuple.second position) ++ "px")
+                ]
+
+            BackgroundLinearGradient dir steps ->
+                [ "background-image" => ("linear-gradient(" ++ (String.join ", " <| directionName dir :: List.map renderStep steps) ++ ")") ]
 
 
 {-| -}

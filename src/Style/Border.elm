@@ -4,36 +4,36 @@ module Style.Border exposing (width, rounded, solid, dashed, dotted)
 @docs  width, rounded, solid, dashed, dotted
 -}
 
-import Style.Internal.Model as Internal exposing (Property(..))
+import Style.Internal.Model as Internal
 import Style.Internal.Render.Value as Render
-import Style exposing (Border, Corners)
+import Style exposing (Corners, Property)
 
 
 {-| -}
-width : ( Float, Float, Float, Float ) -> Border
+width : ( Float, Float, Float, Float ) -> Property class variation animation
 width box =
-    Internal.BorderElement "border-width" (Render.box box)
+    Internal.Exact "border-width" (Render.box box)
 
 
 {-| -}
-rounded : Corners -> Border
+rounded : Corners -> Property class variation animation
 rounded box =
-    Internal.BorderElement "border-radius" (Render.box box)
+    Internal.Exact "border-radius" (Render.box box)
 
 
 {-| -}
-solid : Border
+solid : Property class variation animation
 solid =
-    Internal.BorderElement "border-style" "solid"
+    Internal.Exact "border-style" "solid"
 
 
 {-| -}
-dashed : Border
+dashed : Property class variation animation
 dashed =
-    Internal.BorderElement "border-style" "dashed"
+    Internal.Exact "border-style" "dashed"
 
 
 {-| -}
-dotted : Border
+dotted : Property class variation animation
 dotted =
-    Internal.BorderElement "border-style" "dotted"
+    Internal.Exact "border-style" "dotted"

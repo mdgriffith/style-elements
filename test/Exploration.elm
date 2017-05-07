@@ -127,20 +127,21 @@ view device model =
             , el Bell [] empty
 
             -- Content Switch animtion
-            , animated Menu menu.states <|
-                case step of
-                    Open ->
-                        el Menu [] (text "profile")
-                            |> (below column Menu)
-                                []
-                                [ text "Welcome!"
-                                , vary (Button SubmitSignup)
-                                    [ Blue => True ]
-                                    (text "Submit!")
-                                ]
+            , animated model.menu <|
+                \step ->
+                    case step of
+                        Open ->
+                            el Menu [] (text "profile")
+                                |> (below column Menu)
+                                    []
+                                    [ text "Welcome!"
+                                    , vary (Button SubmitSignup)
+                                        [ Blue => True ]
+                                        (text "Submit!")
+                                    ]
 
-                    Closed ->
-                        el Menu [] (text "profile")
+                        Closed ->
+                            el Menu [] (text "profile")
 
             -- Basic Slide out
             , animated Menu menu.states <|

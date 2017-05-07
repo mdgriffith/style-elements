@@ -4,7 +4,7 @@ module Style.Background exposing (..)
 
 import Style.Internal.Model as Internal
 import Color exposing (Color)
-import Style exposing (Background, Repeat, GradientStep, GradientDirection)
+import Style exposing (Property, Repeat, GradientStep, GradientDirection)
 
 
 step : Color -> GradientStep
@@ -73,13 +73,13 @@ toAngle =
 
 
 -}
-gradient : GradientDirection -> List GradientStep -> Background
+gradient : GradientDirection -> List GradientStep -> Property class variation animation
 gradient dir steps =
     Internal.BackgroundLinearGradient dir steps
 
 
 {-| -}
-image : String -> Background
+image : String -> Property class variation animation
 image src =
     Internal.BackgroundImage
         { src = src
@@ -94,7 +94,7 @@ imageWith :
     , position : ( Float, Float )
     , repeat : Repeat
     }
-    -> Background
+    -> Property class variation animation
 imageWith =
     Internal.BackgroundImage
 

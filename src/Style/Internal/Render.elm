@@ -249,9 +249,6 @@ renderProp parentClass prop =
         Visibility vis ->
             Intermediate.props <| Render.visibility vis
 
-        Border props ->
-            Intermediate.props <| List.map Render.border props
-
         Box props ->
             Intermediate.props <| List.map Render.box props
 
@@ -353,9 +350,6 @@ renderVariationProp parentClass prop =
 
         Visibility vis ->
             (Just << Intermediate.props) <| Render.visibility vis
-
-        Border props ->
-            (Just << Intermediate.props) <| List.map Render.border props
 
         Box props ->
             (Just << Intermediate.props) <| List.map Render.box props
