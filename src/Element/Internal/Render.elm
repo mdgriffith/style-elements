@@ -30,11 +30,13 @@ embed stylesheet =
 
 render : Internal.StyleSheet elem variation animation msg -> Element elem variation msg -> Html msg
 render stylesheet elm =
-    renderElement Nothing stylesheet FirstAndLast elm
+    elm
+        |> adjustStructure Nothing
+        |> renderElement Nothing stylesheet FirstAndLast
 
 
-type alias Parent variation msg =
-    { inherited : List (Attribute variation msg)
+type alias Parent =
+    { parentSpecifiedSpacing : Maybe ( Float, Float, Float, Float )
     , layout : Internal.LayoutModel
     , parentPadding : ( Float, Float, Float, Float )
     }
@@ -56,7 +58,170 @@ detectOrder list i =
             Middle i
 
 
-renderElement : Maybe (Parent variation msg) -> Internal.StyleSheet elem variation animation msg -> Order -> Element elem variation msg -> Html msg
+spacingToMargin : List (Attribute variation msg) -> List (Attribute variation msg)
+spacingToMargin attrs =
+    let
+        spaceToMarg a =
+            case a of
+                Spacing x y ->
+                    Margin ( y, x, y, x )
+
+                a ->
+                    a
+    in
+        List.map spaceToMarg attrs
+
+
+{-| Certain situations require html structure adjustment
+-}
+adjustStructure : Maybe Internal.LayoutModel -> Element elem variation msg -> Element elem variation msg
+adjustStructure parent elm =
+    case elm of
+        Empty ->
+            Empty
+
+        Spacer x ->
+            Spacer x
+
+        Text dec str ->
+            Text dec str
+
+        Element node element position child otherChildren ->
+            let
+                ( centeredProps, others ) =
+                    List.partition (\attr -> attr == HAlign Center || attr == VAlign VerticalCenter) position
+
+                skipAdjustment bool =
+                    Element node
+                        element
+                        position
+                        (adjustStructure Nothing child)
+                        (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
+            in
+                if not <| List.isEmpty centeredProps then
+                    case parent of
+                        Nothing ->
+                            -- use Flexbox to center single elements
+                            -- The flexbox element should pass through events to the parent.
+                            -- elm
+                            Layout Html.div
+                                (Internal.FlexLayout Internal.GoRight [])
+                                Nothing
+                                (PointerEvents False
+                                    :: PositionFrame Positioned
+                                    :: Height (Internal.Percent 100)
+                                    :: Width (Internal.Percent 100)
+                                    :: centeredProps
+                                )
+                                [ Element node
+                                    element
+                                    (PointerEvents True :: others)
+                                    (adjustStructure Nothing child)
+                                    -- child
+                                    (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
+                                ]
+
+                        Just Internal.TextLayout ->
+                            Layout Html.div
+                                (Internal.FlexLayout Internal.GoRight [])
+                                Nothing
+                                centeredProps
+                                [ Element node
+                                    element
+                                    others
+                                    (adjustStructure Nothing child)
+                                    (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
+                                ]
+
+                        _ ->
+                            skipAdjustment True
+                else
+                    skipAdjustment True
+
+        Layout node layout element position children ->
+            let
+                ( centeredProps, others ) =
+                    List.partition (\attr -> attr == HAlign Center || attr == VAlign VerticalCenter) position
+
+                isFlex =
+                    case layout of
+                        Internal.FlexLayout _ _ ->
+                            True
+
+                        _ ->
+                            False
+
+                spacing =
+                    List.filterMap forSpacing position
+                        |> List.reverse
+                        |> List.head
+
+                hasSpacing =
+                    case spacing of
+                        Nothing ->
+                            False
+
+                        _ ->
+                            True
+
+                forSpacing posAttr =
+                    case posAttr of
+                        Spacing x y ->
+                            Just ( y, x, y, x )
+
+                        _ ->
+                            Nothing
+            in
+                case layout of
+                    Internal.TextLayout ->
+                        if not <| List.isEmpty centeredProps then
+                            Layout
+                                Html.div
+                                (Internal.FlexLayout Internal.GoRight [])
+                                Nothing
+                                centeredProps
+                                [ Layout node layout element others (List.map (adjustStructure (Just layout)) children) ]
+                        else
+                            Layout node layout element position (List.map (adjustStructure (Just layout)) children)
+
+                    Internal.FlexLayout _ _ ->
+                        if hasSpacing then
+                            let
+                                -- Container
+                                -- FlexLayout on counter-element
+                                -- negative margin on counter-element
+                                ( negativeMargin, spacingAttr ) =
+                                    case spacing of
+                                        Nothing ->
+                                            ( ( 0, 0, 0, 0 )
+                                            , Spacing 0 0
+                                            )
+
+                                        Just ( top, right, bottom, left ) ->
+                                            ( ( -1 * top, -1 * right, -1 * bottom, -1 * left )
+                                            , Spacing right bottom
+                                            )
+                            in
+                                Layout
+                                    Html.div
+                                    (Internal.FlexLayout Internal.GoRight [])
+                                    element
+                                    position
+                                    [ Layout
+                                        node
+                                        layout
+                                        Nothing
+                                        (Margin negativeMargin :: spacingAttr :: [])
+                                        (List.map (adjustStructure (Just layout)) children)
+                                    ]
+                        else
+                            Layout node layout element position (List.map (adjustStructure (Just layout)) children)
+
+                    _ ->
+                        Layout node layout element position (List.map (adjustStructure (Just layout)) children)
+
+
+renderElement : Maybe Parent -> Internal.StyleSheet elem variation animation msg -> Order -> Element elem variation msg -> Html msg
 renderElement parent stylesheet order elm =
     case elm of
         Empty ->
@@ -64,15 +229,14 @@ renderElement parent stylesheet order elm =
 
         Spacer x ->
             let
-                ( spacingX, spacingY ) =
+                ( spacingX, spacingY, _, _ ) =
                     case parent of
                         Just ctxt ->
-                            List.filterMap forSpacing ctxt.inherited
-                                |> List.head
-                                |> Maybe.withDefault ( 5, 5 )
+                            ctxt.parentSpecifiedSpacing
+                                |> Maybe.withDefault ( 0, 0, 0, 0 )
 
                         Nothing ->
-                            ( 5, 5 )
+                            ( 0, 0, 0, 0 )
 
                 forSpacing posAttr =
                     case posAttr of
@@ -115,167 +279,112 @@ renderElement parent stylesheet order elm =
 
         Element node element position child otherChildren ->
             let
-                ( centeredProps, others ) =
-                    List.partition (\attr -> attr == HAlign Center || attr == VAlign VerticalCenter) position
-            in
-                if not <| List.isEmpty centeredProps then
+                childHtml =
+                    case otherChildren of
+                        Nothing ->
+                            [ renderElement Nothing stylesheet FirstAndLast child ]
+
+                        Just others ->
+                            List.map (renderElement Nothing stylesheet FirstAndLast) (child :: others)
+
+                attributes =
                     case parent of
                         Nothing ->
-                            let
-                                centered =
-                                    Layout Html.div
-                                        (Internal.FlexLayout Internal.GoRight [])
-                                        Nothing
-                                        (PointerEvents False
-                                            :: PositionFrame Positioned
-                                            :: Height (Internal.Percent 100)
-                                            :: Width (Internal.Percent 100)
-                                            :: centeredProps
-                                        )
-                                        [ Element node element (PointerEvents True :: others) child otherChildren ]
-                            in
-                                renderElement parent stylesheet order centered
+                            spacingToMargin position
 
-                        Just p ->
-                            case p.layout of
-                                Internal.TextLayout ->
-                                    let
-                                        centered =
-                                            Layout Html.div
-                                                (Internal.FlexLayout Internal.GoRight [])
-                                                Nothing
-                                                centeredProps
-                                                [ Element node element others child otherChildren ]
-                                    in
-                                        renderElement parent stylesheet order centered
-
-                                _ ->
-                                    let
-                                        childHtml =
-                                            case otherChildren of
-                                                Nothing ->
-                                                    [ renderElement Nothing stylesheet FirstAndLast child ]
-
-                                                Just others ->
-                                                    List.map (renderElement Nothing stylesheet FirstAndLast) (child :: others)
-
-                                        attributes =
-                                            case parent of
-                                                Nothing ->
-                                                    position
-
-                                                Just ctxt ->
-                                                    ctxt.inherited ++ position
-
-                                        htmlAttrs =
-                                            renderPositioned Single order element parent stylesheet (gather attributes)
-                                    in
-                                        node htmlAttrs childHtml
-                else
-                    let
-                        childHtml =
-                            case otherChildren of
+                        Just ctxt ->
+                            case ctxt.parentSpecifiedSpacing of
                                 Nothing ->
-                                    [ renderElement Nothing stylesheet FirstAndLast child ]
+                                    spacingToMargin position
 
-                                Just others ->
-                                    List.map (renderElement Nothing stylesheet FirstAndLast) (child :: others)
+                                Just ( top, right, bottom, left ) ->
+                                    Margin ( top, right, bottom, left ) :: position
 
-                        attributes =
-                            case parent of
-                                Nothing ->
-                                    position
-
-                                Just ctxt ->
-                                    ctxt.inherited ++ position
-
-                        htmlAttrs =
-                            renderPositioned Single order element parent stylesheet (gather attributes)
-                    in
-                        node htmlAttrs childHtml
+                htmlAttrs =
+                    renderAttributes Single order element parent stylesheet (gather attributes)
+            in
+                node htmlAttrs childHtml
 
         Layout node layout element position children ->
             let
                 ( centeredProps, others ) =
                     List.partition (\attr -> attr == HAlign Center || attr == VAlign VerticalCenter) position
+
+                attributes =
+                    case parent of
+                        Nothing ->
+                            attrs
+
+                        Just ctxt ->
+                            case ctxt.parentSpecifiedSpacing of
+                                Nothing ->
+                                    attrs
+
+                                Just spacing ->
+                                    Margin spacing :: attrs
+
+                clearfix attrs =
+                    case layout of
+                        Internal.TextLayout ->
+                            Html.Attributes.class "clearfix" :: attrs
+
+                        _ ->
+                            attrs
+
+                forPadding posAttr =
+                    case posAttr of
+                        Padding box ->
+                            Just box
+
+                        _ ->
+                            Nothing
+
+                padding =
+                    case List.head (List.filterMap forPadding attributes) of
+                        Nothing ->
+                            ( 0, 0, 0, 0 )
+
+                        Just pad ->
+                            pad
+
+                findSpacing posAttr =
+                    case posAttr of
+                        Spacing x y ->
+                            Just ( y, x, y, x )
+
+                        _ ->
+                            Nothing
+
+                forSpacing =
+                    (\x -> x /= Nothing) << findSpacing
+
+                ( spacing, attrs ) =
+                    List.partition forSpacing position
+
+                inherit =
+                    { parentSpecifiedSpacing =
+                        List.filterMap findSpacing position
+                            |> List.head
+                    , layout = layout
+                    , parentPadding = padding
+                    }
+
+                childHtml =
+                    List.indexedMap
+                        (\i child ->
+                            renderElement
+                                (Just inherit)
+                                stylesheet
+                                (detectOrder children i)
+                                child
+                        )
+                        children
+
+                htmlAttrs =
+                    renderAttributes (LayoutElement layout) order element parent stylesheet (gather attributes)
+                        |> clearfix
             in
-                if layout == Internal.TextLayout && (not <| List.isEmpty centeredProps) then
-                    let
-                        centered =
-                            Layout
-                                Html.div
-                                (Internal.FlexLayout Internal.GoRight [])
-                                Nothing
-                                centeredProps
-                                [ Layout node layout element others children ]
-                    in
-                        renderElement parent stylesheet order centered
-                else
-                    let
-                        ( spacing, attrs ) =
-                            List.partition forSpacing position
-
-                        attributes =
-                            case parent of
-                                Nothing ->
-                                    attrs
-
-                                Just ctxt ->
-                                    ctxt.inherited ++ attrs
-
-                        clearfix attrs =
-                            case layout of
-                                Internal.TextLayout ->
-                                    Html.Attributes.class "clearfix" :: attrs
-
-                                _ ->
-                                    attrs
-
-                        forSpacing posAttr =
-                            case posAttr of
-                                Spacing _ _ ->
-                                    True
-
-                                _ ->
-                                    False
-
-                        forPadding posAttr =
-                            case posAttr of
-                                Padding box ->
-                                    Just box
-
-                                _ ->
-                                    Nothing
-
-                        padding =
-                            case List.head (List.filterMap forPadding attributes) of
-                                Nothing ->
-                                    ( 0, 0, 0, 0 )
-
-                                Just pad ->
-                                    pad
-
-                        childHtml =
-                            List.indexedMap
-                                (\i child ->
-                                    renderElement
-                                        (Just
-                                            { inherited = spacing
-                                            , layout = layout
-                                            , parentPadding = padding
-                                            }
-                                        )
-                                        stylesheet
-                                        (detectOrder children i)
-                                        child
-                                )
-                                children
-
-                        htmlAttrs =
-                            renderPositioned (LayoutElement layout) order element parent stylesheet (gather attributes)
-                                |> clearfix
-                    in
-                        node (htmlAttrs) childHtml
+                node (htmlAttrs) childHtml
 
 
 type alias Positionable variation msg =
@@ -288,7 +397,7 @@ type alias Positionable variation msg =
     , width : Maybe Internal.Length
     , height : Maybe Internal.Length
     , positioned : ( Maybe Float, Maybe Float, Maybe Float )
-    , spacing : Maybe ( Float, Float )
+    , margin : Maybe ( Float, Float, Float, Float )
     , padding : Maybe ( Float, Float, Float, Float )
     , variations : List ( variation, Bool )
     , transparency : Maybe Int
@@ -309,7 +418,7 @@ emptyPositionable =
     , width = Nothing
     , height = Nothing
     , positioned = ( Nothing, Nothing, Nothing )
-    , spacing = Nothing
+    , margin = Nothing
     , padding = Nothing
     , variations = []
     , transparency = Nothing
@@ -385,7 +494,11 @@ makePositionable attr pos =
             { pos | vertical = Just alignment }
 
         Spacing spaceX spaceY ->
-            { pos | spacing = Just ( spaceX, spaceY ) }
+            -- Spacing is converted into Margin to be rendered
+            pos
+
+        Margin box ->
+            { pos | margin = Just box }
 
         Padding box ->
             { pos | padding = Just box }
@@ -633,8 +746,8 @@ flexboxVerticalIndividualAlignment direction alignment =
                     Nothing
 
 
-renderPositioned : ElementType -> Order -> Maybe elem -> Maybe (Parent variation msg) -> Internal.StyleSheet elem variation animation msg -> Positionable variation msg -> List (Html.Attribute msg)
-renderPositioned elType order maybeElemID parent stylesheet elem =
+renderAttributes : ElementType -> Order -> Maybe elem -> Maybe Parent -> Internal.StyleSheet elem variation animation msg -> Positionable variation msg -> List (Html.Attribute msg)
+renderAttributes elType order maybeElemID parent stylesheet elem =
     let
         layout attrs =
             case elType of
@@ -866,7 +979,7 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                     ( "grid-area", area ) :: attrs
 
         spacing attrs =
-            case elem.spacing of
+            case elem.margin of
                 Nothing ->
                     attrs
 
@@ -874,10 +987,10 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                     ( "margin", Value.box <| adjustspacing space ) :: attrs
 
         -- When an element is floated, it's spacing is affected
-        adjustspacing ( spaceX, spaceY ) =
+        adjustspacing ( top, right, bottom, left ) =
             let
                 unchanged =
-                    ( spaceY, spaceX, spaceY, spaceX )
+                    ( top, right, bottom, left )
             in
                 case parent of
                     Nothing ->
@@ -891,36 +1004,36 @@ renderPositioned elType order maybeElemID parent stylesheet elem =
                                         if order == Last || order == FirstAndLast then
                                             ( 0, 0, 0, 0 )
                                         else
-                                            ( 0, 0, spaceY, 0 )
+                                            ( 0, 0, bottom, 0 )
 
                                     Just align ->
                                         if not elem.inline && elem.frame == Nothing then
                                             case align of
                                                 Left ->
                                                     if order == First then
-                                                        ( 0, spaceX, spaceY, 0 )
+                                                        ( 0, right, bottom, 0 )
                                                     else if order == FirstAndLast then
-                                                        ( 0, spaceX, 0, 0 )
+                                                        ( 0, right, 0, 0 )
                                                     else if order == Last then
-                                                        ( spaceY, spaceX, 0, 0 )
+                                                        ( top, right, 0, 0 )
                                                     else
-                                                        ( spaceY, spaceX, spaceY, 0 )
+                                                        ( top, right, bottom, 0 )
 
                                                 Right ->
                                                     if order == First then
-                                                        ( 0, 0, spaceY, spaceX )
+                                                        ( 0, 0, bottom, left )
                                                     else if order == FirstAndLast then
-                                                        ( 0, 0, 0, spaceX )
+                                                        ( 0, 0, 0, left )
                                                     else if order == Last then
-                                                        ( spaceY, 0, 0, spaceX )
+                                                        ( top, 0, 0, left )
                                                     else
-                                                        ( spaceY, 0, spaceY, spaceX )
+                                                        ( top, 0, bottom, left )
 
                                                 _ ->
                                                     if order == Last || order == FirstAndLast then
                                                         ( 0, 0, 0, 0 )
                                                     else
-                                                        ( 0, 0, spaceY, 0 )
+                                                        ( 0, 0, bottom, 0 )
                                         else
                                             unchanged
 
