@@ -190,16 +190,18 @@ adjustStructure parent elm =
                                 -- Container
                                 -- FlexLayout on counter-element
                                 -- negative margin on counter-element
-                                ( negativeMargin, spacingAttr ) =
+                                ( negativeMargin, spacingAttr, totalHSpacing ) =
                                     case spacing of
                                         Nothing ->
                                             ( ( 0, 0, 0, 0 )
                                             , Spacing 0 0
+                                            , 0
                                             )
 
                                         Just ( top, right, bottom, left ) ->
                                             ( ( -1 * top, -1 * right, -1 * bottom, -1 * left )
                                             , Spacing right bottom
+                                            , right + left
                                             )
                             in
                                 Layout
@@ -211,7 +213,7 @@ adjustStructure parent elm =
                                         node
                                         layout
                                         Nothing
-                                        (Margin negativeMargin :: spacingAttr :: [])
+                                        (Margin negativeMargin :: spacingAttr :: Width (Internal.Calc 100 totalHSpacing) :: [])
                                         (List.map (adjustStructure (Just layout)) children)
                                     ]
                         else

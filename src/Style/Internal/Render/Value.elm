@@ -26,6 +26,9 @@ length l =
         Fill i ->
             "auto"
 
+        Calc perc px ->
+            "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)"
+
 
 color : Color -> String
 color color =

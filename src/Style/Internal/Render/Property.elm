@@ -40,6 +40,9 @@ flexWidth l =
         Fill i ->
             ( "flex-grow", toString i )
 
+        Calc perc px ->
+            ( "width", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" )
+
 
 flexHeight : Length -> ( String, String )
 flexHeight l =
@@ -55,6 +58,9 @@ flexHeight l =
 
         Fill i ->
             ( "flex-grow", toString i )
+
+        Calc perc px ->
+            ( "height", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" )
 
 
 filters : List Filter -> List ( String, String )
@@ -367,6 +373,9 @@ layout inline lay =
                         Fill i ->
                             toString i ++ "fr"
 
+                        Calc perc px ->
+                            "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)"
+
                 alignment =
                     List.map gridAlignment options
 
@@ -449,6 +458,9 @@ layout inline lay =
 
                         Fill i ->
                             toString i ++ "fr"
+
+                        Calc perc px ->
+                            "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)"
 
                 alignment =
                     List.map gridAlignment options

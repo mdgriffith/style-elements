@@ -328,3 +328,4 @@ type Length
     | Percent Float
     | Auto
     | Fill Float
+    | Calc Float Float
