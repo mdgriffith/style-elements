@@ -25,7 +25,7 @@ all =
         [ Internal.Transition
             { delay = 0
             , duration = 130 * Time.millisecond
-            , easing = "easeInOutSine"
+            , easing = "ease"
             , props = [ "all" ]
             }
         ]
@@ -38,7 +38,7 @@ performant =
         [ Internal.Transition
             { delay = 0
             , duration = 130 * Time.millisecond
-            , easing = "easeInOutSine"
+            , easing = "ease"
             , props = [ "transform", "filter", "opacity" ]
             }
         ]
