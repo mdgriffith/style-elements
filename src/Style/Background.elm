@@ -75,17 +75,19 @@ toAngle =
 -}
 gradient : GradientDirection -> List GradientStep -> Property class variation animation
 gradient dir steps =
-    Internal.BackgroundLinearGradient dir steps
+    Internal.Background <|
+        Internal.BackgroundLinearGradient dir steps
 
 
 {-| -}
 image : String -> Property class variation animation
 image src =
-    Internal.BackgroundImage
-        { src = src
-        , position = ( 0, 0 )
-        , repeat = noRepeat
-        }
+    Internal.Background <|
+        Internal.BackgroundImage
+            { src = src
+            , position = ( 0, 0 )
+            , repeat = noRepeat
+            }
 
 
 {-| -}
@@ -95,8 +97,9 @@ imageWith :
     , repeat : Repeat
     }
     -> Property class variation animation
-imageWith =
-    Internal.BackgroundImage
+imageWith attrs =
+    Internal.Background <|
+        Internal.BackgroundImage attrs
 
 
 {-| -}
