@@ -300,7 +300,7 @@ renderElement parent stylesheet order elm =
                                     spacingToMargin position
 
                                 Just ( top, right, bottom, left ) ->
-                                    Margin ( top, right, bottom, left ) :: position
+                                    Margin ( top, right, bottom, left ) :: spacingToMargin position
 
                 htmlAttrs =
                     renderAttributes Single order element parent stylesheet (gather attributes)
@@ -991,12 +991,16 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
         -- When an element is floated, it's spacing is affected
         adjustspacing ( top, right, bottom, left ) =
             let
-                unchanged =
-                    ( top, right, bottom, left )
+                halved =
+                    ( top / 2
+                    , right / 2
+                    , bottom / 2
+                    , left / 2
+                    )
             in
                 case parent of
                     Nothing ->
-                        unchanged
+                        halved
 
                     Just { layout } ->
                         case layout of
@@ -1037,10 +1041,14 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                                     else
                                                         ( 0, 0, bottom, 0 )
                                         else
-                                            unchanged
+                                            ( top
+                                            , right
+                                            , bottom
+                                            , left
+                                            )
 
                             _ ->
-                                unchanged
+                                halved
 
         defaults =
             [ "position" => "relative"
