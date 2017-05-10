@@ -7,6 +7,7 @@ import Style.Border as Border
 import Style.Font as Font
 import Style.Shadow as Shadow
 import Style.Transitions as Transitions
+import Style.Background as Background
 import Style.Color
 import Color
 
@@ -30,13 +31,21 @@ stylesheet =
         , style Main
             [ Style.Color.palette
                 { text = Color.darkCharcoal
-                , background = Color.green
-                , border = Color.white
+                , background = Color.white
+                , border = Color.lightGrey
+                }
+            , Border.width (all 1)
+            , Border.solid
+            , Style.Color.palette
+                { text = Color.darkCharcoal
+                , background = Color.white
+                , border = Color.lightGrey
                 }
             ]
         , style Page
-            [ Border.rounded (all 3)
-            , Border.width (all 1)
+            [ Border.rounded (all 5)
+            , Border.width (all 5)
+            , Border.solid
             , Style.Color.palette
                 { text = Color.darkCharcoal
                 , background = Color.white
@@ -44,9 +53,8 @@ stylesheet =
                 }
             ]
         , style Label
-            [ font
-                [ Font.size 25
-                ]
+            [ Font.size 25
+            , Font.center
             ]
         , style Box
             [ Transitions.all
@@ -108,14 +116,14 @@ view model =
         el None [ center, width (px 800) ] <|
             column Main
                 [ spacing 50 50 ]
-                [ el Label [] (text "Single Element")
-                , el Container [ width (px 200), height (px 200), moveZ 5 ] empty
-                , el Label [] (text "Centered Element")
-                , el Container [ width (px 200), height (px 200), center ] empty
-                , el Label [] (text "Align Right")
-                , el Container [ width (px 200), height (px 200), alignRight ] empty
+                [ el Container [ padding (leftRightAndTopBottom 20 5), moveZ 5 ] (text "Single Element")
+                , el Container [ padding (leftRightAndTopBottom 20 5), center ] (text "Centered Element")
+                , el Container [ padding (leftRightAndTopBottom 20 5), alignRight ] (text "Align Right")
+                , el Container [ padding (leftRightAndTopBottom 20 5), center, spacing 20 20 ] (text "Centered ++ 20/20 Spacing Element")
                 , row None
-                    [ spacing 50 50 ]
+                    [ spacing 50 50
+                    , center
+                    ]
                     [ column None
                         [ spacing 20 40 ]
                         [ el Label [] (text "Anchored Elements")
@@ -163,18 +171,45 @@ view model =
                     ]
                 , el Label [] (text "Row Alignment")
                 , row Container
+                    [ spacing 20 20, height (px 400) ]
+                    [ el Box [ width (px 100), height (px 100), alignTop ] (text "top")
+                    , el Box [ width (px 100), height (px 100), vCenter ] (text "vcenter")
+                    , el Box [ width (px 100), height (px 100), alignBottom ] (text "bottom")
+                    , el Box [ width (px 100), height (px 100), alignRight ] (text "right(no effect)")
+                    , el Box [ width (px 100), height (px 100), alignLeft ] (text "left(no effect)")
+                    , el Box [ width (px 100), height (px 100), center ] (text "center(no effect)")
+                    ]
+                , el Label [] (text "Row Width/Heights")
+                , row Container
                     [ spacing 20 20, height (px 800) ]
-                    [ el Box [ width (px 20), height (px 200), alignTop ] empty
-                    , el Box [ width (px 20), height (px 200), vCenter ] empty
-                    , el Box [ width (px 20), height (px 200), alignBottom ] empty
-                    , el Box [ width (px 20), height (px 200), alignRight ] empty
-                    , el Box [ width (px 20), height (px 200), alignLeft ] empty
-                    , el Box [ width (px 20), height (px 200), center ] empty
-                    , el Box [ width (px 20), height (fill 1) ] empty
-                    , el Box [ width (fill 1), height (px 200) ] empty
+                    [ el Box [ width (px 200), height (fill 1) ] (text "fill height")
+                    , el Box [ width (fill 1), height (px 200) ] (text "fill width")
+                    ]
+                , el Label [] (text "Row Center ++ Spacing")
+                , row Container
+                    [ center, spacing 20 20 ]
+                    [ el Box [ width (px 200), height (px 200) ] empty
+                    , el Box [ width (px 200), height (px 200) ] empty
+                    ]
+                , el Label [] (text "Row Center ++ Spacing")
+                , row Container
+                    [ center, spacing 20 20 ]
+                    [ el Box [ width (px 200), height (px 200) ] empty
+                    , el Box [ width (px 200), height (px 200) ] empty
                     ]
                 , el Label [] (text "Wrapped Layout")
-                , viewWrappedRowLayout
+                , wrappedRow Container
+                    [ spacing 20 20 ]
+                    [ box
+                    , box
+                    , box
+                    , box
+                    , box
+                    , box
+                    , box
+                    , box
+                    , box
+                    ]
                 , el Label [] (text "Column Layout")
                 , column Container
                     [ spacing 20 20 ]

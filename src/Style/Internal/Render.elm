@@ -255,8 +255,8 @@ renderProp parentClass prop =
         Position pos ->
             Intermediate.props <| Render.position pos
 
-        Font props ->
-            Intermediate.props <| List.map Render.font props
+        Font name val ->
+            Intermediate.props <| [ ( name, val ) ]
 
         Layout lay ->
             Intermediate.props (Render.layout False lay)
@@ -357,8 +357,8 @@ renderVariationProp parentClass prop =
         Position pos ->
             (Just << Intermediate.props) <| Render.position pos
 
-        Font props ->
-            (Just << Intermediate.props) <| List.map Render.font props
+        Font name val ->
+            (Just << Intermediate.props) <| [ ( name, val ) ]
 
         Layout lay ->
             (Just << Intermediate.props) (Render.layout False lay)

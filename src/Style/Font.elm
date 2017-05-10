@@ -44,7 +44,7 @@ module Style.Font
 import Style.Internal.Model as Internal
 import Style.Internal.Batchable as Batchable
 import Style.Internal.Render.Value as Value
-import Style exposing (Property, Font)
+import Style exposing (Property)
 
 
 {-|
@@ -79,12 +79,15 @@ scale normal ratio fontScale =
         ( size, lineHeight ) =
             resize normal ratio fontScale
     in
-        Style.font
-            [ Batchable.Many
-                [ Internal.FontElement "font-size" (toString (round size) ++ "px")
-                , Internal.FontElement "line-height" (toString lineHeight)
-                ]
-            ]
+        Internal.Font "font-size" (toString (round size) ++ "px")
+
+
+
+-- [ Batchable.Many
+--     [ Internal.Font "font-size" (toString (round size) ++ "px")
+--     , Internal.Font "line-height" (toString lineHeight)
+--     ]
+-- ]
 
 
 {-| Scale font size and line height separately
@@ -95,12 +98,15 @@ scaleSeparately lineHeight normal ratio fontScale =
         ( size, _ ) =
             resize normal ratio fontScale
     in
-        Style.font
-            [ Batchable.Many
-                [ Internal.FontElement "font-size" (toString (round size) ++ "px")
-                , Internal.FontElement "line-height" (toString lineHeight)
-                ]
-            ]
+        Internal.Font "font-size" (toString (round size) ++ "px")
+
+
+
+-- [ Batchable.Many
+--     [ Internal.Font "font-size" (toString (round size) ++ "px")
+--     , Internal.Font "line-height" (toString lineHeight)
+--     ]
+-- ]
 
 
 grow : Float -> Int -> Float -> Float
@@ -146,154 +152,147 @@ resize normal ratio fontScale =
 
 {-|
 -}
-mix : List Font -> Font
-mix =
-    Batchable.Many << Batchable.toList
-
-
-{-|
--}
-typeface : List String -> Font
+typeface : List String -> Property class variation animation
 typeface families =
-    Batchable.One <| Internal.FontElement "font-family" (Value.typeface families)
+    Internal.Font "font-family" (Value.typeface families)
 
 
 {-| Set font-size.  Only px allowed.
 -}
-size : Float -> Font
+size : Float -> Property class variation animation
 size size =
-    Batchable.One <| Internal.FontElement "font-size" (toString size ++ "px")
+    Internal.Font "font-size" (toString size ++ "px")
 
 
 {-| Given as unitless lineheight.
 -}
-height : Float -> Font
+height : Float -> Property class variation animation
 height height =
-    Batchable.One <| Internal.FontElement "line-height" (toString height)
+    Internal.Font "line-height" (toString height)
 
 
 {-| -}
-letterSpacing : Float -> Font
+letterSpacing : Float -> Property class variation animation
 letterSpacing offset =
-    Batchable.One <| Internal.FontElement "letter-spacing" (toString offset ++ "px")
+    Internal.Font "letter-spacing" (toString offset ++ "px")
 
 
 {-| -}
-wordSpacing : Float -> Font
+wordSpacing : Float -> Property class variation animation
 wordSpacing offset =
-    Batchable.One <| Internal.FontElement "word-spacing" (toString offset ++ "px")
+    Internal.Font "word-spacing" (toString offset ++ "px")
 
 
 {-| -}
-left : Font
+left : Property class variation animation
 left =
-    Batchable.One <| Internal.FontElement "text-align" "left"
+    Internal.Font "text-align" "left"
 
 
 {-| -}
-right : Font
+right : Property class variation animation
 right =
-    Batchable.One <| Internal.FontElement "text-align" "right"
+    Internal.Font "text-align" "right"
 
 
 {-| -}
-center : Font
+center : Property class variation animation
 center =
-    Batchable.One <| Internal.FontElement "text-align" "center"
+    Internal.Font "text-align" "center"
 
 
 {-| -}
-justify : Font
+justify : Property class variation animation
 justify =
-    Batchable.One <| Internal.FontElement "text-align" "justify"
+    Internal.Font "text-align" "justify"
 
 
 {-| -}
-justifyAll : Font
+justifyAll : Property class variation animation
 justifyAll =
-    Batchable.One <| Internal.FontElement "text-align" "justifyAll"
+    Internal.Font "text-align" "justifyAll"
 
 
 {-| Renders as "white-space:normal", which is the standard wrapping behavior you're probably used to.
 -}
-wrap : Font
+wrap : Property class variation animation
 wrap =
-    Batchable.One <| Internal.FontElement "white-space" "normal"
+    Internal.Font "white-space" "normal"
 
 
 {-| -}
-pre : Font
+pre : Property class variation animation
 pre =
-    Batchable.One <| Internal.FontElement "white-space" "pre"
+    Internal.Font "white-space" "pre"
 
 
 {-| -}
-preWrap : Font
+preWrap : Property class variation animation
 preWrap =
-    Batchable.One <| Internal.FontElement "white-space" "pre-wrap"
+    Internal.Font "white-space" "pre-wrap"
 
 
 {-| -}
-preLine : Font
+preLine : Property class variation animation
 preLine =
-    Batchable.One <| Internal.FontElement "white-space" "pre-line"
+    Internal.Font "white-space" "pre-line"
 
 
 {-| -}
-noWrap : Font
+noWrap : Property class variation animation
 noWrap =
-    Batchable.One <| Internal.FontElement "white-space" "nowrap"
+    Internal.Font "white-space" "nowrap"
 
 
 {-| -}
-underline : Font
+underline : Property class variation animation
 underline =
-    Batchable.One <| Internal.FontElement "text-decoration" "underline"
+    Internal.Font "text-decoration" "underline"
 
 
 {-| -}
-strike : Font
+strike : Property class variation animation
 strike =
-    Batchable.One <| Internal.FontElement "text-decoration" "underline"
+    Internal.Font "text-decoration" "underline"
 
 
 {-| -}
-italicize : Font
+italicize : Property class variation animation
 italicize =
-    Batchable.One <| Internal.FontElement "font-style" "italics"
+    Internal.Font "font-style" "italics"
 
 
 {-| -}
-bold : Font
+bold : Property class variation animation
 bold =
-    Batchable.One <| Internal.FontElement "font-weight" "700"
+    Internal.Font "font-weight" "700"
 
 
 {-| -}
-light : Font
+light : Property class variation animation
 light =
-    Batchable.One <| Internal.FontElement "font-weight" "300"
+    Internal.Font "font-weight" "300"
 
 
 {-| -}
-weight : Int -> Font
+weight : Int -> Property class variation animation
 weight fontWeight =
-    Batchable.One <| Internal.FontElement "font-weight" (toString fontWeight)
+    Internal.Font "font-weight" (toString fontWeight)
 
 
 {-| -}
-uppercase : Font
+uppercase : Property class variation animation
 uppercase =
-    Batchable.One <| Internal.FontElement "text-transform" "uppercase"
+    Internal.Font "text-transform" "uppercase"
 
 
 {-| -}
-capitalize : Font
+capitalize : Property class variation animation
 capitalize =
-    Batchable.One <| Internal.FontElement "text-transform" "capitalize"
+    Internal.Font "text-transform" "capitalize"
 
 
 {-| -}
-lowercase : Font
+lowercase : Property class variation animation
 lowercase =
-    Batchable.One <| Internal.FontElement "text-transform" "lowercase"
+    Internal.Font "text-transform" "lowercase"

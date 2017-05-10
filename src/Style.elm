@@ -2,7 +2,6 @@ module Style
     exposing
         ( Style
         , Property
-        , Font
         , Repeat
         , Shadow
         , Transform
@@ -15,7 +14,6 @@ module Style
         , variation
         , prop
         , cursor
-        , font
         , shadows
         , paddingHint
         , transforms
@@ -60,8 +58,6 @@ module Style
 
 @docs Filter, filters
 
-@docs Font, font
-
 @docs hover, checked, focus, pseudo
 
 @docs Repeat, GradientDirection, GradientStep
@@ -98,11 +94,6 @@ type alias Box =
 {-| -}
 type alias Position =
     Internal.PositionElement
-
-
-{-| -}
-type alias Font =
-    Batchable Internal.FontElement
 
 
 {-| -}
@@ -147,12 +138,6 @@ prop name val =
 cursor : String -> Property class variation animation
 cursor name =
     Internal.Exact "cursor" name
-
-
-{-| -}
-font : List Font -> Property class variation animation
-font f =
-    Internal.Font (Batchable.toList f)
 
 
 {-| You can give a hint about what the padding should be for this element, but the layout can override it.

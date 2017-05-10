@@ -54,8 +54,8 @@ mapPropClass fn prop =
         Position props ->
             Position props
 
-        Font props ->
-            Font props
+        Font name val ->
+            Font name val
 
         Layout props ->
             Layout props
@@ -102,7 +102,7 @@ type Property class variation animation
     | PseudoElement String (List (Property class variation animation))
     | Box (List BoxElement)
     | Position (List PositionElement)
-    | Font (List FontElement)
+    | Font String String
     | Layout LayoutModel
     | Background BackgroundElement
     | Shadows (List ShadowModel)
@@ -164,10 +164,6 @@ type Floating
 
 type BoxElement
     = BoxProp String String
-
-
-type FontElement
-    = FontElement String String
 
 
 type LayoutModel

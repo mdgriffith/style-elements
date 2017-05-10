@@ -148,11 +148,6 @@ box (BoxProp name val) =
     ( name, val )
 
 
-font : FontElement -> ( String, String )
-font (FontElement name val) =
-    ( name, val )
-
-
 transformations : List Transformation -> List ( String, String )
 transformations transforms =
     let
