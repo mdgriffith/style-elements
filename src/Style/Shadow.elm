@@ -1,14 +1,44 @@
-module Style.Shadow exposing (box, drop, inset, text)
+module Style.Shadow exposing (glow, innerGlow, box, drop, inset, text)
 
 {-|
 
-@docs box, drop, inset, text
+@docs glow, innerGlow, box, drop, inset, text
 
 -}
 
 import Color exposing (Color)
 import Style.Internal.Model as Internal
-import Style exposing (Shadow)
+import Style exposing (Shadow, Property)
+
+
+{-| A simple glow by specifying the color and size.
+-}
+glow : Color -> Float -> Property class variation animation
+glow color size =
+    Internal.Shadows
+        [ Internal.ShadowModel
+            { kind = "box"
+            , offset = ( 0, 0 )
+            , size = size
+            , blur = size * 2
+            , color = color
+            }
+        ]
+
+
+{-| A simple glow by specifying the color and size.
+-}
+innerGlow : Color -> Float -> Property class variation animation
+innerGlow color size =
+    Internal.Shadows
+        [ Internal.ShadowModel
+            { kind = "inset"
+            , offset = ( 0, 0 )
+            , size = size
+            , blur = size * 2
+            , color = color
+            }
+        ]
 
 
 {-| -}
