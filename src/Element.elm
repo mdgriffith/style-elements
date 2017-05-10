@@ -601,6 +601,16 @@ column elem attrs children =
     Layout Html.div (Style.FlexLayout Style.Down []) (Just elem) attrs children
 
 
+wrappedRow : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
+wrappedRow elem attrs children =
+    Layout Html.div (Style.FlexLayout Style.GoRight [ Style.Wrap True ]) (Just elem) attrs children
+
+
+wrappedColumn : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
+wrappedColumn elem attrs children =
+    Layout Html.div (Style.FlexLayout Style.Down [ Style.Wrap True ]) (Just elem) attrs children
+
+
 type alias Grid =
     { rows : List Length
     , columns : List Length
