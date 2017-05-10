@@ -17,7 +17,7 @@ module Element.Events
         , onWithOptions
         )
 
-{-| This module is copied nearly completely from Html.Events
+{-| This module is mirrored nearly completely from Html.Events
 
 The only difference is that the HTML.Events are turned into Element.Events
 

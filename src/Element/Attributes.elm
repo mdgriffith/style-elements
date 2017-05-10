@@ -99,7 +99,7 @@ module Element.Attributes
 
 {-|
 
-# Same as Html.Attributes
+# This module is mirrored nearly completely from Html.Attributes
 
 
 Helper functions for HTML attributes. They are organized roughly by

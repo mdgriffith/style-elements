@@ -4,59 +4,85 @@ module Style.Background exposing (..)
 
 import Style.Internal.Model as Internal
 import Color exposing (Color)
-import Style exposing (Property, Repeat, GradientStep, GradientDirection)
+import Style exposing (Property)
 
 
+{-| -}
+type alias GradientDirection =
+    Internal.GradientDirection
+
+
+{-| -}
+type alias GradientStep =
+    Internal.GradientStep
+
+
+{-| -}
+type alias Repeat =
+    Internal.Repeat
+
+
+{-| -}
 step : Color -> GradientStep
 step =
     Internal.ColorStep
 
 
+{-| -}
 percent : Color -> Float -> GradientStep
 percent =
     Internal.PercentStep
 
 
+{-| -}
 px : Color -> Float -> GradientStep
 px =
     Internal.PxStep
 
 
+{-| -}
 toUp : GradientDirection
 toUp =
     Internal.ToUp
 
 
+{-| -}
 toDown : GradientDirection
 toDown =
     Internal.ToDown
 
 
+{-| -}
 toRight : GradientDirection
 toRight =
     Internal.ToRight
 
 
+{-| -}
 toTopRight : GradientDirection
 toTopRight =
     Internal.ToTopRight
 
 
+{-| -}
 toBottomRight : GradientDirection
 toBottomRight =
     Internal.ToBottomRight
 
 
+{-| -}
 toLeft : GradientDirection
 toLeft =
     Internal.ToLeft
 
 
+{-| -}
 toTopLeft : GradientDirection
 toTopLeft =
     Internal.ToTopLeft
 
 
+{-| -}
 toBottomLeft : GradientDirection
 toBottomLeft =
     Internal.ToBottomLeft
@@ -69,10 +95,7 @@ toAngle =
     Internal.ToAngle
 
 
-{-|
-
-
--}
+{-| -}
 gradient : GradientDirection -> List GradientStep -> Property class variation animation
 gradient dir steps =
     Internal.Background <|

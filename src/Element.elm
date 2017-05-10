@@ -541,9 +541,7 @@ bullet elem attrs children =
     Layout Html.ul (Style.FlexLayout Style.Down []) (Just elem) attrs (List.map (setNode Html.li) children)
 
 
-{-| A numbered list.  Rendered as `<ol>`
-
-A 'column' layout is implied.
+{-| A numbered list.  Rendered as `<ol>` with an implied 'column' layout.
 
 Automatically sets children to use `<li>`
 -}
@@ -552,6 +550,11 @@ enumerate elem attrs children =
     Layout Html.ol (Style.FlexLayout Style.Down []) (Just elem) attrs (List.map (setNode Html.li) children)
 
 
+{-| A 'full' element will ignore the spacing set for it by the parent, and also grow to cover the parent's padding.
+
+This is mostly useful in text layouts.
+
+-}
 full : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
 full elem attrs child =
     Element Html.div (Just elem) (Expand :: attrs) child Nothing
@@ -562,9 +565,9 @@ textLayout elem attrs children =
     Layout Html.div (Style.TextLayout) (Just elem) attrs children
 
 
-{-| Paragraph is actually a layout, if you can believe it!
+{-| Paragraph is actually a layout if you can believe it!
 
-All of the children are set to 'inline-block' if they are not already text elements.
+All of the children are set to 'inline'.
 
 -}
 paragraph : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
@@ -572,6 +575,7 @@ paragraph elem attrs children =
     inlineChildren Html.p (Just elem) attrs children
 
 
+{-| -}
 inlineChildren :
     HtmlFn msg
     -> Maybe elem
@@ -591,32 +595,38 @@ inlineChildren node elem attrs children =
         Element node elem attrs child others
 
 
+{-| -}
 row : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 row elem attrs children =
     Layout Html.div (Style.FlexLayout Style.GoRight []) (Just elem) attrs children
 
 
+{-| -}
 column : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 column elem attrs children =
     Layout Html.div (Style.FlexLayout Style.Down []) (Just elem) attrs children
 
 
+{-| -}
 wrappedRow : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 wrappedRow elem attrs children =
     Layout Html.div (Style.FlexLayout Style.GoRight [ Style.Wrap True ]) (Just elem) attrs children
 
 
+{-| -}
 wrappedColumn : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 wrappedColumn elem attrs children =
     Layout Html.div (Style.FlexLayout Style.Down [ Style.Wrap True ]) (Just elem) attrs children
 
 
+{-| -}
 type alias Grid =
     { rows : List Length
     , columns : List Length
     }
 
 
+{-| -}
 grid : elem -> Grid -> List (Attribute variation msg) -> List (OnGrid (Element elem variation msg)) -> Element elem variation msg
 grid elem template attrs children =
     let
@@ -626,12 +636,14 @@ grid elem template attrs children =
         Layout Html.div (Style.Grid (Style.GridTemplate template) []) (Just elem) attrs (prepare children)
 
 
+{-| -}
 type alias NamedGrid =
     { rows : List ( Length, List Style.NamedGridPosition )
     , columns : List Length
     }
 
 
+{-| -}
 namedGrid : elem -> NamedGrid -> List (Attribute variation msg) -> List (NamedOnGrid (Element elem variation msg)) -> Element elem variation msg
 namedGrid elem template attrs children =
     let
@@ -641,6 +653,7 @@ namedGrid elem template attrs children =
         Layout Html.div (Style.Grid (Style.NamedGridTemplate template) []) (Just elem) attrs (prepare children)
 
 
+{-| -}
 type alias GridPosition =
     { start : ( Int, Int )
     , width : Int
@@ -648,19 +661,23 @@ type alias GridPosition =
     }
 
 
+{-| -}
 type OnGrid thing
     = OnGrid thing
 
 
+{-| -}
 type NamedOnGrid thing
     = NamedOnGrid thing
 
 
+{-| -}
 area : GridPosition -> Element elem variation msg -> OnGrid (Element elem variation msg)
 area box el =
     OnGrid <| addProp (GridCoords <| Style.GridPosition box) el
 
 
+{-| -}
 named : String -> Element elem variation msg -> NamedOnGrid (Element elem variation msg)
 named name el =
     NamedOnGrid <| addProp (GridArea name) el
@@ -670,23 +687,16 @@ type alias NamedGridPosition =
     Style.NamedGridPosition
 
 
+{-| -}
 span : Int -> String -> NamedGridPosition
 span i name =
     Style.Named (Style.SpanJust i) (Just name)
 
 
+{-| -}
 spanAll : String -> NamedGridPosition
 spanAll name =
     Style.Named Style.SpanAll (Just name)
-
-
-
--- empty : Int -> NamedGridPosition
--- empty i =
---     Named (SpanJust i) Nothing
--- allEmpty : Int -> NamedGridPosition
--- allEmpty i =
---     Named SpanAll Nothing
 
 
 {-| Turn an element into a link.
@@ -702,6 +712,19 @@ linked src el =
 
 
 {-|
+```
+when (x == 5) (text "yay, it's 5")
+
+```
+
+is sugar for
+
+```
+if (x == 5) then
+    el
+else
+    text "yay, it's 5"
+```
 -}
 when : Bool -> Element elem variation msg -> Element elem variation msg
 when bool elm =
@@ -815,6 +838,7 @@ addChild parent el =
             Element Html.div Nothing [] (Text dec content) (Just [ el ])
 
 
+{-| -}
 nearby : List (Element elem variation msg) -> Element elem variation msg -> Element elem variation msg
 nearby nearbys parent =
     let
@@ -826,6 +850,7 @@ nearby nearbys parent =
         List.foldl position parent nearbys
 
 
+{-| -}
 above : Element elem variation msg -> Element elem variation msg
 above el =
     el
@@ -833,6 +858,7 @@ above el =
         |> removeProps [ VAlign Top, VAlign Bottom ]
 
 
+{-| -}
 below : Element elem variation msg -> Element elem variation msg
 below el =
     el
@@ -840,6 +866,7 @@ below el =
         |> removeProps [ VAlign Top, VAlign Bottom ]
 
 
+{-| -}
 onRight : Element elem variation msg -> Element elem variation msg
 onRight el =
     el
@@ -847,6 +874,7 @@ onRight el =
         |> removeProps [ HAlign Right, HAlign Left ]
 
 
+{-| -}
 onLeft : Element elem variation msg -> Element elem variation msg
 onLeft el =
     el
@@ -854,46 +882,52 @@ onLeft el =
         |> removeProps [ HAlign Right, HAlign Left ]
 
 
+{-| Position an element relative to the window.
+
+Essentially the same as 'display: fixed'
+-}
 screen : Element elem variation msg -> Element elem variation msg
 screen =
     addProp (PositionFrame Screen)
 
 
-overlay : elem -> Int -> Element elem variation msg -> Element elem variation msg
-overlay bg opac child =
-    screen <| el bg [ width (percent 100), height (percent 100), opacity opac ] child
-
-
+{-| -}
 center : Attribute variation msg
 center =
     HAlign Center
 
 
-vCenter : Attribute variation msg
-vCenter =
+{-| -}
+verticalCenter : Attribute variation msg
+verticalCenter =
     VAlign VerticalCenter
 
 
+{-| -}
 justify : Attribute variation msg
 justify =
     HAlign Justify
 
 
+{-| -}
 alignTop : Attribute variation msg
 alignTop =
     VAlign Top
 
 
+{-| -}
 alignBottom : Attribute variation msg
 alignBottom =
     VAlign Bottom
 
 
+{-| -}
 alignLeft : Attribute variation msg
 alignLeft =
     HAlign Left
 
 
+{-| -}
 alignRight : Attribute variation msg
 alignRight =
     HAlign Right
@@ -903,23 +937,25 @@ alignRight =
 {- Layout Attributes -}
 
 
+{-| -}
 moveX : Float -> Attribute variation msg
 moveX x =
     Position (Just x) Nothing Nothing
 
 
+{-| -}
 moveY : Float -> Attribute variation msg
 moveY y =
     Position Nothing (Just y) Nothing
 
 
+{-| -}
 moveZ : Float -> Attribute variation msg
 moveZ z =
     Position Nothing Nothing (Just z)
 
 
 {-| Adjust the position of the element.
-
 
 -}
 moveXY : Float -> Float -> Attribute variation msg
@@ -997,133 +1033,8 @@ opacity o =
     Transparency (1 - o)
 
 
-
--- programWithFlags :
---     { init : flags -> ( model, Cmd msg )
---     , stylesheet : StyleSheet elem variation animation msg
---     , device : { width : Int, height : Int } -> device
---     , update : msg -> model -> ( model, Cmd msg )
---     , subscriptions : model -> Sub msg
---     , view : device -> model -> Element elem variation msg
---     }
---     -> Program flags (ElemModel device elem variation animation model msg) (ElementMsg device msg)
--- programWithFlags prog =
---     Html.programWithFlags
---         { init = (\flags -> init prog.stylesheet prog.device (prog.init flags))
---         , update = update prog.update
---         , view = (\model -> Html.map Send <| deviceView prog.view model)
---         , subscriptions =
---             (\(ElemModel { model }) ->
---                 Sub.batch
---                     [ Window.resizes (Resize prog.device)
---                     , Sub.map Send <| prog.subscriptions model
---                     ]
---             )
---         }
--- program :
---     { stylesheet : StyleSheet elem variation animation msg
---     , init : ( model, Cmd msg )
---     , update : msg -> model -> ( model, Cmd msg )
---     , subscriptions : model -> Sub msg
---     , view : device -> model -> Element elem variation msg
---     , device : { width : Int, height : Int } -> device
---     }
---     -> Program Never (ElemModel device elem variation animation model msg) (ElementMsg device msg)
--- program prog =
---     Html.program
---         { init = init prog.stylesheet prog.device prog.init
---         , update = update prog.update
---         , view = (\model -> Html.map Send <| deviceView prog.view model)
---         , subscriptions =
---             (\(ElemModel { model }) ->
---                 Sub.batch
---                     [ Window.resizes (Resize prog.device)
---                     , Sub.map Send <| prog.subscriptions model
---                     ]
---             )
---         }
--- beginnerProgram :
---     { stylesheet : StyleSheet elem variation animation msg
---     , model : model
---     , view : model -> Element elem variation msg
---     , update : msg -> model -> model
---     }
---     -> Program Never (ElemModel Device elem variation animation model msg) (ElementMsg Device msg)
--- beginnerProgram prog =
---     Html.program
---         { init = init prog.stylesheet Device.match <| withCmdNone prog.model
---         , update = update (\msg model -> withCmdNone <| prog.update msg model)
---         , view = (\model -> Html.map Send <| view prog.view model)
---         , subscriptions =
---             (\(ElemModel { model }) ->
---                 Sub.batch
---                     [ Window.resizes (Resize Device.match)
---                     ]
---             )
---         }
--- withCmdNone : model -> ( model, Cmd msg )
--- withCmdNone model =
---     ( model, Cmd.none )
--- emptyModel :
---     StyleSheet elem variation animation msg
---     -> (Window.Size -> device)
---     -> model
---     -> ElemModel device elem variation animation model msg
--- emptyModel stylesheet match model =
---     ElemModel
---         { time = 0
---         , device =
---             match { width = 1000, height = 1200 }
---         , stylesheet = stylesheet
---         , model = model
---         }
--- type ElementMsg device msg
---     = Send msg
---     | Tick Time
---     | Resize (Window.Size -> device) Window.Size
--- type ElemModel device elem variation animation model msg
---     = ElemModel
---         { time : Time
---         , device : device
---         , stylesheet : StyleSheet elem variation animation msg
---         , model : model
---         }
--- init : StyleSheet elem variation animation msg -> ({ width : Int, height : Int } -> device) -> ( model, Cmd msg ) -> ( ElemModel device elem variation animation model msg, Cmd (ElementMsg device msg) )
--- init elem match ( model, cmd ) =
---     ( emptyModel elem match model
---     , Cmd.batch
---         [ Cmd.map Send cmd
---         , Task.perform (Resize match) Window.size
---         ]
---     )
--- update : (msg -> model -> ( model, Cmd msg )) -> ElementMsg device msg -> ElemModel device elem variation animation model msg -> ( ElemModel device elem variation animation model msg, Cmd (ElementMsg device msg) )
--- update appUpdate elemMsg (ElemModel elemModel) =
---     case elemMsg of
---         Send msg ->
---             let
---                 ( newApp, cmds ) =
---                     appUpdate msg elemModel.model
---             in
---                 ( ElemModel { elemModel | model = newApp }
---                 , Cmd.map Send Cmd.none
---                 )
---         Tick time ->
---             ( ElemModel elemModel
---             , Cmd.none
---             )
---         Resize match size ->
---             ( ElemModel { elemModel | device = match size }
---             , Cmd.none
---             )
--- deviceView : (device -> model -> Element elem variation msg) -> ElemModel device elem variation animation model msg -> Html msg
--- deviceView appView (ElemModel { device, stylesheet, model }) =
---     Render.render stylesheet <| appView device model
--- view : (model -> Element elem variation msg) -> ElemModel Device elem variation animation model msg -> Html msg
--- view appView (ElemModel { device, stylesheet, model }) =
---     Render.render stylesheet <| appView model
-
-
-{-| -}
+{-| Renders `Element`'s into `Html`.
+-}
 render :
     Style.StyleSheet elem variation animation msg
     -> Element elem variation msg
@@ -1132,7 +1043,7 @@ render =
     Render.render
 
 
-{-| Embeds the stylesheet and renders the elements
+{-| Embeds the stylesheet and renders the `Element`'s into `Html`.
 -}
 root :
     Style.StyleSheet elem variation animation msg
@@ -1142,7 +1053,7 @@ root =
     Render.root
 
 
-{-| Embeds the stylesheet and renders the elements
+{-| Embed a stylesheet.
 -}
 embed :
     Style.StyleSheet elem variation animation msg

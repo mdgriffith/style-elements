@@ -2,12 +2,9 @@ module Style
     exposing
         ( Style
         , Property
-        , Repeat
         , Shadow
         , Transform
         , Filter
-        , GradientDirection
-        , GradientStep
         , Edges
         , Corners
         , style
@@ -35,22 +32,18 @@ module Style
         , allButLeft
         , allButRight
         , allButBottom
+        , topLeft
+        , topRight
+        , bottomLeft
+        , bottomRight
         )
 
 {-|
 # Welcome to the Style Elements Library!
 
-@docs Style, style, Property
+@docs Style, style, variation, Property, prop
 
-@docs variation
-
-@docs prop
-
-@docs cursor
-
-@docs Corners
-
-@docs paddingHint, Edges
+@docs cursor, paddingHint
 
 @docs Shadow, shadows
 
@@ -60,9 +53,9 @@ module Style
 
 @docs hover, checked, focus, pseudo
 
-@docs Repeat, GradientDirection, GradientStep
+@docs all, Edges, top, left, right, bottom, leftRight, topBottom, leftRightAndTopBottom, leftRightTopBottom, allButTop, allButLeft, allButRight, allButBottom
 
-@docs all, top, left, right, bottom, leftRight, topBottom, leftRightAndTopBottom, leftRightTopBottom, allButTop, allButLeft, allButRight, allButBottom
+@docs Corners, topLeft, topRight, bottomRight, bottomLeft
 
 -}
 
@@ -87,33 +80,8 @@ type alias Length =
 
 
 {-| -}
-type alias Box =
-    Internal.BoxElement
-
-
-{-| -}
-type alias Position =
-    Internal.PositionElement
-
-
-{-| -}
-type alias Repeat =
-    Internal.Repeat
-
-
-{-| -}
 type alias Transform =
     Internal.Transformation
-
-
-{-| -}
-type alias GradientDirection =
-    Internal.GradientDirection
-
-
-{-| -}
-type alias GradientStep =
-    Internal.GradientStep
 
 
 {-| -}
@@ -148,12 +116,6 @@ paddingHint pad =
     Internal.Box <| [ Internal.BoxProp "padding" (Value.box pad) ]
 
 
-
-{-
-   Shadows
--}
-
-
 {-| -}
 type alias Shadow =
     Internal.ShadowModel
@@ -182,18 +144,10 @@ filters fs =
     Internal.Filters fs
 
 
-
-{- Box Constructors
-
-
--}
-
-
 {-| A tuple of four floats to define any property with edges, such as:
 
   * `padding`
-  * `margin`
-  * `Layout.spacing`
+  * `spacing`
   * `Border.width`
 
 `(top, right, bottom, left)`
@@ -285,7 +239,7 @@ allButBottom x =
 
 {-| This is used to define border-radius.
 
-It's still a four element tuple like `Edges`, but the numbers are semantically different.
+It's still a four Float tuple like `Edges`, but the numbers are semantically different.
 
 `(topLeft, topRight, bottomRight, bottomLeft)`
 

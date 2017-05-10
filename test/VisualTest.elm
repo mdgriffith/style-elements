@@ -8,6 +8,7 @@ import Style.Font as Font
 import Style.Shadow as Shadow
 import Style.Transitions as Transitions
 import Style.Background as Background
+import Style.Shadow
 import Style.Color
 import Color
 
@@ -135,9 +136,9 @@ view model =
                                 , el Box [ alignBottom, alignLeft, width (px 20), height (px 20) ] empty
                                 , el Box [ alignTop, center, width (px 20), height (px 20) ] empty
                                 , el Box [ alignBottom, center, width (px 20), height (px 20) ] empty
-                                , el Box [ vCenter, center, width (px 20), height (px 20) ] empty
-                                , el Box [ vCenter, alignRight, width (px 20), height (px 20) ] empty
-                                , el Box [ vCenter, alignLeft, width (px 20), height (px 20) ] empty
+                                , el Box [ verticalCenter, center, width (px 20), height (px 20) ] empty
+                                , el Box [ verticalCenter, alignRight, width (px 20), height (px 20) ] empty
+                                , el Box [ verticalCenter, alignLeft, width (px 20), height (px 20) ] empty
                                 ]
                         ]
                     , column None
@@ -153,10 +154,10 @@ view model =
                                 , below <| el Box [ center, width (px 20), height (px 20) ] empty
                                 , onRight <| el Box [ width (px 20), height (px 20) ] empty
                                 , onRight <| el Box [ alignBottom, width (px 20), height (px 20) ] empty
-                                , onRight <| el Box [ vCenter, width (px 20), height (px 20) ] empty
+                                , onRight <| el Box [ verticalCenter, width (px 20), height (px 20) ] empty
                                 , onLeft <| el Box [ width (px 20), height (px 20) ] empty
                                 , onLeft <| el Box [ alignBottom, width (px 20), height (px 20) ] empty
-                                , onLeft <| el Box [ vCenter, width (px 20), height (px 20) ] empty
+                                , onLeft <| el Box [ verticalCenter, width (px 20), height (px 20) ] empty
                                 ]
                         ]
                     ]
@@ -173,7 +174,7 @@ view model =
                 , row Container
                     [ spacing 20 20, height (px 400) ]
                     [ el Box [ width (px 100), height (px 100), alignTop ] (text "top")
-                    , el Box [ width (px 100), height (px 100), vCenter ] (text "vcenter")
+                    , el Box [ width (px 100), height (px 100), verticalCenter ] (text "vcenter")
                     , el Box [ width (px 100), height (px 100), alignBottom ] (text "bottom")
                     , el Box [ width (px 100), height (px 100), alignRight ] (text "right(no effect)")
                     , el Box [ width (px 100), height (px 100), alignLeft ] (text "left(no effect)")
@@ -190,12 +191,14 @@ view model =
                     [ center, spacing 20 20 ]
                     [ el Box [ width (px 200), height (px 200) ] empty
                     , el Box [ width (px 200), height (px 200) ] empty
+                    , full Box [] (text "full element")
                     ]
-                , el Label [] (text "Row Center ++ Spacing")
+                , el Label [] (text "Row Center ++ Spacing ++ padding")
                 , row Container
-                    [ center, spacing 20 20 ]
+                    [ center, spacing 20 20, padding (all 50) ]
                     [ el Box [ width (px 200), height (px 200) ] empty
                     , el Box [ width (px 200), height (px 200) ] empty
+                    , full Box [] (text "full element")
                     ]
                 , el Label [] (text "Wrapped Layout")
                 , wrappedRow Container
@@ -225,7 +228,7 @@ view model =
                     , el Box [ width (px 200), height (px 200), alignRight ] empty
                     , el Box [ width (px 200), height (px 200), alignTop ] empty
                     , el Box [ width (px 200), height (px 200), alignBottom ] empty
-                    , el Box [ width (px 200), height (px 200), vCenter ] empty
+                    , el Box [ width (px 200), height (px 200), verticalCenter ] empty
                     , el Box [ width (fill 1), height (px 200) ] empty
                     ]
                 , el Label [] (text "Grid Layout")
