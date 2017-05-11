@@ -87,7 +87,7 @@ type alias Transform =
 {-| -}
 style : class -> List (Property class variation animation) -> Style class variation animation
 style cls props =
-    Batchable.one (Internal.Style cls props)
+    Batchable.one (Internal.Style cls (prop "border-style" "solid" :: props))
 
 
 {-| -}
