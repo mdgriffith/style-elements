@@ -49,6 +49,7 @@ type Attribute variation msg
     | Margin ( Float, Float, Float, Float )
     | Expand
     | Padding ( Float, Float, Float, Float )
+    | PhantomPadding ( Float, Float, Float, Float ) -- Isn't rendered as padding, but is communicated for purposes as inheritance.
     | Event (Html.Attribute msg)
     | InputEvent (Html.Attribute msg)
     | Attr (Html.Attribute msg)
