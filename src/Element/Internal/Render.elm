@@ -1216,21 +1216,12 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
 
                                                 Just p ->
                                                     p
-
-                                        padding =
-                                            case elem.padding of
-                                                Nothing ->
-                                                    ( "padding", Value.box parentPadding )
-
-                                                Just pad ->
-                                                    ( "padding", Value.box pad )
                                     in
                                         case dir of
                                             Internal.GoRight ->
                                                 [ "height" => ("calc(100% + " ++ toString (top + bottom - ((parentSpaceTop + parentSpaceBottom) / 2)) ++ "px")
                                                 , "margin" => "0"
                                                 , "margin-top" => (toString ((-1 * top) + (parentSpaceTop / 2)) ++ "px")
-                                                , padding
                                                 , if order == First || order == FirstAndLast then
                                                     "margin-left" => (toString (-1 * top) ++ "px")
                                                   else
@@ -1245,7 +1236,6 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                                 [ "height" => ("calc(100% + " ++ toString (top + bottom - ((parentSpaceTop + parentSpaceBottom) / 2)) ++ "px")
                                                 , "margin" => "0"
                                                 , "margin-top" => (toString ((-1 * top) + (parentSpaceTop / 2)) ++ "px")
-                                                , padding
                                                 , if order == First || order == FirstAndLast then
                                                     "margin-right" => (toString (-1 * top) ++ "px")
                                                   else
@@ -1260,7 +1250,6 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                                 [ "width" => ("calc(100% + " ++ toString (left + right - ((parentSpaceLeft + parentSpaceRight) / 2)) ++ "px")
                                                 , "margin" => "0"
                                                 , "margin-left" => (toString ((-1 * left) + (parentSpaceLeft / 2)) ++ "px")
-                                                , padding
                                                 , if order == First || order == FirstAndLast then
                                                     "margin-bottom" => (toString (-1 * top) ++ "px")
                                                   else
@@ -1275,7 +1264,6 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                                 [ "width" => ("calc(100% + " ++ toString (left + right - ((parentSpaceLeft + parentSpaceRight) / 2)) ++ "px")
                                                 , "margin" => "0"
                                                 , "margin-left" => (toString ((-1 * left) + (parentSpaceLeft / 2)) ++ "px")
-                                                , padding
                                                 , if order == First || order == FirstAndLast then
                                                     "margin-top" => (toString (-1 * top) ++ "px")
                                                   else
@@ -1290,7 +1278,7 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                     []
             in
                 (Html.Attributes.style
-                    (("box-sizing" => "border-box") :: (passthrough <| gridPos <| layout <| spacing <| transparency <| positionAdjustment <| expandedProps))
+                    (("box-sizing" => "border-box") :: (passthrough <| gridPos <| layout <| spacing <| transparency <| positionAdjustment <| padding <| expandedProps))
                 )
                     :: attributes
         else
