@@ -103,7 +103,6 @@ adjustStructure parent elm =
                         Nothing ->
                             -- use Flexbox to center single elements
                             -- The flexbox element should pass through events to the parent.
-                            -- elm
                             Layout Html.div
                                 (Internal.FlexLayout Internal.GoRight [])
                                 Nothing
@@ -1195,17 +1194,6 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
 
                                 Internal.FlexLayout dir flex ->
                                     let
-                                        horizontal =
-                                            case dir of
-                                                Internal.GoRight ->
-                                                    True
-
-                                                Internal.GoLeft ->
-                                                    True
-
-                                                _ ->
-                                                    False
-
                                         ( top, right, bottom, left ) =
                                             parentPadding
 
@@ -1219,60 +1207,64 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                     in
                                         case dir of
                                             Internal.GoRight ->
-                                                [ "height" => ("calc(100% + " ++ toString (top + bottom - ((parentSpaceTop + parentSpaceBottom) / 2)) ++ "px")
-                                                , "margin" => "0"
-                                                , "margin-top" => (toString ((-1 * top) + (parentSpaceTop / 2)) ++ "px")
-                                                , if order == First || order == FirstAndLast then
-                                                    "margin-left" => (toString (-1 * top) ++ "px")
-                                                  else
-                                                    "margin-left" => "0"
-                                                , if order == Last || order == FirstAndLast then
-                                                    "margin-right" => (toString (-1 * bottom) ++ "px")
-                                                  else
-                                                    "margin-right" => "0"
-                                                ]
+                                                width
+                                                    [ "height" => ("calc(100% + " ++ toString (top + bottom - ((parentSpaceTop + parentSpaceBottom) / 2)) ++ "px")
+                                                    , "margin" => "0"
+                                                    , "margin-top" => (toString ((-1 * top) + (parentSpaceTop / 2)) ++ "px")
+                                                    , if order == First || order == FirstAndLast then
+                                                        "margin-left" => (toString (-1 * top) ++ "px")
+                                                      else
+                                                        "margin-left" => "0"
+                                                    , if order == Last || order == FirstAndLast then
+                                                        "margin-right" => (toString (-1 * bottom) ++ "px")
+                                                      else
+                                                        "margin-right" => "0"
+                                                    ]
 
                                             Internal.GoLeft ->
-                                                [ "height" => ("calc(100% + " ++ toString (top + bottom - ((parentSpaceTop + parentSpaceBottom) / 2)) ++ "px")
-                                                , "margin" => "0"
-                                                , "margin-top" => (toString ((-1 * top) + (parentSpaceTop / 2)) ++ "px")
-                                                , if order == First || order == FirstAndLast then
-                                                    "margin-right" => (toString (-1 * top) ++ "px")
-                                                  else
-                                                    "margin-right" => "0"
-                                                , if order == Last || order == FirstAndLast then
-                                                    "margin-left" => (toString (-1 * bottom) ++ "px")
-                                                  else
-                                                    "margin-left" => "0"
-                                                ]
+                                                width
+                                                    [ "height" => ("calc(100% + " ++ toString (top + bottom - ((parentSpaceTop + parentSpaceBottom) / 2)) ++ "px")
+                                                    , "margin" => "0"
+                                                    , "margin-top" => (toString ((-1 * top) + (parentSpaceTop / 2)) ++ "px")
+                                                    , if order == First || order == FirstAndLast then
+                                                        "margin-right" => (toString (-1 * top) ++ "px")
+                                                      else
+                                                        "margin-right" => "0"
+                                                    , if order == Last || order == FirstAndLast then
+                                                        "margin-left" => (toString (-1 * bottom) ++ "px")
+                                                      else
+                                                        "margin-left" => "0"
+                                                    ]
 
                                             Internal.Up ->
-                                                [ "width" => ("calc(100% + " ++ toString (left + right - ((parentSpaceLeft + parentSpaceRight) / 2)) ++ "px")
-                                                , "margin" => "0"
-                                                , "margin-left" => (toString ((-1 * left) + (parentSpaceLeft / 2)) ++ "px")
-                                                , if order == First || order == FirstAndLast then
-                                                    "margin-bottom" => (toString (-1 * top) ++ "px")
-                                                  else
-                                                    "margin-bottom" => "0"
-                                                , if order == Last || order == FirstAndLast then
-                                                    "margin-top" => (toString (-1 * bottom) ++ "px")
-                                                  else
-                                                    "margin-top" => "0"
-                                                ]
+                                                height
+                                                    [ "width" => ("calc(100% + " ++ toString (left + right - ((parentSpaceLeft + parentSpaceRight) / 2)) ++ "px")
+                                                    , "margin" => "0"
+                                                    , "margin-left" => (toString ((-1 * left) + (parentSpaceLeft / 2)) ++ "px")
+                                                    , if order == First || order == FirstAndLast then
+                                                        "margin-bottom" => (toString (-1 * top) ++ "px")
+                                                      else
+                                                        "margin-bottom" => "0"
+                                                    , if order == Last || order == FirstAndLast then
+                                                        "margin-top" => (toString (-1 * bottom) ++ "px")
+                                                      else
+                                                        "margin-top" => "0"
+                                                    ]
 
                                             Internal.Down ->
-                                                [ "width" => ("calc(100% + " ++ toString (left + right - ((parentSpaceLeft + parentSpaceRight) / 2)) ++ "px")
-                                                , "margin" => "0"
-                                                , "margin-left" => (toString ((-1 * left) + (parentSpaceLeft / 2)) ++ "px")
-                                                , if order == First || order == FirstAndLast then
-                                                    "margin-top" => (toString (-1 * top) ++ "px")
-                                                  else
-                                                    "margin-top" => "0"
-                                                , if order == Last || order == FirstAndLast then
-                                                    "margin-bottom" => (toString (-1 * bottom) ++ "px")
-                                                  else
-                                                    "margin-bottom" => "0"
-                                                ]
+                                                height
+                                                    [ "width" => ("calc(100% + " ++ toString (left + right - ((parentSpaceLeft + parentSpaceRight) / 2)) ++ "px")
+                                                    , "margin" => "0"
+                                                    , "margin-left" => (toString ((-1 * left) + (parentSpaceLeft / 2)) ++ "px")
+                                                    , if order == First || order == FirstAndLast then
+                                                        "margin-top" => (toString (-1 * top) ++ "px")
+                                                      else
+                                                        "margin-top" => "0"
+                                                    , if order == Last || order == FirstAndLast then
+                                                        "margin-bottom" => (toString (-1 * bottom) ++ "px")
+                                                      else
+                                                        "margin-bottom" => "0"
+                                                    ]
 
                                 _ ->
                                     []
