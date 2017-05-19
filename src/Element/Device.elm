@@ -1,6 +1,10 @@
-module Element.Device exposing (..)
+module Element.Device exposing (Device, match, responsive)
 
-{-| -}
+{-| How to handle responsiveness using this library.
+
+@docs Device, match, responsive
+
+-}
 
 import Window
 
