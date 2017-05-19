@@ -94,7 +94,7 @@ adjustStructure parent elm =
                 skipAdjustment bool =
                     Element node
                         element
-                        position
+                        (PointerEvents True :: position)
                         (adjustStructure Nothing child)
                         (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
             in
@@ -125,10 +125,10 @@ adjustStructure parent elm =
                             Layout Html.div
                                 (Internal.FlexLayout Internal.GoRight [])
                                 Nothing
-                                centeredProps
+                                (PointerEvents False :: centeredProps)
                                 [ Element node
                                     element
-                                    others
+                                    (PointerEvents True :: others)
                                     (adjustStructure Nothing child)
                                     (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
                                 ]
@@ -192,10 +192,10 @@ adjustStructure parent elm =
                                 Html.div
                                 (Internal.FlexLayout Internal.GoRight [])
                                 Nothing
-                                centeredProps
-                                [ Layout node layout element others (List.map (adjustStructure (Just layout)) children) ]
+                                (PointerEvents False :: centeredProps)
+                                [ Layout node layout element (PointerEvents True :: others) (List.map (adjustStructure (Just layout)) children) ]
                         else
-                            Layout node layout element position (List.map (adjustStructure (Just layout)) children)
+                            Layout node layout element (PointerEvents True :: position) (List.map (adjustStructure (Just layout)) children)
 
                     Internal.FlexLayout _ _ ->
                         if hasSpacing then
@@ -229,16 +229,16 @@ adjustStructure parent elm =
                                     Html.div
                                     (Internal.FlexLayout Internal.GoRight [])
                                     element
-                                    position
+                                    (PointerEvents True :: position)
                                     [ Layout
                                         node
                                         layout
                                         Nothing
-                                        (phantomPadding (Margin negativeMargin :: spacingAttr :: Width (Internal.Calc 100 totalHSpacing) :: []))
+                                        (PointerEvents False :: phantomPadding (Margin negativeMargin :: spacingAttr :: Width (Internal.Calc 100 totalHSpacing) :: []))
                                         (List.map (adjustStructure (Just layout)) children)
                                     ]
                         else
-                            Layout node layout element position (List.map (adjustStructure (Just layout)) children)
+                            Layout node layout element (PointerEvents True :: position) (List.map (adjustStructure (Just layout)) children)
 
                     _ ->
                         Layout node layout element position (List.map (adjustStructure (Just layout)) children)
