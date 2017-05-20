@@ -25,14 +25,14 @@ visibility vis =
             [ ( "opacity", toString x ) ]
 
 
-flexWidth : Length -> ( String, String )
-flexWidth l =
-    case l of
+flexWidth : Length -> Float -> ( String, String )
+flexWidth len adjustment =
+    case len of
         Px x ->
             ( "width", toString x ++ "px" )
 
         Percent x ->
-            ( "width", toString x ++ "%" )
+            ( "width", "calc(" ++ toString x ++ "% - " ++ toString adjustment ++ "px)" )
 
         Auto ->
             ( "width", "auto" )

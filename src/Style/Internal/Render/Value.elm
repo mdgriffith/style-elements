@@ -24,7 +24,26 @@ length l =
             "auto"
 
         Fill i ->
+            "100%"
+
+        Calc perc px ->
+            "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)"
+
+
+parentAdjustedLength : Length -> Float -> String
+parentAdjustedLength len adjustment =
+    case len of
+        Px x ->
+            toString x ++ "px"
+
+        Percent x ->
+            "calc(" ++ toString x ++ "% - " ++ toString adjustment ++ "px)"
+
+        Auto ->
             "auto"
+
+        Fill i ->
+            "calc(100% - " ++ toString adjustment ++ "px)"
 
         Calc perc px ->
             "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)"

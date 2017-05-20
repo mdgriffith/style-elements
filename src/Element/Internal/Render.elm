@@ -216,13 +216,9 @@ adjustStructure parent elm =
                                             , right + left
                                             )
 
-                                phantomPadding attrs =
-                                    case padding of
-                                        Nothing ->
-                                            attrs
-
-                                        Just pad ->
-                                            PhantomPadding pad :: attrs
+                                phantomPadding =
+                                    PhantomPadding
+                                        (Maybe.withDefault ( 0, 0, 0, 0 ) padding)
                             in
                                 Layout
                                     Html.div
@@ -233,7 +229,7 @@ adjustStructure parent elm =
                                         node
                                         layout
                                         Nothing
-                                        (PointerEvents False :: phantomPadding (Margin negativeMargin :: spacingAttr :: Width (Internal.Calc 100 totalHSpacing) :: []))
+                                        (PointerEvents False :: phantomPadding :: Margin negativeMargin :: spacingAttr :: Width (Internal.Calc 100 totalHSpacing) :: [])
                                         (List.map (adjustStructure (Just layout)) children)
                                     ]
                         else
@@ -914,16 +910,23 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
 
                 Just len ->
                     case parent of
-                        Just { layout } ->
-                            case layout of
-                                Internal.FlexLayout Internal.GoRight _ ->
-                                    Property.flexWidth len :: attrs
+                        Just { layout, parentPadding, parentSpecifiedSpacing } ->
+                            let
+                                ( _, rightPad, _, leftPad ) =
+                                    Maybe.withDefault ( 0, 0, 0, 0 ) parentSpecifiedSpacing
 
-                                Internal.FlexLayout Internal.GoLeft _ ->
-                                    Property.flexWidth len :: attrs
+                                paddingAdjustment =
+                                    (rightPad + leftPad) / 2
+                            in
+                                case layout of
+                                    Internal.FlexLayout Internal.GoRight _ ->
+                                        Property.flexWidth len paddingAdjustment :: attrs
 
-                                _ ->
-                                    ( "width", Value.length len ) :: attrs
+                                    Internal.FlexLayout Internal.GoLeft _ ->
+                                        Property.flexWidth len paddingAdjustment :: attrs
+
+                                    _ ->
+                                        ( "width", Value.parentAdjustedLength len paddingAdjustment ) :: attrs
 
                         Nothing ->
                             ( "width", Value.length len ) :: attrs
@@ -935,16 +938,23 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
 
                 Just len ->
                     case parent of
-                        Just { layout } ->
-                            case layout of
-                                Internal.FlexLayout Internal.Down _ ->
-                                    Property.flexHeight len :: attrs
+                        Just { layout, parentSpecifiedSpacing } ->
+                            let
+                                ( topPad, _, bottomPad, _ ) =
+                                    Maybe.withDefault ( 0, 0, 0, 0 ) parentSpecifiedSpacing
 
-                                Internal.FlexLayout Internal.Up _ ->
-                                    Property.flexHeight len :: attrs
+                                paddingAdjustment =
+                                    (topPad + bottomPad) / 2
+                            in
+                                case layout of
+                                    Internal.FlexLayout Internal.Down _ ->
+                                        Property.flexHeight len :: attrs
 
-                                _ ->
-                                    ( "height", Value.length len ) :: attrs
+                                    Internal.FlexLayout Internal.Up _ ->
+                                        Property.flexHeight len :: attrs
+
+                                    _ ->
+                                        ( "height", Value.parentAdjustedLength len paddingAdjustment ) :: attrs
 
                         Nothing ->
                             ( "height", Value.length len ) :: attrs
@@ -1185,6 +1195,7 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                             "margin-bottom" => "0"
                                         , case elem.padding of
                                             Nothing ->
+                                                -- Padding is inherited only for expanded elements
                                                 ( "padding", Value.box parentPadding )
 
                                             Just pad ->
@@ -1212,13 +1223,13 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                                     , "margin" => "0"
                                                     , "margin-top" => (toString ((-1 * top) + (parentSpaceTop / 2)) ++ "px")
                                                     , if order == First || order == FirstAndLast then
-                                                        "margin-left" => (toString (-1 * top) ++ "px")
+                                                        "margin-left" => (toString (-1 * left) ++ "px")
                                                       else
-                                                        "margin-left" => "0"
+                                                        "margin-left" => (toString (parentSpaceLeft / 2) ++ "px")
                                                     , if order == Last || order == FirstAndLast then
-                                                        "margin-right" => (toString (-1 * bottom) ++ "px")
+                                                        "margin-right" => (toString (-1 * right) ++ "px")
                                                       else
-                                                        "margin-right" => "0"
+                                                        "margin-right" => (toString (parentSpaceRight / 2) ++ "px")
                                                     ]
 
                                             Internal.GoLeft ->
@@ -1227,13 +1238,13 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                                     , "margin" => "0"
                                                     , "margin-top" => (toString ((-1 * top) + (parentSpaceTop / 2)) ++ "px")
                                                     , if order == First || order == FirstAndLast then
-                                                        "margin-right" => (toString (-1 * top) ++ "px")
+                                                        "margin-right" => (toString (-1 * right) ++ "px")
                                                       else
-                                                        "margin-right" => "0"
+                                                        "margin-right" => (toString (parentSpaceRight / 2) ++ "px")
                                                     , if order == Last || order == FirstAndLast then
-                                                        "margin-left" => (toString (-1 * bottom) ++ "px")
+                                                        "margin-left" => (toString (-1 * left) ++ "px")
                                                       else
-                                                        "margin-left" => "0"
+                                                        "margin-left" => (toString (parentSpaceLeft / 2) ++ "px")
                                                     ]
 
                                             Internal.Up ->
@@ -1244,11 +1255,11 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                                     , if order == First || order == FirstAndLast then
                                                         "margin-bottom" => (toString (-1 * top) ++ "px")
                                                       else
-                                                        "margin-bottom" => "0"
+                                                        "margin-bottom" => (toString (parentSpaceBottom / 2) ++ "px")
                                                     , if order == Last || order == FirstAndLast then
                                                         "margin-top" => (toString (-1 * bottom) ++ "px")
                                                       else
-                                                        "margin-top" => "0"
+                                                        "margin-top" => (toString (parentSpaceTop / 2) ++ "px")
                                                     ]
 
                                             Internal.Down ->
@@ -1259,11 +1270,11 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                                     , if order == First || order == FirstAndLast then
                                                         "margin-top" => (toString (-1 * top) ++ "px")
                                                       else
-                                                        "margin-top" => "0"
+                                                        "margin-top" => (toString (parentSpaceTop / 2) ++ "px")
                                                     , if order == Last || order == FirstAndLast then
                                                         "margin-bottom" => (toString (-1 * bottom) ++ "px")
                                                       else
-                                                        "margin-bottom" => "0"
+                                                        "margin-bottom" => (toString (parentSpaceBottom / 2) ++ "px")
                                                     ]
 
                                 _ ->
