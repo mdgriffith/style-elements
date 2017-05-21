@@ -88,8 +88,19 @@ adjustStructure parent elm =
 
         Element node element position child otherChildren ->
             let
-                ( centeredProps, others ) =
-                    List.partition (\attr -> attr == HAlign Center || attr == VAlign VerticalCenter) position
+                ( aligned, unaligned ) =
+                    List.partition forAlignment position
+
+                forAlignment attr =
+                    case attr of
+                        HAlign _ ->
+                            True
+
+                        VAlign _ ->
+                            True
+
+                        _ ->
+                            False
 
                 skipAdjustment bool =
                     Element node
@@ -98,36 +109,76 @@ adjustStructure parent elm =
                         (adjustStructure Nothing child)
                         (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
             in
-                if not <| List.isEmpty centeredProps then
+                if not <| List.isEmpty aligned then
                     case parent of
                         Nothing ->
                             -- use Flexbox to center single elements
                             -- The flexbox element should pass through events to the parent.
-                            Layout Html.div
-                                (Internal.FlexLayout Internal.GoRight [])
-                                Nothing
-                                (PointerEvents False
-                                    :: PositionFrame Positioned
-                                    :: Height (Internal.Percent 100)
-                                    :: Width (Internal.Percent 100)
-                                    :: centeredProps
-                                )
-                                [ Element node
-                                    element
-                                    (PointerEvents True :: others)
-                                    (adjustStructure Nothing child)
-                                    -- child
-                                    (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
-                                ]
+                            let
+                                properChild =
+                                    Element node
+                                        element
+                                        (PointerEvents True :: PositionFrame Positioned :: Position (Just 0) (Just 0) Nothing :: unaligned)
+                                        (adjustStructure Nothing child)
+                                        (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
+
+                                noColor =
+                                    Html.Attributes.style
+                                        [ ( "background-color"
+                                          , "rgba(0,0,0,0)"
+                                          )
+                                        , ( "color"
+                                          , "rgba(0,0,0,0)"
+                                          )
+                                        , ( "border-color"
+                                          , "rgba(0,0,0,0)"
+                                          )
+                                        ]
+
+                                nearbyToAlignment attr =
+                                    case attr of
+                                        PositionFrame (Nearby Above) ->
+                                            Just (VAlign Top)
+
+                                        PositionFrame (Nearby Below) ->
+                                            Just (VAlign Bottom)
+
+                                        PositionFrame (Nearby OnRight) ->
+                                            Just (HAlign Right)
+
+                                        PositionFrame (Nearby OnLeft) ->
+                                            Just (HAlign Left)
+
+                                        _ ->
+                                            Nothing
+
+                                adjustedAligned =
+                                    List.filterMap nearbyToAlignment unaligned
+                            in
+                                Layout Html.div
+                                    (Internal.FlexLayout Internal.GoRight [])
+                                    Nothing
+                                    (PointerEvents False
+                                        :: PositionFrame Positioned
+                                        :: Height (Internal.Percent 100)
+                                        :: Width (Internal.Percent 100)
+                                        :: (adjustedAligned ++ aligned)
+                                    )
+                                    [ Element Html.div
+                                        element
+                                        ((PointerEvents False :: unaligned ++ [ PositionFrame Relative, Position (Just 0) (Just 0) Nothing ]) ++ [ Attr <| noColor ])
+                                        properChild
+                                        Nothing
+                                    ]
 
                         Just Internal.TextLayout ->
                             Layout Html.div
                                 (Internal.FlexLayout Internal.GoRight [])
                                 Nothing
-                                (PointerEvents False :: centeredProps)
+                                (PointerEvents False :: aligned)
                                 [ Element node
                                     element
-                                    (PointerEvents True :: others)
+                                    (PointerEvents True :: unaligned)
                                     (adjustStructure Nothing child)
                                     (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
                                 ]
@@ -237,6 +288,73 @@ adjustStructure parent elm =
 
                     _ ->
                         Layout node layout element position (List.map (adjustStructure (Just layout)) children)
+
+
+calcPosition : Frame -> ( Maybe Float, Maybe Float, Maybe Float ) -> List ( String, String )
+calcPosition frame ( mx, my, mz ) =
+    let
+        x =
+            Maybe.withDefault 0 mx
+
+        y =
+            Maybe.withDefault 0 my
+
+        z =
+            Maybe.withDefault 0 mz
+    in
+        case frame of
+            Relative ->
+                [ "position" => "relative"
+                , "left" => (toString x ++ "px")
+                , "top" => (toString y ++ "px")
+                ]
+
+            Screen ->
+                [ "position" => "fixed"
+                , "left" => (toString x ++ "px")
+                , "top" => (toString y ++ "px")
+                ]
+
+            Positioned ->
+                List.filterMap identity
+                    [ Just ("position" => "absolute")
+                    , case mx of
+                        Just x ->
+                            Just ("left" => (toString x ++ "px"))
+
+                        Nothing ->
+                            Nothing
+                    , case my of
+                        Just y ->
+                            Just ("top" => (toString y ++ "px"))
+
+                        Nothing ->
+                            Nothing
+                    ]
+
+            Nearby Above ->
+                [ "position" => "absolute"
+                , "bottom" => ("calc(100% - " ++ toString y ++ "px)")
+                , "left" => (toString x ++ "px")
+                ]
+
+            Nearby Below ->
+                [ "position" => "absolute"
+                , "top" => ("calc(100% + " ++ toString y ++ "px)")
+                , "left" => (toString x ++ "px")
+                ]
+
+            Nearby OnLeft ->
+                [ "position" => "absolute"
+                , "right" => ("calc(100% - " ++ toString x ++ "px)")
+                , "top" => (toString y ++ "px")
+                ]
+
+            Nearby OnRight ->
+                [ "position" => "absolute"
+                , "left" => ("calc(100% + " ++ toString x ++ "px)")
+                , "top" => (toString y ++ "px")
+                ]
 
 
 renderElement : Maybe Parent -> Internal.StyleSheet elem variation animation msg -> Order -> Element elem variation msg -> Html msg
@@ -784,6 +902,9 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                 LayoutElement lay ->
                     Property.layout elem.inline (alignLayout elem.horizontal elem.vertical lay) ++ attrs
 
+        position attrs =
+            (calcPosition (Maybe.withDefault Relative elem.frame) elem.positioned) ++ attrs
+
         passthrough attrs =
             case elem.pointerevents of
                 Nothing ->
@@ -975,39 +1096,6 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                 Just pad ->
                     ( "padding", Value.box pad ) :: attrs
 
-        positionAdjustment attrs =
-            let
-                ( x, y, z ) =
-                    elem.positioned
-            in
-                case elem.positioned of
-                    ( Nothing, Nothing, Nothing ) ->
-                        attrs
-
-                    ( x, y, Nothing ) ->
-                        ( "transform"
-                        , ("translate("
-                            ++ toString (Maybe.withDefault 0 x)
-                            ++ "px, "
-                            ++ toString (Maybe.withDefault 0 y)
-                            ++ "px)"
-                          )
-                        )
-                            :: attrs
-
-                    ( x, y, z ) ->
-                        ( "transform"
-                        , ("translate3d("
-                            ++ toString (Maybe.withDefault 0 x)
-                            ++ "px, "
-                            ++ toString (Maybe.withDefault 0 y)
-                            ++ "px, "
-                            ++ toString (Maybe.withDefault 0 z)
-                            ++ "px)"
-                          )
-                        )
-                            :: attrs
-
         gridPos attrs =
             case elem.gridPosition of
                 Nothing ->
@@ -1087,8 +1175,7 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                 halved
 
         defaults =
-            [ "position" => "relative"
-            , "box-sizing" => "border-box"
+            [ "box-sizing" => "border-box"
             ]
 
         attributes =
@@ -1104,47 +1191,6 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
     in
         if elem.hidden then
             Html.Attributes.style [ ( "display", "none" ) ] :: attributes
-        else if elem.frame /= Nothing then
-            let
-                frame =
-                    case elem.frame of
-                        Nothing ->
-                            []
-
-                        Just frm ->
-                            case frm of
-                                Screen ->
-                                    [ ( "position", "fixed" ) ]
-
-                                Positioned ->
-                                    [ ( "position", "absolute" ) ]
-
-                                Nearby Above ->
-                                    [ "position" => "absolute"
-                                    , "bottom" => "100%"
-                                    ]
-
-                                Nearby Below ->
-                                    [ "position" => "absolute"
-                                    , "top" => "100%"
-                                    ]
-
-                                Nearby OnLeft ->
-                                    [ "position" => "absolute"
-                                    , "right" => "100%"
-                                    ]
-
-                                Nearby OnRight ->
-                                    [ "position" => "absolute"
-                                    , "left" => "100%"
-                                    ]
-            in
-                (Html.Attributes.style
-                    (("box-sizing" => "border-box")
-                        :: (passthrough <| gridPos <| layout <| spacing <| transparency <| width <| height <| positionAdjustment <| padding <| horizontal <| vertical <| frame)
-                    )
-                )
-                    :: attributes
         else if elem.expand then
             let
                 expandedProps =
@@ -1281,11 +1327,11 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                     []
             in
                 (Html.Attributes.style
-                    (("box-sizing" => "border-box") :: (passthrough <| gridPos <| layout <| spacing <| transparency <| positionAdjustment <| padding <| expandedProps))
+                    (("box-sizing" => "border-box") :: (passthrough <| gridPos <| layout <| spacing <| transparency <| padding <| position <| expandedProps))
                 )
                     :: attributes
         else
             (Html.Attributes.style
-                (passthrough <| gridPos <| layout <| spacing <| transparency <| width <| height <| positionAdjustment <| padding <| horizontal <| vertical <| defaults)
+                (passthrough <| gridPos <| layout <| spacing <| transparency <| width <| height <| padding <| horizontal <| vertical <| position <| defaults)
             )
                 :: attributes

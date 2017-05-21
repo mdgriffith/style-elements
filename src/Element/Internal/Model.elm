@@ -70,6 +70,7 @@ type Decoration
 
 type Frame
     = Screen
+    | Relative
     | Positioned
     | Nearby Close
 

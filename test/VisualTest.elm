@@ -64,7 +64,8 @@ stylesheet =
                 , border = Color.blue
                 }
             , Border.rounded (all 3)
-            , paddingHint (all 20)
+
+            -- , paddingHint (all 20)
             , hover
                 [ Style.Color.palette
                     { text = Color.white
@@ -120,6 +121,7 @@ view model =
 
 basics =
     [ el Container [ padding (leftRightAndTopBottom 20 5) ] (text "Single Element")
+    , el Container [ moveXY 20 20, padding (leftRightAndTopBottom 20 5) ] (text "Single Element")
     , el Container [ padding (leftRightAndTopBottom 20 5), alignLeft ] (text "Single Element")
     , el Container [ padding (leftRightAndTopBottom 20 5), center, width (px 200) ] (text "Centered Element")
     , el Container [ padding (leftRightAndTopBottom 20 5), alignRight ] (text "Align Right")
@@ -129,7 +131,7 @@ basics =
 
 
 anchored =
-    [ row None
+    [ wrappedRow None
         [ spacing 150 150
         , center
         ]
@@ -166,6 +168,41 @@ anchored =
                     , onLeft <| el Box [ width (px 20), height (px 20) ] empty
                     , onLeft <| el Box [ alignBottom, width (px 20), height (px 20) ] empty
                     , onLeft <| el Box [ verticalCenter, width (px 20), height (px 20) ] empty
+                    ]
+            ]
+        , column None
+            [ spacing 20 60 ]
+            [ el Label [] (text "Anchored Elements")
+            , el Container [ width (px 200), height (px 200) ] empty
+                |> nearby
+                    [ el Box [ moveXY 20 20, alignTop, alignRight, width (px 20), height (px 20) ] empty
+                    , el Box [ moveXY 20 20, alignTop, alignLeft, width (px 20), height (px 20) ] empty
+                    , el Box [ moveXY 20 20, alignBottom, alignRight, width (px 20), height (px 20) ] empty
+                    , el Box [ moveXY 20 20, alignBottom, alignLeft, width (px 20), height (px 20) ] empty
+                    , el Box [ moveXY 20 20, alignTop, center, width (px 20), height (px 20) ] empty
+                    , el Box [ moveXY 20 20, alignBottom, center, width (px 20), height (px 20) ] empty
+                    , el Box [ moveXY 20 20, verticalCenter, center, width (px 20), height (px 20) ] empty
+                    , el Box [ moveXY 20 20, verticalCenter, alignRight, width (px 20), height (px 20) ] empty
+                    , el Box [ moveXY 20 20, verticalCenter, alignLeft, width (px 20), height (px 20) ] empty
+                    ]
+            ]
+        , column None
+            [ spacing 20 60 ]
+            [ el Label [] (text "Adjusted Nearby Elements")
+            , el Container [ width (px 200), height (px 200) ] empty
+                |> nearby
+                    [ above <| el Box [ moveXY 20 20, width (px 20), height (px 20) ] empty
+                    , above <| el Box [ moveXY 20 20, alignRight, width (px 20), height (px 20) ] empty
+                    , above <| el Box [ moveXY 20 20, center, width (px 20), height (px 20) ] empty
+                    , below <| el Box [ moveXY 20 20, width (px 20), height (px 20) ] empty
+                    , below <| el Box [ moveXY 20 20, alignRight, width (px 20), height (px 20) ] empty
+                    , below <| el Box [ moveXY 20 20, center, width (px 20), height (px 20) ] empty
+                    , onRight <| el Box [ moveXY 20 20, width (px 20), height (px 20) ] empty
+                    , onRight <| el Box [ moveXY 20 20, alignBottom, width (px 20), height (px 20) ] empty
+                    , onRight <| el Box [ moveXY 20 20, verticalCenter, width (px 20), height (px 20) ] empty
+                    , onLeft <| el Box [ moveXY 20 20, width (px 20), height (px 20) ] empty
+                    , onLeft <| el Box [ moveXY 20 20, alignBottom, width (px 20), height (px 20) ] empty
+                    , onLeft <| el Box [ moveXY 20 20, verticalCenter, width (px 20), height (px 20) ] empty
                     ]
             ]
         ]
@@ -386,5 +423,18 @@ viewNamedGridLayout =
             (el Box [] (text "box"))
         , named "sidebar"
             (el Box [] (text "box"))
+        ]
+    ]
+
+
+viewTransforms =
+    [ el Label [] (text "Transformations")
+    , row Container
+        [ spacing 20 20 ]
+        [ el Box
+            [ width (px 200)
+            , height (fill 1)
+            ]
+            empty
         ]
     ]
