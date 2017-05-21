@@ -167,9 +167,7 @@ stylesheetWith defaultProps styles =
         { stylesheet | css = reset ++ stylesheet.css }
 
 
-{-|
-
--}
+{-| -}
 empty : Element elem variation msg
 empty =
     Empty
@@ -222,7 +220,7 @@ circle radius elem attrs child =
 
 {-| Define a spacer in terms of a multiple of it's spacing.
 
-So, if the parent element is a `column` that set spacing to `5`, and this spacer was a `2`.  Then it would be a 10 pixel spacer.
+So, if the parent element is a `column` that set spacing to `5`, and this spacer was a `2`. Then it would be a 10 pixel spacer.
 
 -}
 spacer : Float -> Element elem variation msg
@@ -235,7 +233,7 @@ image elem src attrs child =
     Element Html.img (Just elem) (Attr (Html.Attributes.src src) :: attrs) child Nothing
 
 
-{-| Creates a hairline horizontal.  The Color is set in the defaults of the stylesheet.
+{-| Creates a hairline horizontal. The Color is set in the defaults of the stylesheet.
 
 If you want a horizontal rule that is something more specific, craft it with `el`!
 
@@ -345,10 +343,10 @@ type Source
     = Source String String
 
 
-{-|
-Create a source for video or audio.
+{-| Create a source for video or audio.
 
 Provide a src and a type.
+
 -}
 source : String -> String -> Source
 source =
@@ -370,24 +368,18 @@ form constructor elem attrs stuff =
 
 So, if you wanted to make some radio buttons to choose lunch, here's how it's look:
 
-```
-radio StyleClass [] "lunch" "burrito" True (text "A Burrito!")
-radio StyleClass [] "lunch" "taco" False (text "Some Tacos!")
+    radio StyleClass [] "lunch" "burrito" True (text "A Burrito!")
+    radio StyleClass [] "lunch" "taco" False (text "Some Tacos!")
 
-```
-
-__Advanced Note__
+**Advanced Note**
 This creates the following html:
-```
-<label class="styleClass" {attributes provided in arguments}>
-    <input type=radio name="lunch" value="burrito" />
-    A Burrito!
-</label>
 
-```
+    <label class="styleClass" {attributes provided in arguments}>
+        <input type=radio name="lunch" value="burrito" />
+        A Burrito!
+    </label>
 
 Events are attached to the radio input element (to capture things like `onInput`, while all other attributes apply to the parent label element).
-
 
 -}
 radio : elem -> List (Attribute variation msg) -> String -> String -> Bool -> Element elem variation msg -> Element elem variation msg
@@ -466,7 +458,7 @@ checkbox elem attrs on label =
 {-| For input elements that are not automatically labeled (checkbox, radiobutton, selection), this will attach a label above the element.
 
 label Label [] (text "check this out") <|
-    inputtext Style [] "The Value!"
+inputtext Style [] "The Value!"
 
 -}
 label : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg -> Element elem variation msg
@@ -491,7 +483,6 @@ label elem attrs label input =
 
 
 {-| Same as `label`, but places the label below the input field.
-
 -}
 labelBelow : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg -> Element elem variation msg
 labelBelow elem attrs label input =
@@ -519,31 +510,30 @@ textarea elem attrs content =
     Element Html.textarea (Just elem) attrs (text content) Nothing
 
 
-{-|
-
-labeled Label [] (text "check this out") <|
-    inputtext Style [] "The Value!"
-
+{-| labeled Label [] (text "check this out") <|
+inputtext Style [] "The Value!"
 -}
 inputtext : elem -> List (Attribute variation msg) -> String -> Element elem variation msg
 inputtext elem attrs content =
     Element Html.input (Just elem) (Attr.type_ "text" :: Attr.value content :: attrs) empty Nothing
 
 
-{-| A bulleted list.  Rendered as `<ul>`
+{-| A bulleted list. Rendered as `<ul>`
 
 A 'column' layout is implied.
 
 Automatically sets children to use `<li>`
+
 -}
 bullet : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 bullet elem attrs children =
     Layout Html.ul (Style.FlexLayout Style.Down []) (Just elem) attrs (List.map (setNode Html.li) children)
 
 
-{-| A numbered list.  Rendered as `<ol>` with an implied 'column' layout.
+{-| A numbered list. Rendered as `<ol>` with an implied 'column' layout.
 
 Automatically sets children to use `<li>`
+
 -}
 enumerate : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
 enumerate elem attrs children =
@@ -702,6 +692,7 @@ spanAll name =
 {-| Turn an element into a link.
 
 Changes an element's node to `<a>` and sets the href and rel properties.
+
 -}
 linked : String -> Element elem variation msg -> Element elem variation msg
 linked src el =
@@ -712,19 +703,16 @@ linked src el =
 
 
 {-|
-```
-when (x == 5) (text "yay, it's 5")
 
-```
+    when (x == 5) (text "yay, it's 5")
 
 is sugar for
 
-```
-if (x == 5) then
-    el
-else
-    text "yay, it's 5"
-```
+    if (x == 5) then
+        el
+    else
+        text "yay, it's 5"
+
 -}
 when : Bool -> Element elem variation msg -> Element elem variation msg
 when bool elm =
@@ -885,6 +873,7 @@ onLeft el =
 {-| Position an element relative to the window.
 
 Essentially the same as 'display: fixed'
+
 -}
 screen : Element elem variation msg -> Element elem variation msg
 screen =
@@ -956,7 +945,6 @@ moveZ z =
 
 
 {-| Adjust the position of the element.
-
 -}
 moveXY : Float -> Float -> Attribute variation msg
 moveXY x y =
@@ -966,6 +954,11 @@ moveXY x y =
 moveXYZ : Float -> Float -> Float -> Attribute variation msg
 moveXYZ x y z =
     Position (Just x) (Just y) (Just z)
+
+
+
+-- rotate : Float -> Attribute variation msg
+-- rotate
 
 
 {-| -}
@@ -1011,8 +1004,7 @@ spacing =
     Spacing
 
 
-{-|
--}
+{-| -}
 padding : ( Float, Float, Float, Float ) -> Attribute variation msg
 padding =
     Padding
