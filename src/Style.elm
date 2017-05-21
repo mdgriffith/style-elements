@@ -3,7 +3,6 @@ module Style
         ( Style
         , Property
         , Shadow
-        , Transform
         , Filter
         , Edges
         , Corners
@@ -13,8 +12,12 @@ module Style
         , cursor
         , shadows
         , paddingHint
-        , transforms
         , filters
+        , origin
+        , translate
+        , rotate
+        , rotateAround
+        , scale
         , hover
         , checked
         , focus
@@ -39,6 +42,8 @@ module Style
         )
 
 {-|
+
+
 # Welcome to the Style Elements Library!
 
 @docs Style, style, variation, Property, prop
@@ -47,9 +52,9 @@ module Style
 
 @docs Shadow, shadows
 
-@docs Transform, transforms
-
 @docs Filter, filters
+
+@docs origin, translate, rotate, rotateAround, scale
 
 @docs hover, checked, focus, pseudo
 
@@ -109,7 +114,6 @@ cursor name =
 
 
 {-| You can give a hint about what the padding should be for this element, but the layout can override it.
-
 -}
 paddingHint : ( Float, Float, Float, Float ) -> Property class variation animation
 paddingHint pad =
@@ -127,10 +131,11 @@ shadows shades =
     Internal.Shadows shades
 
 
-{-| -}
-transforms : List Transform -> Property class variation animation
-transforms ts =
-    Internal.Transform ts
+
+-- {-| -}
+-- transforms : List Transform -> Property class variation animation
+-- transforms ts =
+--     Internal.Transform ts
 
 
 {-| -}
@@ -144,11 +149,51 @@ filters fs =
     Internal.Filters fs
 
 
+{-| Always rendered as px
+-}
+origin : Float -> Float -> Float -> Property class variation animation
+origin x y z =
+    Internal.Exact "transform-origin" (toString x ++ "px  " ++ toString y ++ "px " ++ toString z ++ "px")
+
+
+{-| Units always rendered as `radians`.
+
+Use `degrees` or `turns` from the standard library if you want to use a different set of units.
+
+-}
+rotate : Float -> Property class variation animation
+rotate a =
+    Internal.Transform <| [ Internal.Rotate a ]
+
+
+{-| Units always rendered as `radians`.
+
+Use `degrees` or `turns` from the standard library if you want to use a different set of units.
+
+-}
+rotateAround : ( Float, Float, Float ) -> Float -> Property class variation animation
+rotateAround ( x, y, z ) angle =
+    Internal.Transform <| [ Internal.RotateAround x y z angle ]
+
+
+{-| Units are always as pixels
+-}
+translate : Float -> Float -> Float -> Property class variation animation
+translate x y z =
+    Internal.Transform <| [ Internal.Translate x y z ]
+
+
+{-| -}
+scale : Float -> Float -> Float -> Property class variation animation
+scale x y z =
+    Internal.Transform <| [ Internal.Scale x y z ]
+
+
 {-| A tuple of four floats to define any property with edges, such as:
 
-  * `padding`
-  * `spacing`
-  * `Border.width`
+  - `padding`
+  - `spacing`
+  - `Border.width`
 
 `(top, right, bottom, left)`
 
@@ -158,7 +203,6 @@ type alias Edges =
 
 
 {-| Can be used for any property that takes `Edges` or `Corners`.
-
 -}
 all : Float -> ( Float, Float, Float, Float )
 all x =

@@ -133,6 +133,7 @@ adjustStructure parent elm =
                                         , ( "border-color"
                                           , "rgba(0,0,0,0)"
                                           )
+                                        , ( "transform", "none" )
                                         ]
 
                                 nearbyToAlignment attr =

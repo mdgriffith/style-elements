@@ -64,6 +64,8 @@ stylesheet =
                 , border = Color.blue
                 }
             , Border.rounded (all 3)
+            , rotate (pi / 3)
+            , translate 40 40 0
 
             -- , paddingHint (all 20)
             , hover
@@ -131,7 +133,7 @@ basics =
 
 
 anchored =
-    [ wrappedRow None
+    [ row None
         [ spacing 150 150
         , center
         ]
@@ -170,9 +172,14 @@ anchored =
                     , onLeft <| el Box [ verticalCenter, width (px 20), height (px 20) ] empty
                     ]
             ]
-        , column None
+        ]
+    , row None
+        [ spacing 150 150
+        , center
+        ]
+        [ column None
             [ spacing 20 60 ]
-            [ el Label [] (text "Anchored Elements")
+            [ el Label [] (text "Move 20 20")
             , el Container [ width (px 200), height (px 200) ] empty
                 |> nearby
                     [ el Box [ moveXY 20 20, alignTop, alignRight, width (px 20), height (px 20) ] empty
@@ -188,7 +195,7 @@ anchored =
             ]
         , column None
             [ spacing 20 60 ]
-            [ el Label [] (text "Adjusted Nearby Elements")
+            [ el Label [] (text "Move 20 20")
             , el Container [ width (px 200), height (px 200) ] empty
                 |> nearby
                     [ above <| el Box [ moveXY 20 20, width (px 20), height (px 20) ] empty

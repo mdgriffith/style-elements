@@ -1,7 +1,6 @@
 module Style.Internal.Render exposing (stylesheet, unbatchedStylesheet, spacing, class)
 
-{-|
--}
+{-| -}
 
 import Style.Internal.Model as Internal exposing (..)
 import Style.Internal.Render.Property as Render
@@ -65,10 +64,9 @@ unbatchedStylesheet guard styles =
 
 Such as:
 
-  * Move drop shadows to the filter property
-  * Visibility should override layout.  Visibility should override previous visibility as well.
-  * Move color palettes to the end
-
+  - Move drop shadows to the filter property
+  - Visibility should override layout. Visibility should override previous visibility as well.
+  - Move color palettes to the end
 
 -}
 preprocess : Style class variation animation -> Style class variation animation
@@ -129,6 +127,66 @@ preprocess style =
                 dropShadow (ShadowModel shade) =
                     shade.kind == "drop"
 
+                mergeTransforms props =
+                    let
+                        setIfNothing x maybeX =
+                            case maybeX of
+                                Nothing ->
+                                    Just x
+
+                                a ->
+                                    a
+
+                        gatherTransformStack transformation gathered =
+                            case transformation of
+                                Translate x y z ->
+                                    { gathered | translate = setIfNothing (Translate x y z) gathered.translate }
+
+                                Rotate a ->
+                                    { gathered | rotate = setIfNothing (Rotate a) gathered.rotate }
+
+                                RotateAround x y z angle ->
+                                    { gathered | rotate = setIfNothing (RotateAround x y z angle) gathered.rotate }
+
+                                Scale x y z ->
+                                    { gathered | scale = setIfNothing (Scale x y z) gathered.scale }
+
+                        gatherTransforms prop ( transforms, gatheredProps ) =
+                            case prop of
+                                Transform stack ->
+                                    ( List.foldr gatherTransformStack transforms stack
+                                    , gatheredProps
+                                    )
+
+                                _ ->
+                                    ( transforms
+                                    , prop :: gatheredProps
+                                    )
+
+                        applyTransforms ( { rotate, scale, translate }, gathered ) =
+                            let
+                                transformations =
+                                    List.filterMap identity
+                                        [ translate
+                                        , rotate
+                                        , scale
+                                        ]
+                            in
+                                if List.isEmpty transformations then
+                                    gathered
+                                else
+                                    (Transform transformations) :: gathered
+                    in
+                        props
+                            |> List.foldr gatherTransforms
+                                ( { rotate = Nothing
+                                  , scale = Nothing
+                                  , translate = Nothing
+                                  }
+                                , []
+                                )
+                            |> applyTransforms
+
                 moveDropShadow props =
                     let
                         asDropShadow (ShadowModel shadow) =
@@ -178,6 +236,7 @@ preprocess style =
                         |> prioritize shadows
                         |> overridePrevious shadows
                         |> moveDropShadow
+                        |> mergeTransforms
             in
                 Internal.Style class processed
 

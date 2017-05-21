@@ -275,7 +275,6 @@ type Transformation
     | Rotate Float
     | RotateAround Float Float Float Float
     | Scale Float Float Float
-    | Origin Float Float Float
 
 
 type Repeat

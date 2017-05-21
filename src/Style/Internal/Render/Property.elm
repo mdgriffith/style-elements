@@ -165,17 +165,6 @@ transformations transforms =
                 Scale x y z ->
                     ("scale3d(" ++ toString x ++ ", " ++ toString y ++ ", " ++ toString z ++ ")")
 
-                _ ->
-                    ""
-
-        transformOriginToString transform =
-            case transform of
-                Origin x y z ->
-                    Just ( "transform-origin", (toString x ++ "px  " ++ toString y ++ "px " ++ toString z ++ "px") )
-
-                _ ->
-                    Nothing
-
         transformString =
             (String.join " " (List.map transformToString transforms))
 
@@ -184,14 +173,11 @@ transformations transforms =
                 [ "transform" => transformString ]
             else
                 []
-
-        renderedOrigin =
-            List.filterMap transformOriginToString transforms
     in
         if List.length transforms == 0 then
             []
         else
-            renderedTransforms ++ renderedOrigin
+            renderedTransforms
 
 
 position : List PositionElement -> List ( String, String )
