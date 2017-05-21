@@ -938,10 +938,11 @@ moveY y =
     Position Nothing (Just y) Nothing
 
 
-{-| -}
-moveZ : Float -> Attribute variation msg
-moveZ z =
-    Position Nothing Nothing (Just z)
+
+-- {-| -}
+-- moveZ : Float -> Attribute variation msg
+-- moveZ z =
+--     Position Nothing Nothing (Just z)
 
 
 {-| Adjust the position of the element.
@@ -951,14 +952,10 @@ moveXY x y =
     Position (Just x) (Just y) Nothing
 
 
-moveXYZ : Float -> Float -> Float -> Attribute variation msg
-moveXYZ x y z =
-    Position (Just x) (Just y) (Just z)
 
-
-
--- rotate : Float -> Attribute variation msg
--- rotate
+-- moveXYZ : Float -> Float -> Float -> Attribute variation msg
+-- moveXYZ x y z =
+--     Position (Just x) (Just y) (Just z)
 
 
 {-| -}
@@ -1008,6 +1005,13 @@ spacing =
 padding : ( Float, Float, Float, Float ) -> Attribute variation msg
 padding =
     Padding
+
+
+{-| Set horizontal and vertical padding.
+-}
+paddingXY : Float -> Float -> Attribute variation msg
+paddingXY x y =
+    Padding (Style.leftRightAndTopBottom x y)
 
 
 hidden : Attribute variation msg
