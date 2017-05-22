@@ -1037,19 +1037,10 @@ paddingEach top right bottom left =
     Padding ( top, right, bottom, left )
 
 
+{-| -}
 hidden : Attribute variation msg
 hidden =
     Hidden
-
-
-transparency : Int -> Attribute variation msg
-transparency =
-    Transparency
-
-
-opacity : Int -> Attribute variation msg
-opacity o =
-    Transparency (1 - o)
 
 
 {-| Renders `Element`'s into `Html`.

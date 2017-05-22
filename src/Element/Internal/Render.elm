@@ -134,6 +134,7 @@ adjustStructure parent elm =
                                           , "rgba(0,0,0,0)"
                                           )
                                         , ( "transform", "none" )
+                                        , ( "opacity", "1" )
                                         ]
 
                                 nearbyToAlignment attr =
@@ -540,7 +541,7 @@ type alias Positionable variation msg =
     , margin : Maybe ( Float, Float, Float, Float )
     , padding : Maybe ( Float, Float, Float, Float )
     , variations : List ( variation, Bool )
-    , transparency : Maybe Int
+    , opacity : Maybe Float
     , gridPosition : Maybe String
     , pointerevents : Maybe Bool
     , attrs : List (Html.Attribute msg)
@@ -561,7 +562,7 @@ emptyPositionable =
     , margin = Nothing
     , padding = Nothing
     , variations = []
-    , transparency = Nothing
+    , opacity = Nothing
     , gridPosition = Nothing
     , pointerevents = Nothing
     , attrs = []
@@ -649,8 +650,8 @@ makePositionable attr pos =
         Hidden ->
             { pos | hidden = True }
 
-        Transparency t ->
-            { pos | transparency = Just t }
+        Opacity t ->
+            { pos | opacity = Just t }
 
         Event ev ->
             { pos | attrs = ev :: pos.attrs }
@@ -1081,13 +1082,13 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                         Nothing ->
                             ( "height", Value.length len ) :: attrs
 
-        transparency attrs =
-            case elem.transparency of
+        opacity attrs =
+            case elem.opacity of
                 Nothing ->
                     attrs
 
-                Just t ->
-                    ( "opacity", (toString <| 1 - t) ) :: attrs
+                Just o ->
+                    ( "opacity", toString o ) :: attrs
 
         padding attrs =
             case elem.padding of
@@ -1328,11 +1329,11 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                     []
             in
                 (Html.Attributes.style
-                    (("box-sizing" => "border-box") :: (passthrough <| gridPos <| layout <| spacing <| transparency <| padding <| position <| expandedProps))
+                    (("box-sizing" => "border-box") :: (passthrough <| gridPos <| layout <| spacing <| opacity <| padding <| position <| expandedProps))
                 )
                     :: attributes
         else
             (Html.Attributes.style
-                (passthrough <| gridPos <| layout <| spacing <| transparency <| width <| height <| padding <| horizontal <| vertical <| position <| defaults)
+                (passthrough <| gridPos <| layout <| spacing <| opacity <| width <| height <| padding <| horizontal <| vertical <| position <| defaults)
             )
                 :: attributes

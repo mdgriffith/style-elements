@@ -10,6 +10,7 @@ module Style
         , cursor
         , shadows
         , paddingHint
+        , opacity
         , filters
         , origin
         , translate
@@ -34,7 +35,7 @@ module Style
 
 @docs Style, style, variation, Property, prop
 
-@docs cursor, paddingHint
+@docs opacity, cursor, paddingHint
 
 @docs Shadow, shadows
 
@@ -89,6 +90,12 @@ variation variation props =
 prop : String -> String -> Property class variation animation
 prop name val =
     Internal.Exact name val
+
+
+{-| -}
+opacity : Float -> Property class variation animation
+opacity o =
+    Internal.Exact "opacity" (toString o)
 
 
 {-| -}

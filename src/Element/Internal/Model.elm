@@ -44,7 +44,7 @@ type Attribute variation msg
     | Position (Maybe Float) (Maybe Float) (Maybe Float)
     | PositionFrame Frame
     | Hidden
-    | Transparency Int
+    | Opacity Float
     | Spacing Float Float
     | Margin ( Float, Float, Float, Float )
     | Expand
