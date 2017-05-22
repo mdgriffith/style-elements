@@ -1018,16 +1018,23 @@ spacing =
 
 
 {-| -}
-padding : ( Float, Float, Float, Float ) -> Attribute variation msg
-padding =
-    Padding
+padding : Float -> Attribute variation msg
+padding x =
+    Padding ( x, x, x, x )
 
 
 {-| Set horizontal and vertical padding.
 -}
 paddingXY : Float -> Float -> Attribute variation msg
 paddingXY x y =
-    Padding (Style.leftRightAndTopBottom x y)
+    Padding ( y, x, y, x )
+
+
+{-| Set Padding in the order top, right, bottom, left
+-}
+paddingEach : Float -> Float -> Float -> Float -> Attribute variation msg
+paddingEach top right bottom left =
+    Padding ( top, right, bottom, left )
 
 
 hidden : Attribute variation msg

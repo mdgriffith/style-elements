@@ -4,8 +4,6 @@ module Style
         , Property
         , Shadow
         , Filter
-        , Edges
-        , Corners
         , style
         , variation
         , prop
@@ -22,23 +20,11 @@ module Style
         , checked
         , focus
         , pseudo
-        , all
-        , left
-        , right
-        , top
-        , bottom
-        , topBottom
-        , leftRight
-        , leftRightAndTopBottom
-        , leftRightTopBottom
-        , allButTop
-        , allButLeft
-        , allButRight
-        , allButBottom
-        , topLeft
-        , topRight
-        , bottomLeft
-        , bottomRight
+        , rounded
+        , roundTopLeft
+        , roundTopRight
+        , roundBottomRight
+        , roundBottomLeft
         )
 
 {-|
@@ -58,9 +44,7 @@ module Style
 
 @docs hover, checked, focus, pseudo
 
-@docs all, Edges, top, left, right, bottom, leftRight, topBottom, leftRightAndTopBottom, leftRightTopBottom, allButTop, allButLeft, allButRight, allButBottom
-
-@docs Corners, topLeft, topRight, bottomRight, bottomLeft
+@docs rounded, roundTopLeft, roundTopRight, roundBottomRight, roundBottomLeft
 
 -}
 
@@ -115,9 +99,33 @@ cursor name =
 
 {-| You can give a hint about what the padding should be for this element, but the layout can override it.
 -}
-paddingHint : ( Float, Float, Float, Float ) -> Property class variation animation
-paddingHint pad =
-    Internal.Box <| [ Internal.BoxProp "padding" (Value.box pad) ]
+paddingHint : Float -> Property class variation animation
+paddingHint x =
+    Internal.Exact "padding" (toString x ++ "px")
+
+
+{-| -}
+paddingLeftHint : Float -> Property class variation animation
+paddingLeftHint x =
+    Internal.Exact "padding-left" (toString x ++ "px")
+
+
+{-| -}
+paddingRightHint : Float -> Property class variation animation
+paddingRightHint x =
+    Internal.Exact "padding-right" (toString x ++ "px")
+
+
+{-| -}
+paddingTopHint : Float -> Property class variation animation
+paddingTopHint x =
+    Internal.Exact "padding-top" (toString x ++ "px")
+
+
+{-| -}
+paddingBottomHint : Float -> Property class variation animation
+paddingBottomHint x =
+    Internal.Exact "padding-bottom" (toString x ++ "px")
 
 
 {-| -}
@@ -189,133 +197,35 @@ scale x y z =
     Internal.Transform <| [ Internal.Scale x y z ]
 
 
-{-| A tuple of four floats to define any property with edges, such as:
-
-  - `padding`
-  - `spacing`
-  - `Border.width`
-
-`(top, right, bottom, left)`
-
+{-| Round the corners. Sets `border-radius`.
 -}
-type alias Edges =
-    ( Float, Float, Float, Float )
-
-
-{-| Can be used for any property that takes `Edges` or `Corners`.
--}
-all : Float -> ( Float, Float, Float, Float )
-all x =
-    ( x, x, x, x )
+rounded : Float -> Property class variation animation
+rounded box =
+    Internal.Exact "border-radius" (toString box ++ "px")
 
 
 {-| -}
-top : Float -> Edges
-top x =
-    ( x, 0, 0, 0 )
+roundTopLeft : Float -> Property class variation animation
+roundTopLeft x =
+    Internal.Exact "border-top-left-radius" (toString x ++ "px")
 
 
 {-| -}
-right : Float -> Edges
-right x =
-    ( 0, x, 0, 0 )
+roundTopRight : Float -> Property class variation animation
+roundTopRight x =
+    Internal.Exact "border-top-right-radius" (toString x ++ "px")
 
 
 {-| -}
-bottom : Float -> Edges
-bottom x =
-    ( 0, 0, x, 0 )
+roundBottomRight : Float -> Property class variation animation
+roundBottomRight x =
+    Internal.Exact "border-bottom-right-radius" (toString x ++ "px")
 
 
 {-| -}
-left : Float -> Edges
-left x =
-    ( 0, 0, 0, x )
-
-
-{-| -}
-topBottom : Float -> Edges
-topBottom x =
-    ( x, 0, x, 0 )
-
-
-{-| -}
-leftRight : Float -> Edges
-leftRight x =
-    ( 0, x, 0, x )
-
-
-{-| -}
-leftRightAndTopBottom : Float -> Float -> Edges
-leftRightAndTopBottom x y =
-    ( y, x, y, x )
-
-
-{-| -}
-leftRightTopBottom : Float -> Float -> Float -> Float -> Edges
-leftRightTopBottom l r t b =
-    ( t, r, b, l )
-
-
-{-| -}
-allButRight : Float -> Edges
-allButRight x =
-    ( x, 0, x, x )
-
-
-{-| -}
-allButLeft : Float -> Edges
-allButLeft x =
-    ( x, x, x, 0 )
-
-
-{-| -}
-allButTop : Float -> Edges
-allButTop x =
-    ( 0, x, x, x )
-
-
-{-| -}
-allButBottom : Float -> Edges
-allButBottom x =
-    ( x, x, 0, x )
-
-
-{-| This is used to define border-radius.
-
-It's still a four Float tuple like `Edges`, but the numbers are semantically different.
-
-`(topLeft, topRight, bottomRight, bottomLeft)`
-
-The function `all` works for both Corners and Edges.
-
--}
-type alias Corners =
-    ( Float, Float, Float, Float )
-
-
-{-| -}
-topLeft : Float -> Corners
-topLeft x =
-    ( x, 0, 0, 0 )
-
-
-{-| -}
-topRight : Float -> Corners
-topRight x =
-    ( 0, x, 0, 0 )
-
-
-{-| -}
-bottomRight : Float -> Corners
-bottomRight x =
-    ( 0, 0, x, 0 )
-
-
-{-| -}
-bottomLeft : Float -> Corners
-bottomLeft x =
-    ( 0, 0, 0, x )
+roundBottomLeft : Float -> Property class variation animation
+roundBottomLeft x =
+    Internal.Exact "border-bottom-left-radius" (toString x ++ "px")
 
 
 {-| -}

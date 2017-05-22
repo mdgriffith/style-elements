@@ -1,24 +1,47 @@
-module Style.Border exposing (width, rounded, solid, dashed, dotted)
+module Style.Border exposing (all, left, right, top, bottom, none, solid, dashed, dotted)
 
-{-|
-@docs  width, rounded, solid, dashed, dotted
+{-| @docs all, left, right, top, bottom, none, solid, dashed, dotted
 -}
 
 import Style.Internal.Model as Internal
 import Style.Internal.Render.Value as Render
-import Style exposing (Corners, Property)
+import Style exposing (Property)
 
 
 {-| -}
-width : ( Float, Float, Float, Float ) -> Property class variation animation
-width box =
-    Internal.Exact "border-width" (Render.box box)
+all : Float -> Property class variation animation
+all v =
+    Internal.Exact "border-width" (Render.box ( v, v, v, v ))
 
 
 {-| -}
-rounded : Corners -> Property class variation animation
-rounded box =
-    Internal.Exact "border-radius" (Render.box box)
+left : Float -> Property class variation animation
+left l =
+    Internal.Exact "border-left-width" (toString l ++ "px")
+
+
+{-| -}
+right : Float -> Property class variation animation
+right l =
+    Internal.Exact "border-right-width" (toString l ++ "px")
+
+
+{-| -}
+top : Float -> Property class variation animation
+top l =
+    Internal.Exact "border-top-width" (toString l ++ "px")
+
+
+{-| -}
+bottom : Float -> Property class variation animation
+bottom l =
+    Internal.Exact "border-bottom-width" (toString l ++ "px")
+
+
+{-| -}
+none : Float -> Property class variation animation
+none l =
+    Internal.Exact "border-width" "0"
 
 
 {-| -}
