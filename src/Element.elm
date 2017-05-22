@@ -9,13 +9,9 @@ import Style exposing (Style)
 import Style.Internal.Model as Style exposing (Length)
 import Style.Internal.Render.Value as Value
 import Style.Internal.Batchable as Batchable exposing (Batchable)
-import Element.Device as Device exposing (Device)
 import Element.Attributes as Attr
 import Element.Internal.Render as Render
 import Style.Sheet
-import Time exposing (Time)
-import Task
-import Window
 import Color exposing (Color)
 
 
@@ -709,9 +705,9 @@ linked src el =
 is sugar for
 
     if (x == 5) then
-        el
-    else
         text "yay, it's 5"
+    else
+        empty
 
 -}
 when : Bool -> Element elem variation msg -> Element elem variation msg
@@ -827,8 +823,8 @@ addChild parent el =
 
 
 {-| -}
-nearby : List (Element elem variation msg) -> Element elem variation msg -> Element elem variation msg
-nearby nearbys parent =
+within : List (Element elem variation msg) -> Element elem variation msg -> Element elem variation msg
+within nearbys parent =
     let
         position el p =
             el
@@ -839,35 +835,55 @@ nearby nearbys parent =
 
 
 {-| -}
-above : Element elem variation msg -> Element elem variation msg
-above el =
-    el
-        |> addProp (PositionFrame (Nearby Above))
-        |> removeProps [ VAlign Top, VAlign Bottom ]
+above : List (Element elem variation msg) -> Element elem variation msg -> Element elem variation msg
+above nearbys parent =
+    let
+        position el p =
+            el
+                |> addProp (PositionFrame (Nearby Above))
+                |> removeProps [ VAlign Top, VAlign Bottom ]
+                |> addChild p
+    in
+        List.foldl position parent nearbys
 
 
 {-| -}
-below : Element elem variation msg -> Element elem variation msg
-below el =
-    el
-        |> addProp (PositionFrame (Nearby Below))
-        |> removeProps [ VAlign Top, VAlign Bottom ]
+below : List (Element elem variation msg) -> Element elem variation msg -> Element elem variation msg
+below nearbys parent =
+    let
+        position el p =
+            el
+                |> addProp (PositionFrame (Nearby Below))
+                |> removeProps [ VAlign Top, VAlign Bottom ]
+                |> addChild p
+    in
+        List.foldl position parent nearbys
 
 
 {-| -}
-onRight : Element elem variation msg -> Element elem variation msg
-onRight el =
-    el
-        |> addProp (PositionFrame (Nearby OnRight))
-        |> removeProps [ HAlign Right, HAlign Left ]
+onRight : List (Element elem variation msg) -> Element elem variation msg -> Element elem variation msg
+onRight nearbys parent =
+    let
+        position el p =
+            el
+                |> addProp (PositionFrame (Nearby OnRight))
+                |> removeProps [ HAlign Right, HAlign Left ]
+                |> addChild p
+    in
+        List.foldl position parent nearbys
 
 
 {-| -}
-onLeft : Element elem variation msg -> Element elem variation msg
-onLeft el =
-    el
-        |> addProp (PositionFrame (Nearby OnLeft))
-        |> removeProps [ HAlign Right, HAlign Left ]
+onLeft : List (Element elem variation msg) -> Element elem variation msg -> Element elem variation msg
+onLeft nearbys parent =
+    let
+        position el p =
+            el
+                |> addProp (PositionFrame (Nearby OnLeft))
+                |> removeProps [ HAlign Right, HAlign Left ]
+                |> addChild p
+    in
+        List.foldl position parent nearbys
 
 
 {-| Position an element relative to the window.
