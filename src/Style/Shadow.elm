@@ -1,9 +1,6 @@
-module Style.Shadow exposing (glow, innerGlow, box, drop, inset, text)
+module Style.Shadow exposing (simple, deep, glow, innerGlow, box, drop, inset, text)
 
-{-|
-
-@docs glow, innerGlow, box, drop, inset, text
-
+{-| @docs simple, deep, glow, innerGlow, box, drop, inset, text
 -}
 
 import Color exposing (Color)
@@ -37,6 +34,40 @@ innerGlow color size =
             , size = size
             , blur = size * 2
             , color = color
+            }
+        ]
+
+
+{-| A nice preset box shadow.
+-}
+simple : Property class variation animation
+simple =
+    Style.shadows
+        [ box
+            { color = Color.rgba 0 0 0 0.5
+            , offset = ( 0, 29 )
+            , blur = 32
+            , size = -20
+            }
+        , box
+            { color = Color.rgba 0 0 0 0.25
+            , offset = ( 0, 4 )
+            , blur = 11
+            , size = -3
+            }
+        ]
+
+
+{-| A nice preset box shadow that's deeper than `simple`.
+-}
+deep : Property class variation animation
+deep =
+    Style.shadows
+        [ box
+            { color = Color.rgba 0 0 0 0.2
+            , offset = ( 0, 14 )
+            , blur = 20
+            , size = -12
             }
         ]
 
@@ -94,8 +125,7 @@ text { offset, blur, color } =
         }
 
 
-{-|
--}
+{-| -}
 drop :
     { offset : ( Float, Float )
     , blur : Float
