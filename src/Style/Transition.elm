@@ -1,8 +1,6 @@
-module Style.Transitions exposing (all, performant, transitions)
+module Style.Transition exposing (all, performant, transitions)
 
-{-|
-@docs all, performant, transitions
-
+{-| @docs all, performant, transitions
 -}
 
 import Style.Internal.Model as Internal
