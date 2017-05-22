@@ -48,9 +48,6 @@ mapPropClass fn prop =
         Exact name val ->
             Exact name val
 
-        Box props ->
-            Box props
-
         Position props ->
             Position props
 
@@ -81,17 +78,14 @@ mapPropClass fn prop =
         Visibility v ->
             Visibility v
 
-        Palette p ->
-            Palette p
-
         TextColor color ->
             TextColor color
 
-        DecorationPalette p ->
-            DecorationPalette p
-
         Transitions t ->
             Transitions t
+
+        SelectionColor clr ->
+            SelectionColor clr
 
 
 type Property class variation animation
@@ -100,7 +94,6 @@ type Property class variation animation
     | Child class (List (Property class variation animation))
     | MediaQuery String (List (Property class variation animation))
     | PseudoElement String (List (Property class variation animation))
-    | Box (List BoxElement)
     | Position (List PositionElement)
     | Font String String
     | Layout LayoutModel
@@ -109,17 +102,8 @@ type Property class variation animation
     | Transform (List Transformation)
     | Filters (List Filter)
     | Visibility Visible
+    | SelectionColor Color
     | TextColor Color
-    | DecorationPalette
-        { cursor : Maybe Color
-        , selection : Maybe Color
-        , decoration : Maybe Color
-        }
-    | Palette
-        { text : Color
-        , background : Color
-        , border : Color
-        }
     | Transitions (List Transition)
 
 

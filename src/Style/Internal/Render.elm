@@ -88,14 +88,6 @@ preprocess style =
                         _ ->
                             False
 
-                palette prop =
-                    case prop of
-                        Palette _ ->
-                            True
-
-                        _ ->
-                            False
-
                 shadows prop =
                     case prop of
                         Shadows _ ->
@@ -231,8 +223,6 @@ preprocess style =
                     props
                         |> prioritize visible
                         |> overridePrevious visible
-                        |> prioritize palette
-                        |> overridePrevious palette
                         |> prioritize shadows
                         |> overridePrevious shadows
                         |> moveDropShadow
@@ -308,9 +298,6 @@ renderProp parentClass prop =
         Visibility vis ->
             Intermediate.props <| Render.visibility vis
 
-        Box props ->
-            Intermediate.props <| List.map Render.box props
-
         Position pos ->
             Intermediate.props <| Render.position pos
 
@@ -332,37 +319,11 @@ renderProp parentClass prop =
         Filters filters ->
             Intermediate.props <| Render.filters filters
 
-        Palette colors ->
-            Intermediate.props <|
-                [ "color" => Value.color colors.text
-                , "background-color" => Value.color colors.background
-                , "border-color" => Value.color colors.border
-                ]
-
-        DecorationPalette colors ->
-            case colors.selection of
-                Just selectionColor ->
-                    let
-                        props =
-                            List.filterMap identity
-                                [ Maybe.map (\clr -> "cursor-color" => Value.color clr) colors.cursor
-                                , Maybe.map (\clr -> "text-decoration-color" => Value.color clr) colors.decoration
-                                ]
-
-                        sub =
-                            Intermediate.Class
-                                { selector = Selector.pseudo "::selection" parentClass
-                                , props = [ Intermediate.props [ "background-color" => Value.color selectionColor ] ]
-                                }
-                    in
-                        Intermediate.PropsAndSub props sub
-
-                Nothing ->
-                    Intermediate.props <|
-                        List.filterMap identity
-                            [ Maybe.map (\clr -> "cursor-color" => Value.color clr) colors.cursor
-                            , Maybe.map (\clr -> "text-decoration-color" => Value.color clr) colors.decoration
-                            ]
+        SelectionColor color ->
+            (Intermediate.SubClass << Intermediate.Class)
+                { selector = Selector.pseudo "::selection" parentClass
+                , props = [ Intermediate.props [ "background-color" => Value.color color ] ]
+                }
 
         TextColor color ->
             Intermediate.props <|
@@ -410,9 +371,6 @@ renderVariationProp parentClass prop =
         Visibility vis ->
             (Just << Intermediate.props) <| Render.visibility vis
 
-        Box props ->
-            (Just << Intermediate.props) <| List.map Render.box props
-
         Position pos ->
             (Just << Intermediate.props) <| Render.position pos
 
@@ -434,24 +392,16 @@ renderVariationProp parentClass prop =
         Filters filters ->
             (Just << Intermediate.props) <| Render.filters filters
 
-        Palette colors ->
-            (Just << Intermediate.props) <|
-                [ "color" => Value.color colors.text
-                , "background-color" => Value.color colors.background
-                , "border-color" => Value.color colors.border
-                ]
-
         TextColor color ->
             (Just << Intermediate.props) <|
                 [ "color" => Value.color color
                 ]
 
-        DecorationPalette colors ->
-            (Just << Intermediate.props) <|
-                List.filterMap identity
-                    [ Maybe.map (\clr -> "cursor-color" => Value.color clr) colors.cursor
-                    , Maybe.map (\clr -> "text-decoration-color" => Value.color clr) colors.decoration
-                    ]
+        SelectionColor color ->
+            (Just << Intermediate.SubClass << Intermediate.Class)
+                { selector = Selector.pseudo "::selection" parentClass
+                , props = [ Intermediate.props [ "background-color" => Value.color color ] ]
+                }
 
         Transitions trans ->
             Just <|

@@ -1,31 +1,44 @@
-module Style.Color exposing (text, palette, decorations)
+module Style.Color exposing (text, background, border, cursor, decoration, selection)
 
-{-|
-
-
-
--}
+{-| -}
 
 import Style.Internal.Model as Internal
 import Color exposing (Color)
 import Style exposing (Property)
+import Style.Internal.Render.Value as Value
 
 
+{-| -}
 text : Color -> Property class variation animation
 text =
     Internal.TextColor
 
 
-palette : { background : Color, border : Color, text : Color } -> Property class variation animation
-palette =
-    Internal.Palette
+{-| -}
+background : Color -> Property class variation animation
+background clr =
+    Internal.Exact "background-color" (Value.color clr)
 
 
-decorations :
-    { cursor : Maybe Color
-    , decoration : Maybe Color
-    , selection : Maybe Color
-    }
-    -> Property class variation animation
-decorations =
-    Internal.DecorationPalette
+{-| -}
+border : Color -> Property class variation animation
+border clr =
+    Internal.Exact "border-color" (Value.color clr)
+
+
+{-| -}
+cursor : Color -> Property class variation animation
+cursor clr =
+    Internal.Exact "cursor-color" (Value.color clr)
+
+
+{-| -}
+decoration : Color -> Property class variation animation
+decoration clr =
+    Internal.Exact "text-decoration-color" (Value.color clr)
+
+
+{-| -}
+selection : Color -> Property class variation animation
+selection clr =
+    Internal.Exact "text-decoration-color" (Value.color clr)
