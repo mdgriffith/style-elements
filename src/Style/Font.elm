@@ -1,8 +1,7 @@
 module Style.Font
     exposing
-        ( FontScale(..)
-        , scale
-        , scaleSeparately
+        ( scale
+        , scaleInt
         , typeface
         , size
         , height
@@ -29,11 +28,9 @@ module Style.Font
         , lowercase
         )
 
-{-|
+{-| @docs typeface, size, height, letterSpacing, wordSpacing, left, right, center, justify, justifyAll
 
-@docs typeface, size, height, letterSpacing, wordSpacing, left, right, center, justify, justifyAll
-
-@docs FontScale, scale, scaleSeparately
+@docs scale, scaleInt
 
 @docs wrap, pre, preWrap, preLine, noWrap
 
@@ -42,71 +39,54 @@ module Style.Font
 -}
 
 import Style.Internal.Model as Internal
-import Style.Internal.Batchable as Batchable
 import Style.Internal.Render.Value as Value
 import Style exposing (Property)
 
 
-{-|
--}
-type FontScale
-    = Mini
-    | Tiny
-    | Small
-    | Normal
-    | Large
-    | Big
-    | Huge
+{-| When dealing with font sizes, it's nice to use a modular scale, which means all font sizes are related via a ratio.
 
+Here's how it's done, first create a scale:
 
-{-| When dealing with font sizes, it's nice to make them all relate to each other using a ratio.
+    scaled =
+        scale 16 1.618
 
-This function will set font-size and line-height if you give it your normal font size, the ratio to use, and the `FontSize`.
+You can read this as "Starting at a base of 16, create a modular scale using the ratio 1.618."
 
-`scale 16 1.618 Normal` results in a font-size of 16px and a line height of 1.618.
-`scale 16 1.618 Large` results in a font-size of 26px(font sizes are always rounded) and a line height or 1.618
+Then, when setting font sizes you can use:
 
-It's nice to use this In one place for your entire app.
+This will set the font size to 16px:
 
-So, define  `fontsize = scale 16 1.618` somewhere and then in your stylesheet you can just call `fontsize Big` and everything works out.
+    Font.size (scaled 1)
 
-`1.618` is a [great place to start for a ratio](https://en.wikipedia.org/wiki/Golden_ratio)!
+Or we can scale up one level (which multiplies the result by 1.618):
+
+    Font.size (scaled 2)
+
+This results in a font size of 25.8px.
+
+We can also provide negative numbers to scale below 16px.
 
 -}
-scale : Float -> Float -> FontScale -> Property class variation animation
+scale : Float -> Float -> Int -> Float
 scale normal ratio fontScale =
-    let
-        ( size, lineHeight ) =
-            resize normal ratio fontScale
-    in
-        Internal.Font "font-size" (toString (round size) ++ "px")
+    resize normal ratio fontScale
 
 
-
--- [ Batchable.Many
---     [ Internal.Font "font-size" (toString (round size) ++ "px")
---     , Internal.Font "line-height" (toString lineHeight)
---     ]
--- ]
-
-
-{-| Scale font size and line height separately
+{-| Same as `scale` but rounds the resunt to an `Int`
 -}
-scaleSeparately : Float -> Float -> Float -> FontScale -> Property class variation animation
-scaleSeparately lineHeight normal ratio fontScale =
-    let
-        ( size, _ ) =
-            resize normal ratio fontScale
-    in
-        Internal.Font "font-size" (toString (round size) ++ "px")
+scaleInt : Float -> Float -> Int -> Int
+scaleInt normal ratio fontScale =
+    round <| resize normal ratio fontScale
 
 
-
--- [ Batchable.Many
---     [ Internal.Font "font-size" (toString (round size) ++ "px")
---     , Internal.Font "line-height" (toString lineHeight)
---     ]
--- ]
+resize : Float -> Float -> Int -> Float
+resize normal ratio fontScale =
+    if fontScale == 0 || fontScale == 1 then
+        normal
+    else if fontScale < 0 then
+        shrink ratio (fontScale * -1) normal
+    else
+        grow ratio (fontScale - 1) normal
 
 
 grow : Float -> Int -> Float -> Float
@@ -125,39 +105,13 @@ shrink ratio i size =
         shrink ratio (i - 1) (size / ratio)
 
 
-resize : Float -> Float -> FontScale -> ( Float, Float )
-resize normal ratio fontScale =
-    case fontScale of
-        Mini ->
-            ( shrink ratio 3 normal, ratio )
-
-        Tiny ->
-            ( shrink ratio 2 normal, ratio )
-
-        Small ->
-            ( shrink ratio 1 normal, ratio )
-
-        Normal ->
-            ( normal, ratio )
-
-        Large ->
-            ( grow ratio 1 normal, ratio )
-
-        Big ->
-            ( grow ratio 2 normal, ratio )
-
-        Huge ->
-            ( grow ratio 3 normal, ratio )
-
-
-{-|
--}
+{-| -}
 typeface : List String -> Property class variation animation
 typeface families =
     Internal.Font "font-family" (Value.typeface families)
 
 
-{-| Set font-size.  Only px allowed.
+{-| Set font-size. Only px allowed.
 -}
 size : Float -> Property class variation animation
 size size =
