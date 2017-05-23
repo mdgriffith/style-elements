@@ -68,22 +68,22 @@ step =
 
 
 {-| -}
-percent : Color -> Float -> GradientStep
-percent =
-    Internal.PercentStep
+percent : Float -> Color -> GradientStep
+percent p c =
+    Internal.PercentStep c p
 
 
 {-| -}
-px : Color -> Float -> GradientStep
-px =
-    Internal.PxStep
+px : Float -> Color -> GradientStep
+px p c =
+    Internal.PxStep c p
 
 
-{-| Gradient angle given in radians.
-
-Here's an example of creating a background gradient:
+{-| Here's an example of creating a background gradient:
 
     Background.gradient 0 [ step Color.blue, step Color.green]
+
+The first number of the gradient angle given in radians, where 0 is pointing up.
 
 -}
 gradient : Float -> List GradientStep -> Property class variation animation
