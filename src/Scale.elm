@@ -1,6 +1,9 @@
-module Style.Scale exposing (modular, integer)
+module Scale exposing (modular, integer)
 
-{-| @docs modular, integer
+{-| Useful scales to generate consistent design.
+
+@docs modular, integer
+
 -}
 
 
