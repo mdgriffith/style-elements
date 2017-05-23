@@ -7,19 +7,11 @@ import Html exposing (Html)
 import Color exposing (Color)
 
 
-type ElementSheet elem variation animation msg
-    = ElementSheet
-        { defaults : Defaults
-        , stylesheet : Style.StyleSheet elem variation animation msg
-        }
-
-
-type alias Defaults =
-    { typeface : List String
-    , fontSize : Float
-    , lineHeight : Float
-    , textColor : Color
-    }
+-- type ElementSheet elem variation animation msg
+--     = ElementSheet
+--         { defaults : Defaults
+--         , stylesheet : Style.StyleSheet elem variation animation msg
+--         }
 
 
 type Element elem variation msg

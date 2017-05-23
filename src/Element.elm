@@ -1,9 +1,6 @@
 module Element
     exposing
-        ( stylesheet
-        , stylesheetWith
-        , StyleSheet
-        , Element
+        ( Element
         , Attribute
         , empty
         , text
@@ -50,7 +47,7 @@ module Element
         , named
         , span
         , spanAll
-        , linked
+        , link
         , when
         , within
         , above
@@ -69,32 +66,94 @@ module Element
 {-|
 
 
-## Basic Elements
+# Welcome to the Style Elements Library!
 
-@docs Element, empty, text, el, circle, spacer, full
+If you're just starting out, I recommend cruising through <http://elm.style> first.
+
+It'll provide a high level idea of how everything works together as well as some copy-pastable examples to get you started.
+
+Once you've done that, come back here!
+
+@docs Element, Attribute
 
 
-## Layout
+## Elements
 
-@docs textLayout, paragraph, row, column, wrappedRow, wrappedColumn, bullet, enumerate, grid, namedGrid, area, named, span, spanAll
+@docs empty, text, el,when
+
+
+# Layout
+
+A layout element will explicitly define how it's children are layed out.
+
+Make sure to check out the Style Element specific attributes in `Element.Attributes` as they will help out when doing layout!
+
+
+## Text Layout
+
+@docs textLayout, paragraph
+
+
+## Linear Layouts
+
+@docs row, column, wrappedRow, wrappedColumn
+
+
+## Grid Layout
+
+@docs grid, namedGrid, area, named, span, spanAll
+
+
+## Convenient Elements
+
+@docs full, spacer, hairline, link, image, circle, bullet, enumerate
 
 
 ## Positioning
+
+Sometimes
 
 @docs within, above, below, onRight, onLeft, screen
 
 
 ## Responsive
 
+Since this library moves all layout and positioning logic to the view instead of the stylesheet, it doesn't make a ton of sense to support media queries in the stylesheet.
+
+Instead, responsiveness is controlled directly in the view.
+
+Here's how it's done:
+
+1.  Set up a subscription to `Window.resizes` from the `Window` package.
+2.  Use the `Element.classifyDevice` function which will convert `Window.width` and `Window.height` into a `Device` record, which you should store in your model.
+3.  Use the `Device` record in your view to specify how your page changes with window size.
+4.  If things get crazy, use the `responsive` function to map one range to another.
+
+Check out the [elm.style website source](https://github.com/mdgriffith/elm.style) for a real example.
+
 @docs Device, classifyDevice, responsive
 
 
-## Markup
+## Text Markup
+
+These elements are useful for quick text markup.
 
 @docs bold, italic, strike, underline, sub, super
 
 
 ## Semantic Markup
+
+This library made the opinionated choice to make layout a first class concern of your `view` function.
+
+However it's still very useful to have semantic markup in places. The following nodes can be used to annotate your layouts.
+
+So, if we wanted to make a standard element be rendered as a `section` node, we could do the following
+
+    -- Regular element
+    el MyStyle [] (text "Hello World!")
+
+    -- Same element annotated as a `section`
+    (section el) MyStyle [] (text "Hello World!")
 
 @docs node, header, section, nav, article, aside, canvas, iframe, audio, video
 
@@ -103,35 +162,21 @@ module Element
 
 @docs form, radio, checkbox, label, labelBelow, textarea, inputtext
 
-@docs StyleSheet, stylesheet, stylesheetWith, render, root, embed
 
-@docs image, hairline, linked
+## Rendering
 
-
-## Misc
-
-@docs when
+@docs render, root, embed
 
 -}
 
 import Html exposing (Html)
 import Html.Attributes
 import Element.Internal.Model as Internal exposing (..)
-import Style exposing (Style)
+import Style exposing (Style, StyleSheet)
 import Style.Internal.Model as Style exposing (Length)
-import Style.Internal.Render.Value as Value
-import Style.Internal.Batchable as Batchable exposing (Batchable)
 import Element.Attributes as Attr
 import Element.Internal.Render as Render
-import Style.Sheet
-import Color exposing (Color)
 import Window
-
-
-{-| The stylesheet contains the rendered css as a string, and two functions to lookup
--}
-type alias StyleSheet style variation animation msg =
-    Style.StyleSheet style variation animation msg
 
 
 {-| -}
@@ -142,142 +187,6 @@ type alias Element style variation msg =
 {-| -}
 type alias Attribute variation msg =
     Internal.Attribute variation msg
-
-
-type alias Defaults =
-    Internal.Defaults
-
-
-presetDefaults : Defaults
-presetDefaults =
-    { typeface = [ "calibri", "helvetica", "arial", "sans-serif" ]
-    , fontSize = 16
-    , lineHeight = 1.3
-    , textColor = Color.black
-    }
-
-
-reset : String
-reset =
-    """
-/* http://meyerweb.com/eric/tools/css/reset/
-   v2.0 | 20110126
-   License: none (public domain)
-*/
-
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video, hr {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  font-size: 100%;
-  font: inherit;
-  vertical-align: baseline;
-}
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure,
-footer, header, hgroup, menu, nav, section {
-  display: block;
-}
-body {
-  line-height: 1;
-}
-ol, ul {
-  list-style: none;
-}
-blockquote, q {
-  quotes: none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-  content: '';
-  content: none;
-}
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
-}
-/** Borrowed from Normalize.css **/
-
-/**
- * Prevent `sub` and `sup` elements from affecting the line height in
- * all browsers.
- */
-
-sub,
-sup {
-  font-size: 75%;
-  line-height: 0;
-  position: relative;
-  vertical-align: baseline;
-}
-
-sub {
-  bottom: -0.25em;
-}
-
-sup {
-  top: -0.5em;
-}
-
-a {
-    text-decoration: none;
-}
-
-"""
-
-
-{-| -}
-stylesheet : List (Style elem variation animation) -> StyleSheet elem variation animation msg
-stylesheet styles =
-    let
-        defaults =
-            Batchable.One
-                (Style.RawStyle "style-elements-root"
-                    [ ( "font-family", Value.typeface presetDefaults.typeface )
-                    , ( "color", Value.color presetDefaults.textColor )
-                    , ( "line-height", toString presetDefaults.lineHeight )
-                    , ( "font-size", toString presetDefaults.fontSize ++ "px" )
-                    ]
-                )
-
-        stylesheet =
-            Style.Sheet.render
-                (defaults :: styles)
-    in
-        { stylesheet | css = reset ++ stylesheet.css }
-
-
-{-| -}
-stylesheetWith : Defaults -> List (Style elem variation animation) -> StyleSheet elem variation animation msg
-stylesheetWith defaultProps styles =
-    let
-        defaults =
-            Batchable.One
-                (Style.RawStyle "style-elements-root"
-                    [ ( "font-family", Value.typeface defaultProps.typeface )
-                    , ( "color", Value.color defaultProps.textColor )
-                    , ( "line-height", toString defaultProps.lineHeight )
-                    , ( "font-size", toString defaultProps.fontSize ++ "px" )
-                    ]
-                )
-
-        stylesheet =
-            Style.Sheet.render
-                (defaults :: styles)
-    in
-        { stylesheet | css = reset ++ stylesheet.css }
 
 
 {-| -}
@@ -328,13 +237,21 @@ super =
     Text Super
 
 
-{-| -}
+{-| The most basic element.
+
+You need to specify a style, a list of attributes, and a single child.
+
+-}
 el : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
 el elem attrs child =
     Element Html.div (Just elem) attrs child Nothing
 
 
-{-| -}
+{-| A simple circle. Provide the radius it should have.
+
+Automatically sets the propery width, height, and corner rounded.
+
+-}
 circle : Float -> style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
 circle radius elem attrs child =
     Element Html.div
@@ -351,7 +268,7 @@ circle radius elem attrs child =
         Nothing
 
 
-{-| Define a spacer in terms of a multiple of it's spacing.
+{-| An element for adding additional spacing. The `Float` is the multiple that should be used of the spacing that's being set by the parent.
 
 So, if the parent element is a `column` that set spacing to `5`, and this spacer was a `2`. Then it would be a 10 pixel spacer.
 
@@ -361,13 +278,14 @@ spacer =
     Spacer
 
 
-{-| -}
-image : style -> String -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
-image elem src attrs child =
+{-| A convenience node for images. Accepts an image src as the first argument.
+-}
+image : String -> style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+image src elem attrs child =
     Element Html.img (Just elem) (Attr (Html.Attributes.src src) :: attrs) child Nothing
 
 
-{-| Creates a hairline horizontal. The Color is set in the defaults of the stylesheet.
+{-| Creates a 1 px tall horizontal line.
 
 If you want a horizontal rule that is something more specific, craft it with `el`!
 
@@ -620,12 +538,7 @@ inputtext elem attrs content =
     Element Html.input (Just elem) (Attr.type_ "text" :: Attr.value content :: attrs) empty Nothing
 
 
-{-| A bulleted list. Rendered as `<ul>`
-
-A 'column' layout is implied.
-
-Automatically sets children to use `<li>`
-
+{-| A bulleted list. Rendered as `<ul>`. A `column` layout is implied and children are automatically converted to use `<li>`
 -}
 bullet : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 bullet elem attrs children =
@@ -642,7 +555,7 @@ enumerate elem attrs children =
     Layout Html.ol (Style.FlexLayout Style.Down []) (Just elem) attrs (List.map (setNode Html.li) children)
 
 
-{-| A 'full' element will ignore the spacing set for it by the parent, and also grow to cover the parent's padding.
+{-| A `full` element will ignore the spacing set for it by the parent, and also grow to cover the parent's padding.
 
 This is mostly useful in text layouts.
 
@@ -652,7 +565,11 @@ full elem attrs child =
     Element Html.div (Just elem) (Expand :: attrs) child Nothing
 
 
-{-| -}
+{-| A text layout.
+
+Children that are aligned left or right will be floated left or right.
+
+-}
 textLayout : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 textLayout elem attrs children =
     Layout Html.div (Style.TextLayout) (Just elem) attrs children
@@ -660,7 +577,7 @@ textLayout elem attrs children =
 
 {-| Paragraph is actually a layout if you can believe it!
 
-All of the children are set to 'inline'.
+All of the children are set to `display:inline`.
 
 -}
 paragraph : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
@@ -719,7 +636,33 @@ type alias Grid =
     }
 
 
-{-| -}
+{-| An interface to css grid. Here's a basic example:
+
+    grid MyGridStyle
+        { columns = [ px 100, px 100, px 100, px 100 ]
+        , rows =
+            [ px 100
+            , px 100
+            , px 100
+            , px 100
+            ]
+        }
+        []
+        [ area
+            { start = ( 0, 0 )
+            , width = 1
+            , height = 1
+            }
+            (el Box [] (text "box"))
+        , area
+            { start = ( 1, 1 )
+            , width = 1
+            , height = 2
+            }
+            (el Box [] (text "box"))
+        ]
+
+-}
 grid : style -> Grid -> List (Attribute variation msg) -> List (OnGrid (Element style variation msg)) -> Element style variation msg
 grid elem template attrs children =
     let
@@ -736,7 +679,29 @@ type alias NamedGrid =
     }
 
 
-{-| -}
+{-| With a named grid, you can name areas within the grid and use that name to place an element.
+
+Here's an example:
+
+    namedGrid MyGridStyle
+        { columns = [ px 200, px 200, px 200, fill 1 ]
+        , rows =
+            [ px 200 => [ spanAll "header" ]
+            , px 200 => [ span 3 "content", span 1 "sidebar" ]
+            , px 200 => [ span 3 "content", span 1 "sidebar" ]
+            , px 200 => [ spanAll "footer" ]
+            ]
+        }
+        []
+        [ named "header"
+            (el Box [] (text "box"))
+        , named "sidebar"
+            (el Box [] (text "box"))
+        ]
+
+**note:** this example uses rocket(`=>`) as a synonym for creating a tuple. For more, check out the [rocket update](https://github.com/NoRedInk/rocket-update) package!
+
+-}
 namedGrid : style -> NamedGrid -> List (Attribute variation msg) -> List (NamedOnGrid (Element style variation msg)) -> Element style variation msg
 namedGrid elem template attrs children =
     let
@@ -764,13 +729,15 @@ type NamedOnGrid thing
     = NamedOnGrid thing
 
 
-{-| -}
+{-| Specify a specific position on a normal `grid`.
+-}
 area : GridPosition -> Element style variation msg -> OnGrid (Element style variation msg)
 area box el =
     OnGrid <| addProp (GridCoords <| Style.GridPosition box) el
 
 
-{-| -}
+{-| Specify a named postion on a `namedGrid`.
+-}
 named : String -> Element style variation msg -> NamedOnGrid (Element style variation msg)
 named name el =
     NamedOnGrid <| addProp (GridArea name) el
@@ -780,13 +747,15 @@ type alias NamedGridPosition =
     Style.NamedGridPosition
 
 
-{-| -}
+{-| Used to define named areas in a `namedGrid`.
+-}
 span : Int -> String -> NamedGridPosition
 span i name =
     Style.Named (Style.SpanJust i) (Just name)
 
 
-{-| -}
+{-| Used to define named areas in a `namedGrid`.
+-}
 spanAll : String -> NamedGridPosition
 spanAll name =
     Style.Named Style.SpanAll (Just name)
@@ -794,18 +763,21 @@ spanAll name =
 
 {-| Turn an element into a link.
 
-Changes an element's node to `<a>` and sets the href and rel properties.
+    link "http://zombo.com"
+        <| el MyStyle (text "Welcome to Zombocom")
+
+Changes an element's node to `<a>` and sets the href. `rel` properties are set to `noopener` and `noreferrer`.
 
 -}
-linked : String -> Element style variation msg -> Element style variation msg
-linked src el =
+link : String -> Element style variation msg -> Element style variation msg
+link src el =
     el
         |> setNode Html.a
         |> addProp (Attr (Html.Attributes.href src))
         |> addProp (Attr (Html.Attributes.rel "noopener noreferrer"))
 
 
-{-|
+{-| A helper function. This:
 
     when (x == 5) (text "yay, it's 5")
 
@@ -995,7 +967,7 @@ onLeft nearbys parent =
 
 {-| Position an element relative to the window.
 
-Essentially the same as 'display: fixed'
+Essentially the same as `display: fixed`
 
 -}
 screen : Element style variation msg -> Element style variation msg
@@ -1003,10 +975,13 @@ screen =
     addProp (PositionFrame Screen)
 
 
-{-| Renders `Element`'s into `Html`.
+{-| Renders `Element`'s into `Html` and embeds a stylesheet at the top level.
+
+This should be your default.
+
 -}
 render :
-    Style.StyleSheet style variation animation msg
+    StyleSheet style variation animation msg
     -> Element style variation msg
     -> Html msg
 render =
@@ -1016,7 +991,7 @@ render =
 {-| Embeds the stylesheet and renders the `Element`'s into `Html`.
 -}
 root :
-    Style.StyleSheet style variation animation msg
+    StyleSheet style variation animation msg
     -> Element style variation msg
     -> Html msg
 root =
@@ -1026,7 +1001,7 @@ root =
 {-| Embed a stylesheet.
 -}
 embed :
-    Style.StyleSheet style variation animation msg
+    StyleSheet style variation animation msg
     -> Html msg
 embed =
     Render.embed
