@@ -1,6 +1,9 @@
 module Style.Shadow exposing (simple, deep, glow, innerGlow, box, drop, inset, text)
 
-{-| @docs simple, deep, glow, innerGlow, box, drop, inset, text
+{-| Shadows
+
+@docs simple, deep, glow, innerGlow, box, drop, inset, text
+
 -}
 
 import Color exposing (Color)

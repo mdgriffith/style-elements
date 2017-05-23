@@ -1,6 +1,10 @@
 module Style.Color exposing (text, background, border, cursor, decoration, selection)
 
-{-| -}
+{-| Colors
+
+@docs text, background, border, cursor, decoration, selection
+
+-}
 
 import Style.Internal.Model as Internal
 import Color exposing (Color)

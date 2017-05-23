@@ -26,7 +26,9 @@ module Style.Font
         , lowercase
         )
 
-{-| @docs typeface, size, height, letterSpacing, wordSpacing, left, right, center, justify, justifyAll
+{-| Font Properties
+
+@docs typeface, size, height, letterSpacing, wordSpacing, left, right, center, justify, justifyAll
 
 @docs wrap, pre, preWrap, preLine, noWrap
 

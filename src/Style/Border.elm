@@ -1,6 +1,9 @@
 module Style.Border exposing (all, left, right, top, bottom, none, solid, dashed, dotted)
 
-{-| @docs all, left, right, top, bottom, none, solid, dashed, dotted
+{-| Border
+
+@docs all, left, right, top, bottom, none, solid, dashed, dotted
+
 -}
 
 import Style.Internal.Model as Internal

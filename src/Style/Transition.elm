@@ -1,6 +1,9 @@
-module Style.Transition exposing (all, performant, transitions)
+module Style.Transition exposing (Transition, all, performant, transitions)
 
-{-| @docs all, performant, transitions
+{-| Transitions
+
+@docs all, performant, transitions, Transition
+
 -}
 
 import Style.Internal.Model as Internal
@@ -8,6 +11,7 @@ import Style exposing (Property)
 import Time exposing (Time)
 
 
+{-| -}
 type alias Transition =
     { delay : Time
     , duration : Time
