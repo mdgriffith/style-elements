@@ -58,27 +58,6 @@ module Element
         , onRight
         , onLeft
         , screen
-        , center
-        , verticalCenter
-        , justify
-        , alignTop
-        , alignBottom
-        , alignLeft
-        , alignRight
-        , moveX
-        , moveY
-        , moveXY
-        , width
-        , height
-        , px
-        , fill
-        , percent
-        , vary
-        , spacing
-        , padding
-        , paddingXY
-        , paddingEach
-        , hidden
         , render
         , root
         , embed
@@ -97,20 +76,9 @@ module Element
 @docs textLayout, paragraph, row, column, wrappedRow, wrappedColumn, bullet, enumerate, grid, namedGrid, area, named, span, spanAll
 
 
-# Attributes
-
-@docs Attribute, hidden, vary
-
-@docs center, verticalCenter, justify, alignTop, alignBottom, alignLeft, alignRight
-
-@docs width, height, px, fill, percent
-
-@docs spacing, padding, paddingXY, paddingEach
-
-
 ## Positioning
 
-@docs moveX, moveY, moveXY, within, above, below, onRight, onLeft, screen
+@docs within, above, below, onRight, onLeft, screen
 
 
 ## Markup
@@ -352,15 +320,26 @@ super =
 
 
 {-| -}
-el : elem -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+el : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
 el elem attrs child =
     Element Html.div (Just elem) attrs child Nothing
 
 
 {-| -}
-circle : Float -> elem -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+circle : Float -> style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
 circle radius elem attrs child =
-    Element Html.div (Just elem) (Attr (Html.Attributes.style [ ( "border-radius", toString radius ++ "px" ) ]) :: width (px (2 * radius)) :: height (px (2 * radius)) :: attrs) child Nothing
+    Element Html.div
+        (Just elem)
+        (Attr
+            (Html.Attributes.style
+                [ ( "border-radius", toString radius ++ "px" ) ]
+            )
+            :: Width (Style.Px (2 * radius))
+            :: Height (Style.Px (2 * radius))
+            :: attrs
+        )
+        child
+        Nothing
 
 
 {-| Define a spacer in terms of a multiple of it's spacing.
@@ -374,7 +353,7 @@ spacer =
 
 
 {-| -}
-image : elem -> String -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+image : style -> String -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
 image elem src attrs child =
     Element Html.img (Just elem) (Attr (Html.Attributes.src src) :: attrs) child Nothing
 
@@ -384,9 +363,13 @@ image elem src attrs child =
 If you want a horizontal rule that is something more specific, craft it with `el`!
 
 -}
-hairline : elem -> Element style variation msg
+hairline : style -> Element style variation msg
 hairline elem =
-    Element Html.hr (Just elem) (height (px 1) :: []) empty Nothing
+    Element Html.hr
+        (Just elem)
+        [ Height (Style.Px 1) ]
+        empty
+        Nothing
 
 
 
@@ -396,37 +379,37 @@ hairline elem =
 
 
 {-| -}
-node : String -> (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
+node : String -> (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
 node str constructor elem attrs stuff =
     setNode (Html.node str) (constructor elem attrs stuff)
 
 
 {-| -}
-header : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
+header : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
 header constructor elem attrs stuff =
     setNode Html.header (constructor elem attrs stuff)
 
 
 {-| -}
-section : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
+section : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
 section constructor elem attrs stuff =
     setNode Html.section (constructor elem attrs stuff)
 
 
 {-| -}
-nav : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
+nav : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
 nav constructor elem attrs stuff =
     setNode Html.nav (constructor elem attrs stuff)
 
 
 {-| -}
-article : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
+article : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
 article constructor elem attrs stuff =
     setNode Html.article (constructor elem attrs stuff)
 
 
 {-| -}
-aside : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
+aside : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
 aside constructor elem attrs stuff =
     setNode Html.aside (constructor elem attrs stuff)
 
@@ -438,25 +421,25 @@ aside constructor elem attrs stuff =
 
 
 {-| -}
-canvas : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
+canvas : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
 canvas constructor elem attrs stuff =
     setNode Html.canvas (constructor elem attrs stuff)
 
 
 {-| -}
-iframe : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
+iframe : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
 iframe constructor elem attrs stuff =
     setNode Html.iframe (constructor elem attrs stuff)
 
 
 {-| -}
-audio : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
+audio : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
 audio constructor elem attrs stuff =
     setNode Html.audio (constructor elem attrs stuff)
 
 
 {-| -}
-video : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
+video : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
 video constructor elem attrs stuff =
     setNode Html.audio (constructor elem attrs stuff)
 
@@ -468,7 +451,7 @@ video constructor elem attrs stuff =
 
 
 {-| -}
-form : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
+form : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
 form constructor elem attrs stuff =
     setNode Html.form (constructor elem attrs stuff)
 
@@ -491,7 +474,7 @@ This creates the following html:
 Events are attached to the radio input element (to capture things like `onInput`, while all other attributes apply to the parent label element).
 
 -}
-radio : elem -> List (Attribute variation msg) -> String -> String -> Bool -> Element style variation msg -> Element style variation msg
+radio : style -> List (Attribute variation msg) -> String -> String -> Bool -> Element style variation msg -> Element style variation msg
 radio elem attrs group value on label =
     let
         ( events, other ) =
@@ -529,7 +512,7 @@ radio elem attrs group value on label =
 
 {-| An automatically labeled checkbox.
 -}
-checkbox : elem -> List (Attribute variation msg) -> Bool -> Element style variation msg -> Element style variation msg
+checkbox : style -> List (Attribute variation msg) -> Bool -> Element style variation msg -> Element style variation msg
 checkbox elem attrs on label =
     let
         ( events, other ) =
@@ -570,7 +553,7 @@ label Label [] (text "check this out") <|
 inputtext Style [] "The Value!"
 
 -}
-label : elem -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg -> Element style variation msg
+label : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg -> Element style variation msg
 label elem attrs label input =
     let
         -- If naked text is provided, then flexbox won't work.
@@ -593,7 +576,7 @@ label elem attrs label input =
 
 {-| Same as `label`, but places the label below the input field.
 -}
-labelBelow : elem -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg -> Element style variation msg
+labelBelow : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg -> Element style variation msg
 labelBelow elem attrs label input =
     let
         -- If naked text is provided, then flexbox won't work.
@@ -615,7 +598,7 @@ labelBelow elem attrs label input =
 
 
 {-| -}
-textarea : elem -> List (Attribute variation msg) -> String -> Element style variation msg
+textarea : style -> List (Attribute variation msg) -> String -> Element style variation msg
 textarea elem attrs content =
     Element Html.textarea (Just elem) attrs (text content) Nothing
 
@@ -623,7 +606,7 @@ textarea elem attrs content =
 {-| labeled Label [] (text "check this out") <|
 inputtext Style [] "The Value!"
 -}
-inputtext : elem -> List (Attribute variation msg) -> String -> Element style variation msg
+inputtext : style -> List (Attribute variation msg) -> String -> Element style variation msg
 inputtext elem attrs content =
     Element Html.input (Just elem) (Attr.type_ "text" :: Attr.value content :: attrs) empty Nothing
 
@@ -635,7 +618,7 @@ A 'column' layout is implied.
 Automatically sets children to use `<li>`
 
 -}
-bullet : elem -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
+bullet : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 bullet elem attrs children =
     Layout Html.ul (Style.FlexLayout Style.Down []) (Just elem) attrs (List.map (setNode Html.li) children)
 
@@ -645,7 +628,7 @@ bullet elem attrs children =
 Automatically sets children to use `<li>`
 
 -}
-enumerate : elem -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
+enumerate : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 enumerate elem attrs children =
     Layout Html.ol (Style.FlexLayout Style.Down []) (Just elem) attrs (List.map (setNode Html.li) children)
 
@@ -655,13 +638,13 @@ enumerate elem attrs children =
 This is mostly useful in text layouts.
 
 -}
-full : elem -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+full : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
 full elem attrs child =
     Element Html.div (Just elem) (Expand :: attrs) child Nothing
 
 
 {-| -}
-textLayout : elem -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
+textLayout : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 textLayout elem attrs children =
     Layout Html.div (Style.TextLayout) (Just elem) attrs children
 
@@ -671,7 +654,7 @@ textLayout elem attrs children =
 All of the children are set to 'inline'.
 
 -}
-paragraph : elem -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
+paragraph : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 paragraph elem attrs children =
     inlineChildren Html.p (Just elem) attrs children
 
@@ -679,7 +662,7 @@ paragraph elem attrs children =
 {-| -}
 inlineChildren :
     HtmlFn msg
-    -> Maybe elem
+    -> Maybe style
     -> List (Attribute variation msg)
     -> List (Element style variation msg)
     -> Element style variation msg
@@ -697,25 +680,25 @@ inlineChildren node elem attrs children =
 
 
 {-| -}
-row : elem -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
+row : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 row elem attrs children =
     Layout Html.div (Style.FlexLayout Style.GoRight []) (Just elem) attrs children
 
 
 {-| -}
-column : elem -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
+column : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 column elem attrs children =
     Layout Html.div (Style.FlexLayout Style.Down []) (Just elem) attrs children
 
 
 {-| -}
-wrappedRow : elem -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
+wrappedRow : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 wrappedRow elem attrs children =
     Layout Html.div (Style.FlexLayout Style.GoRight [ Style.Wrap True ]) (Just elem) attrs children
 
 
 {-| -}
-wrappedColumn : elem -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
+wrappedColumn : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 wrappedColumn elem attrs children =
     Layout Html.div (Style.FlexLayout Style.Down [ Style.Wrap True ]) (Just elem) attrs children
 
@@ -728,7 +711,7 @@ type alias Grid =
 
 
 {-| -}
-grid : elem -> Grid -> List (Attribute variation msg) -> List (OnGrid (Element style variation msg)) -> Element style variation msg
+grid : style -> Grid -> List (Attribute variation msg) -> List (OnGrid (Element style variation msg)) -> Element style variation msg
 grid elem template attrs children =
     let
         prepare el =
@@ -745,7 +728,7 @@ type alias NamedGrid =
 
 
 {-| -}
-namedGrid : elem -> NamedGrid -> List (Attribute variation msg) -> List (NamedOnGrid (Element style variation msg)) -> Element style variation msg
+namedGrid : style -> NamedGrid -> List (Attribute variation msg) -> List (NamedOnGrid (Element style variation msg)) -> Element style variation msg
 namedGrid elem template attrs children =
     let
         prepare el =
@@ -1011,157 +994,10 @@ screen =
     addProp (PositionFrame Screen)
 
 
-{-| -}
-center : Attribute variation msg
-center =
-    HAlign Center
-
-
-{-| -}
-verticalCenter : Attribute variation msg
-verticalCenter =
-    VAlign VerticalCenter
-
-
-{-| -}
-justify : Attribute variation msg
-justify =
-    HAlign Justify
-
-
-{-| -}
-alignTop : Attribute variation msg
-alignTop =
-    VAlign Top
-
-
-{-| -}
-alignBottom : Attribute variation msg
-alignBottom =
-    VAlign Bottom
-
-
-{-| -}
-alignLeft : Attribute variation msg
-alignLeft =
-    HAlign Left
-
-
-{-| -}
-alignRight : Attribute variation msg
-alignRight =
-    HAlign Right
-
-
-
-{- Layout Attributes -}
-
-
-{-| -}
-moveX : Float -> Attribute variation msg
-moveX x =
-    Position (Just x) Nothing Nothing
-
-
-{-| -}
-moveY : Float -> Attribute variation msg
-moveY y =
-    Position Nothing (Just y) Nothing
-
-
-
--- {-| -}
--- moveZ : Float -> Attribute variation msg
--- moveZ z =
---     Position Nothing Nothing (Just z)
-
-
-{-| Adjust the position of the element.
--}
-moveXY : Float -> Float -> Attribute variation msg
-moveXY x y =
-    Position (Just x) (Just y) Nothing
-
-
-
--- moveXYZ : Float -> Float -> Float -> Attribute variation msg
--- moveXYZ x y z =
---     Position (Just x) (Just y) (Just z)
-
-
-{-| -}
-width : Length -> Attribute variation msg
-width =
-    Width
-
-
-{-| -}
-height : Length -> Attribute variation msg
-height =
-    Height
-
-
-{-| -}
-px : Float -> Length
-px =
-    Style.Px
-
-
-{-| -}
-fill : Float -> Length
-fill =
-    Style.Fill
-
-
-{-| -}
-percent : Float -> Length
-percent =
-    Style.Percent
-
-
-{-| -}
-vary : variation -> Bool -> Attribute variation msg
-vary =
-    Vary
-
-
-{-| The horizontal and vertical spacing.
--}
-spacing : Float -> Float -> Attribute variation msg
-spacing =
-    Spacing
-
-
-{-| -}
-padding : Float -> Attribute variation msg
-padding x =
-    Padding ( x, x, x, x )
-
-
-{-| Set horizontal and vertical padding.
--}
-paddingXY : Float -> Float -> Attribute variation msg
-paddingXY x y =
-    Padding ( y, x, y, x )
-
-
-{-| Set Padding in the order top, right, bottom, left
--}
-paddingEach : Float -> Float -> Float -> Float -> Attribute variation msg
-paddingEach top right bottom left =
-    Padding ( top, right, bottom, left )
-
-
-{-| -}
-hidden : Attribute variation msg
-hidden =
-    Hidden
-
-
 {-| Renders `Element`'s into `Html`.
 -}
 render :
-    Style.StyleSheet elem variation animation msg
+    Style.StyleSheet style variation animation msg
     -> Element style variation msg
     -> Html msg
 render =
@@ -1171,7 +1007,7 @@ render =
 {-| Embeds the stylesheet and renders the `Element`'s into `Html`.
 -}
 root :
-    Style.StyleSheet elem variation animation msg
+    Style.StyleSheet style variation animation msg
     -> Element style variation msg
     -> Html msg
 root =
@@ -1181,7 +1017,7 @@ root =
 {-| Embed a stylesheet.
 -}
 embed :
-    Style.StyleSheet elem variation animation msg
+    Style.StyleSheet style variation animation msg
     -> Html msg
 embed =
     Render.embed

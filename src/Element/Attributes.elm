@@ -2,9 +2,29 @@ module Element.Attributes
     exposing
         ( property
         , attribute
+        , center
+        , verticalCenter
+        , justify
+        , alignTop
+        , alignBottom
+        , alignLeft
+        , alignRight
+        , moveX
+        , moveY
+        , moveXY
+        , width
+        , height
+        , px
+        , fill
+        , percent
+        , vary
+        , spacing
+        , padding
+        , paddingXY
+        , paddingEach
         , class
         , classList
-        , style
+        , inlineStyle
         , id
         , map
         , title
@@ -104,6 +124,29 @@ module Element.Attributes
 
 # This module is a mirror of `Html.Attributes`
 
+Some attributes have been added.
+
+For existing attributes, the only modification is that `style` has been renamed `inlineStyle` to avoid collision with `Style.style`. Since this is a style library, you shouldn't need it very often.
+
+
+# Style Element Attributes
+
+@docs hidden, vary
+
+@docs center, verticalCenter, justify, alignTop, alignBottom, alignLeft, alignRight
+
+@docs width, height, px, fill, percent
+
+@docs spacing, padding, paddingXY, paddingEach
+
+
+## Positioning
+
+@docs moveX, moveY, moveXY
+
+
+# Normal `Html.Attributes`
+
 Helper functions for HTML attributes. They are organized roughly by
 category. Each attribute is labeled with the HTML tags it can be used with, so
 just search the page for `video` if you want video stuff.
@@ -114,7 +157,7 @@ Attributes](#custom-attributes) section to learn how to create new helpers.
 
 # Primitives
 
-@docs style, property, attribute, map
+@docs inlineStyle, property, attribute, map
 
 
 # Super Common Attributes
@@ -199,10 +242,159 @@ Attributes that can be attached to any HTML tag but are less commonly used.
 
 -}
 
-import Element.Internal.Model as Internal exposing (Attribute(..))
+import Element.Internal.Model as Internal exposing (..)
+import Style.Internal.Model as Style exposing (Length)
 import Html.Attributes
 import VirtualDom
 import Json.Decode as Json
+import Style exposing (Style)
+
+
+{-| -}
+center : Attribute variation msg
+center =
+    HAlign Center
+
+
+{-| -}
+verticalCenter : Attribute variation msg
+verticalCenter =
+    VAlign VerticalCenter
+
+
+{-| -}
+justify : Attribute variation msg
+justify =
+    HAlign Justify
+
+
+{-| -}
+alignTop : Attribute variation msg
+alignTop =
+    VAlign Top
+
+
+{-| -}
+alignBottom : Attribute variation msg
+alignBottom =
+    VAlign Bottom
+
+
+{-| -}
+alignLeft : Attribute variation msg
+alignLeft =
+    HAlign Left
+
+
+{-| -}
+alignRight : Attribute variation msg
+alignRight =
+    HAlign Right
+
+
+
+{- Layout Attributes -}
+
+
+{-| -}
+moveX : Float -> Attribute variation msg
+moveX x =
+    Position (Just x) Nothing Nothing
+
+
+{-| -}
+moveY : Float -> Attribute variation msg
+moveY y =
+    Position Nothing (Just y) Nothing
+
+
+
+-- {-| -}
+-- moveZ : Float -> Attribute variation msg
+-- moveZ z =
+--     Position Nothing Nothing (Just z)
+
+
+{-| Adjust the position of the element.
+-}
+moveXY : Float -> Float -> Attribute variation msg
+moveXY x y =
+    Position (Just x) (Just y) Nothing
+
+
+
+-- moveXYZ : Float -> Float -> Float -> Attribute variation msg
+-- moveXYZ x y z =
+--     Position (Just x) (Just y) (Just z)
+
+
+{-| -}
+width : Length -> Attribute variation msg
+width =
+    Width
+
+
+{-| -}
+height : Length -> Attribute variation msg
+height =
+    Height
+
+
+{-| -}
+px : Float -> Length
+px =
+    Style.Px
+
+
+{-| -}
+fill : Float -> Length
+fill =
+    Style.Fill
+
+
+{-| -}
+percent : Float -> Length
+percent =
+    Style.Percent
+
+
+{-| -}
+vary : variation -> Bool -> Attribute variation msg
+vary =
+    Vary
+
+
+{-| The horizontal and vertical spacing.
+-}
+spacing : Float -> Float -> Attribute variation msg
+spacing =
+    Spacing
+
+
+{-| -}
+padding : Float -> Attribute variation msg
+padding x =
+    Padding ( x, x, x, x )
+
+
+{-| Set horizontal and vertical padding.
+-}
+paddingXY : Float -> Float -> Attribute variation msg
+paddingXY x y =
+    Padding ( y, x, y, x )
+
+
+{-| Set Padding in the order top, right, bottom, left
+-}
+paddingEach : Float -> Float -> Float -> Float -> Attribute variation msg
+paddingEach top right bottom left =
+    Padding ( top, right, bottom, left )
+
+
+{-| -}
+hidden : Attribute variation msg
+hidden =
+    Hidden
 
 
 {-| This function makes it easier to build a space-separated class attribute.
@@ -245,8 +437,8 @@ suggest that this should primarily be specified in CSS files. So the general
 recommendation is to use this function lightly.
 
 -}
-style : List ( String, String ) -> Attribute variation msg
-style =
+inlineStyle : List ( String, String ) -> Attribute variation msg
+inlineStyle =
     Attr << VirtualDom.style
 
 
@@ -372,11 +564,12 @@ class cls =
     Attr <| Html.Attributes.class cls
 
 
-{-| Indicates the relevance of an element.
--}
-hidden : Bool -> Attribute variation msg
-hidden hide =
-    Attr <| Html.Attributes.hidden hide
+
+-- {-| Indicates the relevance of an element.
+-- -}
+-- hidden : Bool -> Attribute variation msg
+-- hidden hide =
+--     Attr <| Html.Attributes.hidden hide
 
 
 {-| Often used with CSS to style a specific element. The value of this
