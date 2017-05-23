@@ -1,4 +1,4 @@
-module Element.Device exposing (Device, match, responsive)
+module Device exposing (Device, match, responsive)
 
 {-| How to handle responsiveness using this library.
 
@@ -9,6 +9,7 @@ module Element.Device exposing (Device, match, responsive)
 import Window
 
 
+{-| -}
 type alias Device =
     { width : Int
     , height : Int
@@ -20,6 +21,8 @@ type alias Device =
     }
 
 
+{-| Takes in a Window.Size and returns a device profile which can be used for responsiveness.
+-}
 match : Window.Size -> Device
 match { width, height } =
     { width = width
@@ -36,7 +39,8 @@ match { width, height } =
 
 Provide a value for the first and receive the calculated value for the second.
 
-fontsize = responsive (600, 1200) (16, 20) device.width
+    fontsize =
+        responsive ( 600, 1200 ) ( 16, 20 ) device.width
 
 Will set the font-size between 16 and 20 when the device width is between 600 and 1200, using a linear scale.
 
