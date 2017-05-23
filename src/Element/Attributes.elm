@@ -4,7 +4,9 @@ module Element.Attributes
         , attribute
         , class
         , classList
+        , style
         , id
+        , map
         , title
         , hidden
         , type_
@@ -99,8 +101,8 @@ module Element.Attributes
 
 {-|
 
-# This module is mirrored nearly completely from Html.Attributes
 
+# This module is a mirror of `Html.Attributes`
 
 Helper functions for HTML attributes. They are organized roughly by
 category. Each attribute is labeled with the HTML tags it can be used with, so
@@ -109,67 +111,97 @@ just search the page for `video` if you want video stuff.
 If you cannot find what you are looking for, go to the [Custom
 Attributes](#custom-attributes) section to learn how to create new helpers.
 
+
 # Primitives
+
 @docs style, property, attribute, map
 
+
 # Super Common Attributes
+
 @docs class, classList, id, title, hidden
 
+
 # Inputs
+
 @docs type_, value, defaultValue, checked, placeholder, selected
 
+
 ## Input Helpers
-@docs accept, acceptCharset, action, autocomplete, autofocus,
-    disabled, enctype, formaction, list, maxlength, minlength, method, multiple,
-    name, novalidate, pattern, readonly, required, size, for, form
+
+@docs accept, acceptCharset, action, autocomplete, autofocus, disabled, enctype, formaction, list, maxlength, minlength, method, multiple, name, novalidate, pattern, readonly, required, size, for, form
+
 
 ## Input Ranges
+
 @docs max, min, step
 
+
 ## Input Text Areas
+
 @docs cols, rows, wrap
 
 
 # Links and Areas
+
 @docs href, target, download, downloadAs, hreflang, media, ping, rel
 
+
 ## Maps
+
 @docs ismap, usemap, shape, coords
 
 
 # Embedded Content
-@docs src, height, width, alt
+
+@docs src, alt
+
 
 ## Audio and Video
+
 @docs autoplay, controls, loop, preload, poster, default, kind, srclang
 
+
 ## iframes
+
 @docs sandbox, seamless, srcdoc
 
+
 # Ordered Lists
+
 @docs reversed, start
 
+
 # Tables
+
 @docs align, colspan, rowspan, headers, scope
 
+
 # Header Stuff
+
 @docs async, charset, content, defer, httpEquiv, language, scoped
 
+
 # Less Common Global Attributes
+
 Attributes that can be attached to any HTML tag but are less commonly used.
-@docs accesskey, contenteditable, contextmenu, dir, draggable, dropzone,
-      itemprop, lang, spellcheck, tabindex
+@docs accesskey, contenteditable, contextmenu, dir, draggable, dropzone, itemprop, lang, spellcheck, tabindex
+
 
 # Key Generation
+
 @docs challenge, keytype
 
+
 # Miscellaneous
+
 @docs cite, datetime, pubdate, manifest
 
 -}
 
 import Element.Internal.Model as Internal exposing (Attribute(..))
 import Html.Attributes
+import VirtualDom
 import Json.Decode as Json
 
 
@@ -179,18 +211,43 @@ is paired with. For example, maybe we want a way to view notices:
 
     viewNotice : Notice -> Html msg
     viewNotice notice =
-      div
-        [ classList
-            [ ("notice", True)
-            , ("notice-important", notice.isImportant)
-            , ("notice-seen", notice.isSeen)
+        div
+            [ classList
+                [ ( "notice", True )
+                , ( "notice-important", notice.isImportant )
+                , ( "notice-seen", notice.isSeen )
+                ]
             ]
-        ]
-        [ text notice.content ]
+            [ text notice.content ]
+
 -}
 classList : List ( String, Bool ) -> Attribute variation msg
 classList =
     Attr << Html.Attributes.classList
+
+
+{-| Specify a list of styles.
+
+    myStyle : Attribute msg
+    myStyle =
+        style
+            [ ( "backgroundColor", "red" )
+            , ( "height", "90px" )
+            , ( "width", "100%" )
+            ]
+
+    greeting : Html msg
+    greeting =
+        div [ myStyle ] [ text "Hello!" ]
+
+There is no `Html.Styles` module because best practices for working with HTML
+suggest that this should primarily be specified in CSS files. So the general
+recommendation is to use this function lightly.
+
+-}
+style : List ( String, String ) -> Attribute variation msg
+style =
+    Attr << VirtualDom.style
 
 
 
@@ -203,11 +260,13 @@ JavaScript.
     import Json.Encode as Encode
 
     class : String -> Attribute variation msg
-    class = Html.Attributes.class
+    class =
+        Html.Attributes.class
 
-Read more about the difference between properties and attributes [here][].
+Read more about the difference between properties and attributes [here].
 
 [here]: https://github.com/elm-lang/html/blob/master/properties-vs-attributes.md
+
 -}
 property : String -> Json.Value -> Attribute variation msg
 property str val =
@@ -218,23 +277,91 @@ property str val =
 in JavaScript.
 
     class : String -> Attribute variation msg
-    class = Html.Attributes.class
+    class =
+        Html.Attributes.class
 
-Read more about the difference between properties and attributes [here][].
+Read more about the difference between properties and attributes [here].
 
 [here]: https://github.com/elm-lang/html/blob/master/properties-vs-attributes.md
+
 -}
 attribute : String -> String -> Attribute variation msg
 attribute name val =
     Attr <| Html.Attributes.attribute name val
 
 
+{-| Transform the messages produced by an `Attribute`.
+-}
+map : (a -> msg) -> Attribute variation a -> Attribute variation msg
+map fn attr =
+    case attr of
+        Attr a ->
+            Attr <| Html.Attributes.map fn a
 
--- {-| Transform the messages produced by an `Attribute`.
--- -}
--- map : (a -> msg) -> Attribute a -> Attribute variation msg
--- map =
---     Html.Attributes.map
+        Vary x y ->
+            Vary x y
+
+        Height h ->
+            Height h
+
+        Width h ->
+            Width h
+
+        Inline ->
+            Inline
+
+        Hidden ->
+            Hidden
+
+        PositionFrame x ->
+            PositionFrame x
+
+        Opacity x ->
+            Opacity x
+
+        Expand ->
+            Expand
+
+        Padding x ->
+            Padding x
+
+        PhantomPadding x ->
+            PhantomPadding x
+
+        Margin x ->
+            Margin x
+
+        GridArea x ->
+            GridArea x
+
+        GridCoords x ->
+            GridCoords x
+
+        PointerEvents x ->
+            PointerEvents x
+
+        Event x ->
+            Event <| Html.Attributes.map fn x
+
+        InputEvent x ->
+            InputEvent <| Html.Attributes.map fn x
+
+        Position x y z ->
+            Position x y z
+
+        Spacing x y ->
+            Spacing x y
+
+        VAlign h ->
+            VAlign h
+
+        HAlign h ->
+            HAlign h
+
+
+
+-- _ ->
+--     attr
 -- GLOBAL ATTRIBUTES
 
 
@@ -356,10 +483,11 @@ async on =
 
 {-| Declares the character encoding of the page or script. Common values include:
 
-  * UTF-8 - Character encoding for Unicode
-  * ISO-8859-1 - Character encoding for the Latin alphabet
+  - UTF-8 - Character encoding for Unicode
+  - ISO-8859-1 - Character encoding for the Latin alphabet
 
 For `meta` and `script`.
+
 -}
 charset : String -> Attribute variation msg
 charset char =
@@ -728,6 +856,7 @@ required on =
 {-| For `input` specifies the width of an input in characters.
 
 For `select` specifies the number of visible options in a drop-down list.
+
 -}
 size : Int -> Attribute variation msg
 size i =
@@ -868,7 +997,7 @@ keytype str =
 
 
 {-| Specifies the horizontal alignment of a `caption`, `col`, `colgroup`,
-`hr`, `iframe`, `img`, `table`, `tbody`,  `td`,  `tfoot`, `th`, `thead`, or
+`hr`, `iframe`, `img`, `table`, `tbody`, `td`, `tfoot`, `th`, `thead`, or
 `tr`.
 -}
 align : String -> Attribute variation msg
@@ -898,12 +1027,13 @@ href str =
 {-| Specify where the results of clicking an `a`, `area`, `base`, or `form`
 should appear. Possible special values include:
 
-  * _blank &mdash; a new window or tab
-  * _self &mdash; the same frame (this is default)
-  * _parent &mdash; the parent frame
-  * _top &mdash; the full body of the window
+  - _blank &mdash; a new window or tab
+  - _self &mdash; the same frame (this is default)
+  - _parent &mdash; the parent frame
+  - _top &mdash; the full body of the window
 
 You can also give the name of any `frame` you have created.
+
 -}
 target : String -> Attribute variation msg
 target str =

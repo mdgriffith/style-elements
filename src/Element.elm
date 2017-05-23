@@ -1,6 +1,142 @@
-module Element exposing (..)
+module Element
+    exposing
+        ( stylesheet
+        , stylesheetWith
+        , StyleSheet
+        , Element
+        , Attribute
+        , empty
+        , text
+        , bold
+        , italic
+        , strike
+        , underline
+        , sub
+        , super
+        , el
+        , circle
+        , spacer
+        , image
+        , hairline
+        , node
+        , header
+        , section
+        , nav
+        , article
+        , aside
+        , canvas
+        , iframe
+        , audio
+        , video
+        , form
+        , radio
+        , checkbox
+        , label
+        , labelBelow
+        , textarea
+        , inputtext
+        , bullet
+        , enumerate
+        , full
+        , textLayout
+        , paragraph
+        , row
+        , column
+        , wrappedRow
+        , wrappedColumn
+        , grid
+        , namedGrid
+        , area
+        , named
+        , span
+        , spanAll
+        , linked
+        , when
+        , within
+        , above
+        , below
+        , onRight
+        , onLeft
+        , screen
+        , center
+        , verticalCenter
+        , justify
+        , alignTop
+        , alignBottom
+        , alignLeft
+        , alignRight
+        , moveX
+        , moveY
+        , moveXY
+        , width
+        , height
+        , px
+        , fill
+        , percent
+        , vary
+        , spacing
+        , padding
+        , paddingXY
+        , paddingEach
+        , hidden
+        , render
+        , root
+        , embed
+        )
 
-{-| -}
+{-|
+
+
+## Basic Elements
+
+@docs Element, empty, text, el, circle, spacer, full
+
+
+## Layout
+
+@docs textLayout, paragraph, row, column, wrappedRow, wrappedColumn, bullet, enumerate, grid, namedGrid, area, named, span, spanAll
+
+
+# Attributes
+
+@docs Attribute, hidden, vary
+
+@docs center, verticalCenter, justify, alignTop, alignBottom, alignLeft, alignRight
+
+@docs width, height, px, fill, percent
+
+@docs spacing, padding, paddingXY, paddingEach
+
+
+## Positioning
+
+@docs moveX, moveY, moveXY, within, above, below, onRight, onLeft, screen
+
+
+## Markup
+
+@docs bold, italic, strike, underline, sub, super
+
+
+## Semantic Markup
+
+@docs node, header, section, nav, article, aside, canvas, iframe, audio, video
+
+
+## Form Elements
+
+@docs form, radio, checkbox, label, labelBelow, textarea, inputtext
+
+@docs StyleSheet, stylesheet, stylesheetWith, render, root, embed
+
+@docs image, hairline, linked
+
+
+## Misc
+
+@docs when
+
+-}
 
 import Html exposing (Html)
 import Html.Attributes
@@ -17,14 +153,16 @@ import Color exposing (Color)
 
 {-| The stylesheet contains the rendered css as a string, and two functions to lookup
 -}
-type alias StyleSheet class variation animation msg =
-    Style.StyleSheet class variation animation msg
+type alias StyleSheet style variation animation msg =
+    Style.StyleSheet style variation animation msg
 
 
-type alias Element class variation msg =
-    Internal.Element class variation msg
+{-| -}
+type alias Element style variation msg =
+    Internal.Element style variation msg
 
 
+{-| -}
 type alias Attribute variation msg =
     Internal.Attribute variation msg
 
@@ -123,6 +261,7 @@ a {
 """
 
 
+{-| -}
 stylesheet : List (Style elem variation animation) -> StyleSheet elem variation animation msg
 stylesheet styles =
     let
@@ -143,6 +282,7 @@ stylesheet styles =
         { stylesheet | css = reset ++ stylesheet.css }
 
 
+{-| -}
 stylesheetWith : Defaults -> List (Style elem variation animation) -> StyleSheet elem variation animation msg
 stylesheetWith defaultProps styles =
     let
@@ -164,52 +304,61 @@ stylesheetWith defaultProps styles =
 
 
 {-| -}
-empty : Element elem variation msg
+empty : Element style variation msg
 empty =
     Empty
 
 
-text : String -> Element elem variation msg
+{-| -}
+text : String -> Element style variation msg
 text =
     Text NoDecoration
 
 
-bold : String -> Element elem variation msg
+{-| -}
+bold : String -> Element style variation msg
 bold =
     Text Bold
 
 
-italic : String -> Element elem variation msg
+{-| -}
+italic : String -> Element style variation msg
 italic =
     Text Italic
 
 
-strike : String -> Element elem variation msg
+{-| -}
+strike : String -> Element style variation msg
 strike =
     Text Strike
 
 
-underline : String -> Element elem variation msg
+{-| -}
+underline : String -> Element style variation msg
 underline =
     Text Underline
 
 
-sub : String -> Element elem variation msg
+{-| -}
+sub : String -> Element style variation msg
 sub =
     Text Sub
 
 
-super : String -> Element elem variation msg
+{-| -}
+super : String -> Element style variation msg
 super =
     Text Super
 
 
-el : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
+{-| -}
+el : elem -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
 el elem attrs child =
     Element Html.div (Just elem) attrs child Nothing
 
 
-circle : Float -> elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
+{-| -}
+circle : Float -> elem -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
 circle radius elem attrs child =
     Element Html.div (Just elem) (Attr (Html.Attributes.style [ ( "border-radius", toString radius ++ "px" ) ]) :: width (px (2 * radius)) :: height (px (2 * radius)) :: attrs) child Nothing
 
@@ -219,12 +368,13 @@ circle radius elem attrs child =
 So, if the parent element is a `column` that set spacing to `5`, and this spacer was a `2`. Then it would be a 10 pixel spacer.
 
 -}
-spacer : Float -> Element elem variation msg
+spacer : Float -> Element style variation msg
 spacer =
     Spacer
 
 
-image : elem -> String -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
+{-| -}
+image : elem -> String -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
 image elem src attrs child =
     Element Html.img (Just elem) (Attr (Html.Attributes.src src) :: attrs) child Nothing
 
@@ -234,7 +384,7 @@ image elem src attrs child =
 If you want a horizontal rule that is something more specific, craft it with `el`!
 
 -}
-hairline : elem -> Element elem variation msg
+hairline : elem -> Element style variation msg
 hairline elem =
     Element Html.hr (Just elem) (height (px 1) :: []) empty Nothing
 
@@ -245,32 +395,38 @@ hairline elem =
 ---------------------
 
 
-node : String -> (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+{-| -}
+node : String -> (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
 node str constructor elem attrs stuff =
     setNode (Html.node str) (constructor elem attrs stuff)
 
 
-header : (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+{-| -}
+header : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
 header constructor elem attrs stuff =
     setNode Html.header (constructor elem attrs stuff)
 
 
-section : (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+{-| -}
+section : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
 section constructor elem attrs stuff =
     setNode Html.section (constructor elem attrs stuff)
 
 
-nav : (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+{-| -}
+nav : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
 nav constructor elem attrs stuff =
     setNode Html.nav (constructor elem attrs stuff)
 
 
-article : (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+{-| -}
+article : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
 article constructor elem attrs stuff =
     setNode Html.article (constructor elem attrs stuff)
 
 
-aside : (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+{-| -}
+aside : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
 aside constructor elem attrs stuff =
     setNode Html.aside (constructor elem attrs stuff)
 
@@ -281,72 +437,28 @@ aside constructor elem attrs stuff =
 ---------------------
 
 
-canvas : (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+{-| -}
+canvas : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
 canvas constructor elem attrs stuff =
     setNode Html.canvas (constructor elem attrs stuff)
 
 
-iframe : (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+{-| -}
+iframe : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
 iframe constructor elem attrs stuff =
     setNode Html.iframe (constructor elem attrs stuff)
 
 
-audio : List (Attribute variation msg) -> List Source -> Element elem variation msg
-audio attrs sources =
-    let
-        renderSource source =
-            case source of
-                Source src kind ->
-                    (Element Html.source
-                        Nothing
-                        [ Attr.type_ kind
-                        , Attr.src src
-                        ]
-                        empty
-                        Nothing
-                    )
-    in
-        Element Html.video
-            Nothing
-            attrs
-            empty
-            (Just (List.map renderSource sources))
+{-| -}
+audio : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
+audio constructor elem attrs stuff =
+    setNode Html.audio (constructor elem attrs stuff)
 
 
-video : List (Attribute variation msg) -> List Source -> Element elem variation msg
-video attrs sources =
-    let
-        renderSource source =
-            case source of
-                Source src kind ->
-                    (Element Html.source
-                        Nothing
-                        [ Attr.type_ kind
-                        , Attr.src src
-                        ]
-                        empty
-                        Nothing
-                    )
-    in
-        Element Html.video
-            Nothing
-            attrs
-            empty
-            (Just (List.map renderSource sources))
-
-
-type Source
-    = Source String String
-
-
-{-| Create a source for video or audio.
-
-Provide a src and a type.
-
--}
-source : String -> String -> Source
-source =
-    Source
+{-| -}
+video : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
+video constructor elem attrs stuff =
+    setNode Html.audio (constructor elem attrs stuff)
 
 
 
@@ -355,7 +467,8 @@ source =
 ---------------------
 
 
-form : (elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element elem variation msg
+{-| -}
+form : (elem -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> elem -> List (Attribute variation msg) -> stuff -> Element style variation msg
 form constructor elem attrs stuff =
     setNode Html.form (constructor elem attrs stuff)
 
@@ -378,7 +491,7 @@ This creates the following html:
 Events are attached to the radio input element (to capture things like `onInput`, while all other attributes apply to the parent label element).
 
 -}
-radio : elem -> List (Attribute variation msg) -> String -> String -> Bool -> Element elem variation msg -> Element elem variation msg
+radio : elem -> List (Attribute variation msg) -> String -> String -> Bool -> Element style variation msg -> Element style variation msg
 radio elem attrs group value on label =
     let
         ( events, other ) =
@@ -416,7 +529,7 @@ radio elem attrs group value on label =
 
 {-| An automatically labeled checkbox.
 -}
-checkbox : elem -> List (Attribute variation msg) -> Bool -> Element elem variation msg -> Element elem variation msg
+checkbox : elem -> List (Attribute variation msg) -> Bool -> Element style variation msg -> Element style variation msg
 checkbox elem attrs on label =
     let
         ( events, other ) =
@@ -457,7 +570,7 @@ label Label [] (text "check this out") <|
 inputtext Style [] "The Value!"
 
 -}
-label : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg -> Element elem variation msg
+label : elem -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg -> Element style variation msg
 label elem attrs label input =
     let
         -- If naked text is provided, then flexbox won't work.
@@ -470,7 +583,7 @@ label elem attrs label input =
                 l ->
                     l
     in
-        (node "label" <| column)
+        (node "label" column)
             elem
             attrs
             [ label
@@ -480,7 +593,7 @@ label elem attrs label input =
 
 {-| Same as `label`, but places the label below the input field.
 -}
-labelBelow : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg -> Element elem variation msg
+labelBelow : elem -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg -> Element style variation msg
 labelBelow elem attrs label input =
     let
         -- If naked text is provided, then flexbox won't work.
@@ -493,7 +606,7 @@ labelBelow elem attrs label input =
                 l ->
                     l
     in
-        (node "label" <| column)
+        (node "label" column)
             elem
             attrs
             [ input
@@ -501,7 +614,8 @@ labelBelow elem attrs label input =
             ]
 
 
-textarea : elem -> List (Attribute variation msg) -> String -> Element elem variation msg
+{-| -}
+textarea : elem -> List (Attribute variation msg) -> String -> Element style variation msg
 textarea elem attrs content =
     Element Html.textarea (Just elem) attrs (text content) Nothing
 
@@ -509,7 +623,7 @@ textarea elem attrs content =
 {-| labeled Label [] (text "check this out") <|
 inputtext Style [] "The Value!"
 -}
-inputtext : elem -> List (Attribute variation msg) -> String -> Element elem variation msg
+inputtext : elem -> List (Attribute variation msg) -> String -> Element style variation msg
 inputtext elem attrs content =
     Element Html.input (Just elem) (Attr.type_ "text" :: Attr.value content :: attrs) empty Nothing
 
@@ -521,7 +635,7 @@ A 'column' layout is implied.
 Automatically sets children to use `<li>`
 
 -}
-bullet : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
+bullet : elem -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 bullet elem attrs children =
     Layout Html.ul (Style.FlexLayout Style.Down []) (Just elem) attrs (List.map (setNode Html.li) children)
 
@@ -531,7 +645,7 @@ bullet elem attrs children =
 Automatically sets children to use `<li>`
 
 -}
-enumerate : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
+enumerate : elem -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 enumerate elem attrs children =
     Layout Html.ol (Style.FlexLayout Style.Down []) (Just elem) attrs (List.map (setNode Html.li) children)
 
@@ -541,12 +655,13 @@ enumerate elem attrs children =
 This is mostly useful in text layouts.
 
 -}
-full : elem -> List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
+full : elem -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
 full elem attrs child =
     Element Html.div (Just elem) (Expand :: attrs) child Nothing
 
 
-textLayout : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
+{-| -}
+textLayout : elem -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 textLayout elem attrs children =
     Layout Html.div (Style.TextLayout) (Just elem) attrs children
 
@@ -556,7 +671,7 @@ textLayout elem attrs children =
 All of the children are set to 'inline'.
 
 -}
-paragraph : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
+paragraph : elem -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 paragraph elem attrs children =
     inlineChildren Html.p (Just elem) attrs children
 
@@ -566,8 +681,8 @@ inlineChildren :
     HtmlFn msg
     -> Maybe elem
     -> List (Attribute variation msg)
-    -> List (Element elem variation msg)
-    -> Element elem variation msg
+    -> List (Element style variation msg)
+    -> Element style variation msg
 inlineChildren node elem attrs children =
     let
         ( child, others ) =
@@ -582,25 +697,25 @@ inlineChildren node elem attrs children =
 
 
 {-| -}
-row : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
+row : elem -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 row elem attrs children =
     Layout Html.div (Style.FlexLayout Style.GoRight []) (Just elem) attrs children
 
 
 {-| -}
-column : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
+column : elem -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 column elem attrs children =
     Layout Html.div (Style.FlexLayout Style.Down []) (Just elem) attrs children
 
 
 {-| -}
-wrappedRow : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
+wrappedRow : elem -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 wrappedRow elem attrs children =
     Layout Html.div (Style.FlexLayout Style.GoRight [ Style.Wrap True ]) (Just elem) attrs children
 
 
 {-| -}
-wrappedColumn : elem -> List (Attribute variation msg) -> List (Element elem variation msg) -> Element elem variation msg
+wrappedColumn : elem -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 wrappedColumn elem attrs children =
     Layout Html.div (Style.FlexLayout Style.Down [ Style.Wrap True ]) (Just elem) attrs children
 
@@ -613,7 +728,7 @@ type alias Grid =
 
 
 {-| -}
-grid : elem -> Grid -> List (Attribute variation msg) -> List (OnGrid (Element elem variation msg)) -> Element elem variation msg
+grid : elem -> Grid -> List (Attribute variation msg) -> List (OnGrid (Element style variation msg)) -> Element style variation msg
 grid elem template attrs children =
     let
         prepare el =
@@ -630,7 +745,7 @@ type alias NamedGrid =
 
 
 {-| -}
-namedGrid : elem -> NamedGrid -> List (Attribute variation msg) -> List (NamedOnGrid (Element elem variation msg)) -> Element elem variation msg
+namedGrid : elem -> NamedGrid -> List (Attribute variation msg) -> List (NamedOnGrid (Element style variation msg)) -> Element style variation msg
 namedGrid elem template attrs children =
     let
         prepare el =
@@ -658,13 +773,13 @@ type NamedOnGrid thing
 
 
 {-| -}
-area : GridPosition -> Element elem variation msg -> OnGrid (Element elem variation msg)
+area : GridPosition -> Element style variation msg -> OnGrid (Element style variation msg)
 area box el =
     OnGrid <| addProp (GridCoords <| Style.GridPosition box) el
 
 
 {-| -}
-named : String -> Element elem variation msg -> NamedOnGrid (Element elem variation msg)
+named : String -> Element style variation msg -> NamedOnGrid (Element style variation msg)
 named name el =
     NamedOnGrid <| addProp (GridArea name) el
 
@@ -690,7 +805,7 @@ spanAll name =
 Changes an element's node to `<a>` and sets the href and rel properties.
 
 -}
-linked : String -> Element elem variation msg -> Element elem variation msg
+linked : String -> Element style variation msg -> Element style variation msg
 linked src el =
     el
         |> setNode Html.a
@@ -710,7 +825,7 @@ is sugar for
         empty
 
 -}
-when : Bool -> Element elem variation msg -> Element elem variation msg
+when : Bool -> Element style variation msg -> Element style variation msg
 when bool elm =
     if bool then
         elm
@@ -718,7 +833,7 @@ when bool elm =
         empty
 
 
-setNode : HtmlFn msg -> Element elem variation msg -> Element elem variation msg
+setNode : HtmlFn msg -> Element style variation msg -> Element style variation msg
 setNode node el =
     case el of
         Empty ->
@@ -737,7 +852,7 @@ setNode node el =
             Element node Nothing [] (Text dec content) Nothing
 
 
-addPropToNonText : Attribute variation msg -> Element elem variation msg -> Element elem variation msg
+addPropToNonText : Attribute variation msg -> Element style variation msg -> Element style variation msg
 addPropToNonText prop el =
     case el of
         Empty ->
@@ -756,7 +871,7 @@ addPropToNonText prop el =
             Text dec content
 
 
-addProp : Attribute variation msg -> Element elem variation msg -> Element elem variation msg
+addProp : Attribute variation msg -> Element style variation msg -> Element style variation msg
 addProp prop el =
     case el of
         Empty ->
@@ -775,7 +890,7 @@ addProp prop el =
             Element Html.div Nothing [ prop ] (Text dec content) Nothing
 
 
-removeProps : List (Attribute variation msg) -> Element elem variation msg -> Element elem variation msg
+removeProps : List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
 removeProps props el =
     let
         match p =
@@ -798,7 +913,7 @@ removeProps props el =
                 Text dec content
 
 
-addChild : Element elem variation msg -> Element elem variation msg -> Element elem variation msg
+addChild : Element style variation msg -> Element style variation msg -> Element style variation msg
 addChild parent el =
     case parent of
         Empty ->
@@ -823,7 +938,7 @@ addChild parent el =
 
 
 {-| -}
-within : List (Element elem variation msg) -> Element elem variation msg -> Element elem variation msg
+within : List (Element style variation msg) -> Element style variation msg -> Element style variation msg
 within nearbys parent =
     let
         position el p =
@@ -835,7 +950,7 @@ within nearbys parent =
 
 
 {-| -}
-above : List (Element elem variation msg) -> Element elem variation msg -> Element elem variation msg
+above : List (Element style variation msg) -> Element style variation msg -> Element style variation msg
 above nearbys parent =
     let
         position el p =
@@ -848,7 +963,7 @@ above nearbys parent =
 
 
 {-| -}
-below : List (Element elem variation msg) -> Element elem variation msg -> Element elem variation msg
+below : List (Element style variation msg) -> Element style variation msg -> Element style variation msg
 below nearbys parent =
     let
         position el p =
@@ -861,7 +976,7 @@ below nearbys parent =
 
 
 {-| -}
-onRight : List (Element elem variation msg) -> Element elem variation msg -> Element elem variation msg
+onRight : List (Element style variation msg) -> Element style variation msg -> Element style variation msg
 onRight nearbys parent =
     let
         position el p =
@@ -874,7 +989,7 @@ onRight nearbys parent =
 
 
 {-| -}
-onLeft : List (Element elem variation msg) -> Element elem variation msg -> Element elem variation msg
+onLeft : List (Element style variation msg) -> Element style variation msg -> Element style variation msg
 onLeft nearbys parent =
     let
         position el p =
@@ -891,7 +1006,7 @@ onLeft nearbys parent =
 Essentially the same as 'display: fixed'
 
 -}
-screen : Element elem variation msg -> Element elem variation msg
+screen : Element style variation msg -> Element style variation msg
 screen =
     addProp (PositionFrame Screen)
 
@@ -1047,7 +1162,7 @@ hidden =
 -}
 render :
     Style.StyleSheet elem variation animation msg
-    -> Element elem variation msg
+    -> Element style variation msg
     -> Html msg
 render =
     Render.render
@@ -1057,7 +1172,7 @@ render =
 -}
 root :
     Style.StyleSheet elem variation animation msg
-    -> Element elem variation msg
+    -> Element style variation msg
     -> Html msg
 root =
     Render.root
