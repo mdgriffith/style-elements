@@ -1,10 +1,15 @@
-module Style.Internal.Selector exposing (..)
+module Style.Internal.Selector exposing (Selector, child, formatName, free, getFindable, guard, pseudo, render, select, topName, uncapitalize, variant)
 
-{-| -}
+{-| Representations of CSS selectors
+
+@docs Selector, child, formatName, free, getFindable, guard, pseudo, render, select, topName, uncapitalize, variant
+
+-}
 
 import Style.Internal.Find as Findable
 
 
+{-| -}
 type Selector class variation animation
     = Select String (Findable.Element class variation animation)
     | Pseudo String
@@ -13,6 +18,7 @@ type Selector class variation animation
     | Stack (List (Selector class variation animation))
 
 
+{-| -}
 formatName : a -> String
 formatName x =
     toString x
@@ -21,6 +27,7 @@ formatName x =
         |> String.join "_"
 
 
+{-| -}
 uncapitalize : String -> String
 uncapitalize str =
     let
@@ -34,6 +41,7 @@ uncapitalize str =
         head ++ tail
 
 
+{-| -}
 topName : Selector class variation animation -> String
 topName selector =
     case selector of
@@ -53,6 +61,7 @@ topName selector =
             ""
 
 
+{-| -}
 guard : String -> Selector class variation animation -> Selector class variation animation
 guard guard selector =
     let
@@ -90,6 +99,7 @@ guard guard selector =
         onSelector selector
 
 
+{-| -}
 render : Maybe String -> Selector class variation animation -> String
 render maybeGuard selector =
     let
@@ -134,6 +144,7 @@ render maybeGuard selector =
                     |> String.concat
 
 
+{-| -}
 getFindable : Selector class variation animation -> List (Findable.Element class variation animation)
 getFindable find =
     case find of
@@ -154,21 +165,25 @@ getFindable find =
             []
 
 
+{-| -}
 select : class -> Selector class variation animation
 select class =
     Select (formatName class) <| Findable.Style class (formatName class)
 
 
+{-| -}
 child : Selector class variation animation -> Selector class variation animation -> Selector class variation animation
 child parent selector =
     Stack [ parent, SelectChild selector ]
 
 
+{-| -}
 free : String -> Selector class variation animation
 free str =
     Free str
 
 
+{-| -}
 variant : Selector class variation animation -> variation -> Selector class variation animation
 variant sel var =
     case sel of

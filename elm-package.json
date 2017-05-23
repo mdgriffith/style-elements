@@ -11,7 +11,6 @@
         "Style",
         "Style.Border",
         "Style.Background",
-        "Style.Scale",
         "Style.Font",
         "Style.Color",
         "Style.Filter",
@@ -20,8 +19,7 @@
         "Scale",
         "Element",
         "Element.Attributes",
-        "Element.Events",
-        "Element.Device"
+        "Element.Events"
     ],
     "dependencies": {
         "Skinney/murmur3": "2.0.4 <= v < 3.0.0",

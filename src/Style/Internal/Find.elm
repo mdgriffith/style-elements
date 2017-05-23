@@ -1,18 +1,25 @@
 module Style.Internal.Find exposing (Element(..), Findable, style, variation, toVariation)
 
+{-| Findable Styles
+
+@docs Element, Findable, style, variation, toVariation
+
+-}
+
+
 {-| -}
-
-
 type Element class variation animation
     = Style class String
     | Variation class variation String
     | Animation class animation String
 
 
+{-| -}
 type alias Findable class variation animation =
     List (Element class variation animation)
 
 
+{-| -}
 toVariation : variation -> String -> Element class variation animation -> Element class variation animation
 toVariation var newName element =
     case element of
@@ -26,6 +33,7 @@ toVariation var newName element =
             Variation class var newName
 
 
+{-| -}
 style : class -> Findable class variation animation -> String
 style class elements =
     let
@@ -52,6 +60,7 @@ style class elements =
                 cls
 
 
+{-| -}
 variation : class -> variation -> Findable class variation animation -> String
 variation class variation elements =
     let

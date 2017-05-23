@@ -1,13 +1,15 @@
-module Scale exposing (modular, integer)
+module Scale exposing (modular)
 
 {-| Useful scales to generate consistent design.
 
-@docs modular, integer
+@docs modular
 
 -}
 
 
-{-| When dealing with font sizes, it's nice to use a modular scale, which means all font sizes are related via a ratio.
+{-| When designing it's nice to use a modular scale to set spacial rythms.
+
+For example, when setting font sizes we can make them all related via a ratio.
 
 Here's how it's done, first create a scale:
 
@@ -18,9 +20,9 @@ You can read this as "Starting at a base of 16, create a modular scale using the
 
 Then, when setting font sizes you can use:
 
-This will set the font size to 16px:
-
     Font.size (scaled 1)
+
+Which will set the font size to 16px.
 
 Or we can scale up one level (which multiplies the result by 1.618):
 
@@ -34,13 +36,6 @@ We can also provide negative numbers to scale below 16px.
 modular : Float -> Float -> Int -> Float
 modular normal ratio fontScale =
     resize normal ratio fontScale
-
-
-{-| Same as `scale` but rounds to an `Int`. This should be used for font sizes.
--}
-integer : Float -> Float -> Int -> Int
-integer normal ratio fontScale =
-    round <| resize normal ratio fontScale
 
 
 resize : Float -> Float -> Int -> Float

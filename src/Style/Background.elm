@@ -37,7 +37,7 @@ module Style.Background
 
 ## Directed Gradients
 
-@docs gradientRight, gradientLeft, gradientUp, gradientDown, gradientTopRight, gradientBottomRight, gradientTopLeft, gradientBottomLeft, gradientAngle
+@docs gradientRight, gradientLeft, gradientUp, gradientDown, gradientTopRight, gradientBottomRight, gradientTopLeft, gradientBottomLeft
 
 -}
 

@@ -1,104 +1,16 @@
-module Style.Sheet exposing (render, renderWith, guard, critical, merge, map, mix)
+module Style.Sheet exposing (ChildSheet, merge, map, mix)
 
-{-|
-
-@docs render, renderWith, guard, critical, merge, map, mix
-
+{-| @docs ChildSheet, merge, map, mix
 -}
 
 import Style.Internal.Model as Internal exposing (StyleSheet)
-import Style.Internal.Render as Render
-import Style.Internal.Find as Find
 import Style.Internal.Batchable as Batchable
-import Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
 import Style exposing (Style)
-import Html.Attributes
-
-
-type Option class
-    = Guard
-    | Critical (List class)
 
 
 {-| -}
 type ChildSheet class variation animation
     = ChildSheet (List (Style class variation animation))
-
-
-{-| -}
-guard : Option class
-guard =
-    Guard
-
-
-{-| -}
-critical : List class -> Option class
-critical =
-    Critical
-
-
-{-| -}
-render : List (Style class variation animation) -> StyleSheet class variation animation msg
-render styles =
-    prepareSheet (Render.stylesheet False styles)
-
-
-{-| -}
-renderWith : List (Option class) -> List (Style class variation animation) -> StyleSheet class variation animation msg
-renderWith opts styles =
-    let
-        guard =
-            List.any ((==) Guard) opts
-
-        critical =
-            List.concatMap criticalClasses opts
-
-        criticalClasses opt =
-            case opt of
-                Critical class ->
-                    class
-
-                _ ->
-                    []
-    in
-        prepareSheet (Render.stylesheet guard styles)
-
-
-clearfix : String
-clearfix =
-    """
-.clearfix:after {
-  content: "";
-  display: table;
-  clear: both;
-}
-
-"""
-
-
-{-| -}
-prepareSheet : Intermediate.Rendered class variation animation -> StyleSheet class variation animation msg
-prepareSheet (Rendered { css, findable }) =
-    let
-        variations class vs =
-            let
-                parent =
-                    Find.style class findable
-
-                varys =
-                    vs
-                        |> List.filter Tuple.second
-                        |> List.map ((\vary -> Find.variation class vary findable) << Tuple.first)
-                        |> List.map (\cls -> ( cls, True ))
-            in
-                Html.Attributes.classList (( parent, True ) :: varys)
-    in
-        { style = \class -> Html.Attributes.class (Find.style class findable)
-        , variations = \class varys -> variations class varys
-        , animations = []
-        , css =
-            clearfix ++ css
-        }
 
 
 {-| -}

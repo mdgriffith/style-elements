@@ -1,6 +1,6 @@
 module Style.Color exposing (text, background, border, cursor, decoration, selection)
 
-{-| Colors
+{-| Set Colors.
 
 @docs text, background, border, cursor, decoration, selection
 
