@@ -1,4 +1,0 @@
-[submodule "elm-style-animation"]
-	path = elm-style-animation
-	url = https://github.com/mdgriffith/elm-style-animation
-	branch = version-4.0.0
