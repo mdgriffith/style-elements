@@ -1,6 +1,45 @@
-module Style.Background exposing (..)
+module Style.Background
+    exposing
+        ( step
+        , percent
+        , px
+        , gradientRight
+        , gradientLeft
+        , gradientUp
+        , gradientDown
+        , gradientTopRight
+        , gradientBottomRight
+        , gradientTopLeft
+        , gradientBottomLeft
+        , gradient
+        , image
+        , imageWith
+        , repeatX
+        , repeatY
+        , repeat
+        , space
+        , round
+        , noRepeat
+        )
 
-{-| -}
+{-|
+
+
+## Background Image
+
+@docs image, imageWith, repeatX, repeatY, repeat, space, round, noRepeat
+
+
+## Background Gradient
+
+@docs gradient, step, percent, px
+
+
+## Directed Gradients
+
+@docs gradientRight, gradientLeft, gradientUp, gradientDown, gradientTopRight, gradientBottomRight, gradientTopLeft, gradientBottomLeft, gradientAngle
+
+-}
 
 import Style.Internal.Model as Internal
 import Color exposing (Color)
@@ -40,66 +79,82 @@ px =
     Internal.PxStep
 
 
-{-| -}
-toUp : GradientDirection
-toUp =
-    Internal.ToUp
-
-
-{-| -}
-toDown : GradientDirection
-toDown =
-    Internal.ToDown
-
-
-{-| -}
-toRight : GradientDirection
-toRight =
-    Internal.ToRight
-
-
-{-| -}
-toTopRight : GradientDirection
-toTopRight =
-    Internal.ToTopRight
-
-
-{-| -}
-toBottomRight : GradientDirection
-toBottomRight =
-    Internal.ToBottomRight
-
-
-{-| -}
-toLeft : GradientDirection
-toLeft =
-    Internal.ToLeft
-
-
-{-| -}
-toTopLeft : GradientDirection
-toTopLeft =
-    Internal.ToTopLeft
-
-
-{-| -}
-toBottomLeft : GradientDirection
-toBottomLeft =
-    Internal.ToBottomLeft
-
-
 {-| Gradient angle given in radians.
+
+Here's an example of creating a background gradient:
+
+    Background.gradient 0 [ step Color.blue, step Color.green]
+
 -}
-toAngle : Float -> GradientDirection
-toAngle =
-    Internal.ToAngle
+gradient : Float -> List GradientStep -> Property class variation animation
+gradient angle steps =
+    steps
+        |> Internal.BackgroundLinearGradient (Internal.ToAngle angle)
+        |> Internal.Background
 
 
 {-| -}
-gradient : GradientDirection -> List GradientStep -> Property class variation animation
-gradient dir steps =
-    Internal.Background <|
-        Internal.BackgroundLinearGradient dir steps
+gradientUp : List GradientStep -> Property class variation animation
+gradientUp steps =
+    steps
+        |> Internal.BackgroundLinearGradient Internal.ToUp
+        |> Internal.Background
+
+
+{-| -}
+gradientDown : List GradientStep -> Property class variation animation
+gradientDown steps =
+    steps
+        |> Internal.BackgroundLinearGradient Internal.ToDown
+        |> Internal.Background
+
+
+{-| -}
+gradientRight : List GradientStep -> Property class variation animation
+gradientRight steps =
+    steps
+        |> Internal.BackgroundLinearGradient Internal.ToRight
+        |> Internal.Background
+
+
+{-| -}
+gradientTopRight : List GradientStep -> Property class variation animation
+gradientTopRight steps =
+    steps
+        |> Internal.BackgroundLinearGradient Internal.ToTopRight
+        |> Internal.Background
+
+
+{-| -}
+gradientBottomRight : List GradientStep -> Property class variation animation
+gradientBottomRight steps =
+    steps
+        |> Internal.BackgroundLinearGradient Internal.ToBottomRight
+        |> Internal.Background
+
+
+{-| -}
+gradientLeft : List GradientStep -> Property class variation animation
+gradientLeft steps =
+    steps
+        |> Internal.BackgroundLinearGradient Internal.ToLeft
+        |> Internal.Background
+
+
+{-| -}
+gradientTopLeft : List GradientStep -> Property class variation animation
+gradientTopLeft steps =
+    steps
+        |> Internal.BackgroundLinearGradient Internal.ToTopLeft
+        |> Internal.Background
+
+
+{-| -}
+gradientBottomLeft : List GradientStep -> Property class variation animation
+gradientBottomLeft steps =
+    steps
+        |> Internal.BackgroundLinearGradient Internal.ToBottomLeft
+        |> Internal.Background
 
 
 {-| -}
