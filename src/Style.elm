@@ -14,6 +14,10 @@ module Style
         , cursor
         , shadows
         , paddingHint
+        , paddingLeftHint
+        , paddingRightHint
+        , paddingTopHint
+        , paddingBottomHint
         , opacity
         , filters
         , origin
@@ -50,11 +54,25 @@ There are some good reasons for this. Check out `http://elm.style` if you want m
 
 `style-elements` does away with CSS selectors nearly entirely. Every style gets one identifier (which is ultimately rendered as a `class`).
 
-@docs StyleSheet, stylesheet, stylesheetWith, Defaults
-
 @docs Style, style, variation, Property, prop
 
-@docs opacity, cursor, paddingHint
+Styles can have variations. Here's what it looks like to have a button style with a variation for `Disabled`
+
+    import Style exposing (..)
+    import Style.Color as Color
+    import Color exposing (..)
+
+    style Button
+        [ Color.background blue
+        , variation Disabled
+            [ Color.background lightGrey
+            ]
+        ]
+
+
+## Properties
+
+@docs opacity, cursor, paddingHint, paddingLeftHint, paddingRightHint, paddingTopHint, paddingBottomHint
 
 @docs Shadow, shadows
 
@@ -62,9 +80,19 @@ There are some good reasons for this. Check out `http://elm.style` if you want m
 
 @docs origin, translate, rotate, rotateAround, scale
 
+@docs rounded, roundTopLeft, roundTopRight, roundBottomRight, roundBottomLeft
+
+
+## Pseudo Classes
+
+Psuedo classes can be nested.
+
 @docs hover, checked, focus, pseudo
 
-@docs rounded, roundTopLeft, roundTopRight, roundBottomRight, roundBottomLeft
+
+## Render into a Style Sheet
+
+@docs StyleSheet, stylesheet, stylesheetWith, Defaults
 
 -}
 
@@ -272,7 +300,16 @@ roundBottomLeft x =
     Internal.Exact "border-bottom-left-radius" (toString x ++ "px")
 
 
-{-| -}
+{-| Example:
+
+    style Button
+        [ Color.background blue
+        , hover
+            [ Color.background red
+            ]
+        ]
+
+-}
 hover :
     List (Property class variation animation)
     -> Property class variation animation

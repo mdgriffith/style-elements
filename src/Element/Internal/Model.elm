@@ -4,22 +4,14 @@ module Element.Internal.Model exposing (..)
 
 import Style.Internal.Model as Style
 import Html exposing (Html)
-import Color exposing (Color)
 
 
--- type ElementSheet elem variation animation msg
---     = ElementSheet
---         { defaults : Defaults
---         , stylesheet : Style.StyleSheet elem variation animation msg
---         }
-
-
-type Element elem variation msg
+type Element style variation msg
     = Empty
     | Spacer Float
     | Text Decoration String
-    | Element (HtmlFn msg) (Maybe elem) (List (Attribute variation msg)) (Element elem variation msg) (Maybe (List (Element elem variation msg)))
-    | Layout (HtmlFn msg) Style.LayoutModel (Maybe elem) (List (Attribute variation msg)) (List (Element elem variation msg))
+    | Element (HtmlFn msg) (Maybe style) (List (Attribute variation msg)) (Element style variation msg) (Maybe (List (Element style variation msg)))
+    | Layout (HtmlFn msg) Style.LayoutModel (Maybe style) (List (Attribute variation msg)) (List (Element style variation msg))
 
 
 type alias HtmlFn msg =

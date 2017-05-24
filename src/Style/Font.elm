@@ -28,6 +28,10 @@ module Style.Font
 
 {-| Font Properties
 
+Meant to be imported as:
+
+    import Style.Font as Font
+
 @docs typeface, size, height, letterSpacing, wordSpacing, left, right, center, justify, justifyAll
 
 @docs wrap, pre, preWrap, preLine, noWrap
@@ -47,7 +51,7 @@ typeface families =
     Internal.Font "font-family" (Value.typeface families)
 
 
-{-| Set font-size. Only px allowed.
+{-| Only px allowed.
 -}
 size : Float -> Property class variation animation
 size size =
@@ -61,31 +65,36 @@ height height =
     Internal.Font "line-height" (toString height)
 
 
-{-| -}
+{-| In px.
+-}
 letterSpacing : Float -> Property class variation animation
 letterSpacing offset =
     Internal.Font "letter-spacing" (toString offset ++ "px")
 
 
-{-| -}
+{-| In px.
+-}
 wordSpacing : Float -> Property class variation animation
 wordSpacing offset =
     Internal.Font "word-spacing" (toString offset ++ "px")
 
 
-{-| -}
+{-| Align the font to the left.
+-}
 left : Property class variation animation
 left =
     Internal.Font "text-align" "left"
 
 
-{-| -}
+{-| Align the font to the right.
+-}
 right : Property class variation animation
 right =
     Internal.Font "text-align" "right"
 
 
-{-| -}
+{-| Align font center.
+-}
 center : Property class variation animation
 center =
     Internal.Font "text-align" "center"

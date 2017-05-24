@@ -1,8 +1,16 @@
 module Style.Border exposing (all, left, right, top, bottom, none, solid, dashed, dotted)
 
-{-| Border
+{-| Border Properties
 
-@docs all, left, right, top, bottom, none, solid, dashed, dotted
+
+# Border Widths
+
+@docs none, all, left, right, top, bottom
+
+
+# Border Styles
+
+@docs solid, dashed, dotted
 
 -}
 

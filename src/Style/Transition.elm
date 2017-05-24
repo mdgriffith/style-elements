@@ -33,7 +33,8 @@ all =
         ]
 
 
-{-| -}
+{-| This enables transitions on proeprties that will be GPU accelerated: `transform`, `filter`, and `opacity`.
+-}
 performant : Property class variation animation
 performant =
     Internal.Transitions

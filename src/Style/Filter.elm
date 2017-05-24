@@ -1,6 +1,19 @@
 module Style.Filter exposing (url, blur, brightness, contrast, grayscale, hueRotate, invert, opacity, saturate, sepia)
 
-{-|
+{-| CSS filters.
+
+Apply a stack of filters.
+
+    import Style.Filter as Filter
+    import Style exposing (..)
+
+    style MyFitleredStyle
+        [ filters
+            [ Filter.blur 0.5
+            , Filter.invert 0.5
+            ]
+
+        ]
 
 @docs url, blur, brightness, contrast, grayscale, hueRotate, invert, opacity, saturate, sepia
 

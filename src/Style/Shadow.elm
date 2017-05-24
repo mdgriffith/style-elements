@@ -2,7 +2,42 @@ module Style.Shadow exposing (simple, deep, glow, innerGlow, box, drop, inset, t
 
 {-| Shadows
 
-@docs simple, deep, glow, innerGlow, box, drop, inset, text
+
+# Easy Presets
+
+These can be used directly as properties.
+
+    import Color
+    import Style exposing (..)
+    import Style.Shadow as Shadow
+
+    style MyStyleWithShadow
+        [ Shadow.glow Color.red 5
+        ]
+
+@docs simple, deep, glow, innerGlow
+
+
+# Advanced Shadows
+
+These are for when you want to specify shadows manually. They're meant to be specified in a shadow stack using `Style.shadows`:
+
+    import Color
+    import Style exposing (..)
+    import Style.Shadow as Shadow
+
+    style MyStyleWithShadow
+        [ shadows
+            [ Shadow.inset
+                { offset = ( 0, 0 )
+                , size = 5
+                , blur = 2
+                , color = Color.blue
+                }
+            ]
+        ]
+
+@docs box, drop, inset, text
 
 -}
 
