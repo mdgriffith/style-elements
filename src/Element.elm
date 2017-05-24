@@ -61,6 +61,10 @@ module Element
         , Device
         , classifyDevice
         , responsive
+        , OnGrid
+        , NamedOnGrid
+        , Grid
+        , NamedGrid
         )
 
 {-|
@@ -101,7 +105,7 @@ Make sure to check out the Style Element specific attributes in `Element.Attribu
 
 ## Grid Layout
 
-@docs grid, namedGrid, area, named, span, spanAll
+@docs Grid, NamedGrid, grid, namedGrid, OnGrid, NamedOnGrid, area, named, span, spanAll
 
 
 ## Convenient Elements
@@ -543,7 +547,7 @@ inputtext elem attrs content =
 -}
 bulleted : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 bulleted elem attrs children =
-    Layout "ul" (Style.FlexLayout Style.Down []) (Just elem) attrs (List.map (Modify.setNode "li") children)
+    Layout "ul" (Style.FlexLayout Style.Down []) (Just elem) attrs (Normal (List.map (Modify.setNode "li") children))
 
 
 {-| A numbered list. Rendered as `<ol>` with an implied 'column' layout.
@@ -553,7 +557,7 @@ Automatically sets children to use `<li>`
 -}
 numbered : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 numbered elem attrs children =
-    Layout "ol" (Style.FlexLayout Style.Down []) (Just elem) attrs (List.map (Modify.setNode "li") children)
+    Layout "ol" (Style.FlexLayout Style.Down []) (Just elem) attrs (Normal (List.map (Modify.setNode "li") children))
 
 
 {-| A `full` element will ignore the spacing set for it by the parent, and also grow to cover the parent's padding.
@@ -573,7 +577,7 @@ Children that are aligned left or right will be floated left or right.
 -}
 textLayout : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 textLayout elem attrs children =
-    Layout "div" (Style.TextLayout) (Just elem) attrs children
+    Layout "div" (Style.TextLayout) (Just elem) attrs (Normal children)
 
 
 {-| Paragraph is actually a layout if you can believe it!
@@ -609,25 +613,25 @@ inlineChildren node elem attrs children =
 {-| -}
 row : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 row elem attrs children =
-    Layout "div" (Style.FlexLayout Style.GoRight []) (Just elem) attrs children
+    Layout "div" (Style.FlexLayout Style.GoRight []) (Just elem) attrs (Normal children)
 
 
 {-| -}
 column : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 column elem attrs children =
-    Layout "div" (Style.FlexLayout Style.Down []) (Just elem) attrs children
+    Layout "div" (Style.FlexLayout Style.Down []) (Just elem) attrs (Normal children)
 
 
 {-| -}
 wrappedRow : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 wrappedRow elem attrs children =
-    Layout "div" (Style.FlexLayout Style.GoRight [ Style.Wrap True ]) (Just elem) attrs children
+    Layout "div" (Style.FlexLayout Style.GoRight [ Style.Wrap True ]) (Just elem) attrs (Normal children)
 
 
 {-| -}
 wrappedColumn : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 wrappedColumn elem attrs children =
-    Layout "div" (Style.FlexLayout Style.Down [ Style.Wrap True ]) (Just elem) attrs children
+    Layout "div" (Style.FlexLayout Style.Down [ Style.Wrap True ]) (Just elem) attrs (Normal children)
 
 
 {-| -}
@@ -668,7 +672,7 @@ grid : style -> Grid -> List (Attribute variation msg) -> List (OnGrid (Element 
 grid elem template attrs children =
     let
         prepare el =
-            List.map (\(OnGrid x) -> x) el
+            Normal <| List.map (\(OnGrid x) -> x) el
     in
         Layout "div" (Style.Grid (Style.GridTemplate template) []) (Just elem) attrs (prepare children)
 
@@ -707,7 +711,7 @@ namedGrid : style -> NamedGrid -> List (Attribute variation msg) -> List (NamedO
 namedGrid elem template attrs children =
     let
         prepare el =
-            List.map (\(NamedOnGrid x) -> x) el
+            Normal <| List.map (\(NamedOnGrid x) -> x) el
     in
         Layout "div" (Style.Grid (Style.NamedGridTemplate template) []) (Just elem) attrs (prepare children)
 
@@ -721,13 +725,13 @@ type alias GridPosition =
 
 
 {-| -}
-type OnGrid thing
-    = OnGrid thing
+type alias OnGrid thing =
+    Internal.OnGrid thing
 
 
 {-| -}
-type NamedOnGrid thing
-    = NamedOnGrid thing
+type alias NamedOnGrid thing =
+    Internal.NamedOnGrid thing
 
 
 {-| Specify a specific position on a normal `grid`.

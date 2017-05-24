@@ -11,15 +11,31 @@ type Element style variation msg
     | Spacer Float
     | Text Decoration String
     | Element String (Maybe style) (List (Attribute variation msg)) (Element style variation msg) (Maybe (List (Element style variation msg)))
-    | Layout String Style.LayoutModel (Maybe style) (List (Attribute variation msg)) (List (Element style variation msg))
+    | Layout String Style.LayoutModel (Maybe style) (List (Attribute variation msg)) (Children (Element style variation msg))
 
 
+type Children child
+    = Normal (List child)
+    | Keyed (List ( String, child ))
 
--- type Children
+
+mapChildren fn children =
+    case children of
+        Normal c ->
+            Normal (List.map fn c)
+
+        Keyed keyed ->
+            Keyed (List.map (Tuple.mapSecond fn) keyed)
 
 
-type alias HtmlFn msg =
-    List (Html.Attribute msg) -> List (Html msg) -> Html msg
+{-| -}
+type OnGrid thing
+    = OnGrid thing
+
+
+{-| -}
+type NamedOnGrid thing
+    = NamedOnGrid thing
 
 
 type Attribute variation msg

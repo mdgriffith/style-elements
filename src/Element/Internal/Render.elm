@@ -3,6 +3,7 @@ module Element.Internal.Render exposing (..)
 {-| -}
 
 import Html exposing (Html)
+import Html.Keyed
 import Html.Attributes
 import Element.Internal.Model exposing (..)
 import Style.Internal.Model as Internal exposing (Length)
@@ -40,6 +41,30 @@ type alias Parent =
     , layout : Internal.LayoutModel
     , parentPadding : ( Float, Float, Float, Float )
     }
+
+
+detectChildOrder : Children a -> number -> Order
+detectChildOrder children i =
+    let
+        list =
+            case children of
+                Normal l ->
+                    l
+
+                Keyed l ->
+                    List.map Tuple.second l
+
+        len =
+            List.length list
+    in
+        if i == 0 && len == 1 then
+            FirstAndLast
+        else if i == 0 then
+            First
+        else if i == len - 1 then
+            Last
+        else
+            Middle i
 
 
 detectOrder : List a -> number -> Order
@@ -166,24 +191,28 @@ adjustStructure parent elm =
                                         :: Width (Internal.Percent 100)
                                         :: (adjustedAligned ++ aligned)
                                     )
-                                    [ Element "div"
-                                        element
-                                        ((PointerEvents False :: unaligned ++ [ PositionFrame Relative, Position (Just 0) (Just 0) Nothing ]) ++ [ Attr <| noColor ])
-                                        properChild
-                                        Nothing
-                                    ]
+                                    (Normal
+                                        [ Element "div"
+                                            element
+                                            ((PointerEvents False :: unaligned ++ [ PositionFrame Relative, Position (Just 0) (Just 0) Nothing ]) ++ [ Attr <| noColor ])
+                                            properChild
+                                            Nothing
+                                        ]
+                                    )
 
                         Just Internal.TextLayout ->
                             Layout "div"
                                 (Internal.FlexLayout Internal.GoRight [])
                                 Nothing
                                 (PointerEvents False :: aligned)
-                                [ Element node
-                                    element
-                                    (PointerEvents True :: unaligned)
-                                    (adjustStructure Nothing child)
-                                    (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
-                                ]
+                                (Normal
+                                    [ Element node
+                                        element
+                                        (PointerEvents True :: unaligned)
+                                        (adjustStructure Nothing child)
+                                        (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
+                                    ]
+                                )
 
                         _ ->
                             skipAdjustment True
@@ -245,9 +274,15 @@ adjustStructure parent elm =
                                 (Internal.FlexLayout Internal.GoRight [])
                                 Nothing
                                 (PointerEvents False :: centeredProps)
-                                [ Layout node layout element (PointerEvents True :: others) (List.map (adjustStructure (Just layout)) children) ]
+                                (Normal
+                                    [ Layout node layout element (PointerEvents True :: others) (mapChildren (adjustStructure (Just layout)) children) ]
+                                )
                         else
-                            Layout node layout element (PointerEvents True :: position) (List.map (adjustStructure (Just layout)) children)
+                            Layout node
+                                layout
+                                element
+                                (PointerEvents True :: position)
+                                (mapChildren (adjustStructure (Just layout)) children)
 
                     Internal.FlexLayout _ _ ->
                         if hasSpacing then
@@ -278,18 +313,20 @@ adjustStructure parent elm =
                                     (Internal.FlexLayout Internal.GoRight [])
                                     element
                                     (PointerEvents True :: position)
-                                    [ Layout
-                                        node
-                                        layout
-                                        Nothing
-                                        (PointerEvents False :: phantomPadding :: Margin negativeMargin :: spacingAttr :: Width (Internal.Calc 100 totalHSpacing) :: [])
-                                        (List.map (adjustStructure (Just layout)) children)
-                                    ]
+                                    (Normal
+                                        [ Layout
+                                            node
+                                            layout
+                                            Nothing
+                                            (PointerEvents False :: phantomPadding :: Margin negativeMargin :: spacingAttr :: Width (Internal.Calc 100 totalHSpacing) :: [])
+                                            (mapChildren (adjustStructure (Just layout)) children)
+                                        ]
+                                    )
                         else
-                            Layout node layout element (PointerEvents True :: position) (List.map (adjustStructure (Just layout)) children)
+                            Layout node layout element (PointerEvents True :: position) (mapChildren (adjustStructure (Just layout)) children)
 
                     _ ->
-                        Layout node layout element position (List.map (adjustStructure (Just layout)) children)
+                        Layout node layout element position (mapChildren (adjustStructure (Just layout)) children)
 
 
 calcPosition : Frame -> ( Maybe Float, Maybe Float, Maybe Float ) -> List ( String, String )
@@ -510,22 +547,42 @@ renderElement parent stylesheet order elm =
                     , parentPadding = padding
                     }
 
-                childHtml =
-                    List.indexedMap
-                        (\i child ->
-                            renderElement
-                                (Just inherit)
-                                stylesheet
-                                (detectOrder children i)
-                                child
-                        )
-                        children
-
                 htmlAttrs =
                     renderAttributes (LayoutElement layout) order element parent stylesheet (gather attributes)
                         |> clearfix
             in
-                Html.node node htmlAttrs childHtml
+                case children of
+                    Normal childList ->
+                        let
+                            childHtml =
+                                List.indexedMap
+                                    (\i child ->
+                                        renderElement
+                                            (Just inherit)
+                                            stylesheet
+                                            (detectOrder childList i)
+                                            child
+                                    )
+                                    childList
+                        in
+                            Html.node node htmlAttrs childHtml
+
+                    Keyed keyed ->
+                        let
+                            childHtml =
+                                List.indexedMap
+                                    (\i ( key, child ) ->
+                                        ( key
+                                        , renderElement
+                                            (Just inherit)
+                                            stylesheet
+                                            (detectOrder keyed i)
+                                            child
+                                        )
+                                    )
+                                    keyed
+                        in
+                            Html.Keyed.node node htmlAttrs childHtml
 
 
 type alias Positionable variation msg =

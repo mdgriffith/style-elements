@@ -96,7 +96,13 @@ addChild parent el =
             Spacer x
 
         Layout node layout elem attrs children ->
-            Layout node layout elem attrs (el :: children)
+            case children of
+                Normal childs ->
+                    Layout node layout elem attrs (Normal (el :: childs))
+
+                -- This is wrong, but this lib doesn't currently support keyed absolutely positioned children...so it's not a problem for now.
+                Keyed childs ->
+                    Layout node layout elem attrs (Normal (el :: List.map Tuple.second childs))
 
         Element node elem attrs child otherChildren ->
             case otherChildren of

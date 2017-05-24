@@ -16,7 +16,7 @@
         "Style.Filter",
         "Style.Shadow",
         "Style.Transition",
-        "Scale",
+        "Style.Scale",
         "Element",
         "Element.Attributes",
         "Element.Events"
