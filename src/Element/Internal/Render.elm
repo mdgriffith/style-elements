@@ -157,7 +157,7 @@ adjustStructure parent elm =
                                 adjustedAligned =
                                     List.filterMap nearbyToAlignment unaligned
                             in
-                                Layout Html.div
+                                Layout "div"
                                     (Internal.FlexLayout Internal.GoRight [])
                                     Nothing
                                     (PointerEvents False
@@ -166,7 +166,7 @@ adjustStructure parent elm =
                                         :: Width (Internal.Percent 100)
                                         :: (adjustedAligned ++ aligned)
                                     )
-                                    [ Element Html.div
+                                    [ Element "div"
                                         element
                                         ((PointerEvents False :: unaligned ++ [ PositionFrame Relative, Position (Just 0) (Just 0) Nothing ]) ++ [ Attr <| noColor ])
                                         properChild
@@ -174,7 +174,7 @@ adjustStructure parent elm =
                                     ]
 
                         Just Internal.TextLayout ->
-                            Layout Html.div
+                            Layout "div"
                                 (Internal.FlexLayout Internal.GoRight [])
                                 Nothing
                                 (PointerEvents False :: aligned)
@@ -241,7 +241,7 @@ adjustStructure parent elm =
                     Internal.TextLayout ->
                         if not <| List.isEmpty centeredProps then
                             Layout
-                                Html.div
+                                "div"
                                 (Internal.FlexLayout Internal.GoRight [])
                                 Nothing
                                 (PointerEvents False :: centeredProps)
@@ -274,7 +274,7 @@ adjustStructure parent elm =
                                         (Maybe.withDefault ( 0, 0, 0, 0 ) padding)
                             in
                                 Layout
-                                    Html.div
+                                    "div"
                                     (Internal.FlexLayout Internal.GoRight [])
                                     element
                                     (PointerEvents True :: position)
@@ -441,7 +441,7 @@ renderElement parent stylesheet order elm =
                 htmlAttrs =
                     renderAttributes Single order element parent stylesheet (gather attributes)
             in
-                node htmlAttrs childHtml
+                Html.node node htmlAttrs childHtml
 
         Layout node layout element position children ->
             let
@@ -525,7 +525,7 @@ renderElement parent stylesheet order elm =
                     renderAttributes (LayoutElement layout) order element parent stylesheet (gather attributes)
                         |> clearfix
             in
-                node (htmlAttrs) childHtml
+                Html.node node htmlAttrs childHtml
 
 
 type alias Positionable variation msg =

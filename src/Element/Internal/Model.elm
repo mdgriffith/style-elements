@@ -10,8 +10,12 @@ type Element style variation msg
     = Empty
     | Spacer Float
     | Text Decoration String
-    | Element (HtmlFn msg) (Maybe style) (List (Attribute variation msg)) (Element style variation msg) (Maybe (List (Element style variation msg)))
-    | Layout (HtmlFn msg) Style.LayoutModel (Maybe style) (List (Attribute variation msg)) (List (Element style variation msg))
+    | Element String (Maybe style) (List (Attribute variation msg)) (Element style variation msg) (Maybe (List (Element style variation msg)))
+    | Layout String Style.LayoutModel (Maybe style) (List (Attribute variation msg)) (List (Element style variation msg))
+
+
+
+-- type Children
 
 
 type alias HtmlFn msg =

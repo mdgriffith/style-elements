@@ -6,7 +6,7 @@ import Element.Internal.Model as Internal exposing (..)
 import Html
 
 
-setNode : HtmlFn msg -> Element style variation msg -> Element style variation msg
+setNode : String -> Element style variation msg -> Element style variation msg
 setNode node el =
     case el of
         Empty ->
@@ -60,7 +60,7 @@ addProp prop el =
             Element node elem (prop :: attrs) el children
 
         Text dec content ->
-            Element Html.div Nothing [ prop ] (Text dec content) Nothing
+            Element "div" Nothing [ prop ] (Text dec content) Nothing
 
 
 removeProps : List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
@@ -90,7 +90,7 @@ addChild : Element style variation msg -> Element style variation msg -> Element
 addChild parent el =
     case parent of
         Empty ->
-            Element Html.div Nothing [] Empty (Just [ el ])
+            Element "div" Nothing [] Empty (Just [ el ])
 
         Spacer x ->
             Spacer x
@@ -107,4 +107,4 @@ addChild parent el =
                     Element node elem attrs child (Just (el :: others))
 
         Text dec content ->
-            Element Html.div Nothing [] (Text dec content) (Just [ el ])
+            Element "div" Nothing [] (Text dec content) (Just [ el ])
