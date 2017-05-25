@@ -1,9 +1,22 @@
-module Element.Internal.Modify exposing (setNode, addPropToNonText, addProp, removeProps, addChild)
+module Element.Internal.Modify
+    exposing
+        ( setNode
+        , addAttrToNonText
+        , addAttr
+        , removeAttrs
+        , addChild
+        , addAttrList
+        , removeAllAttrs
+        , removeContent
+        , getStyle
+        , getAttrs
+        , removeStyle
+        , getChild
+        )
 
 {-| -}
 
 import Element.Internal.Model as Internal exposing (..)
-import Html
 
 
 setNode : String -> Element style variation msg -> Element style variation msg
@@ -25,8 +38,8 @@ setNode node el =
             Element node Nothing [] (Text dec content) Nothing
 
 
-addPropToNonText : Attribute variation msg -> Element style variation msg -> Element style variation msg
-addPropToNonText prop el =
+addAttrToNonText : Attribute variation msg -> Element style variation msg -> Element style variation msg
+addAttrToNonText prop el =
     case el of
         Empty ->
             Empty
@@ -44,8 +57,8 @@ addPropToNonText prop el =
             Text dec content
 
 
-addProp : Attribute variation msg -> Element style variation msg -> Element style variation msg
-addProp prop el =
+addAttr : Attribute variation msg -> Element style variation msg -> Element style variation msg
+addAttr prop el =
     case el of
         Empty ->
             Empty
@@ -63,8 +76,27 @@ addProp prop el =
             Element "div" Nothing [ prop ] (Text dec content) Nothing
 
 
-removeProps : List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
-removeProps props el =
+addAttrList : List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+addAttrList props el =
+    case el of
+        Empty ->
+            Empty
+
+        Spacer x ->
+            Spacer x
+
+        Layout node layout elem attrs els ->
+            Layout node layout elem (props ++ attrs) els
+
+        Element node elem attrs el children ->
+            Element node elem (props ++ attrs) el children
+
+        Text dec content ->
+            Element "div" Nothing props (Text dec content) Nothing
+
+
+removeAttrs : List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+removeAttrs props el =
     let
         match p =
             not <| List.member p props
@@ -84,6 +116,25 @@ removeProps props el =
 
             Text dec content ->
                 Text dec content
+
+
+removeAllAttrs : Element style variation msg -> Element style variation msg
+removeAllAttrs el =
+    case el of
+        Empty ->
+            Empty
+
+        Spacer x ->
+            Spacer x
+
+        Layout node layout elem _ els ->
+            Layout node layout elem [] els
+
+        Element node elem _ el children ->
+            Element node elem [] el children
+
+        Text dec content ->
+            Text dec content
 
 
 addChild : Element style variation msg -> Element style variation msg -> Element style variation msg
@@ -114,3 +165,98 @@ addChild parent el =
 
         Text dec content ->
             Element "div" Nothing [] (Text dec content) (Just [ el ])
+
+
+getAttrs : Element style variation msg -> List (Attribute variation msg)
+getAttrs el =
+    case el of
+        Empty ->
+            []
+
+        Spacer x ->
+            []
+
+        Layout _ _ _ attrs _ ->
+            attrs
+
+        Element _ _ attrs _ _ ->
+            attrs
+
+        Text dec content ->
+            []
+
+
+getStyle : Element style variation msg -> Maybe style
+getStyle el =
+    case el of
+        Empty ->
+            Nothing
+
+        Spacer x ->
+            Nothing
+
+        Layout _ _ style _ _ ->
+            style
+
+        Element _ style _ _ _ ->
+            style
+
+        Text _ _ ->
+            Nothing
+
+
+removeStyle : Element style variation msg -> Element style variation msg
+removeStyle el =
+    case el of
+        Empty ->
+            Empty
+
+        Spacer x ->
+            Spacer x
+
+        Layout node layout _ attrs els ->
+            Layout node layout Nothing attrs els
+
+        Element node _ attrs el children ->
+            Element node Nothing attrs el children
+
+        Text dec content ->
+            Text dec content
+
+
+removeContent : Element style variation msg -> Element style variation msg
+removeContent el =
+    case el of
+        Empty ->
+            Empty
+
+        Spacer x ->
+            Spacer x
+
+        Layout node layout elem attrs children ->
+            Layout node layout elem attrs (Normal [])
+
+        Element node elem attrs child otherChildren ->
+            Element node elem attrs Empty otherChildren
+
+        Text _ _ ->
+            Empty
+
+
+getChild : Element style variation msg -> Element style variation msg
+getChild el =
+    case el of
+        Empty ->
+            Empty
+
+        Spacer x ->
+            Spacer x
+
+        Layout node layout elem attrs children ->
+            el
+
+        Element node elem attrs child otherChildren ->
+            child
+
+        Text dec content ->
+            Text dec content

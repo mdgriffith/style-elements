@@ -30,8 +30,8 @@ module Element
         , checkbox
         , label
         , labelBelow
-        , textarea
-        , inputtext
+        , textArea
+        , inputText
         , bulleted
         , numbered
         , full
@@ -65,6 +65,9 @@ module Element
         , NamedOnGrid
         , Grid
         , NamedGrid
+        , select
+        , option
+        , Option
         )
 
 {-|
@@ -164,7 +167,7 @@ So, if we wanted to make a standard element be rendered as a `section` node, we 
 
 ## Form Elements
 
-@docs form, radio, checkbox, label, labelBelow, textarea, inputtext
+@docs form, checkbox, textArea, inputText, radio, radioButton, RadioButton, label, labelBelow
 
 
 ## Rendering
@@ -388,64 +391,105 @@ form constructor elem attrs stuff =
     Modify.setNode "form" (constructor elem attrs stuff)
 
 
-{-| Create a labeled radio button.
+{-| -}
+type RadioButton style variation msg
+    = RadioButton String Bool (Element style variation msg)
 
-So, if you wanted to make some radio buttons to choose lunch, here's how it's look:
 
-    radio StyleClass [] "lunch" "burrito" True (text "A Burrito!")
-    radio StyleClass [] "lunch" "taco" False (text "Some Tacos!")
+{-| Create a list of labeled radio button.
 
-**Advanced Note**
-This creates the following html:
-
-    <label class="styleClass" {attributes provided in arguments}>
-        <input type=radio name="lunch" value="burrito" />
-        A Burrito!
-    </label>
-
-Events are attached to the radio input element (to capture things like `onInput`, while all other attributes apply to the parent label element).
+    radio "lunch" column None []
+        [ option "burrito" True (text "A Burrito!")
+        , option "taco" False (text "A Taco!")
+        ]
 
 -}
-radio : style -> List (Attribute variation msg) -> String -> String -> Bool -> Element style variation msg -> Element style variation msg
-radio elem attrs group value on label =
+radio : String -> (style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg) -> style -> List (Attribute variation msg) -> List (Option style variation msg) -> Element style variation msg
+radio group constructor style attributes buttons =
     let
-        ( events, other ) =
-            List.partition forInputEvents attrs
+        toChild (Option value on child) =
+            let
+                style =
+                    Modify.getStyle child
 
-        forInputEvents attr =
-            case attr of
-                InputEvent ev ->
-                    True
+                attrs =
+                    Modify.getAttrs child
 
-                _ ->
-                    False
+                ( inputEvents, nonInputEventAttrs ) =
+                    List.partition forInputEvents attrs
+
+                forInputEvents attr =
+                    case attr of
+                        InputEvent ev ->
+                            True
+
+                        _ ->
+                            False
+
+                rune =
+                    child
+                        |> Modify.setNode "input"
+                        |> Modify.addAttrList
+                            ([ Attr.type_ "radio"
+                             , Attr.name group
+                             , Attr.value value
+                             , Attr.checked on
+                             ]
+                                ++ inputEvents
+                            )
+                        |> Modify.removeContent
+                        |> Modify.removeStyle
+
+                literalLabel =
+                    child
+                        |> Modify.getChild
+                        |> Modify.removeAllAttrs
+                        |> Modify.removeStyle
+            in
+                Layout "label" (Style.FlexLayout Style.GoRight []) style nonInputEventAttrs (Normal [ rune, literalLabel ])
     in
-        Element "label"
-            (Just elem)
-            other
-            (inlineChildren "div"
-                Nothing
-                []
-                [ Element "input"
-                    (Just elem)
-                    (Attr.type_ "radio"
-                        :: Attr.name group
-                        :: Attr.value value
-                        :: Attr.checked on
-                        :: events
-                    )
-                    empty
-                    Nothing
-                , label
-                ]
-            )
-            Nothing
+        constructor style attributes (List.map toChild buttons)
+
+
+{-| Create an Option. Can only be used with `radio` and `select`.
+-}
+option : String -> Bool -> Element style variation msg -> Option style variation msg
+option =
+    Option
+
+
+{-| -}
+type Option style variation msg
+    = Option String Bool (Element style variation msg)
+
+
+{-|
+
+    select "favorite-animal" column MySelectionStyle []
+        [ option "manatee" False (text "Manatees are pretty cool")
+        , option "pangolin" False (text "But so are pangolins")
+        , option "bee" True (text "Bees")
+        ]
+-}
+select : String -> (style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg) -> style -> List (Attribute variation msg) -> List (Option style variation msg) -> Element style variation msg
+select group constructor style attributes buttons =
+    let
+        toChild (Option value on child) =
+            child
+                |> Modify.setNode "option"
+                |> Modify.addAttrList
+                    [ Attr.value value
+                    , Attr.selected on
+                    ]
+    in
+        constructor style (Attr.name group :: attributes) (List.map toChild buttons)
+            |> Modify.setNode "select"
 
 
 {-| An automatically labeled checkbox.
 -}
-checkbox : style -> List (Attribute variation msg) -> Bool -> Element style variation msg -> Element style variation msg
-checkbox elem attrs on label =
+checkbox : Bool -> style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+checkbox on elem attrs label =
     let
         ( events, other ) =
             List.partition forInputEvents attrs
@@ -479,10 +523,10 @@ checkbox elem attrs on label =
             Nothing
 
 
-{-| For input elements that are not automatically labeled (checkbox, radiobutton, selection), this will attach a label above the element.
+{-| For input elements that are not automatically labeled (checkbox, radio), this will attach a label above the element.
 
-label Label [] (text "check this out") <|
-inputtext Style [] "The Value!"
+    label Label [] (text "check this out") <|
+        inputText Style [] "The Value!"
 
 -}
 label : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg -> Element style variation msg
@@ -530,16 +574,19 @@ labelBelow elem attrs label input =
 
 
 {-| -}
-textarea : style -> List (Attribute variation msg) -> String -> Element style variation msg
-textarea elem attrs content =
+textArea : style -> List (Attribute variation msg) -> String -> Element style variation msg
+textArea elem attrs content =
     Element "textarea" (Just elem) attrs (text content) Nothing
 
 
-{-| labeled Label [] (text "check this out") <|
-inputtext Style [] "The Value!"
+{-| Text input
+
+    label LabelStyle [] (text "check this out") <|
+        inputText Style [] "The Value!"
+
 -}
-inputtext : style -> List (Attribute variation msg) -> String -> Element style variation msg
-inputtext elem attrs content =
+inputText : style -> List (Attribute variation msg) -> String -> Element style variation msg
+inputText elem attrs content =
     Element "input" (Just elem) (Attr.type_ "text" :: Attr.value content :: attrs) empty Nothing
 
 
@@ -605,7 +652,7 @@ inlineChildren node elem attrs children =
                     ( empty, Nothing )
 
                 child :: others ->
-                    ( Modify.addPropToNonText Inline child, Just <| List.map (Modify.addPropToNonText Inline) others )
+                    ( Modify.addAttrToNonText Inline child, Just <| List.map (Modify.addAttrToNonText Inline) others )
     in
         Element node elem attrs child others
 
@@ -738,14 +785,14 @@ type alias NamedOnGrid thing =
 -}
 area : GridPosition -> Element style variation msg -> OnGrid (Element style variation msg)
 area box el =
-    OnGrid <| Modify.addProp (GridCoords <| Style.GridPosition box) el
+    OnGrid <| Modify.addAttr (GridCoords <| Style.GridPosition box) el
 
 
 {-| Specify a named postion on a `namedGrid`.
 -}
 named : String -> Element style variation msg -> NamedOnGrid (Element style variation msg)
 named name el =
-    NamedOnGrid <| Modify.addProp (GridArea name) el
+    NamedOnGrid <| Modify.addAttr (GridArea name) el
 
 
 type alias NamedGridPosition =
@@ -778,8 +825,10 @@ link : String -> Element style variation msg -> Element style variation msg
 link src el =
     el
         |> Modify.setNode "a"
-        |> Modify.addProp (Attr (Html.Attributes.href src))
-        |> Modify.addProp (Attr (Html.Attributes.rel "noopener noreferrer"))
+        |> Modify.addAttrList
+            [ Attr (Html.Attributes.href src)
+            , Attr (Html.Attributes.rel "noopener noreferrer")
+            ]
 
 
 {-| A helper function. This:
@@ -808,7 +857,7 @@ within nearbys parent =
     let
         position el p =
             el
-                |> Modify.addProp (PositionFrame Positioned)
+                |> Modify.addAttr (PositionFrame Positioned)
                 |> Modify.addChild p
     in
         List.foldl position parent nearbys
@@ -820,8 +869,8 @@ above nearbys parent =
     let
         position el p =
             el
-                |> Modify.addProp (PositionFrame (Nearby Above))
-                |> Modify.removeProps [ VAlign Top, VAlign Bottom ]
+                |> Modify.addAttr (PositionFrame (Nearby Above))
+                |> Modify.removeAttrs [ VAlign Top, VAlign Bottom ]
                 |> Modify.addChild p
     in
         List.foldl position parent nearbys
@@ -833,8 +882,8 @@ below nearbys parent =
     let
         position el p =
             el
-                |> Modify.addProp (PositionFrame (Nearby Below))
-                |> Modify.removeProps [ VAlign Top, VAlign Bottom ]
+                |> Modify.addAttr (PositionFrame (Nearby Below))
+                |> Modify.removeAttrs [ VAlign Top, VAlign Bottom ]
                 |> Modify.addChild p
     in
         List.foldl position parent nearbys
@@ -846,8 +895,8 @@ onRight nearbys parent =
     let
         position el p =
             el
-                |> Modify.addProp (PositionFrame (Nearby OnRight))
-                |> Modify.removeProps [ HAlign Right, HAlign Left ]
+                |> Modify.addAttr (PositionFrame (Nearby OnRight))
+                |> Modify.removeAttrs [ HAlign Right, HAlign Left ]
                 |> Modify.addChild p
     in
         List.foldl position parent nearbys
@@ -859,8 +908,8 @@ onLeft nearbys parent =
     let
         position el p =
             el
-                |> Modify.addProp (PositionFrame (Nearby OnLeft))
-                |> Modify.removeProps [ HAlign Right, HAlign Left ]
+                |> Modify.addAttr (PositionFrame (Nearby OnLeft))
+                |> Modify.removeAttrs [ HAlign Right, HAlign Left ]
                 |> Modify.addChild p
     in
         List.foldl position parent nearbys
@@ -873,7 +922,7 @@ Essentially the same as `display: fixed`
 -}
 screen : Element style variation msg -> Element style variation msg
 screen =
-    Modify.addProp (PositionFrame Screen)
+    Modify.addAttr (PositionFrame Screen)
 
 
 {-| Renders `Element`'s into `Html` and embeds a stylesheet at the top level.

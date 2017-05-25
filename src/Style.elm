@@ -438,6 +438,10 @@ a {
     text-decoration: none;
 }
 
+input {
+    border-width: 0;
+}
+
 """
 
 

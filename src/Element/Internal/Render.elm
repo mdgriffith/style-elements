@@ -43,30 +43,6 @@ type alias Parent =
     }
 
 
-detectChildOrder : Children a -> number -> Order
-detectChildOrder children i =
-    let
-        list =
-            case children of
-                Normal l ->
-                    l
-
-                Keyed l ->
-                    List.map Tuple.second l
-
-        len =
-            List.length list
-    in
-        if i == 0 && len == 1 then
-            FirstAndLast
-        else if i == 0 then
-            First
-        else if i == len - 1 then
-            Last
-        else
-            Middle i
-
-
 detectOrder : List a -> number -> Order
 detectOrder list i =
     let
