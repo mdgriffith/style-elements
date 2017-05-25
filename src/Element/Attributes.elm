@@ -21,7 +21,10 @@ module Element.Attributes
         , spacing
         , padding
         , paddingXY
-        , paddingEach
+        , paddingTop
+        , paddingRight
+        , paddingBottom
+        , paddingLeft
         , class
         , classList
         , inlineStyle
@@ -139,7 +142,7 @@ These are the new attributes that generally have to do with layout.
 
 @docs width, height, px, fill, percent
 
-@docs spacing, padding, paddingXY, paddingEach
+@docs spacing, padding, paddingXY, paddingTop, paddingRight, paddingBottom, paddingLeft
 
 
 ## Positioning
@@ -376,21 +379,42 @@ spacing =
 {-| -}
 padding : Float -> Attribute variation msg
 padding x =
-    Padding ( x, x, x, x )
+    Padding (Just x) (Just x) (Just x) (Just x)
 
 
 {-| Set horizontal and vertical padding.
 -}
 paddingXY : Float -> Float -> Attribute variation msg
 paddingXY x y =
-    Padding ( y, x, y, x )
+    Padding (Just y) (Just x) (Just y) (Just x)
 
 
-{-| Set Padding in the order top, right, bottom, left
+{-| Set horizontal and vertical padding.
 -}
-paddingEach : Float -> Float -> Float -> Float -> Attribute variation msg
-paddingEach top right bottom left =
-    Padding ( top, right, bottom, left )
+paddingLeft : Float -> Attribute variation msg
+paddingLeft x =
+    Padding Nothing Nothing Nothing (Just x)
+
+
+{-| Set horizontal and vertical padding.
+-}
+paddingRight : Float -> Attribute variation msg
+paddingRight x =
+    Padding Nothing (Just x) Nothing Nothing
+
+
+{-| Set horizontal and vertical padding.
+-}
+paddingTop : Float -> Attribute variation msg
+paddingTop x =
+    Padding (Just x) Nothing Nothing Nothing
+
+
+{-| Set horizontal and vertical padding.
+-}
+paddingBottom : Float -> Attribute variation msg
+paddingBottom x =
+    Padding Nothing Nothing (Just x) Nothing
 
 
 {-| -}
@@ -516,8 +540,8 @@ map fn attr =
         Expand ->
             Expand
 
-        Padding x ->
-            Padding x
+        Padding w x y z ->
+            Padding w x y z
 
         PhantomPadding x ->
             PhantomPadding x

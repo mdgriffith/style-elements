@@ -239,8 +239,8 @@ adjustStructure parent elm =
 
                 forPadding posAttr =
                     case posAttr of
-                        Padding box ->
-                            Just box
+                        Padding t r b l ->
+                            Just <| defaultPadding ( t, r, b, l ) ( 0, 0, 0, 0 )
 
                         _ ->
                             Nothing
@@ -375,6 +375,15 @@ calcPosition frame ( mx, my, mz ) =
                 ]
 
 
+defaultPadding : ( Maybe Float, Maybe Float, Maybe Float, Maybe Float ) -> ( Float, Float, Float, Float ) -> ( Float, Float, Float, Float )
+defaultPadding ( mW, mX, mY, mZ ) ( w, x, y, z ) =
+    ( Maybe.withDefault w mW
+    , Maybe.withDefault x mX
+    , Maybe.withDefault y mY
+    , Maybe.withDefault z mZ
+    )
+
+
 renderElement : Maybe Parent -> Internal.StyleSheet elem variation animation msg -> Order -> Element elem variation msg -> Html msg
 renderElement parent stylesheet order elm =
     case elm of
@@ -434,7 +443,7 @@ renderElement parent stylesheet order elm =
                 Sub ->
                     Html.sub [] [ Html.text str ]
 
-        Element node element position child otherChildren ->
+        Element node element attrs child otherChildren ->
             let
                 childHtml =
                     case otherChildren of
@@ -447,25 +456,25 @@ renderElement parent stylesheet order elm =
                 attributes =
                     case parent of
                         Nothing ->
-                            spacingToMargin position
+                            spacingToMargin attrs
 
                         Just ctxt ->
                             case ctxt.parentSpecifiedSpacing of
                                 Nothing ->
-                                    spacingToMargin position
+                                    spacingToMargin attrs
 
                                 Just ( top, right, bottom, left ) ->
-                                    Margin ( top, right, bottom, left ) :: spacingToMargin position
+                                    Margin ( top, right, bottom, left ) :: spacingToMargin attrs
 
                 htmlAttrs =
                     renderAttributes Single order element parent stylesheet (gather attributes)
             in
                 Html.node node htmlAttrs childHtml
 
-        Layout node layout element position children ->
+        Layout node layout element attrs children ->
             let
                 ( centeredProps, others ) =
-                    List.partition (\attr -> attr == HAlign Center || attr == VAlign VerticalCenter) position
+                    List.partition (\attr -> attr == HAlign Center || attr == VAlign VerticalCenter) attrs
 
                 attributes =
                     case parent of
@@ -490,8 +499,8 @@ renderElement parent stylesheet order elm =
 
                 forPadding posAttr =
                     case posAttr of
-                        Padding box ->
-                            Just box
+                        Padding t r b l ->
+                            Just <| defaultPadding ( t, r, b, l ) ( 0, 0, 0, 0 )
 
                         PhantomPadding box ->
                             Just box
@@ -518,12 +527,12 @@ renderElement parent stylesheet order elm =
                 forSpacing =
                     (\x -> x /= Nothing) << findSpacing
 
-                ( spacing, attrs ) =
-                    List.partition forSpacing position
+                ( spacing, _ ) =
+                    List.partition forSpacing attrs
 
                 inherit =
                     { parentSpecifiedSpacing =
-                        List.filterMap findSpacing position
+                        List.filterMap findSpacing attrs
                             |> List.head
                     , layout = layout
                     , parentPadding = padding
@@ -578,7 +587,7 @@ type alias Positionable variation msg =
     , height : Maybe Internal.Length
     , positioned : ( Maybe Float, Maybe Float, Maybe Float )
     , margin : Maybe ( Float, Float, Float, Float )
-    , padding : Maybe ( Float, Float, Float, Float )
+    , padding : ( Maybe Float, Maybe Float, Maybe Float, Maybe Float )
     , variations : List ( variation, Bool )
     , opacity : Maybe Float
     , gridPosition : Maybe String
@@ -599,7 +608,7 @@ emptyPositionable =
     , height = Nothing
     , positioned = ( Nothing, Nothing, Nothing )
     , margin = Nothing
-    , padding = Nothing
+    , padding = ( Nothing, Nothing, Nothing, Nothing )
     , variations = []
     , opacity = Nothing
     , gridPosition = Nothing
@@ -683,8 +692,44 @@ makePositionable attr pos =
         PhantomPadding _ ->
             pos
 
-        Padding box ->
-            { pos | padding = Just box }
+        Padding top right bottom left ->
+            let
+                ( currentTop, currentRight, currentBottom, currentLeft ) =
+                    pos.padding
+
+                newTop =
+                    case top of
+                        Nothing ->
+                            currentTop
+
+                        Just a ->
+                            Just a
+
+                newRight =
+                    case right of
+                        Nothing ->
+                            currentRight
+
+                        Just a ->
+                            Just a
+
+                newBottom =
+                    case bottom of
+                        Nothing ->
+                            currentBottom
+
+                        Just a ->
+                            Just a
+
+                newLeft =
+                    case left of
+                        Nothing ->
+                            currentLeft
+
+                        Just a ->
+                            Just a
+            in
+                { pos | padding = ( newTop, newRight, newBottom, newLeft ) }
 
         Hidden ->
             { pos | hidden = True }
@@ -1130,12 +1175,14 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                     ( "opacity", toString o ) :: attrs
 
         padding attrs =
-            case elem.padding of
-                Nothing ->
+            let
+                paddings =
+                    renderPadding elem.padding
+            in
+                if List.length paddings > 0 then
+                    paddings ++ attrs
+                else
                     attrs
-
-                Just pad ->
-                    ( "padding", Value.box pad ) :: attrs
 
         gridPos attrs =
             case elem.gridPosition of
@@ -1280,13 +1327,7 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                             "margin-bottom" => (toString (-1 * bottom) ++ "px")
                                           else
                                             "margin-bottom" => "0"
-                                        , case elem.padding of
-                                            Nothing ->
-                                                -- Padding is inherited only for expanded elements
-                                                ( "padding", Value.box parentPadding )
-
-                                            Just pad ->
-                                                ( "padding", Value.box pad )
+                                        , "padding" => (Value.box <| defaultPadding elem.padding parentPadding)
                                         ]
                                             ++ borders
 
@@ -1376,3 +1417,16 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                 (passthrough <| gridPos <| layout <| spacing <| opacity <| width <| height <| padding <| horizontal <| vertical <| position <| defaults)
             )
                 :: attributes
+
+
+renderPadding ( top, right, bottom, left ) =
+    let
+        format name x =
+            ( name, toString x ++ "px" )
+    in
+        List.filterMap identity
+            [ Maybe.map (format "padding-top") top
+            , Maybe.map (format "padding-bottom") bottom
+            , Maybe.map (format "padding-left") left
+            , Maybe.map (format "padding-right") right
+            ]
