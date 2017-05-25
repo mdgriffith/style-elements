@@ -438,7 +438,7 @@ a {
     text-decoration: none;
 }
 
-input {
+input, textarea {
     border-width: 0;
 }
 
