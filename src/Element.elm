@@ -22,6 +22,7 @@ module Element
         , article
         , aside
         , canvas
+        , button
         , iframe
         , audio
         , video
@@ -168,7 +169,7 @@ So, if we wanted to make a standard element be rendered as a `section` node, we 
 
 ## Form Elements
 
-@docs form, checkbox, textArea, inputText, radio, select, option, Option, label, labelBelow
+@docs form, checkbox, textArea, inputText, radio, select, option, Option, label, labelBelow, button
 
 
 ## Rendering
@@ -362,6 +363,12 @@ aside constructor elem attrs stuff =
     Modify.setNode "aside" (constructor elem attrs stuff)
 
 
+{-| -}
+button : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
+button constructor elem attrs stuff =
+    Modify.setNode "button" (constructor elem attrs stuff)
+
+
 
 ---------------------
 --- Specialized Elements
@@ -402,11 +409,6 @@ video constructor elem attrs stuff =
 form : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
 form constructor elem attrs stuff =
     Modify.setNode "form" (constructor elem attrs stuff)
-
-
-{-| -}
-type RadioButton style variation msg
-    = RadioButton String Bool (Element style variation msg)
 
 
 {-| Create a list of labeled radio button.
