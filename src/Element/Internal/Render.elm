@@ -81,6 +81,9 @@ adjustStructure parent elm =
         Empty ->
             Empty
 
+        Raw html ->
+            Raw html
+
         Spacer x ->
             Spacer x
 
@@ -377,6 +380,9 @@ renderElement parent stylesheet order elm =
     case elm of
         Empty ->
             Html.text ""
+
+        Raw html ->
+            html
 
         Spacer x ->
             let

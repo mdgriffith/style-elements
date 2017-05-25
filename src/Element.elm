@@ -68,6 +68,7 @@ module Element
         , select
         , option
         , Option
+        , html
         )
 
 {-|
@@ -86,7 +87,7 @@ Once you've done that, come back here!
 
 ## Elements
 
-@docs empty, text, el,when
+@docs empty, text, el, when, html
 
 
 # Layout
@@ -160,19 +161,19 @@ So, if we wanted to make a standard element be rendered as a `section` node, we 
     el MyStyle [] (text "Hello World!")
 
     -- Same element annotated as a `section`
-    (section el) MyStyle [] (text "Hello World!")
+    section el MyStyle [] (text "Hello World!")
 
 @docs node, header, section, nav, article, aside, canvas, iframe, audio, video
 
 
 ## Form Elements
 
-@docs form, checkbox, textArea, inputText, radio, radioButton, RadioButton, label, labelBelow
+@docs form, checkbox, textArea, inputText, radio, select, option, Option, label, labelBelow
 
 
 ## Rendering
 
-@docs render, root, embed
+@docs render, root, embed, html
 
 -}
 
@@ -305,6 +306,18 @@ hairline elem =
         [ Height (Style.Px 1) ]
         empty
         Nothing
+
+
+{-| For when you want to embed `Html`.
+
+If you're using this library, I'd encourage you to try to solve your problem without using this escape hatch.
+
+Usage of this function makes the most sense when you're dealing with `Html` from another module or package.
+
+-}
+html : Html msg -> Element style variation msg
+html =
+    Raw
 
 
 

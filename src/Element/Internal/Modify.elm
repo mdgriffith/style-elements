@@ -25,6 +25,9 @@ setNode node el =
         Empty ->
             Empty
 
+        Raw h ->
+            Raw h
+
         Spacer x ->
             Spacer x
 
@@ -44,6 +47,9 @@ addAttrToNonText prop el =
         Empty ->
             Empty
 
+        Raw h ->
+            Raw h
+
         Spacer x ->
             Spacer x
 
@@ -62,6 +68,9 @@ addAttr prop el =
     case el of
         Empty ->
             Empty
+
+        Raw h ->
+            Raw h
 
         Spacer x ->
             Spacer x
@@ -85,6 +94,9 @@ addAttrList props el =
         Spacer x ->
             Spacer x
 
+        Raw h ->
+            Raw h
+
         Layout node layout elem attrs els ->
             Layout node layout elem (props ++ attrs) els
 
@@ -104,6 +116,9 @@ removeAttrs props el =
         case el of
             Empty ->
                 Empty
+
+            Raw h ->
+                Raw h
 
             Spacer x ->
                 Spacer x
@@ -127,6 +142,9 @@ removeAllAttrs el =
         Spacer x ->
             Spacer x
 
+        Raw h ->
+            Raw h
+
         Layout node layout elem _ els ->
             Layout node layout elem [] els
 
@@ -145,6 +163,9 @@ addChild parent el =
 
         Spacer x ->
             Spacer x
+
+        Raw h ->
+            Raw h
 
         Layout node layout elem attrs children ->
             case children of
@@ -176,6 +197,9 @@ getAttrs el =
         Spacer x ->
             []
 
+        Raw h ->
+            []
+
         Layout _ _ _ attrs _ ->
             attrs
 
@@ -190,6 +214,9 @@ getStyle : Element style variation msg -> Maybe style
 getStyle el =
     case el of
         Empty ->
+            Nothing
+
+        Raw h ->
             Nothing
 
         Spacer x ->
@@ -214,6 +241,9 @@ removeStyle el =
         Spacer x ->
             Spacer x
 
+        Raw h ->
+            Raw h
+
         Layout node layout _ attrs els ->
             Layout node layout Nothing attrs els
 
@@ -233,6 +263,9 @@ removeContent el =
         Spacer x ->
             Spacer x
 
+        Raw h ->
+            Raw h
+
         Layout node layout elem attrs children ->
             Layout node layout elem attrs (Normal [])
 
@@ -251,6 +284,9 @@ getChild el =
 
         Spacer x ->
             Spacer x
+
+        Raw h ->
+            Raw h
 
         Layout node layout elem attrs children ->
             el

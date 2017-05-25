@@ -131,6 +131,8 @@ For existing attributes, the only modification is that `style` has been renamed 
 
 # Style Element Attributes
 
+These are the new attributes that generally have to do with layout.
+
 @docs hidden, vary
 
 @docs center, verticalCenter, justify, alignTop, alignBottom, alignLeft, alignRight

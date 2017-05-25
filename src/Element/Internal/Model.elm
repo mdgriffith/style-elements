@@ -12,6 +12,7 @@ type Element style variation msg
     | Text Decoration String
     | Element String (Maybe style) (List (Attribute variation msg)) (Element style variation msg) (Maybe (List (Element style variation msg)))
     | Layout String Style.LayoutModel (Maybe style) (List (Attribute variation msg)) (Children (Element style variation msg))
+    | Raw (Html msg)
 
 
 type Children child
