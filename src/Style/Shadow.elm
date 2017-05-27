@@ -1,4 +1,4 @@
-module Style.Shadow exposing (simple, deep, glow, innerGlow, box, drop, inset, text)
+module Style.Shadow exposing (simple, deep, glow, innerGlow, textGlow, box, drop, inset, text)
 
 {-| Shadows
 
@@ -15,7 +15,7 @@ These can be used directly as properties.
         [ Shadow.glow Color.red 5
         ]
 
-@docs simple, deep, glow, innerGlow
+@docs simple, deep, glow, innerGlow, textGlow
 
 
 # Advanced Shadows
@@ -27,7 +27,7 @@ These are for when you want to specify shadows manually. They're meant to be spe
     import Style.Shadow as Shadow
 
     style MyStyleWithShadow
-        [ shadows
+        [ Style.shadows
             [ Shadow.inset
                 { offset = ( 0, 0 )
                 , size = 5
@@ -61,13 +61,26 @@ glow color size =
         ]
 
 
-{-| A simple glow by specifying the color and size.
--}
+{-| -}
 innerGlow : Color -> Float -> Property class variation animation
 innerGlow color size =
     Internal.Shadows
         [ Internal.ShadowModel
             { kind = "inset"
+            , offset = ( 0, 0 )
+            , size = size
+            , blur = size * 2
+            , color = color
+            }
+        ]
+
+
+{-| -}
+textGlow : Color -> Float -> Property class variation animation
+textGlow color size =
+    Internal.Shadows
+        [ Internal.ShadowModel
+            { kind = "text"
             , offset = ( 0, 0 )
             , size = size
             , blur = size * 2
