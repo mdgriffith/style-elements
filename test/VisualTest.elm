@@ -129,7 +129,8 @@ view model =
 
 basics =
     [ el Container [ paddingXY 20 5 ] (text "Single Element")
-    , el Container [ moveXY 20 20, paddingXY 20 5 ] (text "Single Element")
+    , el Container [ moveX 20, moveY 20, paddingXY 20 5 ] (text "Single Element")
+    , el Container [ paddingLeft 20, paddingRight 5 ] (text "Single Element")
     , el Container [ paddingXY 20 5, alignLeft ] (text "Single Element")
     , el Container [ paddingXY 20 5, center, width (px 200) ] (text "Centered Element")
     , el Container [ paddingXY 20 5, alignRight ] (text "Align Right")

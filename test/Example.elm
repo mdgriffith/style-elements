@@ -7,9 +7,7 @@ import Style.Border as Border
 import Style.Background as Background
 import Style.Shadow as Shadow
 import Style.Filter as Filter
-import Style.Transform as Transform
 import Style.Transitions as Transitions
-import Style.Media
 import Style.Sheet
 import Color
 
@@ -47,7 +45,7 @@ stylesheet =
             , invisible
             , block
             , font
-                [ Font.stack [ "Open Sans" ]
+                [ Font.typeface [ "Open Sans" ]
                 , Font.size 18
                 , Font.letterSpacing 20
                 , Font.light
