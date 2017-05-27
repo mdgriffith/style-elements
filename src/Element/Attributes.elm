@@ -19,6 +19,7 @@ module Element.Attributes
         , percent
         , vary
         , spacing
+        , spacingXY
         , padding
         , paddingXY
         , paddingTop
@@ -142,7 +143,7 @@ These are the new attributes that generally have to do with layout.
 
 @docs width, height, px, fill, percent
 
-@docs spacing, padding, paddingXY, paddingTop, paddingRight, paddingBottom, paddingLeft
+@docs spacing, spacingXY, padding, paddingXY, paddingTop, paddingRight, paddingBottom, paddingLeft
 
 
 ## Positioning
@@ -371,8 +372,15 @@ vary =
 
 {-| The horizontal and vertical spacing.
 -}
-spacing : Float -> Float -> Attribute variation msg
-spacing =
+spacing : Float -> Attribute variation msg
+spacing x =
+    Spacing x x
+
+
+{-| The horizontal and vertical spacing.
+-}
+spacingXY : Float -> Float -> Attribute variation msg
+spacingXY =
     Spacing
 
 
