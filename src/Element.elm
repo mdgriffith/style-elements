@@ -1003,13 +1003,13 @@ classifyDevice { width, height } =
 Provide a value for the first and receive the calculated value for the second.
 
     fontsize =
-        responsive ( 600, 1200 ) ( 16, 20 ) device.width
+        responsive ( 16, 20 ) ( 600, 1200 ) device.width
 
 Will set the font-size between 16 and 20 when the device width is between 600 and 1200, using a linear scale.
 
 -}
 responsive : ( Float, Float ) -> ( Float, Float ) -> Float -> Float
-responsive ( aMin, aMax ) ( bMin, bMax ) a =
+responsive ( bMin, bMax ) ( aMin, aMax ) a =
     if a <= aMin then
         bMin
     else if a >= aMax then
