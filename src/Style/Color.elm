@@ -2,6 +2,10 @@ module Style.Color exposing (text, background, border, cursor, decoration, selec
 
 {-| Set Colors.
 
+Meant to be imported as
+
+    import Style.Color as Color
+
 @docs text, background, border, cursor, decoration, selection
 
 -}
