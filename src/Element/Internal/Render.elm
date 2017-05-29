@@ -187,7 +187,7 @@ adjustStructure parent elm =
                                         ]
                                     )
 
-                        Just Internal.TextLayout ->
+                        Just (Internal.TextLayout _) ->
                             let
                                 ( spaced, unspaced ) =
                                     List.partition forSpacing unaligned
@@ -258,7 +258,7 @@ adjustStructure parent elm =
                             Nothing
             in
                 case layout of
-                    Internal.TextLayout ->
+                    Internal.TextLayout _ ->
                         if not <| List.isEmpty centeredProps then
                             Layout
                                 "div"
@@ -467,7 +467,7 @@ renderElement parent stylesheet order elm =
 
                 parentTextLayout layout =
                     case layout of
-                        Internal.TextLayout ->
+                        Internal.TextLayout _ ->
                             True
 
                         _ ->
@@ -517,8 +517,11 @@ renderElement parent stylesheet order elm =
 
                 clearfix attrs =
                     case layout of
-                        Internal.TextLayout ->
-                            Html.Attributes.class "clearfix" :: attrs
+                        Internal.TextLayout clearfix ->
+                            if clearfix then
+                                Html.Attributes.class "clearfix" :: attrs
+                            else
+                                attrs
 
                         _ ->
                             attrs
@@ -854,8 +857,8 @@ alignLayout maybeHorizontal maybeVertical layout =
                     Internal.GridV (Internal.Center)
     in
         case layout of
-            Internal.TextLayout ->
-                Internal.TextLayout
+            Internal.TextLayout clearfix ->
+                Internal.TextLayout clearfix
 
             Internal.FlexLayout dir els ->
                 case ( maybeHorizontal, maybeVertical ) of
@@ -1111,7 +1114,7 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
 
                             Just { layout } ->
                                 case layout of
-                                    Internal.TextLayout ->
+                                    Internal.TextLayout _ ->
                                         case align of
                                             Left ->
                                                 ( "z-index", "1" ) :: ( "float", "left" ) :: attrs
@@ -1242,7 +1245,7 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
 
                     Just { layout } ->
                         case layout of
-                            Internal.TextLayout ->
+                            Internal.TextLayout _ ->
                                 case elem.horizontal of
                                     Nothing ->
                                         if order == Last || order == FirstAndLast then
@@ -1317,7 +1320,7 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
 
                         Just { layout, parentPadding, parentSpecifiedSpacing } ->
                             case layout of
-                                Internal.TextLayout ->
+                                Internal.TextLayout _ ->
                                     let
                                         ( top, right, bottom, left ) =
                                             parentPadding

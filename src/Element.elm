@@ -650,7 +650,7 @@ Children that are aligned left or right will be floated left or right.
 -}
 textLayout : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 textLayout elem attrs children =
-    Layout "div" (Style.TextLayout) (Just elem) attrs (Normal children)
+    Layout "div" (Style.TextLayout True) (Just elem) attrs (Normal children)
 
 
 {-| Paragraph is actually a layout if you can believe it!
@@ -660,7 +660,12 @@ All of the children are set to `display:inline`.
 -}
 paragraph : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
 paragraph elem attrs children =
-    inlineChildren "p" (Just elem) attrs children
+    -- Paragraph does not have clearfix, which is what the `TextLayout False` is all about
+    Layout "p" (Style.TextLayout False) (Just elem) attrs (Normal <| List.map (Modify.addAttrToNonText Inline) children)
+
+
+
+-- inlineChildren "p" (Just elem) attrs children
 
 
 {-| -}

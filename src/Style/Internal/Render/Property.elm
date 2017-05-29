@@ -306,7 +306,7 @@ background prop =
 layout : Bool -> LayoutModel -> List ( String, String )
 layout inline lay =
     case lay of
-        Internal.TextLayout ->
+        Internal.TextLayout _ ->
             [ "display"
                 => if inline then
                     "inline-block"

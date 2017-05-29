@@ -150,7 +150,7 @@ type BoxElement
 
 
 type LayoutModel
-    = TextLayout
+    = TextLayout Bool
     | FlexLayout Direction (List FlexBoxElement)
     | Grid GridTemplate (List GridAlignment)
 
