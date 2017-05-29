@@ -37,6 +37,8 @@ module Style
         , roundTopRight
         , roundBottomRight
         , roundBottomLeft
+        , importUrl
+        , importCss
         )
 
 {-|
@@ -95,7 +97,7 @@ Psuedo classes can be nested.
 
 ## Render into a Style Sheet
 
-@docs StyleSheet, stylesheet, stylesheetWith, Option, defaults, Defaults, unguarded
+@docs StyleSheet, stylesheet, stylesheetWith, Option, defaults, Defaults, unguarded, importUrl, importCss
 
 -}
 
@@ -132,6 +134,18 @@ type alias Length =
 {-| -}
 type alias Transform =
     Internal.Transformation
+
+
+{-| -}
+importUrl : String -> Style class variation
+importUrl url =
+    Batchable.one (Internal.Import <| "url(\"" ++ url ++ "\")")
+
+
+{-| -}
+importCss : String -> Style class variation
+importCss str =
+    Batchable.one (Internal.Import <| "\"" ++ str ++ "\"")
 
 
 {-| -}
