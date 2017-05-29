@@ -27,9 +27,20 @@ type Styles
     | Label
 
 
+options =
+    [ Style.defaults
+        { typeface = [ "helvetica", "arial", "sans-serif" ]
+        , fontSize = 16
+        , lineHeight = 1.3
+        , textColor = Color.black
+        }
+    , Style.unguarded
+    ]
+
+
 stylesheet : StyleSheet Styles variation animation msg
 stylesheet =
-    Style.stylesheet
+    Style.stylesheetWith options
         [ style None []
         , style Main
             [ Border.all 1
@@ -79,7 +90,7 @@ stylesheet =
 testForm =
     [ Element.form column
         Box
-        [ spacing 10 20 ]
+        [ spacingXY 10 20 ]
         [ checkbox True None [] (text "Yes, Lunch pls.")
         , label None [] (text "check this out") <|
             inputText None [] "The Value!"
@@ -113,7 +124,7 @@ view model =
     Element.root stylesheet <|
         el None [ center, width (px 800) ] <|
             column Main
-                [ spacing 50 100, padding 10 ]
+                [ spacingXY 50 100, padding 10 ]
                 (List.concat
                     [ basics
                     , anchored
@@ -134,18 +145,18 @@ basics =
     , el Container [ paddingXY 20 5, alignLeft ] (text "Single Element")
     , el Container [ paddingXY 20 5, center, width (px 200) ] (text "Centered Element")
     , el Container [ paddingXY 20 5, alignRight ] (text "Align Right")
-    , el Container [ paddingXY 20 5, center, spacing 20 20, width (px 200) ] (text "Centered ++ 20/20 Spacing Element")
+    , el Container [ paddingXY 20 5, center, spacingXY 20 20, width (px 200) ] (text "Centered ++ 20/20 Spacing Element")
     , el Container [ paddingXY 20 5, center, width (percent 100) ] (text "Single Element")
     ]
 
 
 anchored =
     [ row None
-        [ spacing 150 150
+        [ spacingXY 150 150
         , center
         ]
         [ column None
-            [ spacing 20 60 ]
+            [ spacingXY 20 60 ]
             [ el Label [] (text "Anchored Elements")
             , el Container [ width (px 200), height (px 200) ] empty
                 |> within
@@ -162,7 +173,7 @@ anchored =
             ]
         , article column
             None
-            [ spacing 20 60 ]
+            [ spacingXY 20 60 ]
             [ section el Label [] (text "Nearby Elements")
             , el Container [ width (px 200), height (px 200) ] empty
                 |> above
@@ -188,11 +199,11 @@ anchored =
             ]
         ]
     , row None
-        [ spacing 150 150
+        [ spacingXY 150 150
         , center
         ]
         [ column None
-            [ spacing 20 60 ]
+            [ spacingXY 20 60 ]
             [ el Label [] (text "Move 20 20")
             , el Container [ width (px 200), height (px 200) ] empty
                 |> within
@@ -208,7 +219,7 @@ anchored =
                     ]
             ]
         , column None
-            [ spacing 20 60 ]
+            [ spacingXY 20 60 ]
             [ el Label [] (text "Move 20 20")
             , el Container [ width (px 200), height (px 200) ] empty
                 |> above
@@ -252,7 +263,7 @@ viewTextLayout =
     [ el Label [] (text "Text Layout")
     , textLayout Page
         [ padding 50
-        , spacing 25 25
+        , spacingXY 25 25
         ]
         [ el Box
             [ width (px 200)
@@ -284,14 +295,14 @@ viewTextLayout =
 viewRowLayouts =
     [ el Label [] (text "Row Layout")
     , row Container
-        [ spacing 20 20 ]
+        [ spacingXY 20 20 ]
         [ box
         , box
         , box
         ]
     , el Label [] (text "Row Alignment")
     , row Container
-        [ spacing 20 20, height (px 400) ]
+        [ spacingXY 20 20, height (px 400) ]
         [ el Box [ width (px 100), height (px 100), alignTop ] (text "top")
         , el Box [ width (px 100), height (px 100), verticalCenter ] (text "vcenter")
         , el Box [ width (px 100), height (px 100), alignBottom ] (text "bottom")
@@ -301,27 +312,27 @@ viewRowLayouts =
         ]
     , el Label [] (text "Row Width/Heights")
     , row Container
-        [ spacing 20 20, height (px 800) ]
+        [ spacingXY 20 20, height (px 800) ]
         [ el Box [ width (px 200), height (fill 1) ] (text "fill height")
         , el Box [ width (fill 1), height (px 200) ] (text "fill width")
         ]
     , el Label [] (text "Row Center ++ Spacing")
     , row Container
-        [ center, spacing 20 20 ]
+        [ center, spacingXY 20 20 ]
         [ el Box [ width (px 100), height (px 100) ] empty
         , el Box [ width (px 100), height (px 100) ] empty
         , full Box [ width (px 100) ] (text "full element")
         ]
     , el Label [] (text "Row Center ++ Spacing ++ padding")
     , row Container
-        [ center, spacing 20 20, padding 50 ]
+        [ center, spacingXY 20 20, padding 50 ]
         [ el Box [ width (px 100), height (px 100) ] empty
         , el Box [ width (px 100), height (px 100) ] empty
         , full Box [ width (px 100) ] (text "full element")
         ]
     , el Label [] (text "Wrapped Row Layout")
     , wrappedRow Container
-        [ spacing 20 20 ]
+        [ spacingXY 20 20 ]
         [ el Box [ width (px 100), height (px 50) ] empty
         , el Box [ width (px 20), height (px 50) ] empty
         , el Box [ width (px 200), height (px 50) ] empty
@@ -338,14 +349,14 @@ viewRowLayouts =
 viewColumnLayouts =
     [ el Label [] (text "Column Layout")
     , column Container
-        [ spacing 20 20 ]
+        [ spacingXY 20 20 ]
         [ box
         , box
         , box
         ]
     , el Label [] (text "Column Center ++ Spacing")
     , column Container
-        [ spacing 20 20 ]
+        [ spacingXY 20 20 ]
         [ el Box [ width (px 200), height (px 200) ] empty
         , el Box [ width (percent 100), height (px 200) ] (text "100% width")
         , el Box [ width (px 200), height (px 200) ] empty
@@ -355,7 +366,7 @@ viewColumnLayouts =
         ]
     , el Label [] (text "Row Center ++ Spacing ++ padding")
     , column Container
-        [ spacing 20 20, padding 50 ]
+        [ spacingXY 20 20, padding 50 ]
         [ el Box [ width (px 200), height (px 200) ] empty
         , el Box [ width (percent 100), height (px 200) ] (text "100% width")
         , el Box [ width (px 200), height (px 200) ] empty
@@ -363,7 +374,7 @@ viewColumnLayouts =
         ]
     , el Label [] (text "Column Alignments")
     , column Container
-        [ spacing 20 20 ]
+        [ spacingXY 20 20 ]
         [ el Box [ width (px 200), height (px 200), alignLeft ] empty
         , el Box [ width (px 200), height (px 200), center ] empty
         , el Box [ width (px 200), height (px 200), alignRight ] empty
@@ -373,7 +384,7 @@ viewColumnLayouts =
         ]
     , el Label [] (text "Column Alignments ++ Width fill")
     , column Container
-        [ spacing 20 20 ]
+        [ spacingXY 20 20 ]
         [ el Box [ width (fill 1), height (px 200), alignLeft ] empty
         , el Box [ width (fill 1), height (px 200), center ] empty
         , el Box [ width (fill 1), height (px 200), alignRight ] empty
@@ -383,7 +394,7 @@ viewColumnLayouts =
         ]
     , el Label [] (text "Column Alignments ++ Height fill")
     , column Container
-        [ spacing 20 20 ]
+        [ spacingXY 20 20 ]
         [ el Box [ width (px 200), height (fill 1), alignLeft ] empty
         , el Box [ width (px 200), height (fill 1), center ] empty
         , el Box [ width (px 200), height (fill 1), alignRight ] empty
@@ -457,7 +468,7 @@ viewNamedGridLayout =
 viewTransforms =
     [ el Label [] (text "Transformations")
     , row Container
-        [ spacing 20 20 ]
+        [ spacingXY 20 20 ]
         [ el Box
             [ width (px 200)
             , height (fill 1)

@@ -2,6 +2,8 @@ module Style
     exposing
         ( stylesheet
         , stylesheetWith
+        , defaults
+        , unguarded
         , Style
         , Property
         , Shadow
@@ -92,7 +94,7 @@ Psuedo classes can be nested.
 
 ## Render into a Style Sheet
 
-@docs StyleSheet, stylesheet, stylesheetWith, Defaults
+@docs StyleSheet, stylesheet, stylesheetWith, defaults, Defaults, unguarded
 
 -}
 
@@ -342,6 +344,44 @@ pseudo psu props =
     Internal.PseudoElement (":" ++ psu) props
 
 
+type Option class
+    = Unguarded
+    | Critical (List class)
+    | DefaultStyle Defaults
+
+
+{-| -}
+defaults : Defaults -> Option class
+defaults =
+    DefaultStyle
+
+
+{-| Remove style hash guards from style classes
+
+-}
+unguarded : Option class
+unguarded =
+    Unguarded
+
+
+{-| -}
+critical : List class -> Option class
+critical =
+    Critical
+
+
+clearfix : String
+clearfix =
+    """
+.clearfix:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+"""
+
+
 {-| -}
 type alias Defaults =
     { typeface : List String
@@ -353,7 +393,7 @@ type alias Defaults =
 
 presetDefaults : Defaults
 presetDefaults =
-    { typeface = [ "calibri", "helvetica", "arial", "sans-serif" ]
+    { typeface = [ "helvetica", "arial", "sans-serif" ]
     , fontSize = 16
     , lineHeight = 1.3
     , textColor = Color.black
@@ -448,99 +488,46 @@ input, textarea {
 {-| -}
 stylesheet : List (Style elem variation animation) -> StyleSheet elem variation animation msg
 stylesheet styles =
+    stylesheetWith [ DefaultStyle presetDefaults ] styles
+
+
+{-| -}
+stylesheetWith : List (Option class) -> List (Style elem variation animation) -> StyleSheet elem variation animation msg
+stylesheetWith options styles =
     let
-        defaults =
-            Batchable.One
-                (Internal.RawStyle "style-elements-root"
-                    [ ( "font-family", Value.typeface presetDefaults.typeface )
-                    , ( "color", Value.color presetDefaults.textColor )
-                    , ( "line-height", toString presetDefaults.lineHeight )
-                    , ( "font-size", toString presetDefaults.fontSize ++ "px" )
-                    ]
-                )
-
-        stylesheet =
-            render
-                (defaults :: styles)
-    in
-        { stylesheet | css = reset ++ stylesheet.css }
-
-
-{-| -}
-stylesheetWith : Defaults -> List (Style elem variation animation) -> StyleSheet elem variation animation msg
-stylesheetWith defaultProps styles =
-    let
-        defaults =
-            Batchable.One
-                (Internal.RawStyle "style-elements-root"
-                    [ ( "font-family", Value.typeface defaultProps.typeface )
-                    , ( "color", Value.color defaultProps.textColor )
-                    , ( "line-height", toString defaultProps.lineHeight )
-                    , ( "font-size", toString defaultProps.fontSize ++ "px" )
-                    ]
-                )
-
-        stylesheet =
-            render
-                (defaults :: styles)
-    in
-        { stylesheet | css = reset ++ stylesheet.css }
-
-
-type Option class
-    = Guard
-    | Critical (List class)
-
-
-{-| -}
-guard : Option class
-guard =
-    Guard
-
-
-{-| -}
-critical : List class -> Option class
-critical =
-    Critical
-
-
-{-| -}
-render : List (Style class variation animation) -> StyleSheet class variation animation msg
-render styles =
-    prepareSheet (Render.stylesheet False styles)
-
-
-{-| -}
-renderWith : List (Option class) -> List (Style class variation animation) -> StyleSheet class variation animation msg
-renderWith opts styles =
-    let
-        guard =
-            List.any ((==) Guard) opts
-
-        critical =
-            List.concatMap criticalClasses opts
-
-        criticalClasses opt =
+        defaultClass opt =
             case opt of
-                Critical class ->
-                    class
+                DefaultStyle default ->
+                    Just default
 
                 _ ->
-                    []
+                    Nothing
+
+        defaultStyle =
+            options
+                |> List.filterMap defaultClass
+                |> List.head
+                |> Maybe.withDefault presetDefaults
+
+        defaults =
+            Batchable.One
+                (Internal.RawStyle "style-elements-root"
+                    [ ( "font-family", Value.typeface defaultStyle.typeface )
+                    , ( "color", Value.color defaultStyle.textColor )
+                    , ( "line-height", toString defaultStyle.lineHeight )
+                    , ( "font-size", toString defaultStyle.fontSize ++ "px" )
+                    ]
+                )
+
+        unguarded =
+            List.any ((==) Unguarded) options
+
+        stylesheet =
+            prepareSheet (Render.stylesheet (not <| unguarded) (defaults :: styles))
     in
-        prepareSheet (Render.stylesheet guard styles)
-
-
-clearfix : String
-clearfix =
-    """
-.clearfix:after {
-  content: "";
-  display: table;
-  clear: both;
-}
-
-"""
+        { stylesheet
+            | css = reset ++ stylesheet.css
+        }
 
 
 {-| -}
