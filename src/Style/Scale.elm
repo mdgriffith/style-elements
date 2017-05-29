@@ -1,4 +1,4 @@
-module Style.Scale exposing (modular)
+module Style.Scale exposing (modular, roundedModular)
 
 {-| When designing it's nice to use a modular scale to set spacial rythms.
 
@@ -25,7 +25,7 @@ This results in a font size of 25.8px.
 
 We can also provide negative numbers to scale below 16px.
 
-@docs modular
+@docs modular, roundedModular
 
 -}
 
@@ -34,6 +34,16 @@ We can also provide negative numbers to scale below 16px.
 modular : Float -> Float -> Int -> Float
 modular normal ratio fontScale =
     resize normal ratio fontScale
+
+
+{-| Same a modular but rounds to the nearest integer.
+
+Still returns a Float for compatibility reasons with `Font.fontsize`
+
+-}
+roundedModular : Float -> Float -> Int -> Float
+roundedModular normal ratio =
+    toFloat << round << resize normal ratio
 
 
 resize : Float -> Float -> Int -> Float
