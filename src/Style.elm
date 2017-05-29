@@ -10,6 +10,7 @@ module Style
         , Filter
         , StyleSheet
         , Defaults
+        , Option
         , style
         , variation
         , prop
@@ -94,7 +95,7 @@ Psuedo classes can be nested.
 
 ## Render into a Style Sheet
 
-@docs StyleSheet, stylesheet, stylesheetWith, defaults, Defaults, unguarded
+@docs StyleSheet, stylesheet, stylesheetWith, Option, defaults, Defaults, unguarded
 
 -}
 
@@ -344,14 +345,14 @@ pseudo psu props =
     Internal.PseudoElement (":" ++ psu) props
 
 
-type Option class
+type Option
     = Unguarded
-    | Critical (List class)
+      --| Critical (List class)
     | DefaultStyle Defaults
 
 
 {-| -}
-defaults : Defaults -> Option class
+defaults : Defaults -> Option
 defaults =
     DefaultStyle
 
@@ -359,15 +360,9 @@ defaults =
 {-| Remove style hash guards from style classes
 
 -}
-unguarded : Option class
+unguarded : Option
 unguarded =
     Unguarded
-
-
-{-| -}
-critical : List class -> Option class
-critical =
-    Critical
 
 
 clearfix : String
@@ -492,7 +487,7 @@ stylesheet styles =
 
 
 {-| -}
-stylesheetWith : List (Option class) -> List (Style elem variation) -> StyleSheet elem variation
+stylesheetWith : List Option -> List (Style elem variation) -> StyleSheet elem variation
 stylesheetWith options styles =
     let
         defaultClass opt =
