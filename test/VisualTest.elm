@@ -28,13 +28,7 @@ type Styles
 
 
 options =
-    [ Style.defaults
-        { typeface = [ "helvetica", "arial", "sans-serif" ]
-        , fontSize = 16
-        , lineHeight = 1.3
-        , textColor = Color.black
-        }
-    , Style.unguarded
+    [ Style.unguarded
     ]
 
 
@@ -47,6 +41,9 @@ stylesheet =
             , Color.text Color.darkCharcoal
             , Color.background Color.white
             , Color.border Color.lightGrey
+            , Font.typeface [ "helvetica", "arial", "sans-serif" ]
+            , Font.size 16
+            , Font.height 1.3
             ]
         , style Page
             [ rounded 5

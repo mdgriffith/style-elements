@@ -2,14 +2,12 @@ module Style
     exposing
         ( stylesheet
         , stylesheetWith
-        , defaults
         , unguarded
         , Style
         , Property
         , Shadow
         , Filter
         , StyleSheet
-        , Defaults
         , Option
         , style
         , variation
@@ -97,16 +95,13 @@ Psuedo classes can be nested.
 
 ## Render into a Style Sheet
 
-@docs StyleSheet, stylesheet, stylesheetWith, Option, defaults, Defaults, unguarded, importUrl, importCss
+@docs StyleSheet, stylesheet, stylesheetWith, Option, unguarded, importUrl, importCss
 
 -}
 
 import Style.Internal.Model as Internal
-import Style.Internal.Render.Value as Value
 import Style.Internal.Batchable as Batchable exposing (Batchable)
 import Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
-import Color exposing (Color)
-import Html.Attributes
 import Style.Internal.Find as Find
 import Style.Internal.Render as Render
 
@@ -361,52 +356,17 @@ pseudo psu props =
 
 type Option
     = Unguarded
-      --| Critical (List class)
-    | DefaultStyle Defaults
 
 
-{-| -}
-defaults : Defaults -> Option
-defaults =
-    DefaultStyle
+
+--| Critical (List class)
 
 
 {-| Remove style hash guards from style classes
-
 -}
 unguarded : Option
 unguarded =
     Unguarded
-
-
-clearfix : String
-clearfix =
-    """
-.clearfix:after {
-  content: "";
-  display: table;
-  clear: both;
-}
-
-"""
-
-
-{-| -}
-type alias Defaults =
-    { typeface : List String
-    , fontSize : Float
-    , lineHeight : Float
-    , textColor : Color
-    }
-
-
-presetDefaults : Defaults
-presetDefaults =
-    { typeface = [ "helvetica", "arial", "sans-serif" ]
-    , fontSize = 16
-    , lineHeight = 1.3
-    , textColor = Color.black
-    }
 
 
 reset : String
@@ -491,52 +451,30 @@ input, textarea {
     border-width: 0;
 }
 
+.clearfix:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+
 """
 
 
 {-| -}
 stylesheet : List (Style elem variation) -> StyleSheet elem variation
 stylesheet styles =
-    stylesheetWith [ DefaultStyle presetDefaults ] styles
+    stylesheetWith [] styles
 
 
 {-| -}
 stylesheetWith : List Option -> List (Style elem variation) -> StyleSheet elem variation
 stylesheetWith options styles =
     let
-        defaultClass opt =
-            case opt of
-                DefaultStyle default ->
-                    Just default
-
-                _ ->
-                    Nothing
-
-        defaultStyle =
-            options
-                |> List.filterMap defaultClass
-                |> List.head
-                |> Maybe.withDefault presetDefaults
-
-        defaults =
-            Batchable.One
-                (Internal.RawStyle "style-elements-root"
-                    [ ( "font-family", Value.typeface defaultStyle.typeface )
-                    , ( "color", Value.color defaultStyle.textColor )
-                    , ( "line-height", toString defaultStyle.lineHeight )
-                    , ( "font-size", toString defaultStyle.fontSize ++ "px" )
-                    ]
-                )
-
         unguarded =
             List.any ((==) Unguarded) options
-
-        stylesheet =
-            prepareSheet (Render.stylesheet (not <| unguarded) (defaults :: styles))
     in
-        { stylesheet
-            | css = reset ++ stylesheet.css
-        }
+        prepareSheet (Render.stylesheet reset (not <| unguarded) styles)
 
 
 {-| -}
@@ -558,6 +496,5 @@ prepareSheet (Rendered { css, findable }) =
     in
         { style = \class -> (Find.style class findable)
         , variations = \class varys -> variations class varys
-        , css =
-            clearfix ++ css
+        , css = css
         }

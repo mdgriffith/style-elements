@@ -664,10 +664,6 @@ paragraph elem attrs children =
     Layout "p" (Style.TextLayout False) (Just elem) attrs (Normal <| List.map (Modify.addAttrToNonText Inline) children)
 
 
-
--- inlineChildren "p" (Just elem) attrs children
-
-
 {-| -}
 inlineChildren :
     String

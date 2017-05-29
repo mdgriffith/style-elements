@@ -45,12 +45,29 @@ spacing box =
             |> (\cls -> ( name, "." ++ name ++ cls ))
 
 
-stylesheet : Bool -> List (Batchable (Internal.Style class variation)) -> Intermediate.Rendered class variation
-stylesheet guard batched =
+stylesheet : String -> Bool -> List (Batchable (Internal.Style class variation)) -> Intermediate.Rendered class variation
+stylesheet reset guard batched =
     batched
         |> Batchable.toList
+        |> reorderImportAddReset reset
         |> List.map (renderStyle guard << preprocess)
         |> Intermediate.finalize
+
+
+reorderImportAddReset reset styles =
+    let
+        reorder style ( imports, remainingStyles ) =
+            case style of
+                Import _ ->
+                    ( style :: imports, remainingStyles )
+
+                x ->
+                    ( imports, style :: remainingStyles )
+
+        ( imports, allStyles ) =
+            List.foldr reorder ( [], [] ) styles
+    in
+        imports ++ [ Reset reset ] ++ allStyles
 
 
 unbatchedStylesheet : Bool -> List (Internal.Style class variation) -> Intermediate.Rendered class variation
@@ -72,12 +89,6 @@ Such as:
 preprocess : Style class variation -> Style class variation
 preprocess style =
     case style of
-        Internal.Import str ->
-            Internal.Import str
-
-        Internal.RawStyle cls props ->
-            Internal.RawStyle cls props
-
         Internal.Style class props ->
             let
                 visible prop =
@@ -230,10 +241,16 @@ preprocess style =
             in
                 Internal.Style class processed
 
+        _ ->
+            style
+
 
 renderStyle : Bool -> Style class variation -> Intermediate.Class class variation
 renderStyle guarded style =
     case style of
+        Internal.Reset reset ->
+            Intermediate.Free reset
+
         Internal.Import str ->
             Intermediate.Free <| "@import " ++ str ++ ";"
 

@@ -20,6 +20,7 @@ type Style class variation
     = Style class (List (Property class variation))
     | RawStyle String (List ( String, String ))
     | Import String
+    | Reset String -- Completely Bare String to write out
 
 
 mapClass : (class -> classB) -> Style class variation -> Style classB variation
@@ -33,6 +34,9 @@ mapClass fn style =
 
         RawStyle str props ->
             RawStyle str props
+
+        Reset r ->
+            Reset r
 
 
 mapPropClass : (class -> classB) -> Property class variation -> Property classB variation
