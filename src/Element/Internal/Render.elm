@@ -473,10 +473,10 @@ renderElement parent stylesheet order elm =
                         Just ctxt ->
                             case ctxt.parentSpecifiedSpacing of
                                 Nothing ->
-                                    spacingToMargin attrs
+                                    attrs
 
                                 Just ( top, right, bottom, left ) ->
-                                    Margin ( top, right, bottom, left ) :: spacingToMargin attrs
+                                    Margin ( top, right, bottom, left ) :: attrs
 
                 htmlAttrs =
                     renderAttributes Single order element parent stylesheet (gather attributes)
@@ -1224,7 +1224,7 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
             in
                 case parent of
                     Nothing ->
-                        halved
+                        ( top, right, bottom, left )
 
                     Just { layout } ->
                         case layout of
@@ -1245,9 +1245,9 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                                     else if order == FirstAndLast then
                                                         ( 0, right, 0, 0 )
                                                     else if order == Last then
-                                                        ( top, right, 0, 0 )
+                                                        ( 0, right, 0, 0 )
                                                     else
-                                                        ( top, right, bottom, 0 )
+                                                        ( 0, right, bottom, 0 )
 
                                                 Right ->
                                                     if order == First then
@@ -1255,9 +1255,9 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                                     else if order == FirstAndLast then
                                                         ( 0, 0, 0, left )
                                                     else if order == Last then
-                                                        ( top, 0, 0, left )
+                                                        ( 0, 0, 0, left )
                                                     else
-                                                        ( top, 0, bottom, left )
+                                                        ( 0, 0, bottom, left )
 
                                                 _ ->
                                                     if order == Last || order == FirstAndLast then

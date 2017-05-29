@@ -120,20 +120,35 @@ main =
         }
 
 
+viewDEP model =
+    Element.root stylesheet <|
+        el None [ center, width (px 800) ] <|
+            column Main
+                [ spacing 100, padding 10 ]
+                [ el Box [ width (px 40), height (px 40) ] empty
+                , el Box [ spacing 10, width (px 40), height (px 40) ] empty
+                , el Box [ width (px 40), height (px 40) ] empty
+                , el Box [ width (px 40), height (px 40) ] <|
+                    el Box [ spacing 10, width (px 40), height (px 40) ] empty
+                ]
+
+
 view model =
     Element.root stylesheet <|
         el None [ center, width (px 800) ] <|
             column Main
                 [ spacingXY 50 100, padding 10 ]
                 (List.concat
-                    [ basics
-                    , anchored
-                    , viewTextLayout
-                    , viewRowLayouts
-                    , viewColumnLayouts
-                    , viewGridLayout
-                    , viewNamedGridLayout
-                    , testForm
+                    [ --basics
+                      --, anchored
+                      --,
+                      viewTextLayout
+
+                    -- , viewRowLayouts
+                    -- , viewColumnLayouts
+                    -- , viewGridLayout
+                    -- , viewNamedGridLayout
+                    -- , testForm
                     ]
                 )
 
@@ -286,6 +301,24 @@ viewTextLayout =
             ]
             [ text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris vel lectus eget lorem lobortis suscipit. Fusce porta auctor purus sed tempor. Mauris auctor sapien sit amet elementum egestas. Maecenas placerat consequat mauris, at dapibus enim tristique a. Quisque feugiat ultricies lorem nec volutpat. Sed risus enim, facilisis id fermentum quis, eleifend in diam. Suspendisse euismod, urna nec consectetur volutpat, massa libero aliquam urna, hendrerit venenatis leo lacus faucibus nulla. Curabitur et mattis dolor."
             ]
+        , paragraph None
+            []
+            [ text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris vel lectus eget lorem lobortis suscipit. Fusce porta auctor purus sed tempor. Mauris auctor sapien sit amet elementum egestas. Maecenas placerat consequat mauris, at dapibus enim tristique a. Quisque feugiat ultricies lorem nec volutpat. Sed risus enim, facilisis id fermentum quis, eleifend in diam. Suspendisse euismod, urna nec consectetur volutpat, massa libero aliquam urna, hendrerit venenatis leo lacus faucibus nulla. Curabitur et mattis dolor."
+            ]
+        , el Box
+            [ width (px 200)
+            , height (px 300)
+            , alignRight
+            ]
+            empty
+        , paragraph None
+            []
+            [ text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris vel lectus eget lorem lobortis suscipit. Fusce porta auctor purus sed tempor. Mauris auctor sapien sit amet elementum egestas. Maecenas placerat consequat mauris, at dapibus enim tristique a. Quisque feugiat ultricies lorem nec volutpat. Sed risus enim, facilisis id fermentum quis, eleifend in diam. Suspendisse euismod, urna nec consectetur volutpat, massa libero aliquam urna, hendrerit venenatis leo lacus faucibus nulla. Curabitur et mattis dolor."
+            ]
+        , paragraph None
+            []
+            [ text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris vel lectus eget lorem lobortis suscipit. Fusce porta auctor purus sed tempor. Mauris auctor sapien sit amet elementum egestas. Maecenas placerat consequat mauris, at dapibus enim tristique a. Quisque feugiat ultricies lorem nec volutpat. Sed risus enim, facilisis id fermentum quis, eleifend in diam. Suspendisse euismod, urna nec consectetur volutpat, massa libero aliquam urna, hendrerit venenatis leo lacus faucibus nulla. Curabitur et mattis dolor."
+            ]
         , full Box [] <|
             text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris vel lectus eget lorem lobortis suscipit. Fusce porta auctor purus sed tempor. Mauris auctor sapien sit amet elementum egestas. Maecenas placerat consequat mauris, at dapibus enim tristique a. Quisque feugiat ultricies lorem nec volutpat. Sed risus enim, facilisis id fermentum quis, eleifend in diam. Suspendisse euismod, urna nec consectetur volutpat, massa libero aliquam urna, hendrerit venenatis leo lacus faucibus nulla. Curabitur et mattis dolor."
         ]
@@ -416,7 +449,7 @@ viewGridLayout =
             , px 100
             ]
         }
-        []
+        [ spacing 20 ]
         [ area
             { start = ( 0, 0 )
             , width = 1
@@ -428,7 +461,7 @@ viewGridLayout =
             , width = 1
             , height = 2
             }
-            (el Box [] (text "box"))
+            (el Box [ spacing 100 ] (text "box"))
         , area
             { start = ( 2, 1 )
             , width = 2
