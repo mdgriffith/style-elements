@@ -17,6 +17,7 @@
         "Style.Shadow",
         "Style.Transition",
         "Style.Scale",
+        "Style.Sheet",
         "Element",
         "Element.Attributes",
         "Element.Events"

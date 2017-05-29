@@ -4,7 +4,6 @@ module Style.Internal.Model exposing (..)
 
 import Color exposing (Color)
 import Time exposing (Time)
-import Html
 
 
 {-| The stylesheet contains the rendered css as a string, and two functions to lookup
@@ -23,11 +22,11 @@ type Style class variation
     | Reset String -- Completely Bare String to write out
 
 
-mapClass : (class -> classB) -> Style class variation -> Style classB variation
-mapClass fn style =
+mapClassAndVar : (class -> classB) -> (var -> varB) -> Style class var -> Style classB varB
+mapClassAndVar fn fnVariation style =
     case style of
         Style class props ->
-            Style (fn class) (List.map (mapPropClass fn) props)
+            Style (fn class) (List.map (mapPropClassAndVar fn fnVariation) props)
 
         Import str ->
             Import str
@@ -39,7 +38,59 @@ mapClass fn style =
             Reset r
 
 
-mapPropClass : (class -> classB) -> Property class variation -> Property classB variation
+mapPropClassAndVar : (class -> classB) -> (var -> varB) -> Property class var -> Property classB varB
+mapPropClassAndVar fn fnVar prop =
+    case prop of
+        Child class props ->
+            Child (fn class) (List.map (mapPropClassAndVar fn fnVar) props)
+
+        Variation var props ->
+            Variation (fnVar var) (List.map (mapPropClass fn) props)
+
+        Exact name val ->
+            Exact name val
+
+        Position props ->
+            Position props
+
+        Font name val ->
+            Font name val
+
+        Layout props ->
+            Layout props
+
+        Background props ->
+            Background props
+
+        MediaQuery name props ->
+            MediaQuery name (List.map (mapPropClassAndVar fn fnVar) props)
+
+        PseudoElement name props ->
+            PseudoElement name (List.map (mapPropClassAndVar fn fnVar) props)
+
+        Shadows shadows ->
+            Shadows shadows
+
+        Transform transforms ->
+            Transform transforms
+
+        Filters filters ->
+            Filters filters
+
+        Visibility v ->
+            Visibility v
+
+        TextColor color ->
+            TextColor color
+
+        Transitions t ->
+            Transitions t
+
+        SelectionColor clr ->
+            SelectionColor clr
+
+
+mapPropClass : (class -> classB) -> Property class var -> Property classB var
 mapPropClass fn prop =
     case prop of
         Child class props ->

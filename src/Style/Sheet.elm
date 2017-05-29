@@ -14,9 +14,9 @@ type ChildSheet class variation
 
 
 {-| -}
-map : (class -> parent) -> List (Style class variation) -> ChildSheet parent variation
-map toParent styles =
-    ChildSheet (List.map (Batchable.map (Internal.mapClass toParent)) styles)
+map : (class -> parent) -> (variation -> parentVariation) -> List (Style class variation) -> ChildSheet parent parentVariation
+map toParent toParentVariation styles =
+    ChildSheet (List.map (Batchable.map (Internal.mapClassAndVar toParent toParentVariation)) styles)
 
 
 {-| Merge a child stylesheet into a parent.
