@@ -746,8 +746,30 @@ grid elem template attrs children =
     let
         prepare el =
             Normal <| List.map (\(OnGrid x) -> x) el
+
+        ( spacing, notSpacingAttrs ) =
+            List.partition forSpacing attrs
+
+        forSpacing attr =
+            case attr of
+                Spacing _ _ ->
+                    True
+
+                _ ->
+                    False
+
+        gridAttributes =
+            case List.head <| List.reverse spacing of
+                Nothing ->
+                    []
+
+                Just (Spacing x y) ->
+                    [ Style.GridGap x y ]
+
+                _ ->
+                    []
     in
-        Layout "div" (Style.Grid (Style.GridTemplate template) []) (Just elem) attrs (prepare children)
+        Layout "div" (Style.Grid (Style.GridTemplate template) gridAttributes) (Just elem) notSpacingAttrs (prepare children)
 
 
 {-| -}
@@ -785,8 +807,30 @@ namedGrid elem template attrs children =
     let
         prepare el =
             Normal <| List.map (\(NamedOnGrid x) -> x) el
+
+        ( spacing, notSpacingAttrs ) =
+            List.partition forSpacing attrs
+
+        forSpacing attr =
+            case attr of
+                Spacing _ _ ->
+                    True
+
+                _ ->
+                    False
+
+        gridAttributes =
+            case List.head <| List.reverse spacing of
+                Nothing ->
+                    []
+
+                Just (Spacing x y) ->
+                    [ Style.GridGap x y ]
+
+                _ ->
+                    []
     in
-        Layout "div" (Style.Grid (Style.NamedGridTemplate template) []) (Just elem) attrs (prepare children)
+        Layout "div" (Style.Grid (Style.NamedGridTemplate template) gridAttributes) (Just elem) notSpacingAttrs (prepare children)
 
 
 {-| -}
