@@ -106,6 +106,14 @@ adjustStructure parent elm =
                         _ ->
                             False
 
+                forSpacing attr =
+                    case attr of
+                        Spacing _ _ ->
+                            True
+
+                        _ ->
+                            False
+
                 skipAdjustment bool =
                     Element node
                         element
@@ -179,19 +187,23 @@ adjustStructure parent elm =
                                         ]
                                     )
 
-                        Just (Internal.TextLayout) ->
-                            Layout "div"
-                                (Internal.FlexLayout Internal.GoRight [])
-                                Nothing
-                                (PointerEvents False :: aligned)
-                                (Normal
-                                    [ Element node
-                                        element
-                                        (PointerEvents True :: unaligned)
-                                        (adjustStructure Nothing child)
-                                        (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
-                                    ]
-                                )
+                        Just Internal.TextLayout ->
+                            let
+                                ( spaced, unspaced ) =
+                                    List.partition forSpacing unaligned
+                            in
+                                Layout "div"
+                                    (Internal.FlexLayout Internal.GoRight [])
+                                    Nothing
+                                    ((PointerEvents False :: aligned) ++ spacingToMargin spaced)
+                                    (Normal
+                                        [ Element node
+                                            element
+                                            (PointerEvents True :: unspaced)
+                                            (adjustStructure Nothing child)
+                                            (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
+                                        ]
+                                    )
 
                         _ ->
                             skipAdjustment True
@@ -1126,10 +1138,10 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                     (rightPad + leftPad) / 2
                             in
                                 case layout of
-                                    Internal.FlexLayout (Internal.GoRight) _ ->
+                                    Internal.FlexLayout Internal.GoRight _ ->
                                         Property.flexWidth len paddingAdjustment :: attrs
 
-                                    Internal.FlexLayout (Internal.GoLeft) _ ->
+                                    Internal.FlexLayout Internal.GoLeft _ ->
                                         Property.flexWidth len paddingAdjustment :: attrs
 
                                     _ ->
@@ -1154,10 +1166,10 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                     (topPad + bottomPad) / 2
                             in
                                 case layout of
-                                    Internal.FlexLayout (Internal.Down) _ ->
+                                    Internal.FlexLayout Internal.Down _ ->
                                         Property.flexHeight len :: attrs
 
-                                    Internal.FlexLayout (Internal.Up) _ ->
+                                    Internal.FlexLayout Internal.Up _ ->
                                         Property.flexHeight len :: attrs
 
                                     _ ->
