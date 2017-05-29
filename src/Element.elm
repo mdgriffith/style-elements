@@ -945,29 +945,21 @@ screen =
 This should be your default.
 
 -}
-render :
-    StyleSheet style variation msg
-    -> Element style variation msg
-    -> Html msg
+render : StyleSheet style variation -> Element style variation msg -> Html msg
 render =
     Render.render
 
 
 {-| Embeds the stylesheet and renders the `Element`'s into `Html`.
 -}
-root :
-    StyleSheet style variation msg
-    -> Element style variation msg
-    -> Html msg
+root : StyleSheet style variation -> Element style variation msg -> Html msg
 root =
     Render.root
 
 
 {-| Embed a stylesheet.
 -}
-embed :
-    StyleSheet style variation msg
-    -> Html msg
+embed : StyleSheet style variation -> Html msg
 embed =
     Render.embed
 

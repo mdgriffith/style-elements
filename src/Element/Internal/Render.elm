@@ -16,7 +16,7 @@ import Style.Internal.Render.Property as Property
     (,)
 
 
-root : Internal.StyleSheet elem variation msg -> Element elem variation msg -> Html msg
+root : Internal.StyleSheet elem variation -> Element elem variation msg -> Html msg
 root stylesheet elm =
     Html.div [ Html.Attributes.class "style-elements-root" ]
         [ embed stylesheet
@@ -24,12 +24,12 @@ root stylesheet elm =
         ]
 
 
-embed : Internal.StyleSheet elem variation msg -> Html msg
+embed : Internal.StyleSheet elem variation -> Html msg
 embed stylesheet =
     Html.node "style" [] [ Html.text stylesheet.css ]
 
 
-render : Internal.StyleSheet elem variation msg -> Element elem variation msg -> Html msg
+render : Internal.StyleSheet elem variation -> Element elem variation msg -> Html msg
 render stylesheet elm =
     elm
         |> adjustStructure Nothing
@@ -384,7 +384,7 @@ defaultPadding ( mW, mX, mY, mZ ) ( w, x, y, z ) =
     )
 
 
-renderElement : Maybe Parent -> Internal.StyleSheet elem variation msg -> Order -> Element elem variation msg -> Html msg
+renderElement : Maybe Parent -> Internal.StyleSheet elem variation -> Order -> Element elem variation msg -> Html msg
 renderElement parent stylesheet order elm =
     case elm of
         Empty ->
@@ -974,7 +974,7 @@ flexboxVerticalIndividualAlignment direction alignment =
                     Nothing
 
 
-renderAttributes : ElementType -> Order -> Maybe elem -> Maybe Parent -> Internal.StyleSheet elem variation msg -> Positionable variation msg -> List (Html.Attribute msg)
+renderAttributes : ElementType -> Order -> Maybe elem -> Maybe Parent -> Internal.StyleSheet elem variation -> Positionable variation msg -> List (Html.Attribute msg)
 renderAttributes elType order maybeElemID parent stylesheet elem =
     let
         layout attrs =
@@ -1273,9 +1273,9 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
 
                 Just elemID ->
                     if List.length elem.variations > 0 then
-                        stylesheet.variations elemID elem.variations :: elem.attrs
+                        Html.Attributes.classList (stylesheet.variations elemID elem.variations) :: elem.attrs
                     else
-                        stylesheet.style elemID :: elem.attrs
+                        Html.Attributes.class (stylesheet.style elemID) :: elem.attrs
     in
         if elem.hidden then
             Html.Attributes.style [ ( "display", "none" ) ] :: attributes

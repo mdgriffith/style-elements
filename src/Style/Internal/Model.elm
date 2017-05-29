@@ -9,9 +9,9 @@ import Html
 
 {-| The stylesheet contains the rendered css as a string, and two functions to lookup
 -}
-type alias StyleSheet class variation msg =
-    { style : class -> Html.Attribute msg
-    , variations : class -> List ( variation, Bool ) -> Html.Attribute msg
+type alias StyleSheet class variation =
+    { style : class -> String
+    , variations : class -> List ( variation, Bool ) -> List ( String, Bool )
     , css : String
     }
 

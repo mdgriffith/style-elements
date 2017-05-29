@@ -109,8 +109,8 @@ import Style.Internal.Render as Render
 
 
 {-| -}
-type alias StyleSheet style variation msg =
-    Internal.StyleSheet style variation msg
+type alias StyleSheet style variation =
+    Internal.StyleSheet style variation
 
 
 {-| -}
@@ -486,13 +486,13 @@ input, textarea {
 
 
 {-| -}
-stylesheet : List (Style elem variation) -> StyleSheet elem variation msg
+stylesheet : List (Style elem variation) -> StyleSheet elem variation
 stylesheet styles =
     stylesheetWith [ DefaultStyle presetDefaults ] styles
 
 
 {-| -}
-stylesheetWith : List (Option class) -> List (Style elem variation) -> StyleSheet elem variation msg
+stylesheetWith : List (Option class) -> List (Style elem variation) -> StyleSheet elem variation
 stylesheetWith options styles =
     let
         defaultClass opt =
@@ -531,7 +531,7 @@ stylesheetWith options styles =
 
 
 {-| -}
-prepareSheet : Intermediate.Rendered class variation -> StyleSheet class variation msg
+prepareSheet : Intermediate.Rendered class variation -> StyleSheet class variation
 prepareSheet (Rendered { css, findable }) =
     let
         variations class vs =
@@ -545,9 +545,9 @@ prepareSheet (Rendered { css, findable }) =
                         |> List.map ((\vary -> Find.variation class vary findable) << Tuple.first)
                         |> List.map (\cls -> ( cls, True ))
             in
-                Html.Attributes.classList (( parent, True ) :: varys)
+                (( parent, True ) :: varys)
     in
-        { style = \class -> Html.Attributes.class (Find.style class findable)
+        { style = \class -> (Find.style class findable)
         , variations = \class varys -> variations class varys
         , css =
             clearfix ++ css

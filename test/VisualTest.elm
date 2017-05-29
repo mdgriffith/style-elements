@@ -38,7 +38,7 @@ options =
     ]
 
 
-stylesheet : StyleSheet Styles variation msg
+stylesheet : StyleSheet Styles variation
 stylesheet =
     Style.stylesheetWith options
         [ style None []
