@@ -465,6 +465,14 @@ renderElement parent stylesheet order elm =
                         Just others ->
                             List.map (renderElement Nothing stylesheet FirstAndLast) (child :: others)
 
+                parentTextLayout layout =
+                    case layout of
+                        Internal.TextLayout ->
+                            True
+
+                        _ ->
+                            False
+
                 attributes =
                     case parent of
                         Nothing ->
@@ -473,10 +481,16 @@ renderElement parent stylesheet order elm =
                         Just ctxt ->
                             case ctxt.parentSpecifiedSpacing of
                                 Nothing ->
-                                    attrs
+                                    if parentTextLayout ctxt.layout || List.any ((==) Inline) attrs then
+                                        spacingToMargin attrs
+                                    else
+                                        attrs
 
                                 Just ( top, right, bottom, left ) ->
-                                    Margin ( top, right, bottom, left ) :: attrs
+                                    if parentTextLayout ctxt.layout || List.any ((==) Inline) attrs then
+                                        Margin ( top, right, bottom, left ) :: spacingToMargin attrs
+                                    else
+                                        Margin ( top, right, bottom, left ) :: attrs
 
                 htmlAttrs =
                     renderAttributes Single order element parent stylesheet (gather attributes)

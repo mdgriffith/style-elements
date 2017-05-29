@@ -139,16 +139,14 @@ view model =
             column Main
                 [ spacingXY 50 100, padding 10 ]
                 (List.concat
-                    [ --basics
-                      --, anchored
-                      --,
-                      viewTextLayout
-
-                    -- , viewRowLayouts
-                    -- , viewColumnLayouts
-                    -- , viewGridLayout
-                    -- , viewNamedGridLayout
-                    -- , testForm
+                    [ basics
+                    , anchored
+                    , viewTextLayout
+                    , viewRowLayouts
+                    , viewColumnLayouts
+                    , viewGridLayout
+                    , viewNamedGridLayout
+                    , testForm
                     ]
                 )
 
@@ -309,6 +307,7 @@ viewTextLayout =
             [ width (px 200)
             , height (px 300)
             , alignRight
+            , spacing 100
             ]
             empty
         , paragraph None
