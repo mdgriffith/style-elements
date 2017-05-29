@@ -70,6 +70,7 @@ module Element
         , option
         , Option
         , html
+        , break
         )
 
 {-|
@@ -100,7 +101,7 @@ Make sure to check out the Style Element specific attributes in `Element.Attribu
 
 ## Text Layout
 
-@docs textLayout, paragraph
+@docs textLayout, paragraph, break
 
 
 ## Linear Layouts
@@ -307,6 +308,16 @@ hairline elem =
         [ Height (Style.Px 1) ]
         empty
         Nothing
+
+
+{-| Make a line-break.
+
+You probably want to use `paragraph` instead. This is only for adjusting where a sentance should break, not for formating paragraphs.
+
+-}
+break : Element style variation msg
+break =
+    Element "br" Nothing [] empty Nothing
 
 
 {-| For when you want to embed `Html`.
