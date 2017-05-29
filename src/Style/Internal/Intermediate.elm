@@ -8,23 +8,23 @@ import Style.Internal.Render.Css as Css
 import Style.Internal.Find as Findable
 
 
-type Class class variation animation
+type Class class variation
     = Class
-        { selector : Selector class variation animation
-        , props : List (Prop class variation animation)
+        { selector : Selector class variation
+        , props : List (Prop class variation)
         }
     | Media
         { query : String
-        , selector : Selector class variation animation
-        , props : List (Prop class variation animation)
+        , selector : Selector class variation
+        , props : List (Prop class variation)
         }
     | Free String
 
 
-type Prop class variation animation
+type Prop class variation
     = Props (List ( String, String ))
-    | SubClass (Class class variation animation)
-    | PropsAndSub (List ( String, String )) (Class class variation animation)
+    | SubClass (Class class variation)
+    | PropsAndSub (List ( String, String )) (Class class variation)
     | Animation
 
 
@@ -34,20 +34,19 @@ type Renderable
     | RenderableFree String
 
 
-props : List ( String, String ) -> Prop class variation animation
+props : List ( String, String ) -> Prop class variation
 props =
     Props
 
 
-type Rendered class variation animation
+type Rendered class variation
     = Rendered
         { css : String
-        , findable : List (Findable.Element class variation animation)
-        , animations : List String
+        , findable : List (Findable.Element class variation)
         }
 
 
-raw : Class class variation animation -> ( String, String )
+raw : Class class variation -> ( String, String )
 raw cls =
     let
         topName =
@@ -69,7 +68,7 @@ raw cls =
         )
 
 
-finalize : List (Class class variation animation) -> Rendered class variation animation
+finalize : List (Class class variation) -> Rendered class variation
 finalize intermediates =
     let
         finalizeCss cls =
@@ -84,16 +83,15 @@ finalize intermediates =
                     |> String.join "\n"
             , findable =
                 List.concatMap asFindable intermediates
-            , animations = []
             }
 
 
-guard : Class class variation animation -> Class class variation animation
+guard : Class class variation -> Class class variation
 guard class =
     applyGuard (hash <| calculateGuard class) class
 
 
-calculateGuard : Class class variation animation -> String
+calculateGuard : Class class variation -> String
 calculateGuard class =
     let
         propToString ( x, y ) =
@@ -126,7 +124,7 @@ calculateGuard class =
                 ""
 
 
-applyGuard : String -> Class class variation animation -> Class class variation animation
+applyGuard : String -> Class class variation -> Class class variation
 applyGuard guard class =
     let
         guardProp prop =
@@ -155,7 +153,7 @@ applyGuard guard class =
                 x
 
 
-asMediaQuery : String -> Prop class variation animation -> Prop class variation animation
+asMediaQuery : String -> Prop class variation -> Prop class variation
 asMediaQuery query prop =
     let
         classAsMediaQuery cls =
@@ -202,7 +200,7 @@ render renderable =
             str
 
 
-makeRenderable : Class class variation animation -> List Renderable
+makeRenderable : Class class variation -> List Renderable
 makeRenderable cls =
     let
         renderableProps prop ( rendered, subEls ) =
@@ -245,7 +243,7 @@ makeRenderable cls =
 
 
 {-| -}
-asFindable : Class class variation animation -> List (Findable.Element class variation animation)
+asFindable : Class class variation -> List (Findable.Element class variation)
 asFindable intermediate =
     let
         findableProp prop =

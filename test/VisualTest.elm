@@ -38,7 +38,7 @@ options =
     ]
 
 
-stylesheet : StyleSheet Styles variation animation msg
+stylesheet : StyleSheet Styles variation msg
 stylesheet =
     Style.stylesheetWith options
         [ style None []

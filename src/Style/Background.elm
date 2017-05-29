@@ -86,7 +86,7 @@ px p c =
 The first number of the gradient angle given in radians, where 0 is pointing up.
 
 -}
-gradient : Float -> List GradientStep -> Property class variation animation
+gradient : Float -> List GradientStep -> Property class variation
 gradient angle steps =
     steps
         |> Internal.BackgroundLinearGradient (Internal.ToAngle angle)
@@ -94,7 +94,7 @@ gradient angle steps =
 
 
 {-| -}
-gradientUp : List GradientStep -> Property class variation animation
+gradientUp : List GradientStep -> Property class variation
 gradientUp steps =
     steps
         |> Internal.BackgroundLinearGradient Internal.ToUp
@@ -102,7 +102,7 @@ gradientUp steps =
 
 
 {-| -}
-gradientDown : List GradientStep -> Property class variation animation
+gradientDown : List GradientStep -> Property class variation
 gradientDown steps =
     steps
         |> Internal.BackgroundLinearGradient Internal.ToDown
@@ -110,7 +110,7 @@ gradientDown steps =
 
 
 {-| -}
-gradientRight : List GradientStep -> Property class variation animation
+gradientRight : List GradientStep -> Property class variation
 gradientRight steps =
     steps
         |> Internal.BackgroundLinearGradient Internal.ToRight
@@ -118,7 +118,7 @@ gradientRight steps =
 
 
 {-| -}
-gradientTopRight : List GradientStep -> Property class variation animation
+gradientTopRight : List GradientStep -> Property class variation
 gradientTopRight steps =
     steps
         |> Internal.BackgroundLinearGradient Internal.ToTopRight
@@ -126,7 +126,7 @@ gradientTopRight steps =
 
 
 {-| -}
-gradientBottomRight : List GradientStep -> Property class variation animation
+gradientBottomRight : List GradientStep -> Property class variation
 gradientBottomRight steps =
     steps
         |> Internal.BackgroundLinearGradient Internal.ToBottomRight
@@ -134,7 +134,7 @@ gradientBottomRight steps =
 
 
 {-| -}
-gradientLeft : List GradientStep -> Property class variation animation
+gradientLeft : List GradientStep -> Property class variation
 gradientLeft steps =
     steps
         |> Internal.BackgroundLinearGradient Internal.ToLeft
@@ -142,7 +142,7 @@ gradientLeft steps =
 
 
 {-| -}
-gradientTopLeft : List GradientStep -> Property class variation animation
+gradientTopLeft : List GradientStep -> Property class variation
 gradientTopLeft steps =
     steps
         |> Internal.BackgroundLinearGradient Internal.ToTopLeft
@@ -150,7 +150,7 @@ gradientTopLeft steps =
 
 
 {-| -}
-gradientBottomLeft : List GradientStep -> Property class variation animation
+gradientBottomLeft : List GradientStep -> Property class variation
 gradientBottomLeft steps =
     steps
         |> Internal.BackgroundLinearGradient Internal.ToBottomLeft
@@ -158,7 +158,7 @@ gradientBottomLeft steps =
 
 
 {-| -}
-image : String -> Property class variation animation
+image : String -> Property class variation
 image src =
     Internal.Background <|
         Internal.BackgroundImage
@@ -174,7 +174,7 @@ imageWith :
     , position : ( Float, Float )
     , repeat : Repeat
     }
-    -> Property class variation animation
+    -> Property class variation
 imageWith attrs =
     Internal.Background <|
         Internal.BackgroundImage attrs

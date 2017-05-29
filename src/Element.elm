@@ -946,7 +946,7 @@ This should be your default.
 
 -}
 render :
-    StyleSheet style variation animation msg
+    StyleSheet style variation msg
     -> Element style variation msg
     -> Html msg
 render =
@@ -956,7 +956,7 @@ render =
 {-| Embeds the stylesheet and renders the `Element`'s into `Html`.
 -}
 root :
-    StyleSheet style variation animation msg
+    StyleSheet style variation msg
     -> Element style variation msg
     -> Html msg
 root =
@@ -966,7 +966,7 @@ root =
 {-| Embed a stylesheet.
 -}
 embed :
-    StyleSheet style variation animation msg
+    StyleSheet style variation msg
     -> Html msg
 embed =
     Render.embed

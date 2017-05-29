@@ -16,7 +16,7 @@ import Style.Internal.Render.Css as Css
     (,)
 
 
-single : Bool -> Internal.Style class variation animation -> ( String, String )
+single : Bool -> Internal.Style class variation -> ( String, String )
 single guard style =
     Intermediate.raw << renderStyle guard << preprocess <| style
 
@@ -45,7 +45,7 @@ spacing box =
             |> (\cls -> ( name, "." ++ name ++ cls ))
 
 
-stylesheet : Bool -> List (Batchable (Internal.Style class variation animation)) -> Intermediate.Rendered class variation animation
+stylesheet : Bool -> List (Batchable (Internal.Style class variation)) -> Intermediate.Rendered class variation
 stylesheet guard batched =
     batched
         |> Batchable.toList
@@ -53,7 +53,7 @@ stylesheet guard batched =
         |> Intermediate.finalize
 
 
-unbatchedStylesheet : Bool -> List (Internal.Style class variation animation) -> Intermediate.Rendered class variation animation
+unbatchedStylesheet : Bool -> List (Internal.Style class variation) -> Intermediate.Rendered class variation
 unbatchedStylesheet guard styles =
     styles
         |> List.map (renderStyle guard << preprocess)
@@ -69,7 +69,7 @@ Such as:
   - Move color palettes to the end
 
 -}
-preprocess : Style class variation animation -> Style class variation animation
+preprocess : Style class variation -> Style class variation
 preprocess style =
     case style of
         Internal.Import str ->
@@ -231,7 +231,7 @@ preprocess style =
                 Internal.Style class processed
 
 
-renderStyle : Bool -> Style class variation animation -> Intermediate.Class class variation animation
+renderStyle : Bool -> Style class variation -> Intermediate.Class class variation
 renderStyle guarded style =
     case style of
         Internal.Import str ->
@@ -261,7 +261,7 @@ renderStyle guarded style =
                     |> guard
 
 
-renderProp : Selector class variation animation -> Property class variation animation -> Intermediate.Prop class variation animation
+renderProp : Selector class variation -> Property class variation -> Intermediate.Prop class variation
 renderProp parentClass prop =
     case prop of
         Child class props ->
@@ -340,7 +340,7 @@ renderProp parentClass prop =
                 ]
 
 
-renderVariationProp : Selector class variation animation -> Property class Never animation -> Maybe (Intermediate.Prop class variation animation)
+renderVariationProp : Selector class variation -> Property class Never -> Maybe (Intermediate.Prop class variation)
 renderVariationProp parentClass prop =
     case prop of
         Child class props ->

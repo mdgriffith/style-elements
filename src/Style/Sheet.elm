@@ -9,24 +9,24 @@ import Style exposing (Style)
 
 
 {-| -}
-type ChildSheet class variation animation
-    = ChildSheet (List (Style class variation animation))
+type ChildSheet class variation
+    = ChildSheet (List (Style class variation))
 
 
 {-| -}
-map : (class -> parent) -> List (Style class variation animation) -> ChildSheet parent variation animation
+map : (class -> parent) -> List (Style class variation) -> ChildSheet parent variation
 map toParent styles =
     ChildSheet (List.map (Batchable.map (Internal.mapClass toParent)) styles)
 
 
 {-| Merge a child stylesheet into a parent.
 -}
-merge : ChildSheet class variation animation -> Style class variation animation
+merge : ChildSheet class variation -> Style class variation
 merge (ChildSheet styles) =
     Batchable.many (Batchable.toList styles)
 
 
 {-| -}
-mix : List (Style class variation animation) -> Style class variation animation
+mix : List (Style class variation) -> Style class variation
 mix =
     Batchable.batch

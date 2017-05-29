@@ -9,21 +9,20 @@ import Html
 
 {-| The stylesheet contains the rendered css as a string, and two functions to lookup
 -}
-type alias StyleSheet class variation animation msg =
+type alias StyleSheet class variation msg =
     { style : class -> Html.Attribute msg
     , variations : class -> List ( variation, Bool ) -> Html.Attribute msg
-    , animations : List animation --(Internal.Animation animation msg)
     , css : String
     }
 
 
-type Style class variation animation
-    = Style class (List (Property class variation animation))
+type Style class variation
+    = Style class (List (Property class variation))
     | RawStyle String (List ( String, String ))
     | Import String
 
 
-mapClass : (class -> classB) -> Style class variation animation -> Style classB variation animation
+mapClass : (class -> classB) -> Style class variation -> Style classB variation
 mapClass fn style =
     case style of
         Style class props ->
@@ -36,7 +35,7 @@ mapClass fn style =
             RawStyle str props
 
 
-mapPropClass : (class -> classB) -> Property class variation animation -> Property classB variation animation
+mapPropClass : (class -> classB) -> Property class variation -> Property classB variation
 mapPropClass fn prop =
     case prop of
         Child class props ->
@@ -88,12 +87,12 @@ mapPropClass fn prop =
             SelectionColor clr
 
 
-type Property class variation animation
+type Property class variation
     = Exact String String
-    | Variation variation (List (Property class Never animation))
-    | Child class (List (Property class variation animation))
-    | MediaQuery String (List (Property class variation animation))
-    | PseudoElement String (List (Property class variation animation))
+    | Variation variation (List (Property class Never))
+    | Child class (List (Property class variation))
+    | MediaQuery String (List (Property class variation))
+    | PseudoElement String (List (Property class variation))
     | Position (List PositionElement)
     | Font String String
     | Layout LayoutModel

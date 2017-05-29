@@ -16,7 +16,7 @@ import Style.Internal.Render.Property as Property
     (,)
 
 
-root : Internal.StyleSheet elem variation animation msg -> Element elem variation msg -> Html msg
+root : Internal.StyleSheet elem variation msg -> Element elem variation msg -> Html msg
 root stylesheet elm =
     Html.div [ Html.Attributes.class "style-elements-root" ]
         [ embed stylesheet
@@ -24,12 +24,12 @@ root stylesheet elm =
         ]
 
 
-embed : Internal.StyleSheet elem variation animation msg -> Html msg
+embed : Internal.StyleSheet elem variation msg -> Html msg
 embed stylesheet =
     Html.node "style" [] [ Html.text stylesheet.css ]
 
 
-render : Internal.StyleSheet elem variation animation msg -> Element elem variation msg -> Html msg
+render : Internal.StyleSheet elem variation msg -> Element elem variation msg -> Html msg
 render stylesheet elm =
     elm
         |> adjustStructure Nothing
@@ -179,7 +179,7 @@ adjustStructure parent elm =
                                         ]
                                     )
 
-                        Just Internal.TextLayout ->
+                        Just (Internal.TextLayout) ->
                             Layout "div"
                                 (Internal.FlexLayout Internal.GoRight [])
                                 Nothing
@@ -384,7 +384,7 @@ defaultPadding ( mW, mX, mY, mZ ) ( w, x, y, z ) =
     )
 
 
-renderElement : Maybe Parent -> Internal.StyleSheet elem variation animation msg -> Order -> Element elem variation msg -> Html msg
+renderElement : Maybe Parent -> Internal.StyleSheet elem variation msg -> Order -> Element elem variation msg -> Html msg
 renderElement parent stylesheet order elm =
     case elm of
         Empty ->
@@ -974,7 +974,7 @@ flexboxVerticalIndividualAlignment direction alignment =
                     Nothing
 
 
-renderAttributes : ElementType -> Order -> Maybe elem -> Maybe Parent -> Internal.StyleSheet elem variation animation msg -> Positionable variation msg -> List (Html.Attribute msg)
+renderAttributes : ElementType -> Order -> Maybe elem -> Maybe Parent -> Internal.StyleSheet elem variation msg -> Positionable variation msg -> List (Html.Attribute msg)
 renderAttributes elType order maybeElemID parent stylesheet elem =
     let
         layout attrs =
@@ -1126,10 +1126,10 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                     (rightPad + leftPad) / 2
                             in
                                 case layout of
-                                    Internal.FlexLayout Internal.GoRight _ ->
+                                    Internal.FlexLayout (Internal.GoRight) _ ->
                                         Property.flexWidth len paddingAdjustment :: attrs
 
-                                    Internal.FlexLayout Internal.GoLeft _ ->
+                                    Internal.FlexLayout (Internal.GoLeft) _ ->
                                         Property.flexWidth len paddingAdjustment :: attrs
 
                                     _ ->
@@ -1154,10 +1154,10 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                     (topPad + bottomPad) / 2
                             in
                                 case layout of
-                                    Internal.FlexLayout Internal.Down _ ->
+                                    Internal.FlexLayout (Internal.Down) _ ->
                                         Property.flexHeight len :: attrs
 
-                                    Internal.FlexLayout Internal.Up _ ->
+                                    Internal.FlexLayout (Internal.Up) _ ->
                                         Property.flexHeight len :: attrs
 
                                     _ ->

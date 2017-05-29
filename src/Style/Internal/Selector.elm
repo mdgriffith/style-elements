@@ -10,12 +10,12 @@ import Style.Internal.Find as Findable
 
 
 {-| -}
-type Selector class variation animation
-    = Select String (Findable.Element class variation animation)
+type Selector class variation
+    = Select String (Findable.Element class variation)
     | Pseudo String
-    | SelectChild (Selector class variation animation)
+    | SelectChild (Selector class variation)
     | Free String
-    | Stack (List (Selector class variation animation))
+    | Stack (List (Selector class variation))
 
 
 {-| -}
@@ -42,7 +42,7 @@ uncapitalize str =
 
 
 {-| -}
-topName : Selector class variation animation -> String
+topName : Selector class variation -> String
 topName selector =
     case selector of
         Select sel _ ->
@@ -62,7 +62,7 @@ topName selector =
 
 
 {-| -}
-guard : String -> Selector class variation animation -> Selector class variation animation
+guard : String -> Selector class variation -> Selector class variation
 guard guard selector =
     let
         addGuard str =
@@ -75,9 +75,6 @@ guard guard selector =
 
                 Findable.Variation class variation name ->
                     Findable.Variation class variation (addGuard name)
-
-                Findable.Animation class animation name ->
-                    Findable.Animation class animation (addGuard name)
 
         onSelector sel =
             case sel of
@@ -100,7 +97,7 @@ guard guard selector =
 
 
 {-| -}
-render : Maybe String -> Selector class variation animation -> String
+render : Maybe String -> Selector class variation -> String
 render maybeGuard selector =
     let
         guard str =
@@ -145,7 +142,7 @@ render maybeGuard selector =
 
 
 {-| -}
-getFindable : Selector class variation animation -> List (Findable.Element class variation animation)
+getFindable : Selector class variation -> List (Findable.Element class variation)
 getFindable find =
     case find of
         Select _ findable ->
@@ -166,25 +163,25 @@ getFindable find =
 
 
 {-| -}
-select : class -> Selector class variation animation
+select : class -> Selector class variation
 select class =
     Select (formatName class) <| Findable.Style class (formatName class)
 
 
 {-| -}
-child : Selector class variation animation -> Selector class variation animation -> Selector class variation animation
+child : Selector class variation -> Selector class variation -> Selector class variation
 child parent selector =
     Stack [ parent, SelectChild selector ]
 
 
 {-| -}
-free : String -> Selector class variation animation
+free : String -> Selector class variation
 free str =
     Free str
 
 
 {-| -}
-variant : Selector class variation animation -> variation -> Selector class variation animation
+variant : Selector class variation -> variation -> Selector class variation
 variant sel var =
     case sel of
         Pseudo psu ->
@@ -227,7 +224,7 @@ variant sel var =
 
 {-| Pseudo-classes are allowed anywhere in selectors while pseudo-elements may only be appended after the last simple selector of the selector.
 -}
-pseudo : String -> Selector class variation animation -> Selector class variation animation
+pseudo : String -> Selector class variation -> Selector class variation
 pseudo psu sel =
     case sel of
         Pseudo existing ->

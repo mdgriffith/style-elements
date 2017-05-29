@@ -21,7 +21,7 @@ type alias Transition =
 
 
 {-| -}
-all : Property class variation animation
+all : Property class variation
 all =
     Internal.Transitions
         [ Internal.Transition
@@ -35,7 +35,7 @@ all =
 
 {-| This enables transitions on proeprties that will be GPU accelerated: `transform`, `filter`, and `opacity`.
 -}
-performant : Property class variation animation
+performant : Property class variation
 performant =
     Internal.Transitions
         [ Internal.Transition
@@ -48,6 +48,6 @@ performant =
 
 
 {-| -}
-transitions : List Transition -> Property class variation animation
+transitions : List Transition -> Property class variation
 transitions trans =
     Internal.Transitions (List.map Internal.Transition trans)

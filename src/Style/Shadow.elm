@@ -48,7 +48,7 @@ import Style exposing (Shadow, Property)
 
 {-| A simple glow by specifying the color and size.
 -}
-glow : Color -> Float -> Property class variation animation
+glow : Color -> Float -> Property class variation
 glow color size =
     Internal.Shadows
         [ Internal.ShadowModel
@@ -62,7 +62,7 @@ glow color size =
 
 
 {-| -}
-innerGlow : Color -> Float -> Property class variation animation
+innerGlow : Color -> Float -> Property class variation
 innerGlow color size =
     Internal.Shadows
         [ Internal.ShadowModel
@@ -76,7 +76,7 @@ innerGlow color size =
 
 
 {-| -}
-textGlow : Color -> Float -> Property class variation animation
+textGlow : Color -> Float -> Property class variation
 textGlow color size =
     Internal.Shadows
         [ Internal.ShadowModel
@@ -91,7 +91,7 @@ textGlow color size =
 
 {-| A nice preset box shadow.
 -}
-simple : Property class variation animation
+simple : Property class variation
 simple =
     Style.shadows
         [ box
@@ -111,7 +111,7 @@ simple =
 
 {-| A nice preset box shadow that's deeper than `simple`.
 -}
-deep : Property class variation animation
+deep : Property class variation
 deep =
     Style.shadows
         [ box
