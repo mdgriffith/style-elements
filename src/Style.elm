@@ -442,6 +442,12 @@ sub {
 sup {
   top: -0.5em;
 }
+em {
+    font-style: italic;
+}
+strong {
+    font-weight: bold;
+}
 
 a {
     text-decoration: none;
