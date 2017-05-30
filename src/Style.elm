@@ -30,11 +30,6 @@ module Style
         , checked
         , focus
         , pseudo
-        , rounded
-        , roundTopLeft
-        , roundTopRight
-        , roundBottomRight
-        , roundBottomLeft
         , importUrl
         , importCss
         )
@@ -82,8 +77,6 @@ Styles can have variations. Here's what it looks like to have a button style wit
 @docs Filter, filters
 
 @docs origin, translate, rotate, rotateAround, scale
-
-@docs rounded, roundTopLeft, roundTopRight, roundBottomRight, roundBottomLeft
 
 
 ## Pseudo Classes
@@ -279,37 +272,6 @@ translate x y z =
 scale : Float -> Float -> Float -> Property class variation
 scale x y z =
     Internal.Transform <| [ Internal.Scale x y z ]
-
-
-{-| Round all corners.
--}
-rounded : Float -> Property class variation
-rounded box =
-    Internal.Exact "border-radius" (toString box ++ "px")
-
-
-{-| -}
-roundTopLeft : Float -> Property class variation
-roundTopLeft x =
-    Internal.Exact "border-top-left-radius" (toString x ++ "px")
-
-
-{-| -}
-roundTopRight : Float -> Property class variation
-roundTopRight x =
-    Internal.Exact "border-top-right-radius" (toString x ++ "px")
-
-
-{-| -}
-roundBottomRight : Float -> Property class variation
-roundBottomRight x =
-    Internal.Exact "border-bottom-right-radius" (toString x ++ "px")
-
-
-{-| -}
-roundBottomLeft : Float -> Property class variation
-roundBottomLeft x =
-    Internal.Exact "border-bottom-left-radius" (toString x ++ "px")
 
 
 {-| Example:
