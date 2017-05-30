@@ -457,36 +457,36 @@ gridAlignment align =
         GridH horizontal ->
             case horizontal of
                 Other Left ->
-                    "justify-items" => "flex-start"
+                    "justify-items" => "start"
 
                 Other Right ->
-                    "justify-items" => "flex-end"
+                    "justify-items" => "end"
 
                 Center ->
                     "justify-items" => "center"
 
                 Justify ->
-                    "justify-items" => "stretch"
+                    "justify-content" => "space-between"
 
                 JustifyAll ->
-                    "justify-items" => "stretch"
+                    "justify-content" => "space-between"
 
         GridV vertical ->
             case vertical of
                 Other Top ->
-                    "align-items" => "flex-start"
+                    "align-items" => "start"
 
                 Other Bottom ->
-                    "align-items" => "flex-end"
+                    "align-items" => "end"
 
                 Center ->
                     "align-items" => "center"
 
                 Justify ->
-                    "align-items" => "stretch"
+                    "align-content" => "space-between"
 
                 JustifyAll ->
-                    "align-items" => "stretch"
+                    "align-content" => "space-between"
 
 
 direction : Direction -> ( String, String )
