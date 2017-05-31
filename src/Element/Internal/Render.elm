@@ -210,10 +210,10 @@ adjustStructure parent elm =
                 else
                     skipAdjustment True
 
-        Layout node layout element position children ->
+        Layout node layout element attrs children ->
             let
                 ( centeredProps, others ) =
-                    List.partition (\attr -> attr == HAlign Center || attr == VAlign VerticalCenter) position
+                    List.partition (\attr -> attr == HAlign Center || attr == VAlign VerticalCenter) attrs
 
                 isFlex =
                     case layout of
@@ -224,12 +224,12 @@ adjustStructure parent elm =
                             False
 
                 spacing =
-                    List.filterMap forSpacing position
+                    List.filterMap forSpacing attrs
                         |> List.reverse
                         |> List.head
 
                 padding =
-                    List.filterMap forPadding position
+                    List.filterMap forPadding attrs
                         |> List.reverse
                         |> List.head
 
@@ -272,7 +272,7 @@ adjustStructure parent elm =
                             Layout node
                                 layout
                                 element
-                                (PointerEvents True :: position)
+                                (PointerEvents True :: attrs)
                                 (mapChildren (adjustStructure (Just layout)) children)
 
                     Internal.FlexLayout _ _ ->
@@ -303,21 +303,27 @@ adjustStructure parent elm =
                                     "div"
                                     (Internal.FlexLayout Internal.GoRight [])
                                     element
-                                    (PointerEvents True :: position)
+                                    (PointerEvents True :: attrs)
                                     (Normal
                                         [ Layout
                                             node
                                             layout
                                             Nothing
-                                            (PointerEvents False :: phantomPadding :: Margin negativeMargin :: spacingAttr :: Width (Internal.Calc 100 totalHSpacing) :: [])
+                                            (PointerEvents False
+                                                :: phantomPadding
+                                                :: Margin negativeMargin
+                                                :: spacingAttr
+                                                :: Width (Internal.Calc 100 totalHSpacing)
+                                                :: centeredProps
+                                            )
                                             (mapChildren (adjustStructure (Just layout)) children)
                                         ]
                                     )
                         else
-                            Layout node layout element (PointerEvents True :: position) (mapChildren (adjustStructure (Just layout)) children)
+                            Layout node layout element (PointerEvents True :: attrs) (mapChildren (adjustStructure (Just layout)) children)
 
                     _ ->
-                        Layout node layout element position (mapChildren (adjustStructure (Just layout)) children)
+                        Layout node layout element attrs (mapChildren (adjustStructure (Just layout)) children)
 
 
 calcPosition : Frame -> ( Maybe Float, Maybe Float, Maybe Float ) -> List ( String, String )
