@@ -457,13 +457,13 @@ gridAlignment align =
         GridH horizontal ->
             case horizontal of
                 Other Left ->
-                    "justify-items" => "start"
+                    "justify-content" => "start"
 
                 Other Right ->
-                    "justify-items" => "end"
+                    "justify-content" => "end"
 
                 Center ->
-                    "justify-items" => "center"
+                    "justify-content" => "center"
 
                 Justify ->
                     "justify-content" => "space-between"
@@ -474,13 +474,13 @@ gridAlignment align =
         GridV vertical ->
             case vertical of
                 Other Top ->
-                    "align-items" => "start"
+                    "align-content" => "start"
 
                 Other Bottom ->
-                    "align-items" => "end"
+                    "align-content" => "end"
 
                 Center ->
-                    "align-items" => "center"
+                    "align-content" => "center"
 
                 Justify ->
                     "align-content" => "space-between"
