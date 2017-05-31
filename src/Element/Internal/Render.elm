@@ -278,6 +278,20 @@ adjustStructure parent elm =
                     Internal.FlexLayout _ _ ->
                         if hasSpacing then
                             let
+                                ( aligned, unaligned ) =
+                                    List.partition forAlignment attrs
+
+                                forAlignment attr =
+                                    case attr of
+                                        HAlign _ ->
+                                            True
+
+                                        VAlign _ ->
+                                            True
+
+                                        _ ->
+                                            False
+
                                 -- Container
                                 -- FlexLayout on counter-element
                                 -- negative margin on counter-element
@@ -303,7 +317,7 @@ adjustStructure parent elm =
                                     "div"
                                     (Internal.FlexLayout Internal.GoRight [])
                                     element
-                                    (PointerEvents True :: attrs)
+                                    (PointerEvents True :: unaligned)
                                     (Normal
                                         [ Layout
                                             node
@@ -314,7 +328,7 @@ adjustStructure parent elm =
                                                 :: Margin negativeMargin
                                                 :: spacingAttr
                                                 :: Width (Internal.Calc 100 totalHSpacing)
-                                                :: centeredProps
+                                                :: aligned
                                             )
                                             (mapChildren (adjustStructure (Just layout)) children)
                                         ]
