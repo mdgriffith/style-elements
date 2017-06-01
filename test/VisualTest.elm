@@ -46,7 +46,7 @@ stylesheet =
             , Font.height 1.3
             ]
         , style Page
-            [ rounded 5
+            [ Border.rounded 5
             , Border.all 5
             , Border.solid
             , Color.text Color.darkCharcoal
@@ -62,7 +62,7 @@ stylesheet =
             , Color.text Color.white
             , Color.background Color.blue
             , Color.border Color.blue
-            , rounded 3
+            , Border.rounded 3
             , paddingHint 20
             , hover
                 [ Color.text Color.white
@@ -85,26 +85,27 @@ stylesheet =
 
 
 testForm =
-    [ Element.form column
-        Box
-        [ spacingXY 10 20 ]
-        [ checkbox True None [] (text "Yes, Lunch pls.")
-        , label None [] (text "check this out") <|
-            inputText None [] "The Value!"
-        , label None [] (text "check this out") <|
-            textArea None [] "The Value!"
-        , (radio "lunch" column) None
-            []
-            [ option "burrito" True (text "A Burrito!")
-            , option "taco" False (text " A Taco!")
+    [ Element.form <|
+        column
+            Box
+            [ spacingXY 10 20 ]
+            [ checkbox True None [] (text "Yes, Lunch pls.")
+            , label None [] (text "check this out") <|
+                inputText None [] "The Value!"
+            , label None [] (text "check this out") <|
+                textArea None [] "The Value!"
+            , (radio "lunch" column) None
+                []
+                [ option "burrito" True (text "A Burrito!")
+                , option "taco" False (text " A Taco!")
+                ]
+            , (select "favorite-animal" column) None
+                []
+                [ option "manatee" False (text "Manatees are pretty cool")
+                , option "pangolin" False (text "But so are pangolins")
+                , option "bee" True (text "Bees")
+                ]
             ]
-        , (select "favorite-animal" column) None
-            []
-            [ option "manatee" False (text "Manatees are pretty cool")
-            , option "pangolin" False (text "But so are pangolins")
-            , option "bee" True (text "Bees")
-            ]
-        ]
     ]
 
 
@@ -131,6 +132,29 @@ viewDEP model =
 
 
 view model =
+    Element.root stylesheet <|
+        el None [ center, width (px 800) ] <|
+            column None
+                [ spacing 100, padding 100 ]
+                [ row Container
+                    [ spacing 30, moveX 20, center ]
+                    [ el Box [ width (px 100), height (px 100) ] empty
+                    , el Box [ width (px 100), height (px 100) ] empty
+                    , el Box [ width (px 100), height (px 100) ] empty
+                    ]
+                , textLayout None
+                    [ spacing 20, center ]
+                    [ row Container
+                        [ spacing 30, moveX 20, center ]
+                        [ el Box [ width (px 100), height (px 100) ] empty
+                        , el Box [ width (px 100), height (px 100) ] empty
+                        , el Box [ width (px 100), height (px 100) ] empty
+                        ]
+                    ]
+                ]
+
+
+viewDEP2 model =
     Element.root stylesheet <|
         el None [ center, width (px 800) ] <|
             column Main
@@ -181,32 +205,33 @@ anchored =
                     , el Box [ verticalCenter, alignLeft, width (px 40), height (px 40) ] empty
                     ]
             ]
-        , article column
-            None
-            [ spacingXY 20 60 ]
-            [ section el Label [] (text "Nearby Elements")
-            , el Container [ width (px 200), height (px 200) ] empty
-                |> above
-                    [ el Box [ width (px 40), height (px 40) ] empty
-                    , el Box [ alignRight, width (px 40), height (px 40) ] empty
-                    , el Box [ center, width (px 40), height (px 40) ] empty
-                    ]
-                |> below
-                    [ el Box [ width (px 40), height (px 40) ] empty
-                    , el Box [ alignRight, width (px 40), height (px 40) ] empty
-                    , el Box [ center, width (px 40), height (px 40) ] empty
-                    ]
-                |> onRight
-                    [ el Box [ width (px 40), height (px 40) ] empty
-                    , el Box [ alignBottom, width (px 40), height (px 40) ] empty
-                    , el Box [ verticalCenter, width (px 40), height (px 40) ] empty
-                    ]
-                |> onLeft
-                    [ el Box [ width (px 40), height (px 40) ] empty
-                    , el Box [ alignBottom, width (px 40), height (px 40) ] empty
-                    , el Box [ verticalCenter, width (px 40), height (px 40) ] empty
-                    ]
-            ]
+        , article <|
+            column
+                None
+                [ spacingXY 20 60 ]
+                [ section <| el Label [] (text "Nearby Elements")
+                , el Container [ width (px 200), height (px 200) ] empty
+                    |> above
+                        [ el Box [ width (px 40), height (px 40) ] empty
+                        , el Box [ alignRight, width (px 40), height (px 40) ] empty
+                        , el Box [ center, width (px 40), height (px 40) ] empty
+                        ]
+                    |> below
+                        [ el Box [ width (px 40), height (px 40) ] empty
+                        , el Box [ alignRight, width (px 40), height (px 40) ] empty
+                        , el Box [ center, width (px 40), height (px 40) ] empty
+                        ]
+                    |> onRight
+                        [ el Box [ width (px 40), height (px 40) ] empty
+                        , el Box [ alignBottom, width (px 40), height (px 40) ] empty
+                        , el Box [ verticalCenter, width (px 40), height (px 40) ] empty
+                        ]
+                    |> onLeft
+                        [ el Box [ width (px 40), height (px 40) ] empty
+                        , el Box [ alignBottom, width (px 40), height (px 40) ] empty
+                        , el Box [ verticalCenter, width (px 40), height (px 40) ] empty
+                        ]
+                ]
         ]
     , row None
         [ spacingXY 150 150
@@ -329,7 +354,7 @@ viewRowLayouts =
         , box
         , box
         ]
-    , el Label [] (text "Row Alignment")
+    , el Label [] (text "Row Child Alignment")
     , row Container
         [ spacingXY 20 20, height (px 400) ]
         [ el Box [ width (px 100), height (px 100), alignTop ] (text "top")
@@ -338,6 +363,13 @@ viewRowLayouts =
         , el Box [ width (px 100), height (px 100), alignRight ] (text "right (no effect)")
         , el Box [ width (px 100), height (px 100), alignLeft ] (text "left (no effect)")
         , el Box [ width (px 100), height (px 100), center ] (text "center (no effect)")
+        ]
+    , el Label [] (text "Row Center Alignment")
+    , row Container
+        [ spacingXY 20 20, alignRight ]
+        [ el Box [ width (px 100), height (px 100) ] empty
+        , el Box [ width (px 100), height (px 100) ] empty
+        , el Box [ width (px 100), height (px 100) ] empty
         ]
     , el Label [] (text "Row Width/Heights")
     , row Container

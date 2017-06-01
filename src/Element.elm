@@ -339,45 +339,45 @@ html =
 
 
 {-| -}
-node : String -> (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
-node str constructor elem attrs stuff =
-    Modify.setNode str (constructor elem attrs stuff)
+node : String -> Element style variation msg -> Element style variation msg
+node str =
+    Modify.setNode str
 
 
 {-| -}
-header : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
-header constructor elem attrs stuff =
-    Modify.setNode "header" (constructor elem attrs stuff)
+header : Element style variation msg -> Element style variation msg
+header =
+    Modify.setNode "header"
 
 
 {-| -}
-section : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
-section constructor elem attrs stuff =
-    Modify.setNode "section" (constructor elem attrs stuff)
+section : Element style variation msg -> Element style variation msg
+section =
+    Modify.setNode "section"
 
 
 {-| -}
-nav : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
-nav constructor elem attrs stuff =
-    Modify.setNode "nav" (constructor elem attrs stuff)
+nav : Element style variation msg -> Element style variation msg
+nav =
+    Modify.setNode "nav"
 
 
 {-| -}
-article : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
-article constructor elem attrs stuff =
-    Modify.setNode "article" (constructor elem attrs stuff)
+article : Element style variation msg -> Element style variation msg
+article =
+    Modify.setNode "article"
 
 
 {-| -}
-aside : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
-aside constructor elem attrs stuff =
-    Modify.setNode "aside" (constructor elem attrs stuff)
+aside : Element style variation msg -> Element style variation msg
+aside =
+    Modify.setNode "aside"
 
 
 {-| -}
-button : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
-button constructor elem attrs stuff =
-    Modify.setNode "button" (constructor elem attrs stuff)
+button : Element style variation msg -> Element style variation msg
+button =
+    Modify.setNode "button"
 
 
 
@@ -387,27 +387,27 @@ button constructor elem attrs stuff =
 
 
 {-| -}
-canvas : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
-canvas constructor elem attrs stuff =
-    Modify.setNode "canvas" (constructor elem attrs stuff)
+canvas : Element style variation msg -> Element style variation msg
+canvas =
+    Modify.setNode "canvas"
 
 
 {-| -}
-iframe : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
-iframe constructor elem attrs stuff =
-    Modify.setNode "iframe" (constructor elem attrs stuff)
+iframe : Element style variation msg -> Element style variation msg
+iframe =
+    Modify.setNode "iframe"
 
 
 {-| -}
-audio : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
-audio constructor elem attrs stuff =
-    Modify.setNode "audio" (constructor elem attrs stuff)
+audio : Element style variation msg -> Element style variation msg
+audio =
+    Modify.setNode "audio"
 
 
 {-| -}
-video : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
-video constructor elem attrs stuff =
-    Modify.setNode "video" (constructor elem attrs stuff)
+video : Element style variation msg -> Element style variation msg
+video =
+    Modify.setNode "video"
 
 
 
@@ -417,9 +417,9 @@ video constructor elem attrs stuff =
 
 
 {-| -}
-form : (style -> List (Attribute variation msg) -> stuff -> Element style variation msg) -> style -> List (Attribute variation msg) -> stuff -> Element style variation msg
-form constructor elem attrs stuff =
-    Modify.setNode "form" (constructor elem attrs stuff)
+form : Element style variation msg -> Element style variation msg
+form =
+    Modify.setNode "form"
 
 
 {-| Create a list of labeled radio button.
@@ -568,12 +568,13 @@ label elem attrs label input =
                 l ->
                     l
     in
-        (node "label" column)
-            elem
-            attrs
-            [ label
-            , input
-            ]
+        node "label" <|
+            column
+                elem
+                attrs
+                [ label
+                , input
+                ]
 
 
 {-| Same as `label`, but places the label below the input field.
@@ -591,12 +592,13 @@ labelBelow elem attrs label input =
                 l ->
                     l
     in
-        (node "label" column)
-            elem
-            attrs
-            [ input
-            , label
-            ]
+        node "label" <|
+            column
+                elem
+                attrs
+                [ input
+                , label
+                ]
 
 
 {-| -}
@@ -645,7 +647,7 @@ full elem attrs child =
 
 {-| A text layout.
 
-Children that are aligned left or right will be floated left or right.
+Children that are aligned left or right will be floated left or right. Everything else if arranged in the standard 'block' layout of css, meaning a column flowing down.
 
 -}
 textLayout : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
@@ -655,7 +657,9 @@ textLayout elem attrs children =
 
 {-| Paragraph is actually a layout if you can believe it!
 
-All of the children are set to `display:inline`.
+This is the same as a textLayout, except all of the children are set to `display:inline`.
+
+Because all the children are inline, they will not respect and width or height set on them.
 
 -}
 paragraph : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
