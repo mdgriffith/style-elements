@@ -33,8 +33,6 @@ module Element
         , labelBelow
         , textArea
         , inputText
-        , bulleted
-        , numbered
         , full
         , textLayout
         , paragraph
@@ -101,7 +99,7 @@ Make sure to check out the Style Element specific attributes in `Element.Attribu
 
 ## Text Layout
 
-@docs textLayout, paragraph, break
+@docs textLayout, paragraph
 
 
 ## Linear Layouts
@@ -114,9 +112,9 @@ Make sure to check out the Style Element specific attributes in `Element.Attribu
 @docs Grid, NamedGrid, grid, namedGrid, OnGrid, NamedOnGrid, area, named, span, spanAll
 
 
-## Convenient Elements
+## Convenience Elements
 
-@docs full, spacer, hairline, link, image, circle, bulleted, numbered
+@docs full, spacer, hairline, link, image, circle, break
 
 
 ## Positioning
@@ -616,23 +614,6 @@ textArea elem attrs content =
 inputText : style -> List (Attribute variation msg) -> String -> Element style variation msg
 inputText elem attrs content =
     Element "input" (Just elem) (Attr.type_ "text" :: Attr.value content :: attrs) empty Nothing
-
-
-{-| A bulleteded list. Rendered as `<ul>`. A `column` layout is implied and children are automatically converted to use `<li>`
--}
-bulleted : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
-bulleted elem attrs children =
-    Layout "ul" (Style.FlexLayout Style.Down []) (Just elem) attrs (Normal (List.map (Modify.setNode "li") children))
-
-
-{-| A numbered list. Rendered as `<ol>` with an implied 'column' layout.
-
-Automatically sets children to use `<li>`
-
--}
-numbered : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
-numbered elem attrs children =
-    Layout "ol" (Style.FlexLayout Style.Down []) (Just elem) attrs (Normal (List.map (Modify.setNode "li") children))
 
 
 {-| A `full` element will ignore the spacing set for it by the parent, and also grow to cover the parent's padding.
