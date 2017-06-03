@@ -94,12 +94,14 @@ testForm =
                 inputText None [] "The Value!"
             , label None [] (text "check this out") <|
                 textArea None [] "The Value!"
-            , (radio "lunch" column) None
+            , radio "lunch"
+                None
                 []
                 [ option "burrito" True (text "A Burrito!")
                 , option "taco" False (text " A Taco!")
                 ]
-            , (select "favorite-animal" column) None
+            , select "favorite-animal"
+                None
                 []
                 [ option "manatee" False (text "Manatees are pretty cool")
                 , option "pangolin" False (text "But so are pangolins")
@@ -131,30 +133,31 @@ viewDEP model =
                 ]
 
 
+
+-- view model =
+--     Element.root stylesheet <|
+--         el None [ center, width (px 800) ] <|
+--             column None
+--                 [ spacing 100, padding 100 ]
+--                 [ row Container
+--                     [ spacing 30, moveX 20, center ]
+--                     [ el Box [ width (px 100), height (px 100) ] empty
+--                     , el Box [ width (px 100), height (px 100) ] empty
+--                     , el Box [ width (px 100), height (px 100) ] empty
+--                     ]
+--                 , textLayout None
+--                     [ spacing 20, center ]
+--                     [ row Container
+--                         [ spacing 30, moveX 20, center ]
+--                         [ el Box [ width (px 100), height (px 100) ] empty
+--                         , el Box [ width (px 100), height (px 100) ] empty
+--                         , el Box [ width (px 100), height (px 100) ] empty
+--                         ]
+--                     ]
+--                 ]
+
+
 view model =
-    Element.root stylesheet <|
-        el None [ center, width (px 800) ] <|
-            column None
-                [ spacing 100, padding 100 ]
-                [ row Container
-                    [ spacing 30, moveX 20, center ]
-                    [ el Box [ width (px 100), height (px 100) ] empty
-                    , el Box [ width (px 100), height (px 100) ] empty
-                    , el Box [ width (px 100), height (px 100) ] empty
-                    ]
-                , textLayout None
-                    [ spacing 20, center ]
-                    [ row Container
-                        [ spacing 30, moveX 20, center ]
-                        [ el Box [ width (px 100), height (px 100) ] empty
-                        , el Box [ width (px 100), height (px 100) ] empty
-                        , el Box [ width (px 100), height (px 100) ] empty
-                        ]
-                    ]
-                ]
-
-
-viewDEP2 model =
     Element.root stylesheet <|
         el None [ center, width (px 800) ] <|
             column Main

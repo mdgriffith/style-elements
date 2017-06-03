@@ -422,14 +422,16 @@ form =
 
 {-| Create a list of labeled radio button.
 
-    radio "lunch" column None []
+This implies a column layout.
+
+    radio "lunch" None []
         [ option "burrito" True (text "A Burrito!")
         , option "taco" False (text "A Taco!")
         ]
 
 -}
-radio : String -> (style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg) -> style -> List (Attribute variation msg) -> List (Option style variation msg) -> Element style variation msg
-radio group constructor style attributes buttons =
+radio : String -> style -> List (Attribute variation msg) -> List (Option style variation msg) -> Element style variation msg
+radio group style attributes buttons =
     let
         toChild (Option value on child) =
             let
@@ -472,7 +474,7 @@ radio group constructor style attributes buttons =
             in
                 Layout "label" (Style.FlexLayout Style.GoRight []) style nonInputEventAttrs (Normal [ rune, literalLabel ])
     in
-        constructor style attributes (List.map toChild buttons)
+        column style attributes (List.map toChild buttons)
 
 
 {-| Create an Option. Can only be used with `radio` and `select`.
@@ -487,16 +489,17 @@ type Option style variation msg
     = Option String Bool (Element style variation msg)
 
 
-{-|
+{-| A standard html dropdown set of options.
 
-    select "favorite-animal" column MySelectionStyle []
+    select "favorite-animal" MySelectionStyle []
         [ option "manatee" False (text "Manatees are pretty cool")
         , option "pangolin" False (text "But so are pangolins")
         , option "bee" True (text "Bees")
         ]
+
 -}
-select : String -> (style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg) -> style -> List (Attribute variation msg) -> List (Option style variation msg) -> Element style variation msg
-select group constructor style attributes buttons =
+select : String -> style -> List (Attribute variation msg) -> List (Option style variation msg) -> Element style variation msg
+select group style attributes buttons =
     let
         toChild (Option value on child) =
             child
@@ -506,8 +509,8 @@ select group constructor style attributes buttons =
                     , Attr.selected on
                     ]
     in
-        constructor style (Attr.name group :: attributes) (List.map toChild buttons)
-            |> Modify.setNode "select"
+        Modify.setNode "select" <|
+            column style (Attr.name group :: attributes) (List.map toChild buttons)
 
 
 {-| An automatically labeled checkbox.
