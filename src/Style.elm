@@ -1,1705 +1,515 @@
 module Style
     exposing
-        ( Model
+        ( stylesheet
+        , stylesheetWith
+        , unguarded
+        , Style
         , Property
-        , StyleSheet
         , Shadow
-        , Visibility
-        , Alignment
-        , VerticalAlignment
-        , BackgroundImage
-        , Transform
         , Filter
-        , Floating
-        , BorderStyle
-        , Flow
-        , Layout
-        , Whitespace
-        , PositionParent
-        , Repeat
-        , Animation
-        , Transition
+        , StyleSheet
         , Option
-        , Border
-        , foundation
-        , embed
-        , render
-        , renderWith
-        , class
-        , selector
-        , flowUp
-        , flowDown
-        , flowRight
-        , flowLeft
-        , textLayout
-        , tableLayout
-        , top
-        , bottom
-        , left
-        , right
-        , all
-        , topBottom
-        , leftRight
-        , leftRightAndTopBottom
-        , leftRightTopBottom
-        , allButTop
-        , allButLeft
-        , allButRight
-        , allButBottom
-        , normal
-        , pre
-        , preWrap
-        , preLine
-        , noWrap
-        , alignLeft
-        , alignRight
-        , justify
-        , justifyAll
-        , alignCenter
-        , verticalCenter
-        , verticalStretch
-        , alignTop
-        , alignBottom
-        , topLeft
-        , bottomRight
-        , topRight
-        , bottomLeft
-        , currentPosition
-        , parent
-        , screen
-        , hidden
-        , visible
+        , style
+        , variation
+        , prop
+        , cursor
+        , shadows
+        , paddingHint
+        , paddingLeftHint
+        , paddingRightHint
+        , paddingTopHint
+        , paddingBottomHint
         , opacity
-        , transparency
-        , auto
-        , px
-        , percent
-        , solid
-        , dotted
-        , dashed
-        , floatLeft
-        , floatRight
-        , floatTopLeft
-        , floatTopRight
-        , scale
+        , filters
+        , origin
         , translate
         , rotate
-        , repeat
-        , repeatX
-        , repeatY
-        , space
-        , round
-        , noRepeat
-        , filterUrl
-        , blur
-        , brightness
-        , contrast
-        , grayscale
-        , hueRotate
-        , invert
-        , opacityFilter
-        , saturate
-        , sepia
-        , shadow
-        , insetShadow
-        , textShadow
-        , dropShadow
-        , animate
-        , transition
+        , rotateAround
+        , scale
         , hover
-        , focus
         , checked
-        , selection
-        , after
-        , before
-        , visibility
-        , positionBy
-        , textColor
-        , backgroundColor
-        , borderColor
-        , font
-        , fontsize
-        , lineHeight
-        , textAlign
-        , whitespace
-        , letterOffset
-        , italicize
-        , bold
-        , light
-        , strike
-        , underline
-        , border
-        , borderStyle
-        , borderWidth
-        , borderRadius
-        , cursor
-        , zIndex
-        , width
-        , minWidth
-        , maxWidth
-        , height
-        , minHeight
-        , maxHeight
-        , padding
-        , spacing
-        , inline
-        , backgroundImage
-        , shadows
-        , transforms
-        , filters
-        , property
-        , mix
-        , autoImportGoogleFonts
-        , importCSS
+        , focus
+        , pseudo
         , importUrl
-        , base
-        , debug
+        , importCss
         )
 
 {-|
 
-This module is focused around composing a style.
 
-@docs Model, Property
+# The Style part of the Style Elements Library!
 
-# Rendering
+Here is where you an create your stylesheet.
 
-We use `render` to create a style sheet and `embed` to embed it in our view.
+One of the first concepts of `style-elements` is that layout, position, and width/height all live in your view through the `Element` module.
 
-@docs render, renderWith, StyleSheet, embed
+Your stylesheet handles everything else!
 
-## Rendering Options
+Check out the other `Style` modules for other properties.
 
-@docs Option, importCSS, importUrl, debug, base, foundation, autoImportGoogleFonts
+Check out `Basic.elm` in the examples folder to see an example of a full stylesheet.
 
-# Creating Styles
 
-@docs class, selector
+## The Basics
 
+`style-elements` does away with CSS selectors entirely. Every style gets one identifier, which is ultimately rendered as a `class`.
 
-# Positioning
+@docs Style, style
 
-The coordinates for position always have the same coordinate system, right and down are the positive directions, same as the standard coordinate system for svg.
+Here's a basic example of a style that sets a few colors.
 
-These coordinates are always rendered in pixels.
+    import Style exposing (..)
+    import Style.Color as Color
+    import Color exposing (..)
 
-The name of the position property refers on which corner of the css box to start at.
+    type Styles
+        = Button
 
-@docs topLeft, topRight, bottomLeft, bottomRight
+    stylesheet =
+        Style.stylesheet
+            [ style Button
+                [ Color.background blue
+                , Color.text white
+                ]
+            ]
+    -- Which can be used in your view as:
+    el Button [ ] (text "A button!")
 
-@docs positionBy, PositionParent, parent, currentPosition, screen
+@docs variation
 
+Styles can have variations. Here's what it looks like to have a button style with a variation for `Disabled`
 
+    import Style exposing (..)
+    import Style.Color as Color
+    import Color exposing (..)
 
-# Width/Height
+    type Styles = Button
 
-@docs height, minHeight, maxHeight, width, minWidth, maxWidth
+     stylesheet =
+        Style.stylesheet
+            [ style Button
+                [ Color.background blue
+                , variation Disabled
+                    [ Color.background lightGrey
+                    ]
+                ]
+            ]
 
-# Units
+    -- which can be rendered in your view as
 
-Most values in this library have one set of units to the library that are required to be used.
+    el Button [ vary Disabled True ] (text "A Disabled button!")
 
-This is to encourage relative units to be expressed in terms of your elm code instead of relying on DOM hierarchy.
 
-However, `width` and `height` values can be pixels, percent, or auto.
+## Properties
 
-@docs percent, px, auto
+@docs Property, prop, opacity, cursor, paddingHint, paddingLeftHint, paddingRightHint, paddingTopHint, paddingBottomHint
 
 
-# A Note on Padding and Margins
+## Shadows
 
-With `padding` and `margin` you have two ways of specifying the spacing of the child element within the parent.  Either the `margin` on the child or the `padding` on the parent.
+Check out the `Style.Shadow` module for more about shadows.
 
-In the effort of having only one good way to accomplish something, we only allow the `padding` property to be set.
+@docs Shadow, shadows
 
-We introduce the `spacing` attribute, which sets the spacing between all _child_ elements (using the margin property).
 
-> __Some exceptions__
->
-> `inline` elements are not affected by spacing.
->
-> Floating elements will only respect certain spacing values.
+## Filters
 
-@docs padding, spacing, zIndex
+Check out the `Style.Filter` module for more about filters.
 
+@docs Filter, filters
 
-# Padding, Spacing, and Borders
 
-Padding, spacing, and border widths are all specified by a tuple of four floats that represent (top, right, bottom, left).  These are all rendered as `px` values.
+## Transformations
 
-The following are convenience functions for setting these values.
+@docs origin, translate, rotate, rotateAround, scale
 
-@docs all, top, bottom, left, right, topBottom, leftRight, leftRightAndTopBottom, leftRightTopBottom, allButTop, allButLeft, allButRight, allButBottom
 
+## Pseudo Classes
 
-## Borderstyles
+Psuedo classes can be nested.
 
-@docs Border, border, borderStyle, BorderStyle, borderWidth, solid, dotted, dashed, borderRadius
+@docs hover, checked, focus, pseudo
 
-# Layouts
 
-Layouts affect how child elements are arranged.
+## Render into a Style Sheet
 
-@docs Layout, textLayout, tableLayout
-
-@docs Flow, flowUp, flowDown, flowRight, flowLeft
-
-
-@docs inline
-
-@docs Floating, floatLeft, floatRight, floatTopLeft, floatTopRight
-
-# Alignment
-
-@docs Alignment, alignLeft, alignRight, justify, justifyAll, alignCenter
-
-@docs VerticalAlignment, verticalCenter, verticalStretch, alignTop, alignBottom
-
-
-# Colors
-
-@docs textColor, backgroundColor, borderColor
-
-
-# Visibility
-
-@docs visibility, Visibility, hidden, opacity, transparency, visible
-
-
-# Text/Font
-
-@docs font, fontsize, lineHeight, textAlign, letterOffset, whitespace, Whitespace, normal, pre, preLine, preWrap, noWrap, italicize, bold, light, strike, underline, cursor
-
-
-# Background Images
-
-@docs backgroundImage, BackgroundImage, Repeat, repeat, repeatX, repeatY, noRepeat, round, space
-
-@docs property, mix
-
-
-# Shadows
-
-@docs shadows, Shadow, shadow, insetShadow, textShadow, dropShadow
-
-
-# Transforms
-
-@docs transforms, Transform, translate, rotate, scale
-
-# Filters
-
-@docs filters, Filter, filterUrl, blur, brightness, contrast, grayscale, hueRotate, invert, opacityFilter, saturate, sepia
-
-
-# Animations and Transitions
-
-@docs Animation, animate
-
-
-@docs Transition, transition
-
-## Pseudo elements and classes
-
-@docs selection, after, before, hover, focus, checked
-
-
-
+@docs StyleSheet, stylesheet, stylesheetWith, Option, unguarded, importUrl, importCss
 
 -}
 
-import Html exposing (Html, Attribute)
-import Html.Attributes
-import Time exposing (Time)
-import Color exposing (Color)
-import List.Extra
-import String.Extra
-import Style.Model exposing (Model(..), Property(..), Floating(..), Whitespace(..), Alignment(..))
-import Style.Render
-import Style.Media
-
-
-{-| A style model which keeps of a list of style properties and the class for a given style.
-
-The `class` type variable is the type you use to write your css classes.
-
--}
-type alias Model class =
-    Style.Model.Model class
-
-
-{-| This type represents any style property.  The Model has a list of these.
-
--}
-type alias Property =
-    Style.Model.Property
-
-
-{-|
-
-Sets the following defaults:
-
-    box-sizing: border-box
-    display: block
-    position: relative
-    top: 0
-    left: 0
-
--}
-foundation : List Property
-foundation =
-    [ Style.Model.Property "box-sizing" "border-box"
-    , Style.Model.LayoutProp Style.Model.TextLayout
-    , Style.Model.PositionProp ( Style.Model.AnchorTop, Style.Model.AnchorLeft ) 0 0
-    , Style.Model.RelProp currentPosition
-    ]
-
-
-{-| Set the class for a given style.  You should use a union type!
--}
-class : class -> List Property -> Model class
-class cls props =
-    Model
-        { selector = Style.Model.Class cls
-        , properties = props
-        }
-
-
-{-| You can set a raw css selector instead of a class.
-
-It's highly recommended not to do this unless absolutely necessary.
-
--}
-selector : String -> List Property -> Model class
-selector sel props =
-    Model
-        { selector = Style.Model.Exactly sel
-        , properties = props
-        }
-
-
-{-| Embed a style sheet into your html.
--}
-embed : StyleSheet class msg -> Html msg
-embed stylesheet =
-    Html.node "style" [] [ Html.text stylesheet.css ]
-
-
-{-| The stylesheet contains the rendered css as a string, and two functions to lookup
-
--}
-type alias StyleSheet class msg =
-    { class : class -> Html.Attribute msg
-    , classList : List ( class, Bool ) -> Html.Attribute msg
-    , css : String
-    }
-
-
-{-| Render styles into a stylesheet
-
--}
-render : List (Model class) -> StyleSheet class msg
-render styles =
-    renderWith [] styles
-
-
-{-| A style rendering option to be used with `renderWith`
--}
-type Option
-    = AutoImportGoogleFonts
-    | Import String
-    | ImportUrl String
-    | BaseStyle (List Property)
-    | DebugStyles
-
-
-{-| An attempt will be made to import all non-standard webfonts that are in your styles.
-
-If a font is not in the following list, then it will try to import it from google fonts.
-
-    [ "arial"
-    , "sans-serif"
-    , "serif"
-    , "courier"
-    , "times"
-    , "times new roman"
-    , "verdana"
-    , "tahoma"
-    , "georgia"
-    , "helvetica"
-    ]
-
-
--}
-autoImportGoogleFonts : Option
-autoImportGoogleFonts =
-    AutoImportGoogleFonts
-
-
-{-|
--}
-importCSS : String -> Option
-importCSS =
-    Import
-
-
-{-|
--}
-importUrl : String -> Option
-importUrl =
-    ImportUrl
-
-
-{-| Set a base style.  All classes in this stylesheet will start with these properties.
--}
-base : List Property -> Option
-base =
-    BaseStyle
-
-
-{-| Log a warning if a style is missing from a style sheet.
-
-Also shows a visual warning if a style uses float or inline in a table layout orflow/flex layout.
-
--}
-debug : Option
-debug =
-    DebugStyles
-
-
-isWebfont : String -> Bool
-isWebfont str =
-    List.member (String.toLower str)
-        [ "arial"
-        , "sans-serif"
-        , "serif"
-        , "courier"
-        , "times"
-        , "times new roman"
-        , "verdana"
-        , "tahoma"
-        , "georgia"
-        , "helvetica"
-        ]
-
-
-getFontNames : Model class -> List String
-getFontNames (Model model) =
-    let
-        getFonts prop =
-            case prop of
-                Style.Model.Property name family ->
-                    if name == "font-family" then
-                        family
-                            |> String.split ","
-                            |> List.map (String.Extra.replace "'" "" << String.Extra.unquote << String.Extra.replace " " "+" << String.trim)
-                            |> Just
-                    else
-                        Nothing
-
-                _ ->
-                    Nothing
-    in
-        model.properties
-            |> List.filterMap getFonts
-            |> List.concat
-
-
-flatten : List Property -> List Property
-flatten props =
-    List.concatMap
-        (\prop ->
-            case prop of
-                Mix mixins ->
-                    mixins
-
-                other ->
-                    [ other ]
-        )
-        props
-
-
-{-| Render a stylesheet with options
--}
-renderWith : List Option -> List (Model class) -> StyleSheet class msg
-renderWith opts styles =
-    let
-        forBase opt =
-            case opt of
-                BaseStyle style ->
-                    Just style
-
-                _ ->
-                    Nothing
-
-        base =
-            opts
-                |> List.filterMap forBase
-                |> List.head
-                |> Maybe.withDefault foundation
-
-        basedStyles =
-            List.map
-                (\(Model state) ->
-                    Model { state | properties = flatten (base ++ state.properties) }
-                )
-                styles
-
-        debug =
-            List.any (\x -> x == DebugStyles) opts
-
-        renderAdd add =
-            case add of
-                AutoImportGoogleFonts ->
-                    basedStyles
-                        |> List.concatMap getFontNames
-                        |> List.Extra.uniqueBy identity
-                        |> List.filter (not << isWebfont)
-                        |> String.join "|"
-                        |> (\family ->
-                                case family of
-                                    "" ->
-                                        Nothing
-
-                                    _ ->
-                                        Just ("@import url('https://fonts.googleapis.com/css?family=" ++ family ++ "');")
-                           )
-
-                Import str ->
-                    Just ("@import " ++ str ++ ";")
-
-                ImportUrl str ->
-                    Just ("@import url('" ++ str ++ "');")
-
-                BaseStyle _ ->
-                    Nothing
-
-                DebugStyles ->
-                    Just (Style.Render.inlineError ++ Style.Render.floatError)
-
-        renderStyle styles =
-            let
-                ( names, cssStyles ) =
-                    styles
-                        |> List.map Style.Render.render
-                        |> List.Extra.uniqueBy Tuple.first
-                        |> List.unzip
-            in
-                { css = String.join "\n" cssStyles
-                , class =
-                    (\cls ->
-                        case Style.Render.find cls styles of
-                            Nothing ->
-                                if debug then
-                                    let
-                                        _ =
-                                            Debug.log "style" (toString cls ++ " is not in your stylesheet.")
-                                    in
-                                        Html.Attributes.class (Style.Render.formatName cls)
-                                else
-                                    Html.Attributes.class (Style.Render.formatName cls)
-
-                            Just style ->
-                                Html.Attributes.class (Style.Render.getName style)
-                    )
-                , classList =
-                    (\classes ->
-                        let
-                            found =
-                                List.map
-                                    (\( cls, include ) ->
-                                        ( cls, include, Style.Render.find cls styles )
-                                    )
-                                    classes
-                        in
-                            found
-                                |> List.filterMap
-                                    (\( name, include, foundStyle ) ->
-                                        case foundStyle of
-                                            Nothing ->
-                                                let
-                                                    _ =
-                                                        Debug.log "style" (toString name ++ " is not in your stylesheet.")
-                                                in
-                                                    Nothing
-
-                                            Just style ->
-                                                if include then
-                                                    Just (Style.Render.getName style)
-                                                else
-                                                    Nothing
-                                    )
-                                |> String.join " "
-                                |> Html.Attributes.class
-                    )
-                }
-
-        rendered =
-            renderStyle basedStyles
-    in
-        case List.filterMap renderAdd opts of
-            [] ->
-                rendered
-
-            rules ->
-                { rendered
-                    | css = String.join "\n" rules ++ "\n\n" ++ rendered.css
-                }
+import Style.Internal.Model as Internal
+import Style.Internal.Batchable as Batchable exposing (Batchable)
+import Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
+import Style.Internal.Find as Find
+import Style.Internal.Render as Render
 
 
 {-| -}
-type alias BackgroundImage =
-    { src : String
-    , position : ( Float, Float )
-    , repeat : Repeat
-    }
+type alias StyleSheet style variation =
+    Internal.StyleSheet style variation
 
 
-{-|
--}
-type alias Shadow =
-    Style.Model.Shadow
+{-| -}
+type alias Style class variation =
+    Batchable (Internal.Style class variation)
 
 
-{-|
--}
-type alias Transition =
-    Style.Model.Transition
+{-| -}
+type alias Property class variation =
+    Internal.Property class variation
 
 
-{-|
--}
-type alias Visibility =
-    Style.Model.Visibility
-
-
-{-|
--}
-type alias Alignment =
-    Style.Model.Alignment
-
-
-{-|
--}
-type alias VerticalAlignment =
-    Style.Model.VerticalAlignment
-
-
-{-|
--}
-type alias Transform =
-    Style.Model.Transform
-
-
-{-|
--}
-type alias BorderStyle =
-    Style.Model.BorderStyle
-
-
-{-|
--}
-type alias Flexible =
-    Style.Model.Flexible
-
-
-{-|
--}
-type alias Layout =
-    Style.Model.Layout
-
-
-{-|
--}
+{-| -}
 type alias Length =
-    Style.Model.Length
-
-
-{-| Only rendered if the parent is a textLayout.
--}
-type alias Floating =
-    Style.Model.Floating
-
-
-{-|
--}
-type alias PositionParent =
-    Style.Model.PositionParent
-
-
-{-|
--}
-type alias Repeat =
-    Style.Model.Repeat
+    Internal.Length
 
 
 {-| -}
-type alias Whitespace =
-    Style.Model.Whitespace
+type alias Transform =
+    Internal.Transformation
 
 
-{-|
+{-| -}
+importUrl : String -> Style class variation
+importUrl url =
+    Batchable.one (Internal.Import <| "url(\"" ++ url ++ "\")")
+
+
+{-| -}
+importCss : String -> Style class variation
+importCss str =
+    Batchable.one (Internal.Import <| "\"" ++ str ++ "\"")
+
+
+{-| -}
+style : class -> List (Property class variation) -> Style class variation
+style cls props =
+    Batchable.one (Internal.Style cls (prop "border-style" "solid" :: props))
+
+
+{-| -}
+variation : variation -> List (Property class Never) -> Property class variation
+variation variation props =
+    Internal.Variation variation props
+
+
+{-| -}
+prop : String -> String -> Property class variation
+prop name val =
+    Internal.Exact name val
+
+
+{-| -}
+opacity : Float -> Property class variation
+opacity o =
+    Internal.Exact "opacity" (toString o)
+
+
+{-| -}
+cursor : String -> Property class variation
+cursor name =
+    Internal.Exact "cursor" name
+
+
+{-| You can give a hint about what the padding should be for this element, but the layout can override it.
 -}
+paddingHint : Float -> Property class variation
+paddingHint x =
+    Internal.Exact "padding" (toString x ++ "px")
+
+
+{-| -}
+paddingLeftHint : Float -> Property class variation
+paddingLeftHint x =
+    Internal.Exact "padding-left" (toString x ++ "px")
+
+
+{-| -}
+paddingRightHint : Float -> Property class variation
+paddingRightHint x =
+    Internal.Exact "padding-right" (toString x ++ "px")
+
+
+{-| -}
+paddingTopHint : Float -> Property class variation
+paddingTopHint x =
+    Internal.Exact "padding-top" (toString x ++ "px")
+
+
+{-| -}
+paddingBottomHint : Float -> Property class variation
+paddingBottomHint x =
+    Internal.Exact "padding-bottom" (toString x ++ "px")
+
+
+{-| -}
+type alias Shadow =
+    Internal.ShadowModel
+
+
+{-| -}
+shadows : List Shadow -> Property class variation
+shadows shades =
+    Internal.Shadows shades
+
+
+{-| -}
 type alias Filter =
-    Style.Model.Filter
+    Internal.Filter
 
 
-(=>) : a -> b -> ( a, b )
-(=>) =
-    (,)
+{-| Apply a stack of filters. The actual filters are in `Style.Filter`.
 
+    import Style.Filter as Filter
+    import Style exposing (..)
 
-{-| -}
-repeatX : Repeat
-repeatX =
-    Style.Model.RepeatX
+    style MyFitleredStyle
+        [ filters
+            [ Filter.blur 0.5
+            , Filter.invert 0.5
+            ]
 
-
-{-| -}
-repeatY : Repeat
-repeatY =
-    Style.Model.RepeatY
-
-
-{-| -}
-repeat : Repeat
-repeat =
-    Style.Model.Repeat
-
-
-{-| -}
-space : Repeat
-space =
-    Style.Model.Space
-
-
-{-| -}
-round : Repeat
-round =
-    Style.Model.Round
-
-
-{-| -}
-noRepeat : Repeat
-noRepeat =
-    Style.Model.NoRepeat
-
-
-{-| Float something to the left.  Only valid in textLayouts.
-
-Will ignore any left spacing that it's parent has set for it.
-
--}
-floatLeft : Property
-floatLeft =
-    FloatProp Style.Model.FloatLeft
-
-
-{-|
-
--}
-floatRight : Property
-floatRight =
-    FloatProp Style.Model.FloatRight
-
-
-{-| Same as floatLeft, except it will ignore any top spacing that it's parent has set for it.
-
-This is useful for floating things at the beginning of text.
-
--}
-floatTopLeft : Property
-floatTopLeft =
-    FloatProp Style.Model.FloatTopLeft
-
-
-{-|
-
--}
-floatTopRight : Property
-floatTopRight =
-    FloatProp Style.Model.FloatTopRight
-
-
-{-| -}
-px : Float -> Length
-px x =
-    Style.Model.Px x
-
-
-{-| -}
-percent : Float -> Length
-percent x =
-    Style.Model.Percent x
-
-
-{-| -}
-auto : Length
-auto =
-    Style.Model.Auto
-
-
-{-| -}
-visibility : Visibility -> Property
-visibility vis =
-    Style.Model.VisibilityProp vis
-
-
-{-| -}
-screen : PositionParent
-screen =
-    Style.Model.Screen
-
-
-{-| -}
-parent : PositionParent
-parent =
-    Style.Model.Parent
-
-
-{-| -}
-currentPosition : PositionParent
-currentPosition =
-    Style.Model.CurrentPosition
-
-
-{-| -}
-positionBy : PositionParent -> Property
-positionBy =
-    Style.Model.RelProp
-
-
-{-| -}
-topLeft : Float -> Float -> Property
-topLeft x y =
-    let
-        anchor =
-            Style.Model.AnchorTop => Style.Model.AnchorLeft
-    in
-        PositionProp anchor x y
-
-
-{-| -}
-topRight : Float -> Float -> Property
-topRight x y =
-    let
-        anchor =
-            Style.Model.AnchorTop => Style.Model.AnchorRight
-    in
-        PositionProp anchor x y
-
-
-{-| -}
-bottomLeft : Float -> Float -> Property
-bottomLeft x y =
-    let
-        anchor =
-            Style.Model.AnchorBottom => Style.Model.AnchorLeft
-    in
-        PositionProp anchor x y
-
-
-{-| -}
-bottomRight : Float -> Float -> Property
-bottomRight x y =
-    let
-        anchor =
-            Style.Model.AnchorBottom => Style.Model.AnchorRight
-    in
-        PositionProp anchor x y
-
-
-{-| -}
-cursor : String -> Property
-cursor value =
-    Property "cursor" value
-
-
-{-| -}
-zIndex : Int -> Property
-zIndex i =
-    Property "z-index" (toString i)
-
-
-{-| -}
-width : Length -> Property
-width value =
-    Len "width" value
-
-
-{-| -}
-minWidth : Length -> Property
-minWidth value =
-    Len "min-width" value
-
-
-{-| -}
-maxWidth : Length -> Property
-maxWidth value =
-    Len "max-width" value
-
-
-{-| -}
-height : Length -> Property
-height value =
-    Len "height" value
-
-
-{-| -}
-minHeight : Length -> Property
-minHeight value =
-    Len "min-height" value
-
-
-{-| -}
-maxHeight : Length -> Property
-maxHeight value =
-    Len "max-height" value
-
-
-{-| -}
-textColor : Color -> Property
-textColor color =
-    ColorProp "color" color
-
-
-{-| -}
-backgroundColor : Color -> Property
-backgroundColor color =
-    ColorProp "background-color" color
-
-
-{-| -}
-type alias Border =
-    { width : ( Float, Float, Float, Float )
-    , style : BorderStyle
-    , color : Color
-    }
-
-
-{-| -}
-border : Border -> Property
-border { width, color, style } =
-    Mix
-        [ borderColor color
-        , borderWidth width
-        , borderStyle style
         ]
 
-
-{-| -}
-borderColor : Color -> Property
-borderColor color =
-    ColorProp "border-color" color
-
-
-{-| -}
-borderWidth : ( Float, Float, Float, Float ) -> Property
-borderWidth value =
-    Box "border-width" value
-
-
-{-| -}
-borderRadius : ( Float, Float, Float, Float ) -> Property
-borderRadius value =
-    Box "border-radius" value
-
-
-{-| -}
-spacing : ( Float, Float, Float, Float ) -> Property
-spacing s =
-    Spacing s
-
-
-{-| -}
-padding : ( Float, Float, Float, Float ) -> Property
-padding value =
-    Box "padding" value
-
-
-{-| Set font-family
 -}
-font : String -> Property
-font family =
-    Property "font-family" family
+filters : List Filter -> Property class variation
+filters fs =
+    Internal.Filters fs
 
 
-{-| Set font-size.  Only px allowed.
+{-| Set the transform origin.
 -}
-fontsize : Float -> Property
-fontsize size =
-    Property "font-size" (toString size ++ "px")
-
-
-{-| Given as unitless lineheight.
--}
-lineHeight : Float -> Property
-lineHeight size =
-    Property "line-height" (toString size)
-
-
-{-| -}
-letterOffset : Float -> Property
-letterOffset offset =
-    Property "letter-offset" (toString offset ++ "px")
-
-
-{-| -}
-textAlign : Alignment -> Property
-textAlign alignment =
-    case alignment of
-        AlignLeft ->
-            Property "text-align" "left"
-
-        AlignRight ->
-            Property "text-align" "right"
-
-        AlignCenter ->
-            Property "text-align" "center"
-
-        Justify ->
-            Property "text-align" "justify"
-
-        JustifyAll ->
-            Property "text-align" "justify-all"
-
-
-{-| -}
-whitespace : Whitespace -> Property
-whitespace ws =
-    case ws of
-        Normal ->
-            Property "white-space" "normal"
-
-        Pre ->
-            Property "white-space" "pre"
-
-        PreWrap ->
-            Property "white-space" "pre-wrap"
-
-        PreLine ->
-            Property "white-space" "pre-line"
-
-        NoWrap ->
-            Property "white-space" "no-wrap"
-
-
-{-| -}
-underline : Property
-underline =
-    Property "text-decoration" "underline"
-
-
-{-| -}
-strike : Property
-strike =
-    Property "text-decoration" "line-through"
-
-
-{-| -}
-italicize : Property
-italicize =
-    Property "font-style" "italic"
-
-
-{-| -}
-bold : Property
-bold =
-    Property "font-weight" "700"
-
-
-{-| -}
-light : Property
-light =
-    Property "font-weight" "300"
-
-
-{-| -}
-borderStyle : BorderStyle -> Property
-borderStyle bStyle =
-    let
-        val =
-            case bStyle of
-                Style.Model.Solid ->
-                    "solid"
-
-                Style.Model.Dashed ->
-                    "dashed"
-
-                Style.Model.Dotted ->
-                    "dotted"
-    in
-        Style.Model.Property "border-style" val
-
-
-{-| -}
-backgroundImage : BackgroundImage -> Property
-backgroundImage value =
-    BackgroundImageProp value
-
-
-{-| -}
-shadows : List Shadow -> Property
-shadows value =
-    Shadows value
-
-
-{-| -}
-transforms : List Transform -> Property
-transforms value =
-    Transforms value
-
-
-{-| -}
-filters : List Filter -> Property
-filters value =
-    Filters value
-
-
-{-| -}
-mix : List Property -> Property
-mix =
-    Mix
-
-
-{-| Add a property.  Not to be exported, `properties` is to be used instead.
--}
-property : String -> String -> Property
-property name value =
-    Property name value
-
-
-{-| Render an element as 'inline-block'.
-
-This element will no longer be affected by 'spacing'
-
--}
-inline : Property
-inline =
-    LayoutProp Style.Model.InlineLayout
-
-
-{-| This is the only layout that allows for child elements to use `float` or `inline`.
-
-If you try to assign a float or make an element inline that is not the child of a textLayout, the float or inline will be ignored.
-
-If you use Style.debug instead of Style.render, the element will be highlighted in red with a large warning.
-
-Besides this, all immediate children are arranged as if they were `display: block`.
-
--}
-textLayout : Property
-textLayout =
-    LayoutProp Style.Model.TextLayout
-
-
-{-| This is the same as setting an element to `display:table`.
-
--}
-tableLayout : Property
-tableLayout =
-    LayoutProp Style.Model.TableLayout
-
-
-{-|
-
--}
-type alias Flow =
-    { wrap : Bool
-    , horizontal : Alignment
-    , vertical : VerticalAlignment
-    }
-
-
-{-| This is a flexbox foundationd layout
--}
-flowUp : Flow -> Property
-flowUp { wrap, horizontal, vertical } =
-    let
-        layout =
-            Style.Model.FlexLayout <|
-                Style.Model.Flexible
-                    { go = Style.Model.Up
-                    , wrap = wrap
-                    , horizontal = horizontal
-                    , vertical = vertical
-                    }
-    in
-        LayoutProp layout
-
-
-{-|
-
--}
-flowDown : Flow -> Property
-flowDown { wrap, horizontal, vertical } =
-    let
-        layout =
-            Style.Model.FlexLayout <|
-                Style.Model.Flexible
-                    { go = Style.Model.Down
-                    , wrap = wrap
-                    , horizontal = horizontal
-                    , vertical = vertical
-                    }
-    in
-        LayoutProp layout
-
-
-{-| -}
-flowRight : Flow -> Property
-flowRight { wrap, horizontal, vertical } =
-    let
-        layout =
-            Style.Model.FlexLayout <|
-                Style.Model.Flexible
-                    { go = Style.Model.Right
-                    , wrap = wrap
-                    , horizontal = horizontal
-                    , vertical = vertical
-                    }
-    in
-        LayoutProp layout
-
-
-{-| -}
-flowLeft : Flow -> Property
-flowLeft { wrap, horizontal, vertical } =
-    let
-        layout =
-            Style.Model.FlexLayout <|
-                Style.Model.Flexible
-                    { go = Style.Model.Left
-                    , wrap = wrap
-                    , horizontal = horizontal
-                    , vertical = vertical
-                    }
-    in
-        LayoutProp layout
-
-
-{-| -}
-normal : Whitespace
-normal =
-    Style.Model.Normal
-
-
-{-| -}
-pre : Whitespace
-pre =
-    Style.Model.Pre
-
-
-{-| -}
-preWrap : Whitespace
-preWrap =
-    Style.Model.PreWrap
-
-
-{-| -}
-preLine : Whitespace
-preLine =
-    Style.Model.PreLine
-
-
-{-| -}
-noWrap : Whitespace
-noWrap =
-    Style.Model.NoWrap
-
-
-{-| -}
-alignTop : VerticalAlignment
-alignTop =
-    Style.Model.AlignTop
-
-
-{-| -}
-alignBottom : VerticalAlignment
-alignBottom =
-    Style.Model.AlignBottom
-
-
-{-| -}
-verticalStretch : VerticalAlignment
-verticalStretch =
-    Style.Model.VStretch
-
-
-{-| -}
-verticalCenter : VerticalAlignment
-verticalCenter =
-    Style.Model.VCenter
-
-
-{-| -}
-justify : Alignment
-justify =
-    Style.Model.Justify
-
-
-{-| -}
-justifyAll : Alignment
-justifyAll =
-    Style.Model.JustifyAll
-
-
-{-| -}
-alignLeft : Alignment
-alignLeft =
-    Style.Model.AlignLeft
-
-
-{-| -}
-alignRight : Alignment
-alignRight =
-    Style.Model.AlignRight
-
-
-{-| -}
-alignCenter : Alignment
-alignCenter =
-    Style.Model.AlignCenter
-
-
-{-| -}
-all : Float -> ( Float, Float, Float, Float )
-all x =
-    ( x, x, x, x )
-
-
-{-| -}
-left : Float -> ( Float, Float, Float, Float )
-left x =
-    ( 0, 0, 0, x )
-
-
-{-| -}
-right : Float -> ( Float, Float, Float, Float )
-right x =
-    ( 0, x, 0, 0 )
-
-
-{-| -}
-top : Float -> ( Float, Float, Float, Float )
-top x =
-    ( x, 0, 0, 0 )
-
-
-{-| -}
-bottom : Float -> ( Float, Float, Float, Float )
-bottom x =
-    ( 0, 0, x, 0 )
-
-
-{-| -}
-topBottom : Float -> ( Float, Float, Float, Float )
-topBottom x =
-    ( x, 0, x, 0 )
-
-
-{-| -}
-leftRight : Float -> ( Float, Float, Float, Float )
-leftRight x =
-    ( 0, x, 0, x )
-
-
-{-| -}
-leftRightAndTopBottom : Float -> Float -> ( Float, Float, Float, Float )
-leftRightAndTopBottom x y =
-    ( y, x, y, x )
-
-
-{-| -}
-leftRightTopBottom : Float -> Float -> Float -> Float -> ( Float, Float, Float, Float )
-leftRightTopBottom l r t b =
-    ( t, r, b, l )
-
-
-{-| -}
-allButRight : Float -> ( Float, Float, Float, Float )
-allButRight x =
-    ( x, 0, x, x )
-
-
-{-| -}
-allButLeft : Float -> ( Float, Float, Float, Float )
-allButLeft x =
-    ( x, x, x, 0 )
-
-
-{-| -}
-allButTop : Float -> ( Float, Float, Float, Float )
-allButTop x =
-    ( 0, x, x, x )
-
-
-{-| -}
-allButBottom : Float -> ( Float, Float, Float, Float )
-allButBottom x =
-    ( x, x, 0, x )
-
-
-{-| -}
-solid : BorderStyle
-solid =
-    Style.Model.Solid
-
-
-{-| -}
-dashed : BorderStyle
-dashed =
-    Style.Model.Dashed
-
-
-{-| -}
-dotted : BorderStyle
-dotted =
-    Style.Model.Dotted
-
-
-{-| Same as "display:none"
--}
-hidden : Visibility
-hidden =
-    Style.Model.Hidden
-
-
-{-|
--}
-visible : Visibility
-visible =
-    Style.Model.Transparent 0
-
-
-{-| A value between 0 and 1
--}
-transparency : Float -> Visibility
-transparency x =
-    Style.Model.Transparent x
-
-
-{-| A value between 0 and 1
--}
-opacity : Float -> Visibility
-opacity x =
-    Style.Model.Transparent (1.0 - x)
-
-
-{-| -}
-shadow :
-    { offset : ( Float, Float )
-    , size : Float
-    , blur : Float
-    , color : Color.Color
-    }
-    -> Shadow
-shadow { offset, size, blur, color } =
-    Style.Model.Shadow
-        { kind = "box"
-        , offset = offset
-        , size = size
-        , blur = blur
-        , color = color
-        }
-
-
-{-| -}
-insetShadow :
-    { offset : ( Float, Float )
-    , size : Float
-    , blur : Float
-    , color : Color.Color
-    }
-    -> Shadow
-insetShadow { offset, blur, color, size } =
-    Style.Model.Shadow
-        { kind = "inset"
-        , offset = offset
-        , size = size
-        , blur = blur
-        , color = color
-        }
-
-
-{-| -}
-textShadow :
-    { offset : ( Float, Float )
-    , blur : Float
-    , color : Color.Color
-    }
-    -> Shadow
-textShadow { offset, blur, color } =
-    Style.Model.Shadow
-        { kind = "text"
-        , offset = offset
-        , size = 0
-        , blur = blur
-        , color = color
-        }
-
-
-{-|
--}
-dropShadow :
-    { offset : ( Float, Float )
-    , blur : Float
-    , color : Color.Color
-    }
-    -> Shadow
-dropShadow { offset, blur, color } =
-    Style.Model.Shadow
-        { kind = "drop"
-        , offset = offset
-        , size = 0
-        , blur = blur
-        , color = color
-        }
+origin : Float -> Float -> Float -> Property class variation
+origin x y z =
+    Internal.Exact "transform-origin" (toString x ++ "px  " ++ toString y ++ "px " ++ toString z ++ "px")
 
 
 {-| Units always rendered as `radians`.
 
-Use `x * deg` or `x * turn` from the standard library if you want to use a different set of units.
+Use `degrees` or `turns` from the standard library if you want to use a different set of units.
+
 -}
-rotate : Float -> Float -> Float -> Transform
-rotate x y z =
-    Style.Model.Rotate x y z
+rotate : Float -> Property class variation
+rotate a =
+    Internal.Transform <| [ Internal.Rotate a ]
+
+
+{-| Rotate around a vector.
+
+Angle units always rendered as `radians`.
+
+Use `degrees` or `turns` from the standard library if you want to use a different set of units.
+
+-}
+rotateAround : ( Float, Float, Float ) -> Float -> Property class variation
+rotateAround ( x, y, z ) angle =
+    Internal.Transform <| [ Internal.RotateAround x y z angle ]
 
 
 {-| Units are always as pixels
 -}
-translate : Float -> Float -> Float -> Transform
+translate : Float -> Float -> Float -> Property class variation
 translate x y z =
-    Style.Model.Translate x y z
+    Internal.Transform <| [ Internal.Translate x y z ]
 
 
 {-| -}
-scale : Float -> Float -> Float -> Transform
+scale : Float -> Float -> Float -> Property class variation
 scale x y z =
-    Style.Model.Scale x y z
+    Internal.Transform <| [ Internal.Scale x y z ]
 
 
-{-| -}
-filterUrl : String -> Filter
-filterUrl s =
-    Style.Model.FilterUrl s
+{-| Example:
 
+    style Button
+        [ Color.background blue
+        , hover
+            [ Color.background red
+            ]
+        ]
 
-{-| -}
-blur : Float -> Filter
-blur x =
-    Style.Model.Blur x
-
-
-{-| -}
-brightness : Float -> Filter
-brightness x =
-    Style.Model.Brightness x
-
-
-{-| -}
-contrast : Float -> Filter
-contrast x =
-    Style.Model.Contrast x
-
-
-{-| -}
-grayscale : Float -> Filter
-grayscale x =
-    Style.Model.Grayscale x
-
-
-{-| -}
-hueRotate : Float -> Filter
-hueRotate x =
-    Style.Model.HueRotate x
-
-
-{-| -}
-invert : Float -> Filter
-invert x =
-    Style.Model.Invert x
-
-
-{-| -}
-opacityFilter : Float -> Filter
-opacityFilter x =
-    Style.Model.Opacity x
-
-
-{-| -}
-saturate : Float -> Filter
-saturate x =
-    Style.Model.Saturate x
-
-
-{-| -}
-sepia : Float -> Filter
-sepia x =
-    Style.Model.Sepia x
-
-
-{-| -}
-transition : Transition -> Property
-transition value =
-    Style.Model.TransitionProperty value
-
-
-{-| -}
-type alias Animation =
-    { duration : Time
-    , easing : String
-    , repeat : Float
-    , steps : List ( Float, List Property )
-    }
-
-
-{-| Create an animation
 -}
-animate : Animation -> Property
-animate { duration, easing, repeat, steps } =
-    Style.Model.AnimationProp <|
-        Style.Model.Animation
-            { duration = duration
-            , easing = easing
-            , repeat = repeat
-            , steps = steps
-            }
-
-
-{-| -}
-hover : List Property -> Property
+hover :
+    List (Property class variation)
+    -> Property class variation
 hover props =
-    Style.Model.SubElement ":hover" props
+    Internal.PseudoElement ":hover" props
 
 
 {-| -}
-focus : List Property -> Property
+focus :
+    List (Property class variation)
+    -> Property class variation
 focus props =
-    Style.Model.SubElement ":focus" props
+    Internal.PseudoElement ":focus" props
 
 
 {-| -}
-checked : List Property -> Property
+checked :
+    List (Property class variation)
+    -> Property class variation
 checked props =
-    Style.Model.SubElement ":checked" props
+    Internal.PseudoElement ":checked" props
 
 
 {-| -}
-selection : List Property -> Property
-selection props =
-    Style.Model.SubElement ":selection" props
+pseudo :
+    String
+    -> List (Property class variation)
+    -> Property class variation
+pseudo psu props =
+    Internal.PseudoElement (":" ++ psu) props
 
 
-{-| Requires a string which will be rendered as the 'content' property
+{-| Stylesheet options
 -}
-after : String -> List Property -> Property
-after content props =
-    Style.Model.SubElement "::after" (property "content" content :: props)
+type Option
+    = Unguarded
 
 
-{-| Requires a string which will be rendered as the 'content' property
+
+--| Critical (List class)
+
+
+{-| Remove style hash guards from style classes.
 -}
-before : String -> List Property -> Property
-before content props =
-    Style.Model.SubElement "::before" (property "content" content :: props)
+unguarded : Option
+unguarded =
+    Unguarded
+
+
+reset : String
+reset =
+    """
+/* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video, hr {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+body {
+  line-height: 1;
+}
+ol, ul {
+  list-style: none;
+}
+blockquote, q {
+  quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+  content: '';
+  content: none;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+/** Borrowed from Normalize.css **/
+
+/**
+ * Prevent `sub` and `sup` elements from affecting the line height in
+ * all browsers.
+ */
+
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+sup {
+  top: -0.5em;
+}
+em {
+    font-style: italic;
+}
+strong {
+    font-weight: bold;
+}
+
+a {
+    text-decoration: none;
+}
+
+input, textarea {
+    border-width: 0;
+}
+
+.clearfix:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+
+"""
+
+
+{-| -}
+stylesheet : List (Style elem variation) -> StyleSheet elem variation
+stylesheet styles =
+    stylesheetWith [] styles
+
+
+{-| -}
+stylesheetWith : List Option -> List (Style elem variation) -> StyleSheet elem variation
+stylesheetWith options styles =
+    let
+        unguarded =
+            List.any ((==) Unguarded) options
+    in
+        prepareSheet (Render.stylesheet reset (not <| unguarded) styles)
+
+
+{-| -}
+prepareSheet : Intermediate.Rendered class variation -> StyleSheet class variation
+prepareSheet (Rendered { css, findable }) =
+    let
+        variations class vs =
+            let
+                parent =
+                    Find.style class findable
+
+                varys =
+                    vs
+                        |> List.filter Tuple.second
+                        |> List.map ((\vary -> Find.variation class vary findable) << Tuple.first)
+                        |> List.map (\cls -> ( cls, True ))
+            in
+                (( parent, True ) :: varys)
+    in
+        { style = \class -> (Find.style class findable)
+        , variations = \class varys -> variations class varys
+        , css = css
+        }
