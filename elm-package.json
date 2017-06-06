@@ -1,5 +1,5 @@
 {
-    "version": "2.0.1",
+    "version": "3.0.0",
     "summary": "A different approach to creating and managing styles.",
     "repository": "https://github.com/mdgriffith/style-elements.git",
     "license": "BSD3",
@@ -25,8 +25,8 @@
         "Skinney/murmur3": "2.0.4 <= v < 3.0.0",
         "elm-lang/core": "5.0.0 <= v < 6.0.0",
         "elm-lang/html": "2.0.0 <= v < 3.0.0",
-        "elm-lang/window": "1.0.0 <= v < 2.0.0",
-        "elm-lang/virtual-dom": "2.0.0 <= v < 3.0.0"
+        "elm-lang/virtual-dom": "2.0.0 <= v < 3.0.0",
+        "elm-lang/window": "1.0.0 <= v < 2.0.0"
     },
     "elm-version": "0.18.0 <= v < 0.19.0"
 }
