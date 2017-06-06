@@ -53,7 +53,7 @@ stylesheet =
             , Color.border Color.lightGrey
             , Font.typeface [ "helvetica", "arial", "sans-serif" ]
             , Font.size 16
-            , Font.height 1.3 -- line height, given as a ratio of current font size.
+            , Font.lineHeight 1.3 -- line height, given as a ratio of current font size.
             ]
         , style Page
             [ Border.all 5
