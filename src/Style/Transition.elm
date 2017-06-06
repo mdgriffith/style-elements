@@ -20,7 +20,14 @@ type alias Transition =
     }
 
 
-{-| -}
+{-| Sets transitions on all properties.
+
+It defaults to:
+
+    - 130ms duration
+    - "ease" easing.
+
+-}
 all : Property class variation
 all =
     Internal.Transitions
@@ -33,7 +40,13 @@ all =
         ]
 
 
-{-| This enables transitions on proeprties that will be GPU accelerated: `transform`, `filter`, and `opacity`.
+{-| This enables transitions on properties that will be GPU accelerated: `transform`, `filter`, and `opacity`.
+
+It defaults to:
+
+    - 130ms duration
+    - "ease" easing.
+
 -}
 performant : Property class variation
 performant =
@@ -47,7 +60,8 @@ performant =
         ]
 
 
-{-| -}
+{-| Create a set of transitions manually.
+-}
 transitions : List Transition -> Property class variation
 transitions trans =
     Internal.Transitions (List.map Internal.Transition trans)

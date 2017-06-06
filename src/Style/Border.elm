@@ -31,7 +31,7 @@ module Style.Border
 
 # Rounded Border
 
-@docs rounded roundTopLeft roundTopRight roundBottomRight roundBottomLeft
+@docs rounded, roundTopLeft, roundTopRight, roundBottomRight, roundBottomLeft
 
 -}
 
@@ -70,9 +70,10 @@ bottom l =
     Internal.Exact "border-bottom-width" (toString l ++ "px")
 
 
-{-| -}
-none : Float -> Property class variation
-none l =
+{-| No Borders
+-}
+none : Property class variation
+none =
     Internal.Exact "border-width" "0"
 
 

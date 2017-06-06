@@ -1,6 +1,9 @@
 module Style.Sheet exposing (ChildSheet, merge, map, mix)
 
-{-| @docs ChildSheet, merge, map, mix
+{-| Combine and mix child stylesheets.
+
+@docs ChildSheet, merge, map, mix
+
 -}
 
 import Style.Internal.Model as Internal exposing (StyleSheet)

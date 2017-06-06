@@ -1,6 +1,6 @@
 module Style.Color exposing (text, background, border, cursor, decoration, selection)
 
-{-| Set Colors.
+{-| Set Colors for your style.
 
 Meant to be imported as
 
@@ -40,7 +40,8 @@ cursor clr =
     Internal.Exact "cursor-color" (Value.color clr)
 
 
-{-| -}
+{-| Text decoration color.
+-}
 decoration : Color -> Property class variation
 decoration clr =
     Internal.Exact "text-decoration-color" (Value.color clr)
@@ -49,4 +50,4 @@ decoration clr =
 {-| -}
 selection : Color -> Property class variation
 selection clr =
-    Internal.Exact "text-decoration-color" (Value.color clr)
+    Internal.SelectionColor clr

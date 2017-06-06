@@ -37,22 +37,45 @@ module Style
 {-|
 
 
-# Welcome to the Style part of the Style Elements Library!
+# The Style part of the Style Elements Library!
 
 Here is where you an create your stylesheet.
 
-One of the first concepts of `style-elements` is that layout, position, and width/height all live in your view.
+One of the first concepts of `style-elements` is that layout, position, and width/height all live in your view through the `Element` module.
 
 Your stylesheet handles everything else!
 
-There are some good reasons for this. Check out `http://elm.style` if you want more info.
+Check out the other `Style` modules for other properties.
+
+Check out `Basic.elm` in the examples folder to see an example of a full stylesheet.
 
 
 ## The Basics
 
-`style-elements` does away with CSS selectors nearly entirely. Every style gets one identifier (which is ultimately rendered as a `class`).
+`style-elements` does away with CSS selectors entirely. Every style gets one identifier, which is ultimately rendered as a `class`.
 
-@docs Style, style, variation, Property, prop
+@docs Style, style
+
+Here's a basic example of a style that sets a few colors.
+
+    import Style exposing (..)
+    import Style.Color as Color
+    import Color exposing (..)
+
+    type Styles
+        = Button
+
+    stylesheet =
+        Style.stylesheet
+            [ style Button
+                [ Color.background blue
+                , Color.text white
+                ]
+            ]
+    -- Which can be used in your view as:
+    el Button [ ] (text "A button!")
+
+@docs variation
 
 Styles can have variations. Here's what it looks like to have a button style with a variation for `Disabled`
 
@@ -60,21 +83,43 @@ Styles can have variations. Here's what it looks like to have a button style wit
     import Style.Color as Color
     import Color exposing (..)
 
-    style Button
-        [ Color.background blue
-        , variation Disabled
-            [ Color.background lightGrey
+    type Styles = Button
+
+     stylesheet =
+        Style.stylesheet
+            [ style Button
+                [ Color.background blue
+                , variation Disabled
+                    [ Color.background lightGrey
+                    ]
+                ]
             ]
-        ]
+
+    -- which can be rendered in your view as
+
+    el Button [ vary Disabled True ] (text "A Disabled button!")
 
 
 ## Properties
 
-@docs opacity, cursor, paddingHint, paddingLeftHint, paddingRightHint, paddingTopHint, paddingBottomHint
+@docs Property, prop, opacity, cursor, paddingHint, paddingLeftHint, paddingRightHint, paddingTopHint, paddingBottomHint
+
+
+## Shadows
+
+Check out the `Style.Shadow` module for more about shadows.
 
 @docs Shadow, shadows
 
+
+## Filters
+
+Check out the `Style.Filter` module for more about filters.
+
 @docs Filter, filters
+
+
+## Transformations
 
 @docs origin, translate, rotate, rotateAround, scale
 
@@ -316,6 +361,8 @@ pseudo psu props =
     Internal.PseudoElement (":" ++ psu) props
 
 
+{-| Stylesheet options
+-}
 type Option
     = Unguarded
 
@@ -324,7 +371,7 @@ type Option
 --| Critical (List class)
 
 
-{-| Remove style hash guards from style classes
+{-| Remove style hash guards from style classes.
 -}
 unguarded : Option
 unguarded =

@@ -74,20 +74,23 @@ module Element
 {-|
 
 
-# Welcome to the Style Elements Library!
+# Capture Layout in your View
 
-If you're just starting out, I recommend cruising through <http://elm.style> first.
+Think of `Elements` as `Html` with layout!
 
-It'll provide a high level idea of how everything works together as well as some copy-pastable examples to get you started.
+By building your view with `Elements`, you have a single place to go to adjust or add to your layout, which is great because that's usually what you're doing in your view!
 
-Once you've done that, come back here!
+
+## Rendering
+
+@docs render, root, embed
+
+
+## Basic Elements
 
 @docs Element, Attribute
 
-
-## Elements
-
-@docs empty, text, el, when, html
+@docs empty, text, el, html
 
 
 # Layout
@@ -114,14 +117,25 @@ Make sure to check out the Style Element specific attributes in `Element.Attribu
 
 ## Convenience Elements
 
-@docs full, spacer, hairline, link, image, circle, break
+@docs full, spacer, hairline, link, image, circle, break, when
 
 
 ## Positioning
 
-Sometimes
+It can be useful to position something near another element.
 
-@docs within, above, below, onRight, onLeft, screen
+In CSS terms, this positions children using 'position:absolute'. So, to position three boxes below a container, we could do the following:
+
+     el MyStyle [ width (px 200), height (px 200) ] empty
+        |> below
+            [ el Box [ width (px 40), height (px 40) ] empty
+            -- below on the right
+            , el Box [ alignRight, width (px 40), height (px 40) ] empty
+            -- below and centered
+            , el Box [ center, width (px 40), height (px 40) ] empty
+            ]
+
+@docs below, above, onRight, onLeft, within, screen
 
 
 ## Responsive
@@ -161,19 +175,16 @@ So, if we wanted to make a standard element be rendered as a `section` node, we 
     el MyStyle [] (text "Hello World!")
 
     -- Same element annotated as a `section`
-    section el MyStyle [] (text "Hello World!")
+    section <| el MyStyle [] (text "Hello World!")
 
-@docs node, header, section, nav, article, aside, canvas, iframe, audio, video
+@docs node, button, header, section, nav, article, aside, canvas, iframe, audio, video
 
 
 ## Form Elements
 
-@docs form, checkbox, textArea, inputText, radio, select, option, Option, label, labelBelow, button
+Some convient elements for working with forms.
 
-
-## Rendering
-
-@docs render, root, embed, html
+@docs form, checkbox, label, labelBelow, inputText, textArea, radio, select, option, Option
 
 -}
 
@@ -188,7 +199,13 @@ import Element.Internal.Render as Render
 import Window
 
 
-{-| -}
+{-| You can think of an `Element` as `Html` with built-in layout.
+
+It has one `style` identifier, which you can think of as a CSS class.
+
+It can also have style `variations`, which are covered in the `Style` module.
+
+-}
 type alias Element style variation msg =
     Internal.Element style variation msg
 
@@ -249,6 +266,11 @@ super =
 {-| The most basic element.
 
 You need to specify a style, a list of attributes, and a single child.
+
+    -- an element with the style `MyStyle`, that is aligned left, and has one child.
+    el MyStyle [ alignLeft ] (text "Hello World!")
+
+`el` can only have one child because in order to ahve multiple children, we need to specify how the layout would work.
 
 -}
 el : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
@@ -1039,13 +1061,13 @@ classifyDevice { width, height } =
 Provide a value for the first and receive the calculated value for the second.
 
     fontsize =
-        responsive ( 16, 20 ) ( 600, 1200 ) device.width
+        responsive device.width ( 600, 1200 ) ( 16, 20 )
 
-Will set the font-size between 16 and 20 when the device width is between 600 and 1200, using a linear scale.
+When the device width is between 600 and 1200, set the font-size between 16 and 20 using a linear scale.
 
 -}
-responsive : ( Float, Float ) -> ( Float, Float ) -> Float -> Float
-responsive ( bMin, bMax ) ( aMin, aMax ) a =
+responsive : Float -> ( Float, Float ) -> ( Float, Float ) -> Float
+responsive a ( aMin, aMax ) ( bMin, bMax ) =
     if a <= aMin then
         bMin
     else if a >= aMax then

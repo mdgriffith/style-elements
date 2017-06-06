@@ -2,26 +2,16 @@ module Style.Scale exposing (modular, roundedModular)
 
 {-| When designing it's nice to use a modular scale to set spacial rythms.
 
-For example, when setting font sizes we can make them all related via a ratio.
-
-Here's how it's done, first create a scale:
-
     scaled =
         Scale.modular 16 1.618
 
-You can read this as "Starting at a base of 16, create a modular scale using the ratio 1.618."
+A modular scale starts with a number, and multiplies it by a ratio a number of times.
 
 Then, when setting font sizes you can use:
 
-    Font.size (scaled 1)
+    Font.size (scaled 1) -- results in 16
 
-Which will set the font size to 16px.
-
-Or we can scale up one level (which multiplies the result by 1.618):
-
-    Font.size (scaled 2)
-
-This results in a font size of 25.8px.
+    Font.size (scaled 2) -- 16 * (1.618 ^ 2) results in 25.8
 
 We can also provide negative numbers to scale below 16px.
 
@@ -38,7 +28,7 @@ modular normal ratio fontScale =
 
 {-| Same a modular but rounds to the nearest integer.
 
-Still returns a Float for compatibility reasons with `Font.fontsize`
+Still returns a Float for compatibility reasons.
 
 -}
 roundedModular : Float -> Float -> Int -> Float
@@ -47,13 +37,13 @@ roundedModular normal ratio =
 
 
 resize : Float -> Float -> Int -> Float
-resize normal ratio fontScale =
-    if fontScale == 0 || fontScale == 1 then
+resize normal ratio scale =
+    if scale == 0 || scale == 1 then
         normal
-    else if fontScale < 0 then
-        shrink ratio (fontScale * -1) normal
+    else if scale < 0 then
+        shrink ratio (scale * -1) normal
     else
-        grow ratio (fontScale - 1) normal
+        grow ratio (scale - 1) normal
 
 
 grow : Float -> Int -> Float -> Float

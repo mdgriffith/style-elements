@@ -2,11 +2,11 @@ module Style.Font
     exposing
         ( typeface
         , size
-        , height
+        , lineHeight
         , letterSpacing
         , wordSpacing
-        , left
-        , right
+        , alignLeft
+        , alignRight
         , center
         , justify
         , justifyAll
@@ -17,7 +17,7 @@ module Style.Font
         , noWrap
         , underline
         , strike
-        , italics
+        , italic
         , bold
         , weight
         , light
@@ -32,11 +32,11 @@ Meant to be imported as:
 
     import Style.Font as Font
 
-@docs typeface, size, height, letterSpacing, wordSpacing, left, right, center, justify, justifyAll
+@docs typeface, size, lineHeight, letterSpacing, wordSpacing, alignLeft, alignRight, center, justify, justifyAll
 
 @docs wrap, pre, preWrap, preLine, noWrap
 
-@docs uppercase, capitalize, lowercase, underline, strike, italics, bold, weight, light
+@docs uppercase, capitalize, lowercase, underline, strike, italic, bold, weight, light
 
 -}
 
@@ -60,8 +60,8 @@ size size =
 
 {-| Given as unitless lineheight.
 -}
-height : Float -> Property class variation
-height height =
+lineHeight : Float -> Property class variation
+lineHeight height =
     Internal.Font "line-height" (toString height)
 
 
@@ -81,15 +81,15 @@ wordSpacing offset =
 
 {-| Align the font to the left.
 -}
-left : Property class variation
-left =
+alignLeft : Property class variation
+alignLeft =
     Internal.Font "text-align" "left"
 
 
 {-| Align the font to the right.
 -}
-right : Property class variation
-right =
+alignRight : Property class variation
+alignRight =
     Internal.Font "text-align" "right"
 
 
@@ -152,13 +152,13 @@ underline =
 {-| -}
 strike : Property class variation
 strike =
-    Internal.Font "text-decoration" "underline"
+    Internal.Font "text-decoration" "line-through"
 
 
 {-| -}
-italics : Property class variation
-italics =
-    Internal.Font "font-style" "italics"
+italic : Property class variation
+italic =
+    Internal.Font "font-style" "italic"
 
 
 {-| -}

@@ -43,7 +43,7 @@ stylesheet =
             , Color.border Color.lightGrey
             , Font.typeface [ "helvetica", "arial", "sans-serif" ]
             , Font.size 16
-            , Font.height 1.3
+            , Font.lineHeight 1.3
             ]
         , style Page
             [ Border.rounded 5

@@ -130,7 +130,9 @@ module Element.Attributes
 
 Some attributes have been added.
 
-For existing attributes, the only modification is that `style` has been renamed `inlineStyle` to avoid collision with `Style.style`. Since this is a style library, you shouldn't need it very often.
+The only modification to the existing library is that `style` has been renamed `inlineStyle` to avoid collision with `Style.style`.
+
+Since this is a style library, you shouldn't need it very often.
 
 
 # Style Element Attributes
@@ -139,9 +141,38 @@ These are the new attributes that generally have to do with layout.
 
 @docs hidden, vary
 
+
+## Alignment
+
+Alignment attributes are incredibly useful for adjusting your layout.
+
+When applied to layout elements like `row` and `grid`, alignment will affect the alignment of the children.
+
+When applied to singular elements like `el`, alignment will affect the alignment of that individual element.
+
 @docs center, verticalCenter, justify, alignTop, alignBottom, alignLeft, alignRight
 
+
+## Sizing
+
 @docs width, height, px, fill, percent
+
+
+## Spacing ++ Padding
+
+Spacing allows a layout to set the distance between the children in the layout.
+
+So this layout:
+
+    row [ spacing 10, padding 10 ]
+        [ el Box [] empty
+        , el Box [] empty
+        , el Box [] empty
+        ]
+
+Is rendered into something like this:
+
+<img src="https://mdgriffith.github.io/style-elements/images/spacing.png" alt="Spacing" width="400">
 
 @docs spacing, spacingXY, padding, paddingXY, paddingTop, paddingRight, paddingBottom, paddingLeft
 
@@ -364,20 +395,27 @@ percent =
     Style.Percent
 
 
-{-| -}
+{-| Apply a style variation.
+
+    el MyButton [ vary Disabled True ] (text "My Disabled Button!")
+
+-}
 vary : variation -> Bool -> Attribute variation msg
 vary =
     Vary
 
 
-{-| The horizontal and vertical spacing.
+{-| Set the spacing between children in a layout.
 -}
 spacing : Float -> Attribute variation msg
 spacing x =
     Spacing x x
 
 
-{-| The horizontal and vertical spacing.
+{-| Set the horizontal and vertical spacing separately.
+
+This is generally only useful in a textLayout or a grid.
+
 -}
 spacingXY : Float -> Float -> Attribute variation msg
 spacingXY =
@@ -397,35 +435,32 @@ paddingXY x y =
     Padding (Just y) (Just x) (Just y) (Just x)
 
 
-{-| Set horizontal and vertical padding.
--}
+{-| -}
 paddingLeft : Float -> Attribute variation msg
 paddingLeft x =
     Padding Nothing Nothing Nothing (Just x)
 
 
-{-| Set horizontal and vertical padding.
--}
+{-| -}
 paddingRight : Float -> Attribute variation msg
 paddingRight x =
     Padding Nothing (Just x) Nothing Nothing
 
 
-{-| Set horizontal and vertical padding.
--}
+{-| -}
 paddingTop : Float -> Attribute variation msg
 paddingTop x =
     Padding (Just x) Nothing Nothing Nothing
 
 
-{-| Set horizontal and vertical padding.
--}
+{-| -}
 paddingBottom : Float -> Attribute variation msg
 paddingBottom x =
     Padding Nothing Nothing (Just x) Nothing
 
 
-{-| -}
+{-| Remove the element from the view.
+-}
 hidden : Attribute variation msg
 hidden =
     Hidden
