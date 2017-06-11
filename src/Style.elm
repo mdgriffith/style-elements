@@ -85,12 +85,17 @@ Styles can have variations. Here's what it looks like to have a button style wit
 
     type Styles = Button
 
-     stylesheet =
+    -- You need to create a new type to capture vartiations.
+    type Variations
+            = Large
+
+
+    stylesheet =
         Style.stylesheet
             [ style Button
-                [ Color.background blue
-                , variation Disabled
-                    [ Color.background lightGrey
+                [ Font.size 16
+                , variation Large
+                    [ Font.size 20
                     ]
                 ]
             ]
@@ -98,6 +103,36 @@ Styles can have variations. Here's what it looks like to have a button style wit
     -- which can be rendered in your view as
 
     el Button [ vary Disabled True ] (text "A Disabled button!")
+
+Before you reach for a variation, consider just creating a subtype. So, something like:
+
+    import Style exposing (..)
+    import Style.Color as Color
+    import Color exposing (..)
+
+    type Styles
+        = Button ButtonStyles
+
+    type ButtonStyles
+        = Active
+        | Disabled
+
+
+    stylesheet =
+        Style.stylesheet
+            [ style (Button Active)
+                [ Color.background blue
+                ]
+            , style (Button Disabled)
+                [ Color.background grey
+                ]
+            ]
+
+    -- which can be rendered in your view as
+
+    el (Button Active) [] (text "An Active button!")
+
+The main difference between these two is that `variations` can combine with other `variations`, while subtypes are mutually exclusive.
 
 
 ## Properties
