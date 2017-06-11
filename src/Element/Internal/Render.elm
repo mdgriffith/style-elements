@@ -9,11 +9,7 @@ import Element.Internal.Model exposing (..)
 import Style.Internal.Model as Internal exposing (Length)
 import Style.Internal.Render.Value as Value
 import Style.Internal.Render.Property as Property
-
-
-(=>) : a -> b -> ( a, b )
-(=>) =
-    (,)
+import Internal.Utils exposing ((=>))
 
 
 root : Internal.StyleSheet elem variation -> Element elem variation msg -> Html msg
@@ -34,13 +30,6 @@ render stylesheet elm =
     elm
         |> adjustStructure Nothing
         |> renderElement Nothing stylesheet FirstAndLast
-
-
-type alias Parent =
-    { parentSpecifiedSpacing : Maybe ( Float, Float, Float, Float )
-    , layout : Internal.LayoutModel
-    , parentPadding : ( Float, Float, Float, Float )
-    }
 
 
 detectOrder : List a -> number -> Order
@@ -625,47 +614,6 @@ renderElement parent stylesheet order elm =
                             Html.Keyed.node node htmlAttrs childHtml
 
 
-type alias Positionable variation msg =
-    { inline : Bool
-    , horizontal : Maybe HorizontalAlignment
-    , vertical : Maybe VerticalAlignment
-    , frame : Maybe Frame
-    , expand : Bool
-    , hidden : Bool
-    , width : Maybe Internal.Length
-    , height : Maybe Internal.Length
-    , positioned : ( Maybe Float, Maybe Float, Maybe Float )
-    , margin : Maybe ( Float, Float, Float, Float )
-    , padding : ( Maybe Float, Maybe Float, Maybe Float, Maybe Float )
-    , variations : List ( variation, Bool )
-    , opacity : Maybe Float
-    , gridPosition : Maybe String
-    , pointerevents : Maybe Bool
-    , attrs : List (Html.Attribute msg)
-    }
-
-
-emptyPositionable : Positionable variation msg
-emptyPositionable =
-    { inline = False
-    , horizontal = Nothing
-    , vertical = Nothing
-    , frame = Nothing
-    , expand = False
-    , hidden = False
-    , width = Nothing
-    , height = Nothing
-    , positioned = ( Nothing, Nothing, Nothing )
-    , margin = Nothing
-    , padding = ( Nothing, Nothing, Nothing, Nothing )
-    , variations = []
-    , opacity = Nothing
-    , gridPosition = Nothing
-    , pointerevents = Nothing
-    , attrs = []
-    }
-
-
 gather : List (Attribute variation msg) -> Positionable variation msg
 gather attrs =
     List.foldl makePositionable emptyPositionable attrs
@@ -1215,6 +1163,11 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                         Nothing ->
                             ( "height", Value.length len ) :: attrs
 
+        flexShrink attrs =
+            Property.flexShrink elem parent
+                |> Maybe.map (\flexShrink -> flexShrink :: attrs)
+                |> Maybe.withDefault attrs
+
         opacity attrs =
             case elem.opacity of
                 Nothing ->
@@ -1463,7 +1416,7 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                     :: attributes
         else
             (Html.Attributes.style
-                (passthrough <| gridPos <| layout <| spacing <| opacity <| width <| height <| padding <| horizontal <| vertical <| position <| defaults)
+                (passthrough <| gridPos <| layout <| spacing <| opacity <| width <| height <| padding <| horizontal <| vertical <| position <| flexShrink <| defaults)
             )
                 :: attributes
 
