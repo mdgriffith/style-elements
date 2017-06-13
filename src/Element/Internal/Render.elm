@@ -1159,6 +1159,55 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                     _ ->
                                         attrs
 
+        shrink attrs =
+            let
+                pixelValue x =
+                    case x of
+                        Just (Internal.Px _) ->
+                            True
+
+                        _ ->
+                            False
+
+                isColumn =
+                    case parent of
+                        Nothing ->
+                            False
+
+                        Just { layout } ->
+                            case layout of
+                                Internal.FlexLayout Internal.Up _ ->
+                                    True
+
+                                Internal.FlexLayout Internal.Down _ ->
+                                    True
+
+                                _ ->
+                                    False
+
+                isRow =
+                    case parent of
+                        Nothing ->
+                            False
+
+                        Just { layout } ->
+                            case layout of
+                                Internal.FlexLayout Internal.GoRight _ ->
+                                    True
+
+                                Internal.FlexLayout Internal.GoLeft _ ->
+                                    True
+
+                                _ ->
+                                    False
+            in
+                if isRow && pixelValue elem.width then
+                    ("flex-shrink" => "0") :: attrs
+                else if isColumn && pixelValue elem.height then
+                    ("flex-shrink" => "0") :: attrs
+                else
+                    attrs
+
         width attrs =
             case elem.width of
                 Nothing ->
@@ -1458,12 +1507,12 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                     []
             in
                 (Html.Attributes.style
-                    (("box-sizing" => "border-box") :: ((passthrough << gridPos << layout << spacing << opacity << padding << position) <| expandedProps))
+                    (("box-sizing" => "border-box") :: ((passthrough << gridPos << layout << spacing << opacity << shrink << padding << position) <| expandedProps))
                 )
                     :: attributes
         else
             (Html.Attributes.style
-                ((passthrough << gridPos << layout << spacing << opacity << width << height << padding << horizontal << vertical << position) <| defaults)
+                ((passthrough << gridPos << layout << spacing << opacity << shrink << width << height << padding << horizontal << vertical << position) <| defaults)
             )
                 :: attributes
 
