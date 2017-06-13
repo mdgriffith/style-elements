@@ -418,7 +418,7 @@ viewColumnLayouts =
         , box
         , box
         ]
-    , el Label [] (text "Column Center ++ Spacing")
+    , el Label [] (text "Column ++ Spacing")
     , column Container
         [ spacingXY 20 20 ]
         [ el Box [ width (px 200), height (px 200) ] empty
@@ -428,12 +428,12 @@ viewColumnLayouts =
         , el Box [ width (px 200), height (px 200) ] empty
         , full Box [ height (px 200) ] (text "full element")
         ]
-    , el Label [] (text "Row Center ++ Spacing ++ padding")
+    , el Label [] (text "Column ++ Spacing ++ Padding ++ Varying widths")
     , column Container
         [ spacingXY 20 20, padding 50 ]
-        [ el Box [ width (px 200), height (px 200) ] empty
+        [ el Box [ width (px 200), height (px 200) ] (text "200px")
         , el Box [ width (percent 100), height (px 200) ] (text "100% width")
-        , el Box [ width (px 200), height (px 200) ] empty
+        , el Box [ width (px 200), height (px 200) ] (text "200px")
         , full Box [ height (px 200) ] (text "full element")
         ]
     , el Label [] (text "Column Alignments")
@@ -442,9 +442,9 @@ viewColumnLayouts =
         [ el Box [ width (px 200), height (px 200), alignLeft ] empty
         , el Box [ width (px 200), height (px 200), center ] empty
         , el Box [ width (px 200), height (px 200), alignRight ] empty
-        , el Box [ width (px 200), height (px 200), alignTop ] empty
-        , el Box [ width (px 200), height (px 200), alignBottom ] empty
-        , el Box [ width (px 200), height (px 200), verticalCenter ] empty
+        , el Box [ width (px 200), height (px 200), alignTop ] (text "No effect on purpose!")
+        , el Box [ width (px 200), height (px 200), alignBottom ] (text "No effect on purpose!")
+        , el Box [ width (px 200), height (px 200), verticalCenter ] (text "No effect on purpose!")
         ]
     , el Label [] (text "Column Alignments ++ Width fill")
     , column Container
