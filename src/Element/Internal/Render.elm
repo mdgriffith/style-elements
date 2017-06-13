@@ -1458,12 +1458,12 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                     []
             in
                 (Html.Attributes.style
-                    (("box-sizing" => "border-box") :: (passthrough <| gridPos <| layout <| spacing <| opacity <| padding <| position <| expandedProps))
+                    (("box-sizing" => "border-box") :: ((passthrough << gridPos << layout << spacing << opacity << padding << position) <| expandedProps))
                 )
                     :: attributes
         else
             (Html.Attributes.style
-                (passthrough <| gridPos <| layout <| spacing <| opacity <| width <| height <| padding <| horizontal <| vertical <| position <| defaults)
+                ((passthrough << gridPos << layout << spacing << opacity << width << height << padding << horizontal << vertical << position) <| defaults)
             )
                 :: attributes
 
