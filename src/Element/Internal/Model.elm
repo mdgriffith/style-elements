@@ -20,6 +20,13 @@ type Children child
     | Keyed (List ( String, child ))
 
 
+type alias Parent =
+    { parentSpecifiedSpacing : Maybe ( Float, Float, Float, Float )
+    , layout : Style.LayoutModel
+    , parentPadding : ( Float, Float, Float, Float )
+    }
+
+
 mapChildren fn children =
     case children of
         Normal c ->
@@ -98,3 +105,44 @@ type VerticalAlignment
     = Top
     | Bottom
     | VerticalCenter
+
+
+type alias Positionable variation msg =
+    { inline : Bool
+    , horizontal : Maybe HorizontalAlignment
+    , vertical : Maybe VerticalAlignment
+    , frame : Maybe Frame
+    , expand : Bool
+    , hidden : Bool
+    , width : Maybe Style.Length
+    , height : Maybe Style.Length
+    , positioned : ( Maybe Float, Maybe Float, Maybe Float )
+    , margin : Maybe ( Float, Float, Float, Float )
+    , padding : ( Maybe Float, Maybe Float, Maybe Float, Maybe Float )
+    , variations : List ( variation, Bool )
+    , opacity : Maybe Float
+    , gridPosition : Maybe String
+    , pointerevents : Maybe Bool
+    , attrs : List (Html.Attribute msg)
+    }
+
+
+emptyPositionable : Positionable variation msg
+emptyPositionable =
+    { inline = False
+    , horizontal = Nothing
+    , vertical = Nothing
+    , frame = Nothing
+    , expand = False
+    , hidden = False
+    , width = Nothing
+    , height = Nothing
+    , positioned = ( Nothing, Nothing, Nothing )
+    , margin = Nothing
+    , padding = ( Nothing, Nothing, Nothing, Nothing )
+    , variations = []
+    , opacity = Nothing
+    , gridPosition = Nothing
+    , pointerevents = Nothing
+    , attrs = []
+    }

@@ -2,6 +2,7 @@ module Style.Internal.Render.Property exposing (..)
 
 {-| -}
 
+import Element.Internal.Model as Element exposing (Element, Positionable, Parent)
 import Style.Internal.Model as Internal exposing (..)
 import Style.Internal.Render.Value as Value
 import Time
@@ -61,6 +62,30 @@ flexHeight l =
 
         Calc perc px ->
             ( "height", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" )
+
+
+flexShrink : Positionable variation msg -> Maybe Parent -> Maybe ( String, String )
+flexShrink elem parent =
+    case parent |> Maybe.map .layout of
+        Just (Internal.FlexLayout dir _) ->
+            case ( dir, elem.height, elem.width ) of
+                ( Internal.GoRight, _, Just (Px _) ) ->
+                    Just ("flex-shrink" => "0")
+
+                ( Internal.GoLeft, _, Just (Px _) ) ->
+                    Just ("flex-shrink" => "0")
+
+                ( Internal.Up, Just (Px _), _ ) ->
+                    Just ("flex-shrink" => "0")
+
+                ( Internal.Down, Just (Px _), _ ) ->
+                    Just ("flex-shrink" => "0")
+
+                _ ->
+                    Nothing
+
+        _ ->
+            Nothing
 
 
 filters : List Filter -> List ( String, String )
