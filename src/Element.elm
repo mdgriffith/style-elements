@@ -270,7 +270,7 @@ You need to specify a style, a list of attributes, and a single child.
     -- an element with the style `MyStyle`, that is aligned left, and has one child.
     el MyStyle [ alignLeft ] (text "Hello World!")
 
-`el` can only have one child because in order to ahve multiple children, we need to specify how the layout would work.
+`el` can only have one child because in order to have multiple children, we need to specify how the layout would work.
 
 -}
 el : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
