@@ -65,25 +65,16 @@ stylesheet =
 
 
 main =
-    fullscreen <|
-        Element.root stylesheet <|
-            column Main
-                [ height <| fill 1 ]
-                [ navbar
-                , row None
-                    [ height <| percent 100
-                    , width <| fill 1
-                    ]
-                    [ sidebar, body, inspector ]
+    Element.root stylesheet <|
+        column Main
+            [ height <| fill 1 ]
+            [ navbar
+            , row None
+                [ height <| percent 100
+                , width <| fill 1
                 ]
-
-
-fullscreen body =
-    Html.div
-        [ Html.class "full-screen" ]
-        [ Html.node "style" [] [ Html.text "html, body, .full-screen, .style-elements-root { height: 100%; }" ]
-        , body
-        ]
+                [ sidebar, body, inspector ]
+            ]
 
 
 navbar =

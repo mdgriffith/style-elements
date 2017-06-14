@@ -56,6 +56,7 @@ module Element
         , screen
         , render
         , root
+        , fullscreen
         , embed
         , Device
         , classifyDevice
@@ -83,7 +84,7 @@ By building your view with `Elements`, you have a single place to go to adjust o
 
 ## Rendering
 
-@docs render, root, embed
+@docs root, fullscreen, embed, render
 
 
 ## Basic Elements
@@ -1006,10 +1007,7 @@ screen =
     Modify.addAttr (PositionFrame Screen)
 
 
-{-| Renders `Element`'s into `Html` and embeds a stylesheet at the top level.
-
-This should be your default.
-
+{-| Renders `Element`'s into `Html`, but does not embed a stylesheet.
 -}
 render : StyleSheet style variation -> Element style variation msg -> Html msg
 render =
@@ -1023,11 +1021,19 @@ root =
     Render.root
 
 
+{-| Same as `root`, but the height and width of the site is set to the height and width of the screen.
+-}
+fullscreen : StyleSheet style variation -> Element style variation msg -> Html msg
+fullscreen =
+    Render.fullscreen
+
+
 {-| Embed a stylesheet.
 -}
 embed : StyleSheet style variation -> Html msg
-embed =
-    Render.embed
+embed sheet =
+    -- We embed it not as a fullscreen
+    Render.embed False sheet
 
 
 {-| -}
