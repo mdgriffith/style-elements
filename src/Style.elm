@@ -2,6 +2,8 @@ module Style
     exposing
         ( stylesheet
         , stylesheetWith
+        , styleSheet
+        , styleSheetWith
         , unguarded
         , Style
         , Property
@@ -39,15 +41,15 @@ module Style
 
 # The Style part of the Style Elements Library!
 
-Here is where you an create your stylesheet.
+Here is where you an create your style sheet.
 
 One of the first concepts of `style-elements` is that layout, position, and width/height all live in your view through the `Element` module.
 
-Your stylesheet handles everything else!
+Your style sheet handles everything else!
 
 Check out the other `Style` modules for other properties.
 
-Check out `Basic.elm` in the examples folder to see an example of a full stylesheet.
+Check out `Basic.elm` in the examples folder to see an example of a full style sheet.
 
 
 ## The Basics
@@ -66,7 +68,7 @@ Here's a basic example of a style that sets a few colors.
         = Button
 
     stylesheet =
-        Style.stylesheet
+        Style.styleSheet
             [ style Button
                 [ Color.background blue
                 , Color.text white
@@ -91,7 +93,7 @@ Styles can have variations. Here's what it looks like to have a button style wit
 
 
     stylesheet =
-        Style.stylesheet
+        Style.styleSheet
             [ style Button
                 [ Font.size 16
                 , variation Large
@@ -168,7 +170,12 @@ Psuedo classes can be nested.
 
 ## Render into a Style Sheet
 
-@docs StyleSheet, stylesheet, stylesheetWith, Option, unguarded, importUrl, importCss
+@docs StyleSheet, styleSheet, styleSheetWith, Option, unguarded, importUrl, importCss
+
+
+## Deprecated
+
+@docs stylesheet, stylesheetWith
 
 -}
 
@@ -402,10 +409,6 @@ type Option
     = Unguarded
 
 
-
---| Critical (List class)
-
-
 {-| Remove style hash guards from style classes.
 -}
 unguarded : Option
@@ -414,12 +417,30 @@ unguarded =
 
 
 {-| -}
-stylesheet : List (Style elem variation) -> StyleSheet elem variation
-stylesheet styles =
-    stylesheetWith [] styles
+styleSheet : List (Style elem variation) -> StyleSheet elem variation
+styleSheet styles =
+    styleSheetWith [] styles
 
 
 {-| -}
+styleSheetWith : List Option -> List (Style elem variation) -> StyleSheet elem variation
+styleSheetWith options styles =
+    let
+        unguarded =
+            List.any ((==) Unguarded) options
+    in
+        prepareSheet (Render.stylesheet "" (not <| unguarded) styles)
+
+
+{-| DEPRECATED, use styleSheet. This will be removed in the next major version
+-}
+stylesheet : List (Style elem variation) -> StyleSheet elem variation
+stylesheet styles =
+    styleSheetWith [] styles
+
+
+{-| DEPRECATED, use styleSheetWith. This will be removed in the next major version
+-}
 stylesheetWith : List Option -> List (Style elem variation) -> StyleSheet elem variation
 stylesheetWith options styles =
     let
