@@ -54,6 +54,7 @@ stylesheet reset guard batched =
         |> Intermediate.finalize
 
 
+reorderImportAddReset : String -> List (Style class variation) -> List (Style class variation)
 reorderImportAddReset reset styles =
     let
         reorder style ( imports, remainingStyles ) =
@@ -288,10 +289,14 @@ renderProp parentClass prop =
                 }
 
         Variation var props ->
-            (Intermediate.SubClass << Intermediate.Class)
-                { selector = Selector.variant parentClass var
-                , props = List.filterMap (renderVariationProp parentClass) props
-                }
+            let
+                selectVariation =
+                    Selector.variant parentClass var
+            in
+                (Intermediate.SubClass << Intermediate.Class)
+                    { selector = selectVariation
+                    , props = List.filterMap (renderVariationProp selectVariation) props
+                    }
 
         PseudoElement class props ->
             (Intermediate.SubClass << Intermediate.Class)
@@ -368,7 +373,7 @@ renderVariationProp parentClass prop =
 
         PseudoElement class props ->
             (Just << Intermediate.SubClass << Intermediate.Class)
-                { selector = Selector.pseudo class parentClass
+                { selector = Debug.log "rendering variation pseudo" <| Selector.pseudo class parentClass
                 , props = List.filterMap (renderVariationProp parentClass) props
                 }
 
