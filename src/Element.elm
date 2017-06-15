@@ -74,6 +74,7 @@ module Element
         , Option
         , html
         , break
+        , map
         )
 
 {-|
@@ -95,7 +96,7 @@ By building your view with `Elements`, you have a single place to go to adjust o
 
 @docs Element, Attribute
 
-@docs empty, text, el, html
+@docs empty, text, el, html, map
 
 
 # Layout
@@ -285,7 +286,7 @@ You need to specify a style, a list of attributes, and a single child.
     -- an element with the style `MyStyle`, that is aligned left, and has one child.
     el MyStyle [ alignLeft ] (text "Hello World!")
 
-`el` can only have one child because in order to ahve multiple children, we need to specify how the layout would work.
+`el` can only have one child because in order to have multiple children, we need to specify how the layout would work.
 
 -}
 el : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
@@ -1127,3 +1128,13 @@ responsive a ( aMin, aMax ) ( bMin, bMax ) =
                 (a - aMin) / (aMax - aMin)
         in
             (deltaA * (bMax - bMin)) + bMin
+
+
+{-| Change the msg that an Element is sending.
+
+An analog of `Html.map`.
+
+-}
+map : (a -> msg) -> Element style variation a -> Element style variation msg
+map =
+    Internal.mapMsg

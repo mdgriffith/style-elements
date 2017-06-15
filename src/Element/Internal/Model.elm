@@ -4,6 +4,7 @@ module Element.Internal.Model exposing (..)
 
 import Style.Internal.Model as Style
 import Html exposing (Html)
+import Html.Attributes
 
 
 type Element style variation msg
@@ -13,6 +14,95 @@ type Element style variation msg
     | Element String (Maybe style) (List (Attribute variation msg)) (Element style variation msg) (Maybe (List (Element style variation msg)))
     | Layout String Style.LayoutModel (Maybe style) (List (Attribute variation msg)) (Children (Element style variation msg))
     | Raw (Html msg)
+
+
+mapMsg : (a -> msg) -> Element style variation a -> Element style variation msg
+mapMsg fn el =
+    case el of
+        Empty ->
+            Empty
+
+        Spacer f ->
+            Spacer f
+
+        Text dec str ->
+            Text dec str
+
+        Element node style attrs child others ->
+            Element node style (List.map (mapAttr fn) attrs) (mapMsg fn child) (Maybe.map (List.map (\child -> mapMsg fn child)) others)
+
+        Layout node layout style attrs children ->
+            Layout node layout style (List.map (mapAttr fn) attrs) (mapChildren (mapMsg fn) children)
+
+        Raw html ->
+            Raw (Html.map fn html)
+
+
+mapAttr : (msg -> msg1) -> Attribute variation msg -> Attribute variation msg1
+mapAttr fn attr =
+    case attr of
+        Event htmlAttr ->
+            Event (Html.Attributes.map fn htmlAttr)
+
+        InputEvent htmlAttr ->
+            InputEvent (Html.Attributes.map fn htmlAttr)
+
+        Attr htmlAttr ->
+            Attr (Html.Attributes.map fn htmlAttr)
+
+        Vary v b ->
+            Vary v b
+
+        Height len ->
+            Height len
+
+        Width len ->
+            Width len
+
+        Inline ->
+            Inline
+
+        HAlign align ->
+            HAlign align
+
+        VAlign align ->
+            VAlign align
+
+        Position x y z ->
+            Position x y z
+
+        PositionFrame fr ->
+            PositionFrame fr
+
+        Hidden ->
+            Hidden
+
+        Opacity o ->
+            Opacity o
+
+        Spacing x y ->
+            Spacing x y
+
+        Margin m ->
+            Margin m
+
+        Expand ->
+            Expand
+
+        Padding t r b l ->
+            Padding t r b l
+
+        PhantomPadding x ->
+            PhantomPadding x
+
+        GridArea str ->
+            GridArea str
+
+        GridCoords pos ->
+            GridCoords pos
+
+        PointerEvents on ->
+            PointerEvents on
 
 
 type Children child
