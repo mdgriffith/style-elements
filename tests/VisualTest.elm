@@ -1,4 +1,4 @@
-module Main exposing (..)
+module VisualTest exposing (..)
 
 import Color
 import Element exposing (..)
