@@ -450,10 +450,6 @@ stylesheetWith options styles =
         prepareSheet (Render.stylesheet "" (not <| unguarded) styles)
 
 
-
--- normalize
-
-
 {-| -}
 prepareSheet : Intermediate.Rendered class variation -> StyleSheet class variation
 prepareSheet (Rendered { css, findable }) =

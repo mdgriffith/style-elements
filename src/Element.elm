@@ -56,7 +56,6 @@ module Element
         , screen
         , render
         , root
-        , fullscreen
         , embed
         , layout
         , viewport
@@ -200,7 +199,7 @@ Some convient elements for working with forms.
 
 ### Deprecated
 
-@docs root, fullscreen, embed, render
+@docs root, embed, render
 
 -}
 
@@ -1051,28 +1050,21 @@ embedStylesheet sheet =
     Render.embed False sheet
 
 
-{-| DEPRECATED
+{-| DEPRECATED, will be removed in the next major version
 -}
 render : StyleSheet style variation -> Element style variation msg -> Html msg
 render =
     Render.render
 
 
-{-| DEPRECATED
+{-| DEPRECATED, will be removed in the next major version
 -}
 root : StyleSheet style variation -> Element style variation msg -> Html msg
 root =
     Render.root
 
 
-{-| DEPRECATED
--}
-fullscreen : StyleSheet style variation -> Element style variation msg -> Html msg
-fullscreen =
-    Render.viewport
-
-
-{-| DEPRECATED
+{-| DEPRECATED, will be removed in the next major version
 -}
 embed : StyleSheet style variation -> Html msg
 embed sheet =
