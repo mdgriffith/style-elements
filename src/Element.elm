@@ -58,6 +58,10 @@ module Element
         , root
         , fullscreen
         , embed
+        , layout
+        , viewport
+        , toHtml
+        , embedStylesheet
         , Device
         , classifyDevice
         , responsive
@@ -84,7 +88,7 @@ By building your view with `Elements`, you have a single place to go to adjust o
 
 ## Rendering
 
-@docs root, fullscreen, embed, render
+@docs layout, viewport
 
 
 ## Basic Elements
@@ -186,6 +190,16 @@ So, if we wanted to make a standard element be rendered as a `section` node, we 
 Some convient elements for working with forms.
 
 @docs form, checkbox, label, labelBelow, inputText, textArea, radio, select, option, Option
+
+
+## Advanced Rendering
+
+@docs toHtml, embedStylesheet
+
+
+### Deprecated
+
+@docs root, fullscreen, embed, render
 
 -}
 
@@ -1007,28 +1021,57 @@ screen =
     Modify.addAttr (PositionFrame Screen)
 
 
+{-| Embeds the stylesheet and renders the `Element`'s into `Html`.
+-}
+layout : StyleSheet style variation -> Element style variation msg -> Html msg
+layout =
+    Render.root
+
+
+{-| Same as `root`, but the height and width of the site is set to the height and width of the screen.
+-}
+viewport : StyleSheet style variation -> Element style variation msg -> Html msg
+viewport =
+    Render.viewport
+
+
 {-| Renders `Element`'s into `Html`, but does not embed a stylesheet.
+-}
+toHtml : StyleSheet style variation -> Element style variation msg -> Html msg
+toHtml =
+    Render.render
+
+
+{-| Embed a stylesheet.
+-}
+embedStylesheet : StyleSheet style variation -> Html msg
+embedStylesheet sheet =
+    -- We embed it not as a fullscreen
+    Render.embed False sheet
+
+
+{-| DEPRECATED
 -}
 render : StyleSheet style variation -> Element style variation msg -> Html msg
 render =
     Render.render
 
 
-{-| Embeds the stylesheet and renders the `Element`'s into `Html`.
+{-| DEPRECATED
 -}
 root : StyleSheet style variation -> Element style variation msg -> Html msg
 root =
     Render.root
 
 
-{-| Same as `root`, but the height and width of the site is set to the height and width of the screen.
+{-| DEPRECATED
 -}
 fullscreen : StyleSheet style variation -> Element style variation msg -> Html msg
 fullscreen =
-    Render.fullscreen
+    Render.viewport
 
 
-{-| Embed a stylesheet.
+{-| DEPRECATED
 -}
 embed : StyleSheet style variation -> Html msg
 embed sheet =

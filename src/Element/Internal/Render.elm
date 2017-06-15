@@ -31,8 +31,8 @@ normalizeFull _ =
     "html,body{width:100%;height:100%;}" ++ normalize
 
 
-fullscreen : Internal.StyleSheet elem variation -> Element elem variation msg -> Html msg
-fullscreen stylesheet elm =
+viewport : Internal.StyleSheet elem variation -> Element elem variation msg -> Html msg
+viewport stylesheet elm =
     Html.div
         [ Html.Attributes.class "style-elements-root"
         , Html.Attributes.style
