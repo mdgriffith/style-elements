@@ -65,7 +65,7 @@ stylesheet =
 
 
 main =
-    Element.root stylesheet <|
+    Element.viewport stylesheet <|
         column Main
             [ height <| fill 1 ]
             [ navbar
@@ -113,7 +113,9 @@ messages =
         Chat
         [ width <| fill 1
         , alignLeft
-        , inlineStyle [ ( "overflow-y", "auto" ) ]
+        , yScrollbar
+
+        -- , inlineStyle [ ( "overflow-y", "auto" ) ]
         ]
         (List.map message <| List.range 1 100)
 

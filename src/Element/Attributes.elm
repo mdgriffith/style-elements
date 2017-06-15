@@ -26,6 +26,9 @@ module Element.Attributes
         , paddingRight
         , paddingBottom
         , paddingLeft
+        , scrollbars
+        , yScrollbar
+        , xScrollbar
         , class
         , classList
         , inlineStyle
@@ -180,6 +183,11 @@ Is rendered into something like this:
 ## Positioning
 
 @docs moveX, moveY, moveXY
+
+
+## Scrollbars
+
+@docs scrollbars, yScrollbar, xScrollbar
 
 
 # Normal `Html.Attributes`
@@ -464,6 +472,27 @@ paddingBottom x =
 hidden : Attribute variation msg
 hidden =
     Hidden
+
+
+{-| Turn on scrollbars if content overflows.
+-}
+scrollbars : Attribute variation msg
+scrollbars =
+    Attr <| VirtualDom.style [ ( "overflow", "auto" ) ]
+
+
+{-| Turn on scrollbars if content overflows vertically.
+-}
+yScrollbar : Attribute variation msg
+yScrollbar =
+    Attr <| VirtualDom.style [ ( "overflow-y", "auto" ) ]
+
+
+{-| Turn on scrollbars if content overflows horizontally.
+-}
+xScrollbar : Attribute variation msg
+xScrollbar =
+    Attr <| VirtualDom.style [ ( "overflow-x", "auto" ) ]
 
 
 {-| This function makes it easier to build a space-separated class attribute.
