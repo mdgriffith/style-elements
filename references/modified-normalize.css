@@ -256,7 +256,7 @@ select,
 textarea {
   font-family: sans-serif; /* 1 */
   font-size: 100%; /* 1 */
-  line-height: 1; /* 1 ADDED BY STYLE ELEMENTS */
+  /*line-height: 1; */ /* 1 ADDED BY STYLE ELEMENTS */
   margin: 0; /* 2 */
 }
 
@@ -505,5 +505,4 @@ time, mark, audio, video, hr {
   border: 0;
   font-size: 100%;
   font: inherit;
-  line-height: 1;
 }
