@@ -19,7 +19,8 @@
         "Style.Sheet",
         "Element",
         "Element.Attributes",
-        "Element.Events"
+        "Element.Events",
+        "Element.Keyed"
     ],
     "dependencies": {
         "Skinney/murmur3": "2.0.4 <= v < 3.0.0",
