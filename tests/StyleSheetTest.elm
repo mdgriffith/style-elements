@@ -1,4 +1,4 @@
-module VisualTest exposing (..)
+module StyleSheetTest exposing (..)
 
 import Color
 import Element exposing (..)

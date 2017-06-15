@@ -120,45 +120,8 @@ main =
         }
 
 
-viewDEP model =
-    Element.root stylesheet <|
-        el None [ center, width (px 800) ] <|
-            column Main
-                [ spacing 100, padding 10 ]
-                [ el Box [ width (px 40), height (px 40) ] empty
-                , el Box [ spacing 10, width (px 40), height (px 40) ] empty
-                , el Box [ width (px 40), height (px 40) ] empty
-                , el Box [ width (px 40), height (px 40) ] <|
-                    el Box [ spacing 10, width (px 40), height (px 40) ] empty
-                ]
-
-
-
--- view model =
---     Element.root stylesheet <|
---         el None [ center, width (px 800) ] <|
---             column None
---                 [ spacing 100, padding 100 ]
---                 [ row Container
---                     [ spacing 30, moveX 20, center ]
---                     [ el Box [ width (px 100), height (px 100) ] empty
---                     , el Box [ width (px 100), height (px 100) ] empty
---                     , el Box [ width (px 100), height (px 100) ] empty
---                     ]
---                 , textLayout None
---                     [ spacing 20, center ]
---                     [ row Container
---                         [ spacing 30, moveX 20, center ]
---                         [ el Box [ width (px 100), height (px 100) ] empty
---                         , el Box [ width (px 100), height (px 100) ] empty
---                         , el Box [ width (px 100), height (px 100) ] empty
---                         ]
---                     ]
---                 ]
-
-
 view model =
-    Element.root stylesheet <|
+    Element.layout stylesheet <|
         el None [ center, width (px 800) ] <|
             column Main
                 [ spacingXY 50 100, padding 10 ]
