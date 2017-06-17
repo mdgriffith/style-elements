@@ -704,7 +704,7 @@ emptyPositionable =
 
 gather : List (Attribute variation msg) -> Positionable variation msg
 gather attrs =
-    List.foldl makePositionable emptyPositionable attrs
+    List.foldr makePositionable emptyPositionable attrs
 
 
 makePositionable : Attribute variation msg -> Positionable variation msg -> Positionable variation msg
