@@ -29,6 +29,9 @@ module Element.Attributes
         , scrollbars
         , yScrollbar
         , xScrollbar
+        , clip
+        , clipX
+        , clipY
         , class
         , classList
         , inlineStyle
@@ -188,6 +191,11 @@ Is rendered into something like this:
 ## Scrollbars
 
 @docs scrollbars, yScrollbar, xScrollbar
+
+
+## Overflow
+
+@docs clip, clipX, clipY
 
 
 # Normal `Html.Attributes`
@@ -493,6 +501,25 @@ yScrollbar =
 xScrollbar : Attribute variation msg
 xScrollbar =
     Attr <| VirtualDom.style [ ( "overflow-x", "auto" ) ]
+
+
+{-| Clip content that overflows.
+-}
+clip : Attribute variation msg
+clip =
+    Attr <| VirtualDom.style [ ( "overflow", "hidden" ) ]
+
+
+{-| -}
+clipX : Attribute variation msg
+clipX =
+    Attr <| VirtualDom.style [ ( "overflow-x", "hidden" ) ]
+
+
+{-| -}
+clipY : Attribute variation msg
+clipY =
+    Attr <| VirtualDom.style [ ( "overflow-y", "hidden" ) ]
 
 
 {-| This function makes it easier to build a space-separated class attribute.
