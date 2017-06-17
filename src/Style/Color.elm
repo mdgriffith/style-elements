@@ -1,4 +1,4 @@
-module Style.Color exposing (text, background, border, cursor, decoration, selection)
+module Style.Color exposing (text, background, border, cursor, decoration, selection, placeholder)
 
 {-| Set Colors for your style.
 
@@ -6,7 +6,7 @@ Meant to be imported as
 
     import Style.Color as Color
 
-@docs text, background, border, cursor, decoration, selection
+@docs text, background, border, cursor, decoration, selection, placeholder
 
 -}
 
@@ -51,3 +51,13 @@ decoration clr =
 selection : Color -> Property class variation
 selection clr =
     Internal.SelectionColor clr
+
+
+{-| The color of the input `placeholder` element.
+-}
+placeholder : Color -> Property class variation
+placeholder clr =
+    Internal.PseudoElement ("::placeholder")
+        [ Internal.TextColor clr
+        , Internal.Exact "opacity" "1"
+        ]
