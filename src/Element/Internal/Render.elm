@@ -217,7 +217,13 @@ adjustStructure parent elm =
                                     (Normal
                                         [ Element "div"
                                             element
-                                            ((PointerEvents False :: unaligned ++ [ PositionFrame Relative, Position (Just 0) (Just 0) Nothing ]) ++ [ Attr <| noColor ])
+                                            (unaligned
+                                                ++ [ PointerEvents False
+                                                   , PositionFrame Relative
+                                                   , Position (Just 0) (Just 0) Nothing
+                                                   , Attr <| noColor
+                                                   ]
+                                            )
                                             properChild
                                             Nothing
                                         ]
@@ -704,7 +710,7 @@ emptyPositionable =
 
 gather : List (Attribute variation msg) -> Positionable variation msg
 gather attrs =
-    List.foldr makePositionable emptyPositionable attrs
+    List.foldl makePositionable emptyPositionable attrs
 
 
 makePositionable : Attribute variation msg -> Positionable variation msg -> Positionable variation msg
