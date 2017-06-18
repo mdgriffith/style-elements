@@ -15,6 +15,11 @@ module Element.Events
         , onFocus
         , on
         , onWithOptions
+        , Options
+        , defaultOptions
+        , targetValue
+        , targetChecked
+        , keyCode
         )
 
 {-| This module is mirrored nearly completely from Html.Events
@@ -39,7 +44,12 @@ The only difference is that the HTML.Events are turned into Element.Events
 
 # Custom Event Handlers
 
-@docs on, onWithOptions
+@docs on, onWithOptions, Options, defaultOptions
+
+
+# Custom Decoders
+
+@docs targetValue, targetChecked, keyCode
 
 -}
 
