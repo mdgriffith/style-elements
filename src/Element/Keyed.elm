@@ -1,6 +1,10 @@
-module Element.Keyed exposing (row, column, wrappedRow, wrappedColumn)
+module Element.Keyed exposing (row, column, wrappedRow, wrappedColumn, grid, namedGrid)
 
-{-| -}
+{-| Keyed Layouts
+
+@docs row, column, wrappedRow, wrappedColumn, grid, namedGrid
+
+-}
 
 import Element exposing (Attribute, Element, OnGrid, Grid, NamedOnGrid, NamedGrid)
 import Element.Internal.Model exposing (Children(..))
@@ -32,6 +36,7 @@ wrappedColumn elem attrs children =
     Internal.Layout "div" (Style.FlexLayout Style.Down [ Style.Wrap True ]) (Just elem) attrs (Keyed children)
 
 
+{-| -}
 grid : style -> Grid -> List (Attribute variation msg) -> List (OnGrid ( String, Element style variation msg )) -> Element style variation msg
 grid elem template attrs children =
     let
@@ -41,6 +46,7 @@ grid elem template attrs children =
         Internal.Layout "div" (Style.Grid (Style.GridTemplate template) []) (Just elem) attrs (prepare children)
 
 
+{-| -}
 namedGrid : style -> NamedGrid -> List (Attribute variation msg) -> List (NamedOnGrid ( String, Element style variation msg )) -> Element style variation msg
 namedGrid elem template attrs children =
     let
