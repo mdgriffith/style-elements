@@ -51,28 +51,28 @@ typeface families =
     Internal.Font "font-family" (Value.typeface families)
 
 
-{-| Only px allowed.
+{-| Font size specified in `px`
 -}
 size : Float -> Property class variation
 size size =
     Internal.Font "font-size" (toString size ++ "px")
 
 
-{-| Given as unitless lineheight.
+{-| Given as a ratio of the `Font.size`.
 -}
 lineHeight : Float -> Property class variation
 lineHeight height =
     Internal.Font "line-height" (toString height)
 
 
-{-| In px.
+{-| In `px`.
 -}
 letterSpacing : Float -> Property class variation
 letterSpacing offset =
     Internal.Font "letter-spacing" (toString offset ++ "px")
 
 
-{-| In px.
+{-| In `px`.
 -}
 wordSpacing : Float -> Property class variation
 wordSpacing offset =
