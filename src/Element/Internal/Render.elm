@@ -356,13 +356,13 @@ adjustStructure parent elm =
                                         (Maybe.withDefault ( 0, 0, 0, 0 ) padding)
                             in
                                 Layout
-                                    "div"
+                                    node
                                     (Internal.FlexLayout Internal.GoRight [])
                                     element
                                     (PointerEvents True :: unaligned)
                                     (Normal
                                         [ Layout
-                                            node
+                                            "div"
                                             layout
                                             Nothing
                                             (PointerEvents False

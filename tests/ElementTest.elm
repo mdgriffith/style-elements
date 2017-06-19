@@ -40,6 +40,12 @@ linkTest =
                     (link "test" <| row None [ height (px 200) ] [ el None [ height (px 200) ] empty ])
                     |> Query.fromHtml
                     |> Query.has [ Selector.tag "a", Selector.attribute "href" "test" ]
+        , test "Create a link from a layout, with spacing" <|
+            \() ->
+                Element.layout stylesheet
+                    (link "test" <| row None [ height (px 200), spacing 10 ] [ el None [ height (px 200) ] empty ])
+                    |> Query.fromHtml
+                    |> Query.has [ Selector.tag "a", Selector.attribute "href" "test" ]
         ]
 
 
