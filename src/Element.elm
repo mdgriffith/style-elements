@@ -1017,8 +1017,18 @@ Essentially the same as `display: fixed`
 
 -}
 screen : Element style variation msg -> Element style variation msg
-screen =
-    Modify.addAttr (PositionFrame Screen)
+screen el =
+    Element "div"
+        Nothing
+        [ PositionFrame Screen
+        , Width (Style.Percent 100)
+        , Height (Style.Percent 100)
+        ]
+        empty
+        Nothing
+        |> within
+            [ el
+            ]
 
 
 {-| Embeds the stylesheet and renders the `Element`'s into `Html`.
