@@ -1023,6 +1023,7 @@ screen el =
         [ PositionFrame Screen
         , Width (Style.Calc 100 0)
         , Height (Style.Calc 100 0)
+        , PointerEvents False
         ]
         empty
         Nothing
