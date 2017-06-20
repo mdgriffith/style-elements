@@ -953,7 +953,7 @@ within nearbys parent =
     let
         position el p =
             el
-                |> Modify.addAttr (PositionFrame Positioned)
+                |> Modify.addAttr (PositionFrame (Nearby Within))
                 |> Modify.addChild p
     in
         List.foldl position parent nearbys
@@ -1021,8 +1021,8 @@ screen el =
     Element "div"
         Nothing
         [ PositionFrame Screen
-        , Width (Style.Percent 100)
-        , Height (Style.Percent 100)
+        , Width (Style.Calc 100 0)
+        , Height (Style.Calc 100 0)
         ]
         empty
         Nothing

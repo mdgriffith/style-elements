@@ -156,20 +156,136 @@ adjustStructure parent elm =
                         (PointerEvents True :: position)
                         (adjustStructure Nothing child)
                         (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
+
+                aboveBelow attr =
+                    case attr of
+                        PositionFrame (Nearby Above) ->
+                            True
+
+                        PositionFrame (Nearby Below) ->
+                            True
+
+                        _ ->
+                            False
+
+                above attr =
+                    case attr of
+                        PositionFrame (Nearby Above) ->
+                            True
+
+                        _ ->
+                            False
+
+                below attr =
+                    case attr of
+                        PositionFrame (Nearby Below) ->
+                            True
+
+                        _ ->
+                            False
+
+                isExpanded attr =
+                    case attr of
+                        Expand ->
+                            True
+
+                        _ ->
+                            False
             in
-                if not <| List.isEmpty aligned then
-                    case parent of
-                        Nothing ->
-                            -- use Flexbox to center single elements
-                            -- The flexbox element should pass through events to the parent.
+                case parent of
+                    -- If there is no parent, then these elements are the 'nearby' and 'within' elements.
+                    Nothing ->
+                        -- use Flexbox to center single elements
+                        -- The flexbox element should pass through events to the parent.
+                        if List.any aboveBelow unaligned then
                             let
+                                noColor =
+                                    Html.Attributes.style
+                                        [ ( "background-color"
+                                          , "rgba(0,0,0,0)"
+                                          )
+                                        , ( "color"
+                                          , "rgba(0,0,0,0)"
+                                          )
+                                        , ( "border-color"
+                                          , "rgba(0,0,0,0)"
+                                          )
+                                        , ( "transform", "none" )
+                                        , ( "opacity", "1" )
+                                        ]
+
+                                isAbove =
+                                    List.any above unaligned
+
+                                isBelow =
+                                    List.any below unaligned
+
+                                nearbyToAlignment attr =
+                                    case attr of
+                                        PositionFrame (Nearby Above) ->
+                                            Just (VAlign Top)
+
+                                        PositionFrame (Nearby Below) ->
+                                            Just (VAlign Bottom)
+
+                                        PositionFrame (Nearby OnRight) ->
+                                            Just (HAlign Right)
+
+                                        PositionFrame (Nearby OnLeft) ->
+                                            Just (HAlign Left)
+
+                                        _ ->
+                                            Nothing
+
+                                adjustedAligned =
+                                    List.filterMap nearbyToAlignment unaligned
+
                                 properChild =
                                     Element node
                                         element
-                                        (PointerEvents True :: PositionFrame Positioned :: Position (Just 0) (Just 0) Nothing :: unaligned)
+                                        (PointerEvents True :: PositionFrame (Absolute TopLeft) :: Position (Just 0) (Just 0) Nothing :: unaligned)
                                         (adjustStructure Nothing child)
                                         (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
-
+                            in
+                                Layout "div"
+                                    (Internal.FlexLayout Internal.GoRight [])
+                                    Nothing
+                                    (PointerEvents False
+                                        :: PositionFrame
+                                            (Absolute
+                                                (if isAbove then
+                                                    TopLeft
+                                                 else
+                                                    BottomLeft
+                                                )
+                                            )
+                                        :: Height (Internal.Px 0)
+                                        :: Width (Internal.Percent 100)
+                                        :: Position (Just 0) (Just 0) Nothing
+                                        :: (adjustedAligned ++ aligned)
+                                    )
+                                    (Normal
+                                        [ Element "div"
+                                            Nothing
+                                            [ PointerEvents False
+                                            , PositionFrame
+                                                (Absolute
+                                                    (if isAbove then
+                                                        BottomLeft
+                                                     else
+                                                        TopLeft
+                                                    )
+                                                )
+                                            , Position Nothing (Just 0) Nothing
+                                            , VAlign Bottom
+                                            , Attr <| noColor
+                                            ]
+                                            properChild
+                                            Nothing
+                                        ]
+                                    )
+                        else
+                            let
                                 noColor =
                                     Html.Attributes.style
                                         [ ( "background-color"
@@ -204,19 +320,27 @@ adjustStructure parent elm =
 
                                 adjustedAligned =
                                     List.filterMap nearbyToAlignment unaligned
+
+                                properChild =
+                                    Element node
+                                        element
+                                        (PointerEvents True :: PositionFrame (Absolute TopLeft) :: Position (Just 0) (Just 0) Nothing :: unaligned)
+                                        (adjustStructure Nothing child)
+                                        (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
                             in
                                 Layout "div"
                                     (Internal.FlexLayout Internal.GoRight [])
                                     Nothing
                                     (PointerEvents False
-                                        :: PositionFrame Positioned
+                                        :: PositionFrame (Absolute TopLeft)
                                         :: Height (Internal.Percent 100)
                                         :: Width (Internal.Percent 100)
+                                        :: Position (Just 0) (Just 0) Nothing
                                         :: (adjustedAligned ++ aligned)
                                     )
                                     (Normal
                                         [ Element "div"
-                                            element
+                                            Nothing
                                             (unaligned
                                                 ++ [ PointerEvents False
                                                    , PositionFrame Relative
@@ -229,7 +353,8 @@ adjustStructure parent elm =
                                         ]
                                     )
 
-                        Just (Internal.TextLayout _) ->
+                    Just (Internal.TextLayout _) ->
+                        if not (List.any isExpanded position) then
                             let
                                 ( spaced, unspaced ) =
                                     List.partition forSpacing unaligned
@@ -246,11 +371,11 @@ adjustStructure parent elm =
                                             (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
                                         ]
                                     )
-
-                        _ ->
+                        else
                             skipAdjustment True
-                else
-                    skipAdjustment True
+
+                    _ ->
+                        skipAdjustment True
 
         Layout node layout element attrs children ->
             let
@@ -407,7 +532,7 @@ calcPosition frame ( mx, my, mz ) =
                 , "top" => (toString y ++ "px")
                 ]
 
-            Positioned ->
+            Absolute TopLeft ->
                 List.filterMap identity
                     [ Just ("position" => "absolute")
                     , case mx of
@@ -424,26 +549,49 @@ calcPosition frame ( mx, my, mz ) =
                             Nothing
                     ]
 
+            Absolute BottomLeft ->
+                List.filterMap identity
+                    [ Just ("position" => "absolute")
+                    , case mx of
+                        Just x ->
+                            Just ("left" => (toString x ++ "px"))
+
+                        Nothing ->
+                            Nothing
+                    , case my of
+                        Just y ->
+                            Just ("bottom" => (toString y ++ "px"))
+
+                        Nothing ->
+                            Nothing
+                    ]
+
+            Nearby Within ->
+                [ "position" => "relative"
+                , "top" => (toString y ++ "px")
+                , "left" => (toString x ++ "px")
+                ]
+
             Nearby Above ->
-                [ "position" => "absolute"
-                , "bottom" => ("calc(100% - " ++ toString y ++ "px)")
+                [ "position" => "relative"
+                , "top" => (toString y ++ "px")
                 , "left" => (toString x ++ "px")
                 ]
 
             Nearby Below ->
-                [ "position" => "absolute"
+                [ "position" => "relative"
                 , "top" => ("calc(100% + " ++ toString y ++ "px)")
                 , "left" => (toString x ++ "px")
                 ]
 
             Nearby OnLeft ->
-                [ "position" => "absolute"
+                [ "position" => "relative"
                 , "right" => ("calc(100% - " ++ toString x ++ "px)")
                 , "top" => (toString y ++ "px")
                 ]
 
             Nearby OnRight ->
-                [ "position" => "absolute"
+                [ "position" => "relative"
                 , "left" => ("calc(100% + " ++ toString x ++ "px)")
                 , "top" => (toString y ++ "px")
                 ]
@@ -1375,58 +1523,69 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                     , bottom / 2
                     , left / 2
                     )
+
+                onScreen =
+                    case elem.frame of
+                        Just Screen ->
+                            True
+
+                        _ ->
+                            False
             in
-                case parent of
-                    Nothing ->
-                        ( top, right, bottom, left )
+                if onScreen then
+                    ( 0, 0, 0, 0 )
+                else
+                    case parent of
+                        Nothing ->
+                            ( top, right, bottom, left )
 
-                    Just { layout } ->
-                        case layout of
-                            Internal.TextLayout _ ->
-                                case elem.horizontal of
-                                    Nothing ->
-                                        if order == Last || order == FirstAndLast then
-                                            ( 0, 0, 0, 0 )
-                                        else
-                                            ( 0, 0, bottom, 0 )
+                        Just { layout } ->
+                            case layout of
+                                Internal.TextLayout _ ->
+                                    case elem.horizontal of
+                                        Nothing ->
+                                            if order == Last || order == FirstAndLast then
+                                                ( 0, 0, 0, 0 )
+                                            else
+                                                ( 0, 0, bottom, 0 )
 
-                                    Just align ->
-                                        if not elem.inline && elem.frame == Nothing then
-                                            case align of
-                                                Left ->
-                                                    if order == First then
-                                                        ( 0, right, bottom, 0 )
-                                                    else if order == FirstAndLast then
-                                                        ( 0, right, 0, 0 )
-                                                    else if order == Last then
-                                                        ( 0, right, 0, 0 )
-                                                    else
-                                                        ( 0, right, bottom, 0 )
+                                        Just align ->
+                                            if not elem.inline && elem.frame == Nothing then
+                                                case align of
+                                                    Left ->
+                                                        if order == First then
+                                                            ( 0, right, bottom, 0 )
+                                                        else if order == FirstAndLast then
+                                                            ( 0, right, 0, 0 )
+                                                        else if order == Last then
+                                                            ( 0, right, 0, 0 )
+                                                        else
+                                                            ( 0, right, bottom, 0 )
 
-                                                Right ->
-                                                    if order == First then
-                                                        ( 0, 0, bottom, left )
-                                                    else if order == FirstAndLast then
-                                                        ( 0, 0, 0, left )
-                                                    else if order == Last then
-                                                        ( 0, 0, 0, left )
-                                                    else
-                                                        ( 0, 0, bottom, left )
+                                                    Right ->
+                                                        if order == First then
+                                                            ( 0, 0, bottom, left )
+                                                        else if order == FirstAndLast then
+                                                            ( 0, 0, 0, left )
+                                                        else if order == Last then
+                                                            ( 0, 0, 0, left )
+                                                        else
+                                                            ( 0, 0, bottom, left )
 
-                                                _ ->
-                                                    if order == Last || order == FirstAndLast then
-                                                        ( 0, 0, 0, 0 )
-                                                    else
-                                                        ( 0, 0, bottom, 0 )
-                                        else
-                                            ( top
-                                            , right
-                                            , bottom
-                                            , left
-                                            )
+                                                    _ ->
+                                                        if order == Last || order == FirstAndLast then
+                                                            ( 0, 0, 0, 0 )
+                                                        else
+                                                            ( 0, 0, bottom, 0 )
+                                            else
+                                                ( top
+                                                , right
+                                                , bottom
+                                                , left
+                                                )
 
-                            _ ->
-                                halved
+                                _ ->
+                                    halved
 
         defaults =
             [ "box-sizing" => "border-box"

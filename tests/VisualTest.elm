@@ -3,6 +3,7 @@ module VisualTest exposing (..)
 import Color
 import Element exposing (..)
 import Element.Attributes exposing (..)
+import Element.Events
 import Element.Keyed
 import Html
 import Style exposing (..)
@@ -25,6 +26,7 @@ type Styles
     | Box
     | Container
     | Label
+    | Blue
 
 
 options =
@@ -55,6 +57,11 @@ stylesheet =
             ]
         , style Label
             [ Font.size 25
+            , Font.center
+            ]
+        , style Blue
+            [ Color.text Color.white
+            , Color.background Color.blue
             , Font.center
             ]
         , style Box
@@ -127,15 +134,95 @@ view model =
                 [ spacingXY 50 100, padding 10 ]
                 (List.concat
                     [ basics
-                    , anchored
+                    , anchoredWithContent
+                    , anchoredNoContent
                     , viewTextLayout
                     , viewRowLayouts
                     , viewColumnLayouts
                     , viewGridLayout
                     , viewNamedGridLayout
                     , testForm
+                    , [ screenExample ]
                     ]
                 )
+
+
+screenExample =
+    screen <|
+        el None [ alignBottom, width (percent 100) ] <|
+            row Container
+                [ spacing 20
+                , justify
+                , width (percent 100)
+                , paddingXY 30 4
+                ]
+                [ el Box [ padding 8, width (px 200) ] (text "test")
+                , el Box [ padding 8, width (px 200) ] (text "test")
+                ]
+
+
+table =
+    grid Container
+        { columns = []
+        , rows =
+            []
+        }
+        []
+        [ area
+            { start = ( 0, 0 )
+            , width = 1
+            , height = 1
+            }
+            (el Box [] (text "box"))
+        , area
+            { start = ( 1, 0 )
+            , width = 1
+            , height = 1
+            }
+            (el Box [] (text "reallly big box here is all the content, woohooo!!"))
+        , area
+            { start = ( 2, 0 )
+            , width = 1
+            , height = 1
+            }
+            (el Box [] (text "box"))
+        , area
+            { start = ( 0, 1 )
+            , width = 3
+            , height = 1
+            }
+            (el Box [] (text "reallly big box here is all the content, woohooo!!"))
+        , area
+            { start = ( 0, 2 )
+            , width = 3
+            , height = 1
+            }
+            (el Box [] (text "box"))
+        , area
+            { start = ( 0, 3 )
+            , width = 3
+            , height = 1
+            }
+            (el Box [] (text "box"))
+        , area
+            { start = ( 1, 4 )
+            , width = 1
+            , height = 1
+            }
+            (el Box [] (text "box"))
+        , area
+            { start = ( 0, 4 )
+            , width = 1
+            , height = 1
+            }
+            (el Box [] (text "reallly big box here is all the content, woohooo!!"))
+        , area
+            { start = ( 2, 4 )
+            , width = 1
+            , height = 1
+            }
+            (el Box [] (text "box"))
+        ]
 
 
 basics =
@@ -150,7 +237,7 @@ basics =
     ]
 
 
-anchored =
+anchoredNoContent =
     [ row None
         [ spacingXY 150 150
         , center
@@ -160,15 +247,15 @@ anchored =
             [ el Label [] (text "Anchored Elements")
             , el Container [ width (px 200), height (px 200) ] empty
                 |> within
-                    [ el Box [ alignTop, alignRight, width (px 40), height (px 40) ] empty
-                    , el Box [ alignTop, alignLeft, width (px 40), height (px 40) ] empty
-                    , el Box [ alignBottom, alignRight, width (px 40), height (px 40) ] empty
-                    , el Box [ alignBottom, alignLeft, width (px 40), height (px 40) ] empty
-                    , el Box [ alignTop, center, width (px 40), height (px 40) ] empty
-                    , el Box [ alignBottom, center, width (px 40), height (px 40) ] empty
-                    , el Box [ verticalCenter, center, width (px 40), height (px 40) ] empty
-                    , el Box [ verticalCenter, alignRight, width (px 40), height (px 40) ] empty
-                    , el Box [ verticalCenter, alignLeft, width (px 40), height (px 40) ] empty
+                    [ el Box [ alignTop, alignRight ] empty
+                    , el Box [ alignTop, alignLeft ] empty
+                    , el Box [ alignBottom, alignRight ] empty
+                    , el Box [ alignBottom, alignLeft ] empty
+                    , el Box [ alignTop, center ] empty
+                    , el Box [ alignBottom, center ] empty
+                    , el Box [ verticalCenter, center ] empty
+                    , el Box [ verticalCenter, alignRight ] empty
+                    , el Box [ verticalCenter, alignLeft ] empty
                     ]
             ]
         , article <|
@@ -178,24 +265,24 @@ anchored =
                 [ section <| el Label [] (text "Nearby Elements")
                 , el Container [ width (px 200), height (px 200) ] empty
                     |> above
-                        [ el Box [ width (px 40), height (px 40) ] empty
-                        , el Box [ alignRight, width (px 40), height (px 40) ] empty
-                        , el Box [ center, width (px 40), height (px 40) ] empty
+                        [ el Box [] empty
+                        , el Box [ alignRight ] empty
+                        , el Box [ center ] empty
                         ]
                     |> below
-                        [ el Box [ width (px 40), height (px 40) ] empty
-                        , el Box [ alignRight, width (px 40), height (px 40) ] empty
-                        , el Box [ center, width (px 40), height (px 40) ] empty
+                        [ el Box [] empty
+                        , el Box [ alignRight ] empty
+                        , el Box [ center ] empty
                         ]
                     |> onRight
-                        [ el Box [ width (px 40), height (px 40) ] empty
-                        , el Box [ alignBottom, width (px 40), height (px 40) ] empty
-                        , el Box [ verticalCenter, width (px 40), height (px 40) ] empty
+                        [ el Box [] empty
+                        , el Box [ alignBottom ] empty
+                        , el Box [ verticalCenter ] empty
                         ]
                     |> onLeft
-                        [ el Box [ width (px 40), height (px 40) ] empty
-                        , el Box [ alignBottom, width (px 40), height (px 40) ] empty
-                        , el Box [ verticalCenter, width (px 40), height (px 40) ] empty
+                        [ el Box [] empty
+                        , el Box [ alignBottom ] empty
+                        , el Box [ verticalCenter ] empty
                         ]
                 ]
         ]
@@ -208,15 +295,15 @@ anchored =
             [ el Label [] (text "Move 20 20")
             , el Container [ width (px 200), height (px 200) ] empty
                 |> within
-                    [ el Box [ moveXY 20 20, alignTop, alignRight, width (px 40), height (px 40) ] empty
-                    , el Box [ moveXY 20 20, alignTop, alignLeft, width (px 40), height (px 40) ] empty
-                    , el Box [ moveXY 20 20, alignBottom, alignRight, width (px 40), height (px 40) ] empty
-                    , el Box [ moveXY 20 20, alignBottom, alignLeft, width (px 40), height (px 40) ] empty
-                    , el Box [ moveXY 20 20, alignTop, center, width (px 40), height (px 40) ] empty
-                    , el Box [ moveXY 20 20, alignBottom, center, width (px 40), height (px 40) ] empty
-                    , el Box [ moveXY 20 20, verticalCenter, center, width (px 40), height (px 40) ] empty
-                    , el Box [ moveXY 20 20, verticalCenter, alignRight, width (px 40), height (px 40) ] empty
-                    , el Box [ moveXY 20 20, verticalCenter, alignLeft, width (px 40), height (px 40) ] empty
+                    [ el Box [ moveXY 20 20, alignTop, alignRight ] empty
+                    , el Box [ moveXY 20 20, alignTop, alignLeft ] empty
+                    , el Box [ moveXY 20 20, alignBottom, alignRight ] empty
+                    , el Box [ moveXY 20 20, alignBottom, alignLeft ] empty
+                    , el Box [ moveXY 20 20, alignTop, center ] empty
+                    , el Box [ moveXY 20 20, alignBottom, center ] empty
+                    , el Box [ moveXY 20 20, verticalCenter, center ] empty
+                    , el Box [ moveXY 20 20, verticalCenter, alignRight ] empty
+                    , el Box [ moveXY 20 20, verticalCenter, alignLeft ] empty
                     ]
             ]
         , column None
@@ -224,24 +311,122 @@ anchored =
             [ el Label [] (text "Move 20 20")
             , el Container [ width (px 200), height (px 200) ] empty
                 |> above
-                    [ el Box [ moveXY 20 20, width (px 40), height (px 40) ] empty
-                    , el Box [ moveXY 20 20, alignRight, width (px 40), height (px 40) ] empty
-                    , el Box [ moveXY 20 20, center, width (px 40), height (px 40) ] empty
+                    [ el Box [ moveXY 20 20 ] empty
+                    , el Box [ moveXY 20 20, alignRight ] empty
+                    , el Box [ moveXY 20 20, center ] empty
                     ]
                 |> below
-                    [ el Box [ moveXY 20 20, width (px 40), height (px 40) ] empty
-                    , el Box [ moveXY 20 20, alignRight, width (px 40), height (px 40) ] empty
-                    , el Box [ moveXY 20 20, center, width (px 40), height (px 40) ] empty
+                    [ el Box [ moveXY 20 20 ] empty
+                    , el Box [ moveXY 20 20, alignRight ] empty
+                    , el Box [ moveXY 20 20, center ] empty
                     ]
                 |> onRight
-                    [ el Box [ moveXY 20 20, width (px 40), height (px 40) ] empty
-                    , el Box [ moveXY 20 20, alignBottom, width (px 40), height (px 40) ] empty
-                    , el Box [ moveXY 20 20, verticalCenter, width (px 40), height (px 40) ] empty
+                    [ el Box [ moveXY 20 20 ] empty
+                    , el Box [ moveXY 20 20, alignBottom ] empty
+                    , el Box [ moveXY 20 20, verticalCenter ] empty
                     ]
                 |> onLeft
-                    [ el Box [ moveXY 20 20, width (px 40), height (px 40) ] empty
-                    , el Box [ moveXY 20 20, alignBottom, width (px 40), height (px 40) ] empty
-                    , el Box [ moveXY 20 20, verticalCenter, width (px 40), height (px 40) ] empty
+                    [ el Box [ moveXY 20 20 ] empty
+                    , el Box [ moveXY 20 20, alignBottom ] empty
+                    , el Box [ moveXY 20 20, verticalCenter ] empty
+                    ]
+            ]
+        ]
+    ]
+
+
+anchoredWithContent =
+    [ row None
+        [ spacingXY 150 150
+        , center
+        ]
+        [ column None
+            [ spacingXY 20 60 ]
+            [ el Label [] (text "Anchored Elements")
+            , el Container [ width (px 200), height (px 200) ] (text "Hi!")
+                |> within
+                    [ el Box [ alignTop, alignRight ] (text "Hi!")
+                    , el Box [ alignTop, alignLeft ] (text "Hi!")
+                    , el Box [ alignBottom, alignRight ] (text "Hi!")
+                    , el Box [ alignBottom, alignLeft ] (text "Hi!")
+                    , el Box [ alignTop, center ] (text "Hi!")
+                    , el Box [ alignBottom, center ] (text "Hi!")
+                    , el Box [ verticalCenter, center ] (text "Hi!")
+                    , el Box [ verticalCenter, alignRight ] (text "Hi!")
+                    , el Box [ verticalCenter, alignLeft ] (text "Hi!")
+                    ]
+            ]
+        , article <|
+            column
+                None
+                [ spacingXY 20 60 ]
+                [ section <| el Label [] (text "Nearby Elements")
+                , el Container [ width (px 200), height (px 200) ] (text "Hi!")
+                    |> above
+                        [ el Box [] (text "Hi!")
+                        , el Box [ alignRight ] (text "Hi!")
+                        , el Box [ center ] (text "Hi!")
+                        ]
+                    |> below
+                        [ el Box [] (text "Hi!")
+                        , el Box [ alignRight ] (text "Hi!")
+                        , el Box [ center ] (text "Hi!")
+                        ]
+                    |> onRight
+                        [ el Box [] (text "Hi!")
+                        , el Box [ alignBottom ] (text "Hi!")
+                        , el Box [ verticalCenter ] (text "Hi!")
+                        ]
+                    |> onLeft
+                        [ el Box [] (text "Hi!")
+                        , el Box [ alignBottom ] (text "Hi!")
+                        , el Box [ verticalCenter ] (text "Hi!")
+                        ]
+                ]
+        ]
+    , row None
+        [ spacingXY 150 150
+        , center
+        ]
+        [ column None
+            [ spacingXY 20 60 ]
+            [ el Label [] (text "Move 20 20")
+            , el Container [ width (px 200), height (px 200) ] (text "Hi!")
+                |> within
+                    [ el Box [ moveXY 20 20, alignTop, alignRight ] (text "Hi!")
+                    , el Box [ moveXY 20 20, alignTop, alignLeft ] (text "Hi!")
+                    , el Box [ moveXY 20 20, alignBottom, alignRight ] (text "Hi!")
+                    , el Box [ moveXY 20 20, alignBottom, alignLeft ] (text "Hi!")
+                    , el Box [ moveXY 20 20, alignTop, center ] (text "Hi!")
+                    , el Box [ moveXY 20 20, alignBottom, center ] (text "Hi!")
+                    , el Box [ moveXY 20 20, verticalCenter, center ] (text "Hi!")
+                    , el Box [ moveXY 20 20, verticalCenter, alignRight ] (text "Hi!")
+                    , el Box [ moveXY 20 20, verticalCenter, alignLeft ] (text "Hi!")
+                    ]
+            ]
+        , column None
+            [ spacingXY 20 60 ]
+            [ el Label [] (text "Move 20 20")
+            , el Container [ width (px 200), height (px 200) ] (text "Hi!")
+                |> above
+                    [ el Box [ moveXY 20 20 ] (text "Hi!")
+                    , el Box [ moveXY 20 20, alignRight ] (text "Hi!")
+                    , el Box [ moveXY 20 20, center ] (text "Hi!")
+                    ]
+                |> below
+                    [ el Box [ moveXY 20 20 ] (text "Hi!")
+                    , el Box [ moveXY 20 20, alignRight ] (text "Hi!")
+                    , el Box [ moveXY 20 20, center ] (text "Hi!")
+                    ]
+                |> onRight
+                    [ el Box [ moveXY 20 20 ] (text "Hi!")
+                    , el Box [ moveXY 20 20, alignBottom ] (text "Hi!")
+                    , el Box [ moveXY 20 20, verticalCenter ] (text "Hi!")
+                    ]
+                |> onLeft
+                    [ el Box [ moveXY 20 20 ] (text "Hi!")
+                    , el Box [ moveXY 20 20, alignBottom ] (text "Hi!")
+                    , el Box [ moveXY 20 20, verticalCenter ] (text "Hi!")
                     ]
             ]
         ]

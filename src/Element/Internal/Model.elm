@@ -166,8 +166,13 @@ type Decoration
 type Frame
     = Screen
     | Relative
-    | Positioned
+    | Absolute Anchor
     | Nearby Close
+
+
+type Anchor
+    = TopLeft
+    | BottomLeft
 
 
 type Close
@@ -175,6 +180,7 @@ type Close
     | Above
     | OnLeft
     | OnRight
+    | Within
 
 
 type HorizontalAlignment
