@@ -7,6 +7,152 @@ import Html exposing (Html)
 import Html.Attributes
 
 
+name el =
+    case el of
+        Empty ->
+            "empty"
+
+        Spacer _ ->
+            "spacer"
+
+        Text _ _ ->
+            "text"
+
+        Element _ _ _ _ _ ->
+            "element"
+
+        Layout _ _ _ _ _ ->
+            "layout"
+
+        Raw _ ->
+            "html"
+
+
+adjust : (Maybe Style.LayoutModel -> Element style variation msg -> ( Element style variation msg, Maybe (List (Element style variation msg)) )) -> Maybe Style.LayoutModel -> Element style variation msg -> ( Element style variation msg, Maybe (List (Element style variation msg)) )
+adjust fn parent el =
+    let
+        merge el current =
+            case el of
+                Nothing ->
+                    current
+
+                Just something ->
+                    case current of
+                        Nothing ->
+                            el
+
+                        Just cur ->
+                            Just (something ++ cur)
+
+        maybeOnEmptyList list =
+            if List.isEmpty list then
+                Nothing
+            else
+                Just list
+    in
+        case el of
+            Element node element position child otherChildren ->
+                let
+                    ( adjustedChild, childData ) =
+                        adjust fn Nothing child
+
+                    ( adjustedOthers, otherChildrenData ) =
+                        case otherChildren of
+                            Nothing ->
+                                ( Nothing, Nothing )
+
+                            Just others ->
+                                List.foldr adjustAndMerge ( [], [] ) others
+                                    |> (\( children, onScreen ) -> ( maybeOnEmptyList children, maybeOnEmptyList onScreen ))
+
+                    adjustAndMerge el ( adjustedAggregate, dataAggregate ) =
+                        let
+                            ( adjusted, data ) =
+                                adjust fn Nothing el
+                        in
+                            case data of
+                                Nothing ->
+                                    ( adjusted :: adjustedAggregate
+                                    , dataAggregate
+                                    )
+
+                                Just d ->
+                                    ( adjusted :: adjustedAggregate
+                                    , d ++ dataAggregate
+                                    )
+
+                    ( adjustedEl, elData ) =
+                        fn parent (Element node element position adjustedChild adjustedOthers)
+                in
+                    ( adjustedEl
+                    , List.foldr merge Nothing [ childData, otherChildrenData, elData ]
+                    )
+
+            Layout node layout element attrs children ->
+                let
+                    adjustAndMerge el ( adjustedAggregate, dataAggregate ) =
+                        let
+                            ( adjusted, data ) =
+                                adjust fn (Just layout) el
+                        in
+                            case data of
+                                Nothing ->
+                                    ( adjusted :: adjustedAggregate
+                                    , dataAggregate
+                                    )
+
+                                Just d ->
+                                    ( adjusted :: adjustedAggregate
+                                    , d ++ dataAggregate
+                                    )
+
+                    adjustAndMergeKeyed ( key, el ) ( adjustedAggregate, dataAggregate ) =
+                        let
+                            ( adjusted, data ) =
+                                adjust fn (Just layout) el
+                        in
+                            case data of
+                                Nothing ->
+                                    ( ( key, adjusted ) :: adjustedAggregate
+                                    , dataAggregate
+                                    )
+
+                                Just d ->
+                                    ( ( key, adjusted ) :: adjustedAggregate
+                                    , d ++ dataAggregate
+                                    )
+
+                    ( adjustedChildren, childrenData ) =
+                        case children of
+                            Normal normalChildren ->
+                                let
+                                    ( adjusted, data ) =
+                                        List.foldr adjustAndMerge ( [], [] ) normalChildren
+                                in
+                                    ( Normal adjusted
+                                    , maybeOnEmptyList data
+                                    )
+
+                            Keyed keyedChildren ->
+                                let
+                                    ( adjusted, data ) =
+                                        List.foldr adjustAndMergeKeyed ( [], [] ) keyedChildren
+                                in
+                                    ( Keyed adjusted
+                                    , maybeOnEmptyList data
+                                    )
+
+                    ( adjustedLayout, layoutData ) =
+                        fn parent (Layout node layout element attrs adjustedChildren)
+                in
+                    ( adjustedLayout
+                    , List.foldr merge Nothing [ layoutData, childrenData ]
+                    )
+
+            _ ->
+                fn Nothing el
+
+
 type Element style variation msg
     = Empty
     | Spacer Float

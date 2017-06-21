@@ -12,6 +12,7 @@ module Element.Internal.Modify
         , getAttrs
         , removeStyle
         , getChild
+        , setAttrs
         )
 
 {-| -}
@@ -105,6 +106,28 @@ addAttrList props el =
 
         Text dec content ->
             Element "div" Nothing props (Text dec content) Nothing
+
+
+setAttrs : List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+setAttrs props el =
+    case el of
+        Empty ->
+            Empty
+
+        Spacer x ->
+            Spacer x
+
+        Raw h ->
+            Raw h
+
+        Layout node layout elem _ els ->
+            Layout node layout elem props els
+
+        Element node elem _ el children ->
+            Element node elem props el children
+
+        Text dec content ->
+            Text dec content
 
 
 removeAttrs : List (Attribute variation msg) -> Element style variation msg -> Element style variation msg

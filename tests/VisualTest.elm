@@ -136,20 +136,23 @@ view model =
                     [ basics
                     , anchoredWithContent
                     , anchoredNoContent
+                    , anchoredLayoutWithContent
                     , viewTextLayout
                     , viewRowLayouts
                     , viewColumnLayouts
                     , viewGridLayout
                     , viewNamedGridLayout
                     , testForm
-                    , [ screenExample ]
+                    , [ screenExample
+                      , screenExample2
+                      ]
                     ]
                 )
 
 
 screenExample =
     screen <|
-        el None [ alignBottom, width (percent 100) ] <|
+        el Box [ width (percent 100), alignBottom ] <|
             row Container
                 [ spacing 20
                 , justify
@@ -158,7 +161,33 @@ screenExample =
                 ]
                 [ el Box [ padding 8, width (px 200) ] (text "test")
                 , el Box [ padding 8, width (px 200) ] (text "test")
+
+                -- |> above
+                --     [ column Container
+                --         [ padding 8, spacing 8 ]
+                --         [ el Box [ width (px 85), height (px 30), padding 8 ] (text "AAAA")
+                --         , el Box [ width (px 85), height (px 30), padding 8 ] (text "BBBB")
+                --         , el Box [ width (px 85), height (px 30), padding 8 ] (text "CCCC")
+                --         ]
+                --     ]
                 ]
+
+
+screenExample2 =
+    screen <|
+        -- el None [ width (percent 100), alignTop ] <|
+        el Box [ padding 8, width (px 200), alignRight ] (text "test")
+
+
+
+-- |> above
+--     [ column Container
+--         [ padding 8, spacing 8 ]
+--         [ el Box [ width (px 85), height (px 30), padding 8 ] (text "AAAA")
+--         , el Box [ width (px 85), height (px 30), padding 8 ] (text "BBBB")
+--         , el Box [ width (px 85), height (px 30), padding 8 ] (text "CCCC")
+--         ]
+--     ]
 
 
 table =
@@ -427,6 +456,45 @@ anchoredWithContent =
                     [ el Box [ moveXY 20 20 ] (text "Hi!")
                     , el Box [ moveXY 20 20, alignBottom ] (text "Hi!")
                     , el Box [ moveXY 20 20, verticalCenter ] (text "Hi!")
+                    ]
+            ]
+        ]
+    ]
+
+
+anchoredLayoutWithContent =
+    [ row None
+        [ spacingXY 150 150
+        , center
+        ]
+        [ column
+            None
+            [ spacingXY 20 60 ]
+            [ section <| el Label [] (text "Nearby Elements")
+            , el Container [ width (px 200), height (px 200) ] (text "Hi!")
+                |> above
+                    [ row Container [ moveY -20, spacing 10, alignRight ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    ]
+                |> below
+                    [ row Container [ moveY 20, spacing 10 ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    ]
+                |> onRight
+                    [ column Container [ moveX 20, spacing 10, alignBottom ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    ]
+                |> onLeft
+                    [ column Container [ moveX -20, spacing 10 ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    ]
+            ]
+        , column
+            None
+            [ spacingXY 20 60 ]
+            [ section <| el Label [] (text "Nearby Elements")
+            , el Container [ width (px 200), height (px 200) ] (text "Hi!")
+                |> within
+                    [ row Container [ spacing 10, alignRight ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    , row Container [ spacing 10, alignBottom, alignLeft ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    , column Container [ spacing 10, alignRight, alignBottom ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    , column Container [ spacing 10, alignLeft ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
                     ]
             ]
         ]
