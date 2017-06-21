@@ -11,6 +11,10 @@ module Element.Attributes
         , alignRight
         , moveX
         , moveY
+        , moveUp
+        , moveDown
+        , moveRight
+        , moveLeft
         , moveXY
         , width
         , height
@@ -185,7 +189,7 @@ Is rendered into something like this:
 
 ## Positioning
 
-@docs moveX, moveY, moveXY
+@docs moveUp, moveDown, moveRight, moveLeft, moveXY, moveX, moveY
 
 
 ## Scrollbars
@@ -347,6 +351,30 @@ alignRight =
 
 
 {- Layout Attributes -}
+
+
+{-| -}
+moveUp : Float -> Attribute variation msg
+moveUp y =
+    Position Nothing (Just (negate y)) Nothing
+
+
+{-| -}
+moveDown : Float -> Attribute variation msg
+moveDown y =
+    Position Nothing (Just y) Nothing
+
+
+{-| -}
+moveRight : Float -> Attribute variation msg
+moveRight x =
+    Position (Just x) Nothing Nothing
+
+
+{-| -}
+moveLeft : Float -> Attribute variation msg
+moveLeft x =
+    Position (Just (negate x)) Nothing Nothing
 
 
 {-| -}

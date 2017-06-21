@@ -163,7 +163,7 @@ screenExample =
                 , el Box [ padding 8, width (px 200) ] (text "test")
                     |> above
                         [ column Container
-                            [ padding 8, spacing 8 ]
+                            [ moveUp 20, moveLeft 20, padding 8, spacing 8, alignRight ]
                             [ el Box [ width (px 85), height (px 30), padding 8 ] (text "AAAA")
                             , el Box [ width (px 85), height (px 30), padding 8 ] (text "BBBB")
                             , el Box [ width (px 85), height (px 30), padding 8 ] (text "CCCC")
@@ -243,7 +243,7 @@ table =
 
 basics =
     [ el Container [ paddingXY 20 5 ] (text "Single Element")
-    , el Container [ moveX 20, moveY 20, paddingXY 20 5 ] (text "Single Element")
+    , el Container [ moveRight 20, moveDown 20, paddingXY 20 5 ] (text "Single Element")
     , el Container [ paddingLeft 20, paddingRight 5 ] (text "Single Element")
     , el Container [ paddingXY 20 5, alignLeft ] (text "Single Element")
     , el Container [ paddingXY 20 5, center, width (px 200) ] (text "Centered Element")
@@ -311,15 +311,15 @@ anchoredNoContent =
             [ el Label [] (text "Move 20 20")
             , el Container [ width (px 200), height (px 200) ] empty
                 |> within
-                    [ el Box [ moveXY 20 20, alignTop, alignRight ] empty
-                    , el Box [ moveXY 20 20, alignTop, alignLeft ] empty
-                    , el Box [ moveXY 20 20, alignBottom, alignRight ] empty
-                    , el Box [ moveXY 20 20, alignBottom, alignLeft ] empty
-                    , el Box [ moveXY 20 20, alignTop, center ] empty
-                    , el Box [ moveXY 20 20, alignBottom, center ] empty
-                    , el Box [ moveXY 20 20, verticalCenter, center ] empty
-                    , el Box [ moveXY 20 20, verticalCenter, alignRight ] empty
-                    , el Box [ moveXY 20 20, verticalCenter, alignLeft ] empty
+                    [ el Box [ moveRight 20, moveDown 20, alignTop, alignRight ] empty
+                    , el Box [ moveRight 20, moveDown 20, alignTop, alignLeft ] empty
+                    , el Box [ moveRight 20, moveDown 20, alignBottom, alignRight ] empty
+                    , el Box [ moveRight 20, moveDown 20, alignBottom, alignLeft ] empty
+                    , el Box [ moveRight 20, moveDown 20, alignTop, center ] empty
+                    , el Box [ moveRight 20, moveDown 20, alignBottom, center ] empty
+                    , el Box [ moveRight 20, moveDown 20, verticalCenter, center ] empty
+                    , el Box [ moveRight 20, moveDown 20, verticalCenter, alignRight ] empty
+                    , el Box [ moveRight 20, moveDown 20, verticalCenter, alignLeft ] empty
                     ]
             ]
         , column None
@@ -327,24 +327,24 @@ anchoredNoContent =
             [ el Label [] (text "Move 20 20")
             , el Container [ width (px 200), height (px 200) ] empty
                 |> above
-                    [ el Box [ moveXY 20 20 ] empty
-                    , el Box [ moveXY 20 20, alignRight ] empty
-                    , el Box [ moveXY 20 20, center ] empty
+                    [ el Box [ moveRight 20, moveDown 20 ] empty
+                    , el Box [ moveRight 20, moveDown 20, alignRight ] empty
+                    , el Box [ moveRight 20, moveDown 20, center ] empty
                     ]
                 |> below
-                    [ el Box [ moveXY 20 20 ] empty
-                    , el Box [ moveXY 20 20, alignRight ] empty
-                    , el Box [ moveXY 20 20, center ] empty
+                    [ el Box [ moveRight 20, moveDown 20 ] empty
+                    , el Box [ moveRight 20, moveDown 20, alignRight ] empty
+                    , el Box [ moveRight 20, moveDown 20, center ] empty
                     ]
                 |> onRight
-                    [ el Box [ moveXY 20 20 ] empty
-                    , el Box [ moveXY 20 20, alignBottom ] empty
-                    , el Box [ moveXY 20 20, verticalCenter ] empty
+                    [ el Box [ moveRight 20, moveDown 20 ] empty
+                    , el Box [ moveRight 20, moveDown 20, alignBottom ] empty
+                    , el Box [ moveRight 20, moveDown 20, verticalCenter ] empty
                     ]
                 |> onLeft
-                    [ el Box [ moveXY 20 20 ] empty
-                    , el Box [ moveXY 20 20, alignBottom ] empty
-                    , el Box [ moveXY 20 20, verticalCenter ] empty
+                    [ el Box [ moveRight 20, moveDown 20 ] empty
+                    , el Box [ moveRight 20, moveDown 20, alignBottom ] empty
+                    , el Box [ moveRight 20, moveDown 20, verticalCenter ] empty
                     ]
             ]
         ]
