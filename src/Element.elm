@@ -1049,8 +1049,9 @@ viewport =
 {-| Renders `Element`'s into `Html`, but does not embed a stylesheet.
 -}
 toHtml : StyleSheet style variation -> Element style variation msg -> Html msg
-toHtml =
-    Render.render
+toHtml stylesheet el =
+    Html.div []
+        (Render.render stylesheet el)
 
 
 {-| Embed a stylesheet.
@@ -1064,8 +1065,9 @@ embedStylesheet sheet =
 {-| DEPRECATED, will be removed in the next major version
 -}
 render : StyleSheet style variation -> Element style variation msg -> Html msg
-render =
-    Render.render
+render stylesheet el =
+    Html.div []
+        (Render.render stylesheet el)
 
 
 {-| DEPRECATED, will be removed in the next major version

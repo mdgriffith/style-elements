@@ -40,17 +40,13 @@ viewport stylesheet elm =
             , "height" => "100%"
             ]
         ]
-        [ embed True stylesheet
-        , render stylesheet elm
-        ]
+        (embed True stylesheet :: render stylesheet elm)
 
 
 root : Internal.StyleSheet elem variation -> Element elem variation msg -> Html msg
 root stylesheet elm =
     Html.div [ Html.Attributes.class "style-elements-root" ]
-        [ embed False stylesheet
-        , render stylesheet elm
-        ]
+        (embed False stylesheet :: render stylesheet elm)
 
 
 embed : Bool -> Internal.StyleSheet elem variation -> Html msg
@@ -65,11 +61,22 @@ embed full stylesheet =
         ]
 
 
-render : Internal.StyleSheet elem variation -> Element elem variation msg -> Html msg
+render : Internal.StyleSheet elem variation -> Element elem variation msg -> List (Html msg)
 render stylesheet elm =
-    elm
-        |> adjustStructure Nothing
-        |> renderElement Nothing stylesheet FirstAndLast
+    let
+        ( adjusted, onScreen ) =
+            adjustStructure Nothing elm
+
+        fixedScreenElements =
+            case onScreen of
+                Nothing ->
+                    []
+
+                Just screenEls ->
+                    List.map (renderElement Nothing stylesheet FirstAndLast) screenEls
+    in
+        renderElement Nothing stylesheet FirstAndLast adjusted
+            :: fixedScreenElements
 
 
 type alias Parent =
@@ -111,23 +118,26 @@ spacingToMargin attrs =
 
 {-| Certain situations require html structure adjustment
 -}
-adjustStructure : Maybe Internal.LayoutModel -> Element elem variation msg -> Element elem variation msg
+adjustStructure : Maybe Internal.LayoutModel -> Element elem variation msg -> ( Element elem variation msg, Maybe (List (Element elem variation msg)) )
 adjustStructure parent elm =
     case elm of
         Empty ->
-            Empty
+            ( Empty, Nothing )
 
         Raw html ->
-            Raw html
+            ( Raw html, Nothing )
 
         Spacer x ->
-            Spacer x
+            ( Spacer x, Nothing )
 
         Text dec str ->
-            Text dec str
+            ( Text dec str, Nothing )
 
         Element node element position child otherChildren ->
             let
+                elementIsOnScreen =
+                    List.any (\attr -> attr == PositionFrame Screen) position
+
                 ( aligned, unaligned ) =
                     List.partition forAlignment position
 
@@ -150,12 +160,49 @@ adjustStructure parent elm =
                         _ ->
                             False
 
+                ( adjustedChild, onScreenChild ) =
+                    adjustStructure Nothing child
+
+                adjustAndMerge el ( aggAdjusted, aggScreen ) =
+                    let
+                        ( adjusted, onScreen ) =
+                            adjustStructure Nothing el
+                    in
+                        case onScreen of
+                            Nothing ->
+                                ( adjusted :: aggAdjusted
+                                , aggScreen
+                                )
+
+                            Just screen ->
+                                ( adjusted :: aggAdjusted
+                                , screen ++ aggScreen
+                                )
+
+                toMaybe list =
+                    if List.isEmpty list then
+                        Nothing
+                    else
+                        Just list
+
+                ( adjustedOtherChildren, onScreenOthers ) =
+                    case otherChildren of
+                        Nothing ->
+                            ( Nothing, Nothing )
+
+                        Just others ->
+                            List.foldr adjustAndMerge ( [], [] ) others
+                                |> (\( children, onScreen ) -> ( Just children, toMaybe onScreen ))
+
+                onScreenElements =
+                    toMaybe <| Maybe.withDefault [] onScreenChild ++ Maybe.withDefault [] onScreenOthers
+
                 skipAdjustment bool =
                     Element node
                         element
                         (PointerEvents True :: position)
-                        (adjustStructure Nothing child)
-                        (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
+                        adjustedChild
+                        adjustedOtherChildren
 
                 aboveBelow attr =
                     case attr of
@@ -191,194 +238,209 @@ adjustStructure parent elm =
 
                         _ ->
                             False
+
+                setToScreen el =
+                    if elementIsOnScreen then
+                        case onScreenElements of
+                            Nothing ->
+                                ( Empty, Just [ el ] )
+
+                            Just onScreen ->
+                                ( Empty, Just (el :: onScreen) )
+                    else
+                        ( el, onScreenElements )
             in
-                case parent of
-                    -- If there is no parent, then these elements are the 'nearby' and 'within' elements.
-                    Nothing ->
-                        -- use Flexbox to center single elements
-                        -- The flexbox element should pass through events to the parent.
-                        if List.any aboveBelow unaligned then
-                            let
-                                noColor =
-                                    Html.Attributes.style
-                                        [ ( "background-color"
-                                          , "rgba(0,0,0,0)"
-                                          )
-                                        , ( "color"
-                                          , "rgba(0,0,0,0)"
-                                          )
-                                        , ( "border-color"
-                                          , "rgba(0,0,0,0)"
-                                          )
-                                        , ( "transform", "none" )
-                                        , ( "opacity", "1" )
-                                        ]
+                setToScreen <|
+                    case parent of
+                        -- If there is no parent, then these elements are the 'nearby' and 'within' elements.
+                        Nothing ->
+                            -- use Flexbox to center single elements
+                            -- The flexbox element should pass through events to the parent.
+                            if List.any aboveBelow unaligned then
+                                let
+                                    noColor =
+                                        Html.Attributes.style
+                                            [ ( "background-color"
+                                              , "rgba(0,0,0,0)"
+                                              )
+                                            , ( "color"
+                                              , "rgba(0,0,0,0)"
+                                              )
+                                            , ( "border-color"
+                                              , "rgba(0,0,0,0)"
+                                              )
+                                            , ( "transform", "none" )
+                                            , ( "opacity", "1" )
+                                            ]
 
-                                isAbove =
-                                    List.any above unaligned
+                                    isAbove =
+                                        List.any above unaligned
 
-                                isBelow =
-                                    List.any below unaligned
+                                    isBelow =
+                                        List.any below unaligned
 
-                                nearbyToAlignment attr =
-                                    case attr of
-                                        PositionFrame (Nearby Above) ->
-                                            Just (VAlign Top)
+                                    nearbyToAlignment attr =
+                                        case attr of
+                                            PositionFrame (Nearby Above) ->
+                                                Just (VAlign Top)
 
-                                        PositionFrame (Nearby Below) ->
-                                            Just (VAlign Bottom)
+                                            PositionFrame (Nearby Below) ->
+                                                Just (VAlign Bottom)
 
-                                        PositionFrame (Nearby OnRight) ->
-                                            Just (HAlign Right)
+                                            PositionFrame (Nearby OnRight) ->
+                                                Just (HAlign Right)
 
-                                        PositionFrame (Nearby OnLeft) ->
-                                            Just (HAlign Left)
+                                            PositionFrame (Nearby OnLeft) ->
+                                                Just (HAlign Left)
 
-                                        _ ->
-                                            Nothing
+                                            _ ->
+                                                Nothing
 
-                                adjustedAligned =
-                                    List.filterMap nearbyToAlignment unaligned
+                                    adjustedAligned =
+                                        List.filterMap nearbyToAlignment unaligned
 
-                                properChild =
-                                    Element node
-                                        element
-                                        (PointerEvents True :: PositionFrame (Absolute TopLeft) :: Position (Just 0) (Just 0) Nothing :: unaligned)
-                                        (adjustStructure Nothing child)
-                                        (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
-                            in
-                                Layout "div"
-                                    (Internal.FlexLayout Internal.GoRight [])
-                                    Nothing
-                                    (PointerEvents False
-                                        :: PositionFrame
-                                            (Absolute
-                                                (if isAbove then
-                                                    TopLeft
-                                                 else
-                                                    BottomLeft
-                                                )
-                                            )
-                                        :: Height (Internal.Px 0)
-                                        :: Width (Internal.Percent 100)
-                                        :: Position (Just 0) (Just 0) Nothing
-                                        :: (adjustedAligned ++ aligned)
-                                    )
-                                    (Normal
-                                        [ Element "div"
-                                            Nothing
-                                            [ PointerEvents False
-                                            , PositionFrame
+                                    properChild =
+                                        Element node
+                                            element
+                                            (PointerEvents True :: PositionFrame (Absolute TopLeft) :: Position (Just 0) (Just 0) Nothing :: unaligned)
+                                            adjustedChild
+                                            adjustedOtherChildren
+                                in
+                                    Layout "div"
+                                        (Internal.FlexLayout Internal.GoRight [])
+                                        Nothing
+                                        (PointerEvents False
+                                            :: PositionFrame
                                                 (Absolute
                                                     (if isAbove then
-                                                        BottomLeft
-                                                     else
                                                         TopLeft
+                                                     else
+                                                        BottomLeft
                                                     )
                                                 )
-                                            , Position Nothing (Just 0) Nothing
-                                            , VAlign Bottom
-                                            , Attr <| noColor
+                                            :: Height (Internal.Px 0)
+                                            :: Width (Internal.Percent 100)
+                                            :: Position (Just 0) (Just 0) Nothing
+                                            :: (adjustedAligned ++ aligned)
+                                        )
+                                        (Normal
+                                            [ Element "div"
+                                                Nothing
+                                                [ PointerEvents False
+                                                , PositionFrame
+                                                    (Absolute
+                                                        (if isAbove then
+                                                            BottomLeft
+                                                         else
+                                                            TopLeft
+                                                        )
+                                                    )
+                                                , Position Nothing (Just 0) Nothing
+                                                , VAlign Bottom
+                                                , Attr <| noColor
+                                                ]
+                                                properChild
+                                                Nothing
                                             ]
-                                            properChild
-                                            Nothing
-                                        ]
-                                    )
-                        else
-                            let
-                                noColor =
-                                    Html.Attributes.style
-                                        [ ( "background-color"
-                                          , "rgba(0,0,0,0)"
-                                          )
-                                        , ( "color"
-                                          , "rgba(0,0,0,0)"
-                                          )
-                                        , ( "border-color"
-                                          , "rgba(0,0,0,0)"
-                                          )
-                                        , ( "transform", "none" )
-                                        , ( "opacity", "1" )
-                                        ]
+                                        )
+                            else
+                                let
+                                    noColor =
+                                        Html.Attributes.style
+                                            [ ( "background-color"
+                                              , "rgba(0,0,0,0)"
+                                              )
+                                            , ( "color"
+                                              , "rgba(0,0,0,0)"
+                                              )
+                                            , ( "border-color"
+                                              , "rgba(0,0,0,0)"
+                                              )
+                                            , ( "transform", "none" )
+                                            , ( "opacity", "1" )
+                                            ]
 
-                                nearbyToAlignment attr =
-                                    case attr of
-                                        PositionFrame (Nearby Above) ->
-                                            Just (VAlign Top)
+                                    nearbyToAlignment attr =
+                                        case attr of
+                                            PositionFrame (Nearby Above) ->
+                                                Just (VAlign Top)
 
-                                        PositionFrame (Nearby Below) ->
-                                            Just (VAlign Bottom)
+                                            PositionFrame (Nearby Below) ->
+                                                Just (VAlign Bottom)
 
-                                        PositionFrame (Nearby OnRight) ->
-                                            Just (HAlign Right)
+                                            PositionFrame (Nearby OnRight) ->
+                                                Just (HAlign Right)
 
-                                        PositionFrame (Nearby OnLeft) ->
-                                            Just (HAlign Left)
+                                            PositionFrame (Nearby OnLeft) ->
+                                                Just (HAlign Left)
 
-                                        _ ->
-                                            Nothing
+                                            _ ->
+                                                Nothing
 
-                                adjustedAligned =
-                                    List.filterMap nearbyToAlignment unaligned
+                                    adjustedAligned =
+                                        List.filterMap nearbyToAlignment unaligned
 
-                                properChild =
-                                    Element node
-                                        element
-                                        (PointerEvents True :: PositionFrame (Absolute TopLeft) :: Position (Just 0) (Just 0) Nothing :: unaligned)
-                                        (adjustStructure Nothing child)
-                                        (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
-                            in
-                                Layout "div"
-                                    (Internal.FlexLayout Internal.GoRight [])
-                                    Nothing
-                                    (PointerEvents False
-                                        :: PositionFrame (Absolute TopLeft)
-                                        :: Height (Internal.Percent 100)
-                                        :: Width (Internal.Percent 100)
-                                        :: Position (Just 0) (Just 0) Nothing
-                                        :: (adjustedAligned ++ aligned)
-                                    )
-                                    (Normal
-                                        [ Element "div"
-                                            Nothing
-                                            (unaligned
-                                                ++ [ PointerEvents False
-                                                   , PositionFrame Relative
-                                                   , Position (Just 0) (Just 0) Nothing
-                                                   , Attr <| noColor
-                                                   ]
-                                            )
-                                            properChild
-                                            Nothing
-                                        ]
-                                    )
-
-                    Just (Internal.TextLayout _) ->
-                        if not (List.any isExpanded position) then
-                            let
-                                ( spaced, unspaced ) =
-                                    List.partition forSpacing unaligned
-                            in
-                                Layout "div"
-                                    (Internal.FlexLayout Internal.GoRight [])
-                                    Nothing
-                                    ((PointerEvents False :: aligned) ++ spacingToMargin spaced)
-                                    (Normal
-                                        [ Element node
+                                    properChild =
+                                        Element node
                                             element
-                                            (PointerEvents True :: unspaced)
-                                            (adjustStructure Nothing child)
-                                            (Maybe.map (List.map (adjustStructure Nothing)) otherChildren)
-                                        ]
-                                    )
-                        else
-                            skipAdjustment True
+                                            (PointerEvents True :: PositionFrame (Absolute TopLeft) :: Position (Just 0) (Just 0) Nothing :: unaligned)
+                                            adjustedChild
+                                            adjustedOtherChildren
+                                in
+                                    Layout "div"
+                                        (Internal.FlexLayout Internal.GoRight [])
+                                        Nothing
+                                        (PointerEvents False
+                                            :: PositionFrame (Absolute TopLeft)
+                                            :: Height (Internal.Percent 100)
+                                            :: Width (Internal.Percent 100)
+                                            :: Position (Just 0) (Just 0) Nothing
+                                            :: (adjustedAligned ++ aligned)
+                                        )
+                                        (Normal
+                                            [ Element "div"
+                                                Nothing
+                                                (unaligned
+                                                    ++ [ PointerEvents False
+                                                       , PositionFrame Relative
+                                                       , Position (Just 0) (Just 0) Nothing
+                                                       , Attr <| noColor
+                                                       ]
+                                                )
+                                                properChild
+                                                Nothing
+                                            ]
+                                        )
 
-                    _ ->
-                        skipAdjustment True
+                        Just (Internal.TextLayout _) ->
+                            if not (List.any isExpanded position) then
+                                let
+                                    ( spaced, unspaced ) =
+                                        List.partition forSpacing unaligned
+                                in
+                                    Layout "div"
+                                        (Internal.FlexLayout Internal.GoRight [])
+                                        Nothing
+                                        ((PointerEvents False :: aligned) ++ spacingToMargin spaced)
+                                        (Normal
+                                            [ Element node
+                                                element
+                                                (PointerEvents True :: unspaced)
+                                                adjustedChild
+                                                adjustedOtherChildren
+                                            ]
+                                        )
+                            else
+                                skipAdjustment True
+
+                        _ ->
+                            skipAdjustment True
 
         Layout node layout element attrs children ->
             let
+                elementIsOnScreen =
+                    List.any (\attr -> attr == PositionFrame Screen) attrs
+
                 ( centeredProps, others ) =
                     List.partition (\attr -> attr == HAlign Center || attr == VAlign VerticalCenter) attrs
 
@@ -423,88 +485,156 @@ adjustStructure parent elm =
 
                         _ ->
                             Nothing
-            in
-                case layout of
-                    Internal.TextLayout _ ->
-                        if not <| List.isEmpty centeredProps then
-                            Layout
-                                "div"
-                                (Internal.FlexLayout Internal.GoRight [])
-                                Nothing
-                                (PointerEvents False :: centeredProps)
-                                (Normal
-                                    [ Layout node layout element (PointerEvents True :: others) (mapChildren (adjustStructure (Just layout)) children) ]
+
+                adjustAndMerge el ( aggAdjusted, aggScreen ) =
+                    let
+                        ( adjusted, onScreen ) =
+                            adjustStructure (Just layout) el
+                    in
+                        case onScreen of
+                            Nothing ->
+                                ( adjusted :: aggAdjusted
+                                , aggScreen
                                 )
-                        else
-                            Layout node
-                                layout
-                                element
-                                (PointerEvents True :: attrs)
-                                (mapChildren (adjustStructure (Just layout)) children)
 
-                    Internal.FlexLayout _ _ ->
-                        if hasSpacing then
+                            Just screen ->
+                                ( adjusted :: aggAdjusted
+                                , screen ++ aggScreen
+                                )
+
+                adjustAndMergeKeyed ( key, el ) ( aggAdjusted, aggScreen ) =
+                    let
+                        ( adjusted, onScreen ) =
+                            adjustStructure (Just layout) el
+                    in
+                        case onScreen of
+                            Nothing ->
+                                ( ( key, adjusted ) :: aggAdjusted
+                                , aggScreen
+                                )
+
+                            Just screen ->
+                                ( ( key, adjusted ) :: aggAdjusted
+                                , screen ++ aggScreen
+                                )
+
+                toMaybe list =
+                    if List.isEmpty list then
+                        Nothing
+                    else
+                        Just list
+
+                ( adjustedChildren, onScreenOthers ) =
+                    case children of
+                        Normal normalChildren ->
                             let
-                                ( aligned, unaligned ) =
-                                    List.partition forAlignment attrs
-
-                                forAlignment attr =
-                                    case attr of
-                                        HAlign _ ->
-                                            True
-
-                                        VAlign _ ->
-                                            True
-
-                                        _ ->
-                                            False
-
-                                -- Container
-                                -- FlexLayout on counter-element
-                                -- negative margin on counter-element
-                                ( negativeMargin, spacingAttr, totalHSpacing ) =
-                                    case spacing of
-                                        Nothing ->
-                                            ( ( 0, 0, 0, 0 )
-                                            , Spacing 0 0
-                                            , 0
-                                            )
-
-                                        Just ( top, right, bottom, left ) ->
-                                            ( ( -1 * top, -1 * right, -1 * bottom, -1 * left )
-                                            , Spacing right bottom
-                                            , right + left
-                                            )
-
-                                phantomPadding =
-                                    PhantomPadding
-                                        (Maybe.withDefault ( 0, 0, 0, 0 ) padding)
+                                ( adjusted, onScreen ) =
+                                    List.foldr adjustAndMerge ( [], [] ) normalChildren
                             in
-                                Layout
-                                    node
-                                    (Internal.FlexLayout Internal.GoRight [])
-                                    element
-                                    (PointerEvents True :: unaligned)
-                                    (Normal
-                                        [ Layout
-                                            "div"
-                                            layout
-                                            Nothing
-                                            (PointerEvents False
-                                                :: phantomPadding
-                                                :: Margin negativeMargin
-                                                :: spacingAttr
-                                                :: Width (Internal.Calc 100 totalHSpacing)
-                                                :: aligned
-                                            )
-                                            (mapChildren (adjustStructure (Just layout)) children)
-                                        ]
-                                    )
-                        else
-                            Layout node layout element (PointerEvents True :: attrs) (mapChildren (adjustStructure (Just layout)) children)
+                                ( Normal adjusted, toMaybe onScreen )
 
-                    _ ->
-                        Layout node layout element attrs (mapChildren (adjustStructure (Just layout)) children)
+                        Keyed keyedChildren ->
+                            let
+                                ( adjusted, onScreen ) =
+                                    List.foldr adjustAndMergeKeyed ( [], [] ) keyedChildren
+                            in
+                                ( Keyed adjusted
+                                , toMaybe onScreen
+                                )
+
+                setToScreen el =
+                    if elementIsOnScreen then
+                        case onScreenOthers of
+                            Nothing ->
+                                ( Empty, Just [ el ] )
+
+                            Just onScreen ->
+                                ( Empty, Just (el :: onScreen) )
+                    else
+                        ( el, onScreenOthers )
+            in
+                setToScreen <|
+                    case layout of
+                        Internal.TextLayout _ ->
+                            if not <| List.isEmpty centeredProps then
+                                Layout
+                                    "div"
+                                    (Internal.FlexLayout Internal.GoRight [])
+                                    Nothing
+                                    (PointerEvents False :: centeredProps)
+                                    (Normal
+                                        [ Layout node layout element (PointerEvents True :: others) adjustedChildren ]
+                                    )
+                            else
+                                Layout node
+                                    layout
+                                    element
+                                    (PointerEvents True :: attrs)
+                                    adjustedChildren
+
+                        Internal.FlexLayout _ _ ->
+                            if hasSpacing then
+                                let
+                                    ( aligned, unaligned ) =
+                                        List.partition forAlignment attrs
+
+                                    forAlignment attr =
+                                        case attr of
+                                            HAlign _ ->
+                                                True
+
+                                            VAlign _ ->
+                                                True
+
+                                            _ ->
+                                                False
+
+                                    -- Container
+                                    -- FlexLayout on counter-element
+                                    -- negative margin on counter-element
+                                    ( negativeMargin, spacingAttr, totalHSpacing ) =
+                                        case spacing of
+                                            Nothing ->
+                                                ( ( 0, 0, 0, 0 )
+                                                , Spacing 0 0
+                                                , 0
+                                                )
+
+                                            Just ( top, right, bottom, left ) ->
+                                                ( ( -1 * top, -1 * right, -1 * bottom, -1 * left )
+                                                , Spacing right bottom
+                                                , right + left
+                                                )
+
+                                    phantomPadding =
+                                        PhantomPadding
+                                            (Maybe.withDefault ( 0, 0, 0, 0 ) padding)
+                                in
+                                    Layout
+                                        node
+                                        (Internal.FlexLayout Internal.GoRight [])
+                                        element
+                                        (PointerEvents True :: unaligned)
+                                        (Normal
+                                            [ Layout
+                                                "div"
+                                                layout
+                                                Nothing
+                                                (PointerEvents False
+                                                    :: phantomPadding
+                                                    :: Margin negativeMargin
+                                                    :: spacingAttr
+                                                    :: Width (Internal.Calc 100 totalHSpacing)
+                                                    :: aligned
+                                                )
+                                                adjustedChildren
+                                            ]
+                                        )
+                            else
+                                Layout node layout element (PointerEvents True :: attrs) adjustedChildren
+
+                        _ ->
+                            Layout node layout element attrs adjustedChildren
 
 
 calcPosition : Frame -> ( Maybe Float, Maybe Float, Maybe Float ) -> List ( String, String )
@@ -530,6 +660,7 @@ calcPosition frame ( mx, my, mz ) =
                 [ "position" => "fixed"
                 , "left" => (toString x ++ "px")
                 , "top" => (toString y ++ "px")
+                , "z-index" => "1000"
                 ]
 
             Absolute TopLeft ->
@@ -777,6 +908,27 @@ renderElement parent stylesheet order elm =
                     , parentPadding = padding
                     }
 
+                isFlexbox layout =
+                    case layout of
+                        Internal.FlexLayout _ _ ->
+                            True
+
+                        _ ->
+                            False
+
+                -- Insert intermediate div if there are two display:flex items touching.
+                adjacentFlexboxCorrection htmlNode =
+                    case parent of
+                        Nothing ->
+                            htmlNode
+
+                        Just p ->
+                            if isFlexbox p.layout && isFlexbox layout then
+                                -- Html.div [] [ htmlNode ]
+                                htmlNode
+                            else
+                                htmlNode
+
                 htmlAttrs =
                     renderAttributes (LayoutElement layout) order element parent stylesheet (gather attributes)
                         |> clearfix
@@ -795,7 +947,7 @@ renderElement parent stylesheet order elm =
                                     )
                                     childList
                         in
-                            Html.node node htmlAttrs childHtml
+                            adjacentFlexboxCorrection <| Html.node node htmlAttrs childHtml
 
                     Keyed keyed ->
                         let
@@ -812,7 +964,7 @@ renderElement parent stylesheet order elm =
                                     )
                                     keyed
                         in
-                            Html.Keyed.node node htmlAttrs childHtml
+                            adjacentFlexboxCorrection <| Html.Keyed.node node htmlAttrs childHtml
 
 
 type alias Positionable variation msg =
