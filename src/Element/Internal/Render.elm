@@ -464,6 +464,7 @@ type alias Positionable variation msg =
     , gridPosition : Maybe String
     , pointerevents : Maybe Bool
     , attrs : List (Html.Attribute msg)
+    , shrink : Maybe Int
     }
 
 
@@ -485,6 +486,7 @@ emptyPositionable =
     , gridPosition = Nothing
     , pointerevents = Nothing
     , attrs = []
+    , shrink = Nothing
     }
 
 
@@ -496,6 +498,9 @@ gather attrs =
 makePositionable : Attribute variation msg -> Positionable variation msg -> Positionable variation msg
 makePositionable attr pos =
     case attr of
+        Shrink i ->
+            { pos | shrink = Just i }
+
         Inline ->
             { pos | inline = True }
 
@@ -982,53 +987,22 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                         attrs
 
         shrink attrs =
-            let
-                pixelValue x =
-                    case x of
-                        Just (Internal.Px _) ->
-                            True
+            case elem.shrink of
+                Just i ->
+                    ("flex-shrink" => (toString i)) :: attrs
 
-                        _ ->
-                            False
-
-                isColumn =
+                Nothing ->
                     case parent of
                         Nothing ->
-                            False
+                            attrs
 
                         Just { layout } ->
                             case layout of
-                                Internal.FlexLayout Internal.Up _ ->
-                                    True
-
-                                Internal.FlexLayout Internal.Down _ ->
-                                    True
+                                Internal.FlexLayout _ _ ->
+                                    ("flex-shrink" => "0") :: attrs
 
                                 _ ->
-                                    False
-
-                isRow =
-                    case parent of
-                        Nothing ->
-                            False
-
-                        Just { layout } ->
-                            case layout of
-                                Internal.FlexLayout Internal.GoRight _ ->
-                                    True
-
-                                Internal.FlexLayout Internal.GoLeft _ ->
-                                    True
-
-                                _ ->
-                                    False
-            in
-                if isRow && pixelValue elem.width then
-                    ("flex-shrink" => "0") :: attrs
-                else if isColumn && pixelValue elem.height then
-                    ("flex-shrink" => "0") :: attrs
-                else
-                    attrs
+                                    attrs
 
         width attrs =
             case elem.width of

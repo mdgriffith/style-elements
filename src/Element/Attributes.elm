@@ -675,10 +675,11 @@ map fn attr =
         HAlign h ->
             HAlign h
 
+        Shrink i ->
+            Shrink i
 
 
--- _ ->
---     attr
+
 -- GLOBAL ATTRIBUTES
 
 

@@ -311,6 +311,7 @@ counterSpacing elm =
                                                 :: Margin negativeMargin
                                                 :: spacingAttr
                                                 :: Width (Internal.Calc 100 totalHSpacing)
+                                                :: Shrink 1
                                                 :: aligned
                                             )
                                             (case children of

@@ -250,6 +250,9 @@ mapAttr fn attr =
         PointerEvents on ->
             PointerEvents on
 
+        Shrink i ->
+            Shrink i
+
 
 type Children child
     = Normal (List child)
@@ -297,6 +300,7 @@ type Attribute variation msg
     | GridArea String
     | GridCoords Style.GridPosition
     | PointerEvents Bool
+    | Shrink Int
 
 
 type Decoration
