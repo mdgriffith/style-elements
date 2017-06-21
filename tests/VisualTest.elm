@@ -572,14 +572,14 @@ viewRowLayouts =
         ]
     , el Label [] (text "Row Center Alignment")
     , row Container
-        [ spacingXY 20 20, alignRight ]
+        [ spacingXY 20 20, center ]
         [ el Box [ width (px 100), height (px 100) ] empty
         , el Box [ width (px 100), height (px 100) ] empty
         , el Box [ width (px 100), height (px 100) ] empty
         ]
     , el Label [] (text "Row Width/Heights")
     , row Container
-        [ spacingXY 20 20, height (px 800) ]
+        [ spacingXY 20 20, height (px 300) ]
         [ el Box [ width (px 200), height (fill 1) ] (text "fill height")
         , el Box [ width (fill 1), height (px 200) ] (text "fill width")
         ]
