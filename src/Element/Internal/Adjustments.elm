@@ -16,7 +16,6 @@ apply root =
         stack parent el =
             el
                 |> (centerTextLayout
-                        >> expandedElements parent
                         >> positionNearby parent
                         >> hoistFixedScreenElements
                    )
@@ -387,82 +386,6 @@ hoistFixedScreenElements el =
 
             _ ->
                 ( el, Nothing )
-
-
-{-| -}
-expandedElements : Maybe Internal.LayoutModel -> Element style variation msg -> Element style variation msg
-expandedElements parent elm =
-    case elm of
-        Element node element attrs child otherChildren ->
-            let
-                ( aligned, unaligned ) =
-                    List.partition forAlignment attrs
-
-                forAlignment attr =
-                    case attr of
-                        HAlign _ ->
-                            True
-
-                        VAlign _ ->
-                            True
-
-                        _ ->
-                            False
-
-                forSpacing attr =
-                    case attr of
-                        Spacing _ _ ->
-                            True
-
-                        _ ->
-                            False
-
-                isExpanded attr =
-                    case attr of
-                        Expand ->
-                            True
-
-                        _ ->
-                            False
-
-                inline attr =
-                    case attr of
-                        Inline ->
-                            True
-
-                        _ ->
-                            False
-            in
-                case parent of
-                    Just (Internal.TextLayout _) ->
-                        if not (List.any isExpanded attrs) && not (List.any inline attrs) then
-                            let
-                                ( spaced, unspaced ) =
-                                    List.partition forSpacing unaligned
-                            in
-                                Layout "div"
-                                    (Internal.FlexLayout Internal.GoRight [])
-                                    Nothing
-                                    ((PointerEvents False :: aligned) ++ spacingToMargin spaced)
-                                    (Normal
-                                        [ Element node
-                                            element
-                                            (PointerEvents True :: unspaced)
-                                            child
-                                            otherChildren
-                                        ]
-                                    )
-                        else
-                            elm
-
-                    _ ->
-                        elm
-
-        Layout node layout element attrs children ->
-            elm
-
-        _ ->
-            elm
 
 
 defaultPadding : ( Maybe Float, Maybe Float, Maybe Float, Maybe Float ) -> ( Float, Float, Float, Float ) -> ( Float, Float, Float, Float )

@@ -130,6 +130,7 @@ main =
 view model =
     Element.layout stylesheet <|
         el None [ center, width (px 800) ] <|
+            -- otherTextLayout
             column Main
                 [ spacingXY 50 100 ]
                 (List.concat
@@ -138,6 +139,7 @@ view model =
                     , anchoredNoContent
                     , anchoredLayoutWithContent
                     , viewTextLayout
+                    , [ otherTextLayout ]
                     , viewRowLayouts
                     , viewColumnLayouts
                     , viewGridLayout
@@ -148,6 +150,19 @@ view model =
                       ]
                     ]
                 )
+
+
+otherTextLayout =
+    textLayout Container
+        [ moveX 20, width (px 600), spacing 10, paddingXY 10 10 ]
+        [ el None [] <| text "A basic element is only allowed to have one child because it doesn't specify how children should be organized in a layout."
+        , paragraph None
+            []
+            [ el None [] <| text "We also have a style identifier here, "
+            , el Box [ padding 0 ] (text "MyStyle")
+            , el None [] <| text ",  which we'll get into in the Style section of this guide."
+            ]
+        ]
 
 
 screenExample =
