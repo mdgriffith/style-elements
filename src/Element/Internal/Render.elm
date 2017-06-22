@@ -1152,6 +1152,9 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                         Nothing ->
                                             if order == Last || order == FirstAndLast then
                                                 ( 0, 0, 0, 0 )
+                                            else if elem.inline then
+                                                -- If an element is inline, spacing is horizontal, otherwise it's vertical.
+                                                ( 0, right, 0, 0 )
                                             else
                                                 ( 0, 0, bottom, 0 )
 

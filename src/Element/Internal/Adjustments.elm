@@ -389,15 +389,14 @@ hoistFixedScreenElements el =
                 ( el, Nothing )
 
 
-{-| Adjust the structure so that `above` and friends can be used.
--}
+{-| -}
 expandedElements : Maybe Internal.LayoutModel -> Element style variation msg -> Element style variation msg
 expandedElements parent elm =
     case elm of
-        Element node element position child otherChildren ->
+        Element node element attrs child otherChildren ->
             let
                 ( aligned, unaligned ) =
-                    List.partition forAlignment position
+                    List.partition forAlignment attrs
 
                 forAlignment attr =
                     case attr of
@@ -425,10 +424,18 @@ expandedElements parent elm =
 
                         _ ->
                             False
+
+                inline attr =
+                    case attr of
+                        Inline ->
+                            True
+
+                        _ ->
+                            False
             in
                 case parent of
                     Just (Internal.TextLayout _) ->
-                        if not (List.any isExpanded position) then
+                        if not (List.any isExpanded attrs) && not (List.any inline attrs) then
                             let
                                 ( spaced, unspaced ) =
                                     List.partition forSpacing unaligned
