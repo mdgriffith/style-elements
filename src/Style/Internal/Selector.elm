@@ -7,6 +7,7 @@ module Style.Internal.Selector exposing (Selector, child, formatName, free, getF
 -}
 
 import Style.Internal.Find as Findable
+import Regex
 
 
 {-| -}
@@ -22,9 +23,10 @@ type Selector class variation
 formatName : a -> String
 formatName x =
     toString x
-        |> String.words
-        |> List.map uncapitalize
-        |> String.join "_"
+        |> uncapitalize
+        |> Regex.replace Regex.All (Regex.regex "[^a-zA-Z0-9_-]") (\_ -> "")
+        |> Regex.replace Regex.All (Regex.regex "[A-Z0-9]+") (\{ match } -> " " ++ String.toLower match)
+        |> Regex.replace Regex.All (Regex.regex "[\\s+]") (\_ -> "-")
 
 
 {-| -}
@@ -66,7 +68,7 @@ guard : String -> Selector class variation -> Selector class variation
 guard guard selector =
     let
         addGuard str =
-            str ++ "--" ++ guard
+            str ++ "__" ++ guard
 
         onFindable findable =
             case findable of
