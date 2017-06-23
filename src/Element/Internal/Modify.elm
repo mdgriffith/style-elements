@@ -32,8 +32,8 @@ setNode node el =
         Spacer x ->
             Spacer x
 
-        Layout _ layout elem attrs children ->
-            Layout node layout elem attrs children
+        Layout elm ->
+            Layout { elm | node = node }
 
         Element elm ->
             Element { elm | node = node }
@@ -60,8 +60,8 @@ addAttrToNonText prop el =
         Spacer x ->
             Spacer x
 
-        Layout node layout elem attrs els ->
-            Layout node layout elem (prop :: attrs) els
+        Layout elm ->
+            Layout { elm | attrs = (prop :: elm.attrs) }
 
         Element elm ->
             Element { elm | attrs = (prop :: elm.attrs) }
@@ -82,8 +82,8 @@ addAttr prop el =
         Spacer x ->
             Spacer x
 
-        Layout node layout elem attrs els ->
-            Layout node layout elem (prop :: attrs) els
+        Layout elm ->
+            Layout { elm | attrs = (prop :: elm.attrs) }
 
         Element elm ->
             Element { elm | attrs = (prop :: elm.attrs) }
@@ -110,8 +110,8 @@ addAttrList props el =
         Raw h ->
             Raw h
 
-        Layout node layout elem attrs els ->
-            Layout node layout elem (props ++ attrs) els
+        Layout elm ->
+            Layout { elm | attrs = (props ++ elm.attrs) }
 
         Element elm ->
             Element { elm | attrs = (props ++ elm.attrs) }
@@ -138,8 +138,8 @@ setAttrs props el =
         Raw h ->
             Raw h
 
-        Layout node layout elem _ els ->
-            Layout node layout elem props els
+        Layout elm ->
+            Layout { elm | attrs = props }
 
         Element elm ->
             Element { elm | attrs = props }
@@ -164,8 +164,8 @@ removeAttrs props el =
             Spacer x ->
                 Spacer x
 
-            Layout node layout elem attrs els ->
-                Layout node layout elem (List.filter match attrs) els
+            Layout elm ->
+                Layout { elm | attrs = List.filter match elm.attrs }
 
             Element elm ->
                 Element { elm | attrs = List.filter match elm.attrs }
@@ -186,8 +186,8 @@ removeAllAttrs el =
         Raw h ->
             Raw h
 
-        Layout node layout elem _ els ->
-            Layout node layout elem [] els
+        Layout elm ->
+            Layout { elm | attrs = [] }
 
         Element elm ->
             Element { elm | attrs = [] }
@@ -214,14 +214,13 @@ addChild parent el =
         Raw h ->
             Raw h
 
-        Layout node layout elem attrs children ->
-            case children of
-                Normal childs ->
-                    Layout node layout elem attrs (Normal (el :: childs))
+        Layout ({ absolutelyPositioned } as elm) ->
+            case absolutelyPositioned of
+                Nothing ->
+                    Layout { elm | absolutelyPositioned = Just [ el ] }
 
-                -- This is wrong, but this lib doesn't currently support keyed absolutely positioned children...so it's not a problem for now.
-                Keyed childs ->
-                    Layout node layout elem attrs (Normal (el :: List.map Tuple.second childs))
+                Just others ->
+                    Layout { elm | absolutelyPositioned = Just (el :: others) }
 
         Element ({ absolutelyPositioned } as elm) ->
             case absolutelyPositioned of
@@ -253,7 +252,7 @@ getAttrs el =
         Raw h ->
             []
 
-        Layout _ _ _ attrs _ ->
+        Layout { attrs } ->
             attrs
 
         Element { attrs } ->
@@ -275,7 +274,7 @@ getStyle el =
         Spacer x ->
             Nothing
 
-        Layout _ _ style _ _ ->
+        Layout { style } ->
             style
 
         Element { style } ->
@@ -297,8 +296,8 @@ removeStyle el =
         Raw h ->
             Raw h
 
-        Layout node layout _ attrs els ->
-            Layout node layout Nothing attrs els
+        Layout elm ->
+            Layout { elm | style = Nothing }
 
         Element elm ->
             Element { elm | style = Nothing }
@@ -319,11 +318,19 @@ removeContent el =
         Raw h ->
             Raw h
 
-        Layout node layout elem attrs children ->
-            Layout node layout elem attrs (Normal [])
+        Layout elm ->
+            Layout
+                { elm
+                    | children = Normal []
+                    , absolutelyPositioned = Nothing
+                }
 
         Element elm ->
-            Element { elm | child = Empty }
+            Element
+                { elm
+                    | child = Empty
+                    , absolutelyPositioned = Nothing
+                }
 
         Text _ _ ->
             Empty
@@ -341,7 +348,7 @@ getChild el =
         Raw h ->
             Raw h
 
-        Layout node layout elem attrs children ->
+        Layout _ ->
             el
 
         Element { child } ->

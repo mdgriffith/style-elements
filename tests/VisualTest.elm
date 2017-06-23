@@ -138,6 +138,7 @@ view model =
                     , anchoredWithContent
                     , anchoredNoContent
                     , anchoredLayoutWithContent
+                    , anchoredAboveLayout
                     , viewTextLayout
                     , [ otherTextLayout ]
                     , viewRowLayouts
@@ -154,7 +155,7 @@ view model =
 
 otherTextLayout =
     textLayout Container
-        [ moveX 20, width (px 600), spacing 10, paddingXY 10 10 ]
+        [ spacing 10, paddingXY 10 10 ]
         [ el None [] <| text "A basic element is only allowed to have one child because it doesn't specify how children should be organized in a layout."
         , paragraph None
             []
@@ -503,6 +504,42 @@ anchoredLayoutWithContent =
     ]
 
 
+anchoredAboveLayout =
+    [ row None
+        [ center
+        ]
+        [ column
+            None
+            [ spacing 20 ]
+            [ section <| el Label [] (text "Above Layout")
+            , el None [ center ] <|
+                (row Container [ spacing 10, padding 30, width (px 200), height (px 200) ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    |> above
+                        [ el Box [ moveXY 20 20 ] (text "Hi!")
+                        , el Box [ moveXY 20 20, alignRight ] (text "Hi!")
+                        , el Box [ moveXY 20 20, center ] (text "Hi!")
+                        ]
+                    |> below
+                        [ el Box [ moveXY 20 20 ] (text "Hi!")
+                        , el Box [ moveXY 20 20, alignRight ] (text "Hi!")
+                        , el Box [ moveXY 20 20, center ] (text "Hi!")
+                        ]
+                    |> onRight
+                        [ el Box [ moveXY 20 20 ] (text "Hi!")
+                        , el Box [ moveXY 20 20, alignBottom ] (text "Hi!")
+                        , el Box [ moveXY 20 20, verticalCenter ] (text "Hi!")
+                        ]
+                    |> onLeft
+                        [ el Box [ moveXY 20 20 ] (text "Hi!")
+                        , el Box [ moveXY 20 20, alignBottom ] (text "Hi!")
+                        , el Box [ moveXY 20 20, verticalCenter ] (text "Hi!")
+                        ]
+                )
+            ]
+        ]
+    ]
+
+
 update msg model =
     ( model, Cmd.none )
 
@@ -557,15 +594,15 @@ viewTextLayout =
             []
             [ text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris vel lectus eget lorem lobortis suscipit. Fusce porta auctor purus sed tempor. Mauris auctor sapien sit amet elementum egestas. Maecenas placerat consequat mauris, at dapibus enim tristique a. Quisque feugiat ultricies lorem nec volutpat. Sed risus enim, facilisis id fermentum quis, eleifend in diam. Suspendisse euismod, urna nec consectetur volutpat, massa libero aliquam urna, hendrerit venenatis leo lacus faucibus nulla. Curabitur et mattis dolor."
             ]
-        , paragraph Container
-            [ width (px 800), spacing 10 ]
+        , paragraph None
+            [ spacing 10 ]
             [ el Box [ paddingXY 5 0 ] (text "•")
             , el Box [ paddingXY 5 0 ] (text "•")
             , el Box [ paddingXY 5 0 ] (text "•")
             , text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris vel lectus eget lorem lobortis suscipit. Fusce porta auctor purus sed tempor. Mauris auctor sapien sit amet elementum egestas. Maecenas placerat consequat mauris, at dapibus enim tristique a. Quisque feugiat ultricies lorem nec volutpat. Sed risus enim, facilisis id fermentum quis, eleifend in diam. Suspendisse euismod, urna nec consectetur volutpat, massa libero aliquam urna, hendrerit venenatis leo lacus faucibus nulla. Curabitur et mattis dolor."
             ]
-        , paragraph Container
-            [ width (px 800), spacing 10 ]
+        , paragraph None
+            [ spacing 10 ]
             [ el Box [ paddingXY 5 0 ] (text "•")
             , el Box [ paddingXY 5 0 ] (text "•")
             , el Box [ paddingXY 5 0, spacing 0 ] (text "•")

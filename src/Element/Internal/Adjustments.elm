@@ -23,6 +23,17 @@ apply root =
         adjust stack Nothing root
 
 
+tagIntermediates =
+    True
+
+
+tag str =
+    if tagIntermediates then
+        Attr <| Html.Attributes.class str
+    else
+        Attr <| Html.Attributes.class ""
+
+
 {-| Adjust the structure so that `above` and friends can be used.
 
 Counterspacing is also called here or else things get wacky.
@@ -62,6 +73,14 @@ positionNearby parent elm =
                         , ( "opacity", "1" )
                         ]
 
+                framed =
+                    case nearbyPosition of
+                        Nothing ->
+                            False
+
+                        _ ->
+                            True
+
                 nearbyAlignment =
                     case nearbyPosition of
                         Just (Nearby Above) ->
@@ -80,87 +99,105 @@ positionNearby parent elm =
                             []
             in
                 if nearbyPosition == (Just (Nearby Above)) || nearbyPosition == (Just (Nearby Below)) then
-                    Layout "div"
-                        (Internal.FlexLayout Internal.GoRight [])
-                        Nothing
-                        (PointerEvents False
-                            :: Height (Internal.Px 0)
-                            :: Width (Internal.Percent 100)
-                            :: PositionFrame
-                                (Absolute
-                                    (if nearbyPosition == (Just (Nearby Above)) then
-                                        TopLeft
-                                     else
-                                        BottomLeft
+                    Layout
+                        { node = "div"
+                        , style = Nothing
+                        , layout = Internal.FlexLayout Internal.GoRight []
+                        , attrs =
+                            (tag "above-below-intermediate-parent"
+                                :: PointerEvents False
+                                :: Height (Internal.Px 0)
+                                :: Width (Internal.Percent 100)
+                                :: PositionFrame
+                                    (Absolute
+                                        (if nearbyPosition == (Just (Nearby Above)) then
+                                            TopLeft
+                                         else
+                                            BottomLeft
+                                        )
                                     )
-                                )
-                            :: Position (Just 0) (Just 0) Nothing
-                            :: (nearbyAlignment ++ aligned)
-                        )
-                        (Normal
-                            [ Element
-                                { node = "div"
-                                , style = Nothing
-                                , attrs =
-                                    [ PointerEvents False
-                                    , PositionFrame
-                                        (Absolute
-                                            (if nearbyPosition == (Just (Nearby Above)) then
-                                                BottomLeft
-                                             else
-                                                TopLeft
+                                :: Position (Just 0) (Just 0) Nothing
+                                :: (nearbyAlignment ++ aligned)
+                            )
+                        , children =
+                            Normal
+                                [ Element
+                                    { node = "div"
+                                    , style = Nothing
+                                    , attrs =
+                                        [ tag "above-below-intermediate"
+                                        , PointerEvents False
+                                        , PositionFrame
+                                            (Absolute
+                                                (if nearbyPosition == (Just (Nearby Above)) then
+                                                    BottomLeft
+                                                 else
+                                                    TopLeft
+                                                )
+                                            )
+                                        , Position Nothing (Just 0) Nothing
+                                        , VAlign Bottom
+                                        , Attr <| noColor
+                                        ]
+                                    , child =
+                                        (counterSpacing
+                                            (Modify.setAttrs
+                                                (PointerEvents True
+                                                    :: PositionFrame (Absolute TopLeft)
+                                                    :: Position (Just 0) (Just 0) Nothing
+                                                    :: unaligned
+                                                )
+                                                el
                                             )
                                         )
-                                    , Position Nothing (Just 0) Nothing
-                                    , VAlign Bottom
-                                    , Attr <| noColor
-                                    ]
-                                , child =
-                                    (counterSpacing
-                                        (Modify.setAttrs
-                                            (PointerEvents True :: PositionFrame (Absolute TopLeft) :: Position (Just 0) (Just 0) Nothing :: unaligned)
-                                            el
+                                    , absolutelyPositioned = Nothing
+                                    }
+                                ]
+                        , absolutelyPositioned = Nothing
+                        }
+                else if framed || not (List.isEmpty aligned) then
+                    Layout
+                        { node = "div"
+                        , style = Nothing
+                        , layout = Internal.FlexLayout Internal.GoRight []
+                        , attrs =
+                            (tag "nearby-intermediate-parent"
+                                :: PointerEvents False
+                                :: Height (Internal.Percent 100)
+                                :: Width (Internal.Percent 100)
+                                :: PositionFrame (Absolute TopLeft)
+                                :: Position (Just 0) (Just 0) Nothing
+                                :: (nearbyAlignment ++ aligned)
+                            )
+                        , children =
+                            Normal
+                                [ Element
+                                    { node = "div"
+                                    , style = Nothing
+                                    , attrs =
+                                        (unaligned
+                                            ++ [ PointerEvents False
+                                               , PositionFrame Relative
+                                               , Position (Just 0) (Just 0) Nothing
+                                               , Padding (Just 0) (Just 0) (Just 0) (Just 0)
+                                               , Attr <| noColor
+                                               , tag "nearby-intermediate"
+                                               ]
                                         )
-                                    )
-                                , absolutelyPositioned = Nothing
-                                }
-                            ]
-                        )
+                                    , child =
+                                        (counterSpacing
+                                            (Modify.addAttrList
+                                                (PointerEvents True :: PositionFrame (Absolute TopLeft) :: Position (Just 0) (Just 0) Nothing :: [])
+                                                el
+                                            )
+                                        )
+                                    , absolutelyPositioned = Nothing
+                                    }
+                                ]
+                        , absolutelyPositioned = Nothing
+                        }
                 else
-                    Layout "div"
-                        (Internal.FlexLayout Internal.GoRight [])
-                        Nothing
-                        (PointerEvents False
-                            :: Height (Internal.Percent 100)
-                            :: Width (Internal.Percent 100)
-                            :: PositionFrame (Absolute TopLeft)
-                            :: Position (Just 0) (Just 0) Nothing
-                            :: (nearbyAlignment ++ aligned)
-                        )
-                        (Normal
-                            [ Element
-                                { node = "div"
-                                , style = Nothing
-                                , attrs =
-                                    (unaligned
-                                        ++ [ PointerEvents False
-                                           , PositionFrame Relative
-                                           , Position (Just 0) (Just 0) Nothing
-                                           , Padding (Just 0) (Just 0) (Just 0) (Just 0)
-                                           , Attr <| noColor
-                                           ]
-                                    )
-                                , child =
-                                    (counterSpacing
-                                        (Modify.addAttrList
-                                            (PointerEvents True :: PositionFrame (Absolute TopLeft) :: Position (Just 0) (Just 0) Nothing :: [])
-                                            el
-                                        )
-                                    )
-                                , absolutelyPositioned = Nothing
-                                }
-                            ]
-                        )
+                    counterSpacing elm
     in
         case elm of
             Element { attrs } ->
@@ -188,7 +225,7 @@ positionNearby parent elm =
                         _ ->
                             elm
 
-            Layout node layout element attrs children ->
+            Layout { attrs } ->
                 let
                     ( aligned, unaligned ) =
                         separateAlignment attrs
@@ -225,7 +262,7 @@ This is so that padding:0 fits with this library's concept of padding:0.
 counterSpacing : Element style variation msg -> Element style variation msg
 counterSpacing elm =
     case elm of
-        Layout node layout element attrs children ->
+        Layout ({ node, layout, style, attrs, children, absolutelyPositioned } as layoutEl) ->
             let
                 ( centeredProps, others ) =
                     List.partition (\attr -> attr == HAlign Center || attr == VAlign VerticalCenter) attrs
@@ -304,37 +341,44 @@ counterSpacing elm =
                                         (Maybe.withDefault ( 0, 0, 0, 0 ) padding)
                             in
                                 Layout
-                                    node
-                                    (Internal.FlexLayout Internal.GoRight [])
-                                    element
-                                    (PointerEvents True :: unaligned)
-                                    (Normal
-                                        [ Layout
-                                            "div"
-                                            layout
-                                            Nothing
-                                            (PointerEvents False
-                                                :: phantomPadding
-                                                :: Margin negativeMargin
-                                                :: spacingAttr
-                                                :: Width (Internal.Calc 100 totalHSpacing)
-                                                :: Shrink 1
-                                                :: aligned
-                                            )
-                                            (case children of
-                                                Normal childs ->
-                                                    Normal <| List.map (Modify.addAttr (PointerEvents True)) childs
+                                    { node = node
+                                    , style = style
+                                    , layout = Internal.FlexLayout Internal.GoRight []
+                                    , attrs = (tag "counter-spacing-container" :: PointerEvents True :: unaligned)
+                                    , children =
+                                        Normal
+                                            [ Layout
+                                                { node = "div"
+                                                , style = Nothing
+                                                , layout = layout
+                                                , attrs =
+                                                    (tag "counter-spacing"
+                                                        :: PointerEvents False
+                                                        :: phantomPadding
+                                                        :: Margin negativeMargin
+                                                        :: spacingAttr
+                                                        :: Width (Internal.Calc 100 totalHSpacing)
+                                                        :: Shrink 1
+                                                        :: aligned
+                                                    )
+                                                , children =
+                                                    (case children of
+                                                        Normal childs ->
+                                                            Normal <| List.map (Modify.addAttr (PointerEvents True)) childs
 
-                                                Keyed childs ->
-                                                    Keyed <| List.map (Tuple.mapSecond <| Modify.addAttr (PointerEvents True)) childs
-                                            )
-                                        ]
-                                    )
+                                                        Keyed childs ->
+                                                            Keyed <| List.map (Tuple.mapSecond <| Modify.addAttr (PointerEvents True)) childs
+                                                    )
+                                                , absolutelyPositioned = Nothing
+                                                }
+                                            ]
+                                    , absolutelyPositioned = absolutelyPositioned
+                                    }
                         else
-                            Layout node layout element (PointerEvents True :: attrs) children
+                            Layout { layoutEl | attrs = (PointerEvents True :: attrs) }
 
                     _ ->
-                        Layout node layout element attrs children
+                        elm
 
         _ ->
             elm
@@ -345,7 +389,7 @@ counterSpacing elm =
 centerTextLayout : Element style variation msg -> Element style variation msg
 centerTextLayout elm =
     case elm of
-        Layout node layout element attrs children ->
+        Layout ({ attrs, layout } as layoutEl) ->
             let
                 ( centeredProps, others ) =
                     List.partition (\attr -> attr == HAlign Center || attr == VAlign VerticalCenter) attrs
@@ -354,18 +398,20 @@ centerTextLayout elm =
                     Internal.TextLayout _ ->
                         if not <| List.isEmpty centeredProps then
                             Layout
-                                "div"
-                                (Internal.FlexLayout Internal.GoRight [])
-                                Nothing
-                                (PointerEvents False :: centeredProps)
-                                (Normal
-                                    [ Layout node layout element (PointerEvents True :: others) children ]
-                                )
+                                { node = "div"
+                                , style = Nothing
+                                , layout = Internal.FlexLayout Internal.GoRight []
+                                , attrs = (tag "center-text" :: PointerEvents False :: centeredProps)
+                                , children =
+                                    Normal
+                                        [ Layout { layoutEl | attrs = (PointerEvents True :: others) } ]
+                                , absolutelyPositioned = Nothing
+                                }
                         else
-                            Layout node layout element attrs children
+                            elm
 
                     _ ->
-                        Layout node layout element attrs children
+                        elm
 
         _ ->
             elm
@@ -386,7 +432,7 @@ hoistFixedScreenElements el =
                 else
                     ( el, Nothing )
 
-            Layout node layout element attrs children ->
+            Layout { attrs } ->
                 if elementIsOnScreen attrs then
                     ( Empty, Just [ el ] )
                 else

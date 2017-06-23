@@ -21,7 +21,7 @@ name el =
         Element _ ->
             "element"
 
-        Layout _ _ _ _ _ ->
+        Layout _ ->
             "layout"
 
         Raw _ ->
@@ -82,18 +82,24 @@ adjust fn parent el =
                                     )
 
                     ( adjustedEl, elData ) =
-                        fn parent (Element { elm | child = adjustedChild, absolutelyPositioned = adjustedOthers })
+                        fn parent
+                            (Element
+                                { elm
+                                    | child = adjustedChild
+                                    , absolutelyPositioned = adjustedOthers
+                                }
+                            )
                 in
                     ( adjustedEl
                     , List.foldr merge Nothing [ childData, otherChildrenData, elData ]
                     )
 
-            Layout node layout element attrs children ->
+            Layout ({ layout, children, absolutelyPositioned } as elm) ->
                 let
-                    adjustAndMerge el ( adjustedAggregate, dataAggregate ) =
+                    adjustAndMerge usingParent el ( adjustedAggregate, dataAggregate ) =
                         let
                             ( adjusted, data ) =
-                                adjust fn (Just layout) el
+                                adjust fn usingParent el
                         in
                             case data of
                                 Nothing ->
@@ -106,10 +112,10 @@ adjust fn parent el =
                                     , d ++ dataAggregate
                                     )
 
-                    adjustAndMergeKeyed ( key, el ) ( adjustedAggregate, dataAggregate ) =
+                    adjustAndMergeKeyed usingParent ( key, el ) ( adjustedAggregate, dataAggregate ) =
                         let
                             ( adjusted, data ) =
-                                adjust fn (Just layout) el
+                                adjust fn usingParent el
                         in
                             case data of
                                 Nothing ->
@@ -127,7 +133,7 @@ adjust fn parent el =
                             Normal normalChildren ->
                                 let
                                     ( adjusted, data ) =
-                                        List.foldr adjustAndMerge ( [], [] ) normalChildren
+                                        List.foldr (adjustAndMerge (Just layout)) ( [], [] ) normalChildren
                                 in
                                     ( Normal adjusted
                                     , maybeOnEmptyList data
@@ -136,17 +142,32 @@ adjust fn parent el =
                             Keyed keyedChildren ->
                                 let
                                     ( adjusted, data ) =
-                                        List.foldr adjustAndMergeKeyed ( [], [] ) keyedChildren
+                                        List.foldr (adjustAndMergeKeyed (Just layout)) ( [], [] ) keyedChildren
                                 in
                                     ( Keyed adjusted
                                     , maybeOnEmptyList data
                                     )
 
+                    ( adjustedOthers, otherChildrenData ) =
+                        case absolutelyPositioned of
+                            Nothing ->
+                                ( Nothing, Nothing )
+
+                            Just others ->
+                                List.foldr (adjustAndMerge Nothing) ( [], [] ) others
+                                    |> (\( children, onScreen ) -> ( maybeOnEmptyList children, maybeOnEmptyList onScreen ))
+
                     ( adjustedLayout, layoutData ) =
-                        fn parent (Layout node layout element attrs adjustedChildren)
+                        fn parent
+                            (Layout
+                                { elm
+                                    | children = adjustedChildren
+                                    , absolutelyPositioned = adjustedOthers
+                                }
+                            )
                 in
                     ( adjustedLayout
-                    , List.foldr merge Nothing [ layoutData, childrenData ]
+                    , List.foldr merge Nothing [ layoutData, childrenData, otherChildrenData ]
                     )
 
             _ ->
@@ -164,7 +185,14 @@ type Element style variation msg
         , child : Element style variation msg
         , absolutelyPositioned : Maybe (List (Element style variation msg))
         }
-    | Layout String Style.LayoutModel (Maybe style) (List (Attribute variation msg)) (Children (Element style variation msg))
+    | Layout
+        { node : String
+        , layout : Style.LayoutModel
+        , style : Maybe style
+        , attrs : List (Attribute variation msg)
+        , children : Children (Element style variation msg)
+        , absolutelyPositioned : Maybe (List (Element style variation msg))
+        }
     | Raw (Html msg)
 
 
@@ -185,11 +213,18 @@ mapMsg fn el =
                 { elm
                     | attrs = List.map (mapAttr fn) attrs
                     , child = mapMsg fn child
-                    , absolutelyPositioned = Maybe.map (List.map (\child -> mapMsg fn child)) absolutelyPositioned
+                    , absolutelyPositioned =
+                        Maybe.map (List.map (\child -> mapMsg fn child)) absolutelyPositioned
                 }
 
-        Layout node layout style attrs children ->
-            Layout node layout style (List.map (mapAttr fn) attrs) (mapChildren (mapMsg fn) children)
+        Layout ({ attrs, children, absolutelyPositioned } as elm) ->
+            Layout
+                { elm
+                    | attrs = List.map (mapAttr fn) attrs
+                    , children = mapChildren (mapMsg fn) children
+                    , absolutelyPositioned =
+                        Maybe.map (List.map (\child -> mapMsg fn child)) absolutelyPositioned
+                }
 
         Raw html ->
             Raw (Html.map fn html)

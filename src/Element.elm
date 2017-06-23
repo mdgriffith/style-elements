@@ -532,7 +532,14 @@ radio group style attributes buttons =
                         |> Modify.removeAllAttrs
                         |> Modify.removeStyle
             in
-                Layout "label" (Style.FlexLayout Style.GoRight []) style nonInputEventAttrs (Normal [ rune, literalLabel ])
+                Layout
+                    { node = "layout"
+                    , style = style
+                    , layout = Style.FlexLayout Style.GoRight []
+                    , attrs = nonInputEventAttrs
+                    , children = Normal [ rune, literalLabel ]
+                    , absolutelyPositioned = Nothing
+                    }
     in
         column style attributes (List.map toChild buttons)
 
@@ -730,8 +737,15 @@ Children that are aligned left or right will be floated left or right. Everythin
 
 -}
 textLayout : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
-textLayout elem attrs children =
-    Layout "div" (Style.TextLayout True) (Just elem) attrs (Normal children)
+textLayout style attrs children =
+    Layout
+        { node = "div"
+        , style = Just style
+        , layout = Style.TextLayout True
+        , attrs = attrs
+        , children = Normal children
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| Paragraph is actually a layout if you can believe it!
@@ -742,9 +756,16 @@ Because all the children are inline, they will not respect and width or height s
 
 -}
 paragraph : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
-paragraph elem attrs children =
+paragraph style attrs children =
     -- Paragraph does not have clearfix, which is what the `TextLayout False` is all about
-    Layout "p" (Style.TextLayout False) (Just elem) attrs (Normal <| List.map (Modify.addAttrToNonText Inline) children)
+    Layout
+        { node = "p"
+        , style = Just style
+        , layout = Style.TextLayout False
+        , attrs = attrs
+        , children = Normal <| List.map (Modify.addAttrToNonText Inline) children
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
@@ -775,26 +796,54 @@ inlineChildren node style attrs children =
 
 {-| -}
 row : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
-row elem attrs children =
-    Layout "div" (Style.FlexLayout Style.GoRight []) (Just elem) attrs (Normal children)
+row style attrs children =
+    Layout
+        { node = "div"
+        , style = Just style
+        , layout = Style.FlexLayout Style.GoRight []
+        , attrs = attrs
+        , children = Normal children
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
 column : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
-column elem attrs children =
-    Layout "div" (Style.FlexLayout Style.Down []) (Just elem) attrs (Normal children)
+column style attrs children =
+    Layout
+        { node = "div"
+        , style = Just style
+        , layout = Style.FlexLayout Style.Down []
+        , attrs = attrs
+        , children = Normal children
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
 wrappedRow : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
-wrappedRow elem attrs children =
-    Layout "div" (Style.FlexLayout Style.GoRight [ Style.Wrap True ]) (Just elem) attrs (Normal children)
+wrappedRow style attrs children =
+    Layout
+        { node = "div"
+        , style = Just style
+        , layout = Style.FlexLayout Style.GoRight [ Style.Wrap True ]
+        , attrs = attrs
+        , children = Normal children
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
 wrappedColumn : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
-wrappedColumn elem attrs children =
-    Layout "div" (Style.FlexLayout Style.Down [ Style.Wrap True ]) (Just elem) attrs (Normal children)
+wrappedColumn style attrs children =
+    Layout
+        { node = "div"
+        , style = Just style
+        , layout = Style.FlexLayout Style.Down [ Style.Wrap True ]
+        , attrs = attrs
+        , children = Normal children
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
@@ -832,7 +881,7 @@ type alias Grid =
 
 -}
 grid : style -> Grid -> List (Attribute variation msg) -> List (OnGrid (Element style variation msg)) -> Element style variation msg
-grid elem template attrs children =
+grid style template attrs children =
     let
         prepare el =
             Normal <| List.map (\(OnGrid x) -> x) el
@@ -859,7 +908,14 @@ grid elem template attrs children =
                 _ ->
                     []
     in
-        Layout "div" (Style.Grid (Style.GridTemplate template) gridAttributes) (Just elem) notSpacingAttrs (prepare children)
+        Layout
+            { node = "div"
+            , style = Just style
+            , layout = Style.Grid (Style.GridTemplate template) gridAttributes
+            , attrs = notSpacingAttrs
+            , children = prepare children
+            , absolutelyPositioned = Nothing
+            }
 
 
 {-| -}
@@ -893,7 +949,7 @@ Here's an example:
 
 -}
 namedGrid : style -> NamedGrid -> List (Attribute variation msg) -> List (NamedOnGrid (Element style variation msg)) -> Element style variation msg
-namedGrid elem template attrs children =
+namedGrid style template attrs children =
     let
         prepare el =
             Normal <| List.map (\(NamedOnGrid x) -> x) el
@@ -920,7 +976,14 @@ namedGrid elem template attrs children =
                 _ ->
                     []
     in
-        Layout "div" (Style.Grid (Style.NamedGridTemplate template) gridAttributes) (Just elem) notSpacingAttrs (prepare children)
+        Layout
+            { node = "div"
+            , style = Just style
+            , layout = Style.Grid (Style.NamedGridTemplate template) gridAttributes
+            , attrs = notSpacingAttrs
+            , children = (prepare children)
+            , absolutelyPositioned = Nothing
+            }
 
 
 {-| -}

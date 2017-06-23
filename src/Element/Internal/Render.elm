@@ -318,8 +318,9 @@ renderElement parent stylesheet order elm =
             in
                 Html.node node htmlAttrs childHtml
 
-        Layout node layout element attrs children ->
+        Layout { node, layout, style, attrs, children, absolutelyPositioned } ->
             let
+                -- TODO RENDER ABSOLUTELY POSITIONED CHILDREN
                 ( centeredProps, others ) =
                     List.partition (\attr -> attr == HAlign Center || attr == VAlign VerticalCenter) attrs
 
@@ -410,7 +411,7 @@ renderElement parent stylesheet order elm =
                                 htmlNode
 
                 htmlAttrs =
-                    renderAttributes (LayoutElement layout) order element parent stylesheet (gather attributes)
+                    renderAttributes (LayoutElement layout) order style parent stylesheet (gather attributes)
                         |> clearfix
             in
                 case children of
@@ -426,11 +427,20 @@ renderElement parent stylesheet order elm =
                                             child
                                     )
                                     childList
+
+                            allChildren =
+                                case absolutelyPositioned of
+                                    Nothing ->
+                                        childHtml
+
+                                    Just absol ->
+                                        childHtml ++ (List.map (renderElement Nothing stylesheet FirstAndLast) absol)
                         in
-                            adjacentFlexboxCorrection <| Html.node node htmlAttrs childHtml
+                            adjacentFlexboxCorrection <| Html.node node htmlAttrs allChildren
 
                     Keyed keyed ->
                         let
+                            -- DOES NOT RENDER ABSOLUTE CHILDREN
                             childHtml =
                                 List.indexedMap
                                     (\i ( key, child ) ->
