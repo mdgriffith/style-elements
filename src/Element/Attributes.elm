@@ -17,6 +17,10 @@ module Element.Attributes
         , moveLeft
         , moveXY
         , width
+        , minWidth
+        , maxWidth
+        , minHeight
+        , maxHeight
         , height
         , px
         , fill
@@ -165,7 +169,7 @@ When applied to singular elements like `el`, alignment will affect the alignment
 
 ## Sizing
 
-@docs width, height, px, fill, percent
+@docs width, minWidth, maxWidth, height, minHeight, maxHeight, px, fill, percent
 
 
 ## Spacing ++ Padding
@@ -301,6 +305,7 @@ Attributes that can be attached to any HTML tag but are less commonly used.
 
 import Element.Internal.Model as Internal exposing (..)
 import Style.Internal.Model as Style exposing (Length)
+import Style.Internal.Render.Value as StyleValue
 import Html.Attributes
 import VirtualDom
 import Json.Decode as Json
@@ -413,6 +418,30 @@ moveXY x y =
 width : Length -> Attribute variation msg
 width =
     Width
+
+
+{-| -}
+minWidth : Length -> Attribute variation msg
+minWidth len =
+    Attr (Html.Attributes.style [ ( "min-width", StyleValue.length len ) ])
+
+
+{-| -}
+maxWidth : Length -> Attribute variation msg
+maxWidth len =
+    Attr (Html.Attributes.style [ ( "max-width", StyleValue.length len ) ])
+
+
+{-| -}
+minHeight : Length -> Attribute variation msg
+minHeight len =
+    Attr (Html.Attributes.style [ ( "min-height", StyleValue.length len ) ])
+
+
+{-| -}
+maxHeight : Length -> Attribute variation msg
+maxHeight len =
+    Attr (Html.Attributes.style [ ( "max-height", StyleValue.length len ) ])
 
 
 {-| -}

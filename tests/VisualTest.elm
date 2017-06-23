@@ -27,6 +27,11 @@ type Styles
     | Container
     | Label
     | Blue
+    | Crazy Other
+
+
+type Other
+    = Thing Int
 
 
 options =
@@ -36,7 +41,7 @@ options =
 
 stylesheet : StyleSheet Styles variation
 stylesheet =
-    Style.stylesheetWith options
+    Style.stylesheet
         [ style None []
         , style Main
             [ Border.all 1
@@ -88,6 +93,11 @@ stylesheet =
                 , cursor "pointer"
                 ]
             ]
+        , style
+            (Crazy
+                (Thing 5)
+            )
+            []
         ]
 
 
@@ -129,7 +139,7 @@ main =
 
 view model =
     Element.layout stylesheet <|
-        el None [ center, width (px 800) ] <|
+        el (Crazy (Thing 5)) [ center, width (px 800) ] <|
             -- otherTextLayout
             column Main
                 [ spacingXY 50 100 ]
@@ -179,7 +189,7 @@ screenExample =
                 , el Box [ padding 8, width (px 200) ] (text "test")
                     |> above
                         [ column Container
-                            [ moveUp 20, moveLeft 20, padding 8, spacing 8, alignRight ]
+                            [ moveUp 20, moveLeft 20, spacing 8, alignRight ]
                             [ el Box [ width (px 85), height (px 30), padding 8 ] (text "AAAA")
                             , el Box [ width (px 85), height (px 30), padding 8 ] (text "BBBB")
                             , el Box [ width (px 85), height (px 30), padding 8 ] (text "CCCC")
