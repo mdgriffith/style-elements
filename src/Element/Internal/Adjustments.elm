@@ -98,28 +98,32 @@ positionNearby parent elm =
                             :: (nearbyAlignment ++ aligned)
                         )
                         (Normal
-                            [ Element "div"
-                                Nothing
-                                [ PointerEvents False
-                                , PositionFrame
-                                    (Absolute
-                                        (if nearbyPosition == (Just (Nearby Above)) then
-                                            BottomLeft
-                                         else
-                                            TopLeft
+                            [ Element
+                                { node = "div"
+                                , style = Nothing
+                                , attrs =
+                                    [ PointerEvents False
+                                    , PositionFrame
+                                        (Absolute
+                                            (if nearbyPosition == (Just (Nearby Above)) then
+                                                BottomLeft
+                                             else
+                                                TopLeft
+                                            )
+                                        )
+                                    , Position Nothing (Just 0) Nothing
+                                    , VAlign Bottom
+                                    , Attr <| noColor
+                                    ]
+                                , child =
+                                    (counterSpacing
+                                        (Modify.setAttrs
+                                            (PointerEvents True :: PositionFrame (Absolute TopLeft) :: Position (Just 0) (Just 0) Nothing :: unaligned)
+                                            el
                                         )
                                     )
-                                , Position Nothing (Just 0) Nothing
-                                , VAlign Bottom
-                                , Attr <| noColor
-                                ]
-                                (counterSpacing
-                                    (Modify.setAttrs
-                                        (PointerEvents True :: PositionFrame (Absolute TopLeft) :: Position (Just 0) (Just 0) Nothing :: unaligned)
-                                        el
-                                    )
-                                )
-                                Nothing
+                                , absolutelyPositioned = Nothing
+                                }
                             ]
                         )
                 else
@@ -134,28 +138,32 @@ positionNearby parent elm =
                             :: (nearbyAlignment ++ aligned)
                         )
                         (Normal
-                            [ Element "div"
-                                Nothing
-                                (unaligned
-                                    ++ [ PointerEvents False
-                                       , PositionFrame Relative
-                                       , Position (Just 0) (Just 0) Nothing
-                                       , Padding (Just 0) (Just 0) (Just 0) (Just 0)
-                                       , Attr <| noColor
-                                       ]
-                                )
-                                (counterSpacing
-                                    (Modify.addAttrList
-                                        (PointerEvents True :: PositionFrame (Absolute TopLeft) :: Position (Just 0) (Just 0) Nothing :: [])
-                                        el
+                            [ Element
+                                { node = "div"
+                                , style = Nothing
+                                , attrs =
+                                    (unaligned
+                                        ++ [ PointerEvents False
+                                           , PositionFrame Relative
+                                           , Position (Just 0) (Just 0) Nothing
+                                           , Padding (Just 0) (Just 0) (Just 0) (Just 0)
+                                           , Attr <| noColor
+                                           ]
                                     )
-                                )
-                                Nothing
+                                , child =
+                                    (counterSpacing
+                                        (Modify.addAttrList
+                                            (PointerEvents True :: PositionFrame (Absolute TopLeft) :: Position (Just 0) (Just 0) Nothing :: [])
+                                            el
+                                        )
+                                    )
+                                , absolutelyPositioned = Nothing
+                                }
                             ]
                         )
     in
         case elm of
-            Element node element attrs child otherChildren ->
+            Element { attrs } ->
                 let
                     ( aligned, unaligned ) =
                         separateAlignment attrs
@@ -372,7 +380,7 @@ hoistFixedScreenElements el =
             List.any (\attr -> attr == PositionFrame Screen) attrs
     in
         case el of
-            Element node element attrs child otherChildren ->
+            Element { attrs } ->
                 if elementIsOnScreen attrs then
                     ( Empty, Just [ el ] )
                 else

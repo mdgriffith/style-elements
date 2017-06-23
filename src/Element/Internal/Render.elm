@@ -276,15 +276,15 @@ renderElement parent stylesheet order elm =
                 Sub ->
                     Html.sub [] [ Html.text str ]
 
-        Element node element attrs child otherChildren ->
+        Element { node, style, attrs, child, absolutelyPositioned } ->
             let
                 childHtml =
-                    case otherChildren of
+                    case absolutelyPositioned of
                         Nothing ->
                             [ renderElement Nothing stylesheet FirstAndLast child ]
 
-                        Just others ->
-                            List.map (renderElement Nothing stylesheet FirstAndLast) (child :: others)
+                        Just absol ->
+                            List.map (renderElement Nothing stylesheet FirstAndLast) (child :: absol)
 
                 parentTextLayout layout =
                     case layout of
@@ -314,7 +314,7 @@ renderElement parent stylesheet order elm =
                                         Margin ( top, right, bottom, left ) :: attrs
 
                 htmlAttrs =
-                    renderAttributes Single order element parent stylesheet (gather attributes)
+                    renderAttributes Single order style parent stylesheet (gather attributes)
             in
                 Html.node node htmlAttrs childHtml
 

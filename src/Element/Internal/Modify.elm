@@ -35,11 +35,17 @@ setNode node el =
         Layout _ layout elem attrs children ->
             Layout node layout elem attrs children
 
-        Element _ elem attrs child otherChildren ->
-            Element node elem attrs child otherChildren
+        Element elm ->
+            Element { elm | node = node }
 
         Text dec content ->
-            Element node Nothing [] (Text dec content) Nothing
+            Element
+                { node = "div"
+                , style = Nothing
+                , attrs = []
+                , child = (Text dec content)
+                , absolutelyPositioned = Nothing
+                }
 
 
 addAttrToNonText : Attribute variation msg -> Element style variation msg -> Element style variation msg
@@ -57,8 +63,8 @@ addAttrToNonText prop el =
         Layout node layout elem attrs els ->
             Layout node layout elem (prop :: attrs) els
 
-        Element node elem attrs el children ->
-            Element node elem (prop :: attrs) el children
+        Element elm ->
+            Element { elm | attrs = (prop :: elm.attrs) }
 
         Text dec content ->
             Text dec content
@@ -79,11 +85,17 @@ addAttr prop el =
         Layout node layout elem attrs els ->
             Layout node layout elem (prop :: attrs) els
 
-        Element node elem attrs el children ->
-            Element node elem (prop :: attrs) el children
+        Element elm ->
+            Element { elm | attrs = (prop :: elm.attrs) }
 
         Text dec content ->
-            Element "div" Nothing [ prop ] (Text dec content) Nothing
+            Element
+                { node = "div"
+                , style = Nothing
+                , attrs = [ prop ]
+                , child = (Text dec content)
+                , absolutelyPositioned = Nothing
+                }
 
 
 addAttrList : List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
@@ -101,11 +113,17 @@ addAttrList props el =
         Layout node layout elem attrs els ->
             Layout node layout elem (props ++ attrs) els
 
-        Element node elem attrs el children ->
-            Element node elem (props ++ attrs) el children
+        Element elm ->
+            Element { elm | attrs = (props ++ elm.attrs) }
 
         Text dec content ->
-            Element "div" Nothing props (Text dec content) Nothing
+            Element
+                { node = "div"
+                , style = Nothing
+                , attrs = props
+                , child = (Text dec content)
+                , absolutelyPositioned = Nothing
+                }
 
 
 setAttrs : List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
@@ -123,8 +141,8 @@ setAttrs props el =
         Layout node layout elem _ els ->
             Layout node layout elem props els
 
-        Element node elem _ el children ->
-            Element node elem props el children
+        Element elm ->
+            Element { elm | attrs = props }
 
         Text dec content ->
             Text dec content
@@ -149,8 +167,8 @@ removeAttrs props el =
             Layout node layout elem attrs els ->
                 Layout node layout elem (List.filter match attrs) els
 
-            Element node elem attrs el children ->
-                Element node elem (List.filter match attrs) el children
+            Element elm ->
+                Element { elm | attrs = List.filter match elm.attrs }
 
             Text dec content ->
                 Text dec content
@@ -171,8 +189,8 @@ removeAllAttrs el =
         Layout node layout elem _ els ->
             Layout node layout elem [] els
 
-        Element node elem _ el children ->
-            Element node elem [] el children
+        Element elm ->
+            Element { elm | attrs = [] }
 
         Text dec content ->
             Text dec content
@@ -182,7 +200,13 @@ addChild : Element style variation msg -> Element style variation msg -> Element
 addChild parent el =
     case parent of
         Empty ->
-            Element "div" Nothing [] Empty (Just [ el ])
+            Element
+                { node = "div"
+                , style = Nothing
+                , attrs = []
+                , child = Empty
+                , absolutelyPositioned = Just [ el ]
+                }
 
         Spacer x ->
             Spacer x
@@ -199,16 +223,22 @@ addChild parent el =
                 Keyed childs ->
                     Layout node layout elem attrs (Normal (el :: List.map Tuple.second childs))
 
-        Element node elem attrs child otherChildren ->
-            case otherChildren of
+        Element ({ absolutelyPositioned } as elm) ->
+            case absolutelyPositioned of
                 Nothing ->
-                    Element node elem attrs child (Just [ el ])
+                    Element { elm | absolutelyPositioned = Just [ el ] }
 
                 Just others ->
-                    Element node elem attrs child (Just (el :: others))
+                    Element { elm | absolutelyPositioned = Just (el :: others) }
 
         Text dec content ->
-            Element "div" Nothing [] (Text dec content) (Just [ el ])
+            Element
+                { node = "div"
+                , style = Nothing
+                , attrs = []
+                , child = Text dec content
+                , absolutelyPositioned = Just [ el ]
+                }
 
 
 getAttrs : Element style variation msg -> List (Attribute variation msg)
@@ -226,7 +256,7 @@ getAttrs el =
         Layout _ _ _ attrs _ ->
             attrs
 
-        Element _ _ attrs _ _ ->
+        Element { attrs } ->
             attrs
 
         Text dec content ->
@@ -248,7 +278,7 @@ getStyle el =
         Layout _ _ style _ _ ->
             style
 
-        Element _ style _ _ _ ->
+        Element { style } ->
             style
 
         Text _ _ ->
@@ -270,8 +300,8 @@ removeStyle el =
         Layout node layout _ attrs els ->
             Layout node layout Nothing attrs els
 
-        Element node _ attrs el children ->
-            Element node Nothing attrs el children
+        Element elm ->
+            Element { elm | style = Nothing }
 
         Text dec content ->
             Text dec content
@@ -292,8 +322,8 @@ removeContent el =
         Layout node layout elem attrs children ->
             Layout node layout elem attrs (Normal [])
 
-        Element node elem attrs child otherChildren ->
-            Element node elem attrs Empty otherChildren
+        Element elm ->
+            Element { elm | child = Empty }
 
         Text _ _ ->
             Empty
@@ -314,7 +344,7 @@ getChild el =
         Layout node layout elem attrs children ->
             el
 
-        Element node elem attrs child otherChildren ->
+        Element { child } ->
             child
 
         Text dec content ->

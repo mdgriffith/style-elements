@@ -289,8 +289,14 @@ You need to specify a style, a list of attributes, and a single child.
 
 -}
 el : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
-el elem attrs child =
-    Element "div" (Just elem) attrs child Nothing
+el style attrs child =
+    Element
+        { node = "div"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| A simple circle. Provide the radius it should have.
@@ -299,19 +305,22 @@ Automatically sets the propery width, height, and corner rounded.
 
 -}
 circle : Float -> style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
-circle radius elem attrs child =
-    Element "div"
-        (Just elem)
-        (Attr
-            (Html.Attributes.style
-                [ ( "border-radius", toString radius ++ "px" ) ]
+circle radius style attrs child =
+    Element
+        { node = "div"
+        , style = Just style
+        , attrs =
+            (Attr
+                (Html.Attributes.style
+                    [ ( "border-radius", toString radius ++ "px" ) ]
+                )
+                :: Width (Style.Px (2 * radius))
+                :: Height (Style.Px (2 * radius))
+                :: attrs
             )
-            :: Width (Style.Px (2 * radius))
-            :: Height (Style.Px (2 * radius))
-            :: attrs
-        )
-        child
-        Nothing
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| An element for adding additional spacing. The `Float` is the multiple that should be used of the spacing that's being set by the parent.
@@ -327,8 +336,14 @@ spacer =
 {-| A convenience node for images. Accepts an image src as the first argument.
 -}
 image : String -> style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
-image src elem attrs child =
-    Element "img" (Just elem) (Attr (Html.Attributes.src src) :: attrs) child Nothing
+image src style attrs child =
+    Element
+        { node = "img"
+        , style = Just style
+        , attrs = (Attr (Html.Attributes.src src) :: attrs)
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| Creates a 1 px tall horizontal line.
@@ -337,12 +352,14 @@ If you want a horizontal rule that is something more specific, craft it with `el
 
 -}
 hairline : style -> Element style variation msg
-hairline elem =
-    Element "hr"
-        (Just elem)
-        [ Height (Style.Px 1) ]
-        empty
-        Nothing
+hairline style =
+    Element
+        { node = "hr"
+        , style = Just style
+        , attrs = [ Height (Style.Px 1) ]
+        , child = empty
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| Make a line-break.
@@ -352,7 +369,13 @@ You probably want to use `paragraph` instead. This is only for adjusting where a
 -}
 break : Element style variation msg
 break =
-    Element "br" Nothing [] empty Nothing
+    Element
+        { node = "br"
+        , style = Nothing
+        , attrs = []
+        , child = empty
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| For when you want to embed `Html`.
@@ -553,9 +576,9 @@ select group style attributes buttons =
 {-| An automatically labeled checkbox.
 -}
 checkbox : Bool -> style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
-checkbox on elem attrs label =
+checkbox on style attrs label =
     let
-        ( events, other ) =
+        ( events, notInputEvents ) =
             List.partition forInputEvents attrs
 
         forInputEvents attr =
@@ -566,25 +589,30 @@ checkbox on elem attrs label =
                 _ ->
                     False
     in
-        Element "label"
-            (Just elem)
-            other
-            (inlineChildren "div"
-                Nothing
-                []
-                [ Element
-                    "input"
+        Element
+            { node = "label"
+            , style = (Just style)
+            , attrs = notInputEvents
+            , child =
+                (inlineChildren "div"
                     Nothing
-                    (Attr.type_ "checkbox"
-                        :: Attr.checked on
-                        :: events
-                    )
-                    empty
-                    Nothing
-                , label
-                ]
-            )
-            Nothing
+                    []
+                    [ Element
+                        { node = "input"
+                        , style = Nothing
+                        , attrs =
+                            (Attr.type_ "checkbox"
+                                :: Attr.checked on
+                                :: events
+                            )
+                        , child = empty
+                        , absolutelyPositioned = Nothing
+                        }
+                    , label
+                    ]
+                )
+            , absolutelyPositioned = Nothing
+            }
 
 
 {-| For input elements that are not automatically labeled (checkbox, radio), this will attach a label above the element.
@@ -601,7 +629,13 @@ label elem attrs label input =
         containedLabel =
             case label of
                 Text dec content ->
-                    Element "div" Nothing [] (Text dec content) Nothing
+                    Element
+                        { node = "div"
+                        , style = Nothing
+                        , attrs = []
+                        , child = (Text dec content)
+                        , absolutelyPositioned = Nothing
+                        }
 
                 l ->
                     l
@@ -625,7 +659,13 @@ labelBelow elem attrs label input =
         containedLabel =
             case label of
                 Text dec content ->
-                    Element "div" Nothing [] (Text dec content) Nothing
+                    Element
+                        { node = "div"
+                        , style = Nothing
+                        , attrs = []
+                        , child = (Text dec content)
+                        , absolutelyPositioned = Nothing
+                        }
 
                 l ->
                     l
@@ -642,7 +682,13 @@ labelBelow elem attrs label input =
 {-| -}
 textArea : style -> List (Attribute variation msg) -> String -> Element style variation msg
 textArea elem attrs content =
-    Element "textarea" (Just elem) attrs (text content) Nothing
+    Element
+        { node = "textarea"
+        , style = Just elem
+        , attrs = attrs
+        , child = text content
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| Text input
@@ -653,7 +699,13 @@ textArea elem attrs content =
 -}
 inputText : style -> List (Attribute variation msg) -> String -> Element style variation msg
 inputText elem attrs content =
-    Element "input" (Just elem) (Attr.type_ "text" :: Attr.value content :: attrs) empty Nothing
+    Element
+        { node = "input"
+        , style = Just elem
+        , attrs = (Attr.type_ "text" :: Attr.value content :: attrs)
+        , child = Empty
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| A `full` element will ignore the spacing set for it by the parent, and also grow to cover the parent's padding.
@@ -663,7 +715,13 @@ This is mostly useful in text layouts.
 -}
 full : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
 full elem attrs child =
-    Element "div" (Just elem) (Expand :: attrs) child Nothing
+    Element
+        { node = "div"
+        , style = Just elem
+        , attrs = (Expand :: attrs)
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| A text layout.
@@ -696,7 +754,7 @@ inlineChildren :
     -> List (Attribute variation msg)
     -> List (Element style variation msg)
     -> Element style variation msg
-inlineChildren node elem attrs children =
+inlineChildren node style attrs children =
     let
         ( child, others ) =
             case children of
@@ -706,7 +764,13 @@ inlineChildren node elem attrs children =
                 child :: others ->
                     ( Modify.addAttrToNonText Inline child, Just <| List.map (Modify.addAttrToNonText Inline) others )
     in
-        Element node elem attrs child others
+        Element
+            { node = node
+            , style = style
+            , attrs = attrs
+            , child = child
+            , absolutelyPositioned = others
+            }
 
 
 {-| -}
@@ -1018,15 +1082,18 @@ Essentially the same as `display: fixed`
 -}
 screen : Element style variation msg -> Element style variation msg
 screen el =
-    Element "div"
-        Nothing
-        [ PositionFrame Screen
-        , Width (Style.Calc 100 0)
-        , Height (Style.Calc 100 0)
-        , PointerEvents False
-        ]
-        empty
-        Nothing
+    Element
+        { node = "div"
+        , style = Nothing
+        , attrs =
+            [ PositionFrame Screen
+            , Width (Style.Calc 100 0)
+            , Height (Style.Calc 100 0)
+            , PointerEvents False
+            ]
+        , child = empty
+        , absolutelyPositioned = Nothing
+        }
         |> within
             [ el
             ]

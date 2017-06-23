@@ -18,7 +18,7 @@ name el =
         Text _ _ ->
             "text"
 
-        Element _ _ _ _ _ ->
+        Element _ ->
             "element"
 
         Layout _ _ _ _ _ ->
@@ -51,13 +51,13 @@ adjust fn parent el =
                 Just list
     in
         case el of
-            Element node element position child otherChildren ->
+            Element ({ child, absolutelyPositioned } as elm) ->
                 let
                     ( adjustedChild, childData ) =
                         adjust fn Nothing child
 
                     ( adjustedOthers, otherChildrenData ) =
-                        case otherChildren of
+                        case absolutelyPositioned of
                             Nothing ->
                                 ( Nothing, Nothing )
 
@@ -82,7 +82,7 @@ adjust fn parent el =
                                     )
 
                     ( adjustedEl, elData ) =
-                        fn parent (Element node element position adjustedChild adjustedOthers)
+                        fn parent (Element { elm | child = adjustedChild, absolutelyPositioned = adjustedOthers })
                 in
                     ( adjustedEl
                     , List.foldr merge Nothing [ childData, otherChildrenData, elData ]
@@ -157,7 +157,13 @@ type Element style variation msg
     = Empty
     | Spacer Float
     | Text Decoration String
-    | Element String (Maybe style) (List (Attribute variation msg)) (Element style variation msg) (Maybe (List (Element style variation msg)))
+    | Element
+        { node : String
+        , style : Maybe style
+        , attrs : List (Attribute variation msg)
+        , child : Element style variation msg
+        , absolutelyPositioned : Maybe (List (Element style variation msg))
+        }
     | Layout String Style.LayoutModel (Maybe style) (List (Attribute variation msg)) (Children (Element style variation msg))
     | Raw (Html msg)
 
@@ -174,8 +180,13 @@ mapMsg fn el =
         Text dec str ->
             Text dec str
 
-        Element node style attrs child others ->
-            Element node style (List.map (mapAttr fn) attrs) (mapMsg fn child) (Maybe.map (List.map (\child -> mapMsg fn child)) others)
+        Element ({ attrs, child, absolutelyPositioned } as elm) ->
+            Element
+                { elm
+                    | attrs = List.map (mapAttr fn) attrs
+                    , child = mapMsg fn child
+                    , absolutelyPositioned = Maybe.map (List.map (\child -> mapMsg fn child)) absolutelyPositioned
+                }
 
         Layout node layout style attrs children ->
             Layout node layout style (List.map (mapAttr fn) attrs) (mapChildren (mapMsg fn) children)
