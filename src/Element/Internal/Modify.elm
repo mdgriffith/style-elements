@@ -40,7 +40,7 @@ setNode node el =
 
         Text dec content ->
             Element
-                { node = "div"
+                { node = node
                 , style = Nothing
                 , attrs = []
                 , child = (Text dec content)
