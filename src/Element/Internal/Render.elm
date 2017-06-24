@@ -475,6 +475,7 @@ type alias Positionable variation msg =
     , pointerevents : Maybe Bool
     , attrs : List (Html.Attribute msg)
     , shrink : Maybe Int
+    , overflow : Maybe Axis
     }
 
 
@@ -497,6 +498,7 @@ emptyPositionable =
     , pointerevents = Nothing
     , attrs = []
     , shrink = Nothing
+    , overflow = Nothing
     }
 
 
@@ -508,6 +510,9 @@ gather attrs =
 makePositionable : Attribute variation msg -> Positionable variation msg -> Positionable variation msg
 makePositionable attr pos =
     case attr of
+        Overflow x ->
+            { pos | overflow = Just x }
+
         Shrink i ->
             { pos | shrink = Just i }
 
@@ -996,6 +1001,22 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                     _ ->
                                         attrs
 
+        overflow attrs =
+            case elem.overflow of
+                Nothing ->
+                    attrs
+
+                Just o ->
+                    case o of
+                        XAxis ->
+                            ( "overflow-x", "auto" ) :: attrs
+
+                        YAxis ->
+                            ( "overflow-y", "auto" ) :: attrs
+
+                        AllAxis ->
+                            ( "overflow", "auto" ) :: attrs
+
         shrink attrs =
             case elem.shrink of
                 Just i ->
@@ -1007,12 +1028,88 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                             attrs
 
                         Just { layout } ->
-                            case layout of
-                                Internal.FlexLayout _ _ ->
-                                    ("flex-shrink" => "0") :: attrs
+                            let
+                                isPercent x =
+                                    case x of
+                                        Just (Internal.Percent _) ->
+                                            True
 
-                                _ ->
-                                    attrs
+                                        _ ->
+                                            False
+
+                                isPx x =
+                                    case x of
+                                        Just (Internal.Px _) ->
+                                            True
+
+                                        _ ->
+                                            False
+
+                                isHorizontal dir =
+                                    case dir of
+                                        Internal.GoRight ->
+                                            True
+
+                                        Internal.GoLeft ->
+                                            True
+
+                                        _ ->
+                                            False
+
+                                isVertical dir =
+                                    case dir of
+                                        Internal.Up ->
+                                            True
+
+                                        Internal.Down ->
+                                            True
+
+                                        _ ->
+                                            False
+
+                                verticalOverflow =
+                                    case elem.overflow of
+                                        Just XAxis ->
+                                            False
+
+                                        Just YAxis ->
+                                            True
+
+                                        Just AllAxis ->
+                                            True
+
+                                        _ ->
+                                            False
+
+                                horizontalOverflow =
+                                    case elem.overflow of
+                                        Just XAxis ->
+                                            True
+
+                                        Just YAxis ->
+                                            False
+
+                                        Just AllAxis ->
+                                            True
+
+                                        _ ->
+                                            False
+                            in
+                                case layout of
+                                    Internal.FlexLayout dir _ ->
+                                        if isHorizontal dir && isPercent elem.width then
+                                            ("flex-shrink" => "1") :: attrs
+                                        else if isHorizontal dir && horizontalOverflow then
+                                            ("flex-shrink" => "1") :: attrs
+                                        else if isVertical dir && isPercent elem.height then
+                                            ("flex-shrink" => "1") :: attrs
+                                        else if isVertical dir && verticalOverflow then
+                                            ("flex-shrink" => "1") :: attrs
+                                        else
+                                            ("flex-shrink" => "0") :: attrs
+
+                                    _ ->
+                                        attrs
 
         width attrs =
             case elem.width of
@@ -1353,12 +1450,12 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                     []
             in
                 (Html.Attributes.style
-                    (("box-sizing" => "border-box") :: ((passthrough << gridPos << layout << spacing << opacity << shrink << padding << position) <| expandedProps))
+                    (("box-sizing" => "border-box") :: ((passthrough << gridPos << layout << spacing << opacity << shrink << padding << position << overflow) <| expandedProps))
                 )
                     :: attributes
         else
             (Html.Attributes.style
-                ((passthrough << gridPos << layout << spacing << opacity << shrink << width << height << padding << horizontal << vertical << position) <| defaults)
+                ((passthrough << gridPos << layout << spacing << opacity << shrink << width << height << padding << horizontal << vertical << position << overflow) <| defaults)
             )
                 :: attributes
 

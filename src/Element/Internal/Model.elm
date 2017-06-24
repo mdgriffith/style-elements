@@ -299,6 +299,9 @@ mapAttr fn attr =
         Shrink i ->
             Shrink i
 
+        Overflow x ->
+            Overflow x
+
 
 type Children child
     = Normal (List child)
@@ -348,6 +351,13 @@ type Attribute variation msg
     | GridCoords Style.GridPosition
     | PointerEvents Bool
     | Shrink Int
+    | Overflow Axis
+
+
+type Axis
+    = XAxis
+    | YAxis
+    | AllAxis
 
 
 type Decoration

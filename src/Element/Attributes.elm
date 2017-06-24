@@ -543,21 +543,21 @@ hidden =
 -}
 scrollbars : Attribute variation msg
 scrollbars =
-    Attr <| VirtualDom.style [ ( "overflow", "auto" ) ]
+    Overflow AllAxis
 
 
 {-| Turn on scrollbars if content overflows vertically.
 -}
 yScrollbar : Attribute variation msg
 yScrollbar =
-    Attr <| VirtualDom.style [ ( "overflow-y", "auto" ) ]
+    Overflow YAxis
 
 
 {-| Turn on scrollbars if content overflows horizontally.
 -}
 xScrollbar : Attribute variation msg
 xScrollbar =
-    Attr <| VirtualDom.style [ ( "overflow-x", "auto" ) ]
+    Overflow XAxis
 
 
 {-| Clip content that overflows.
@@ -734,6 +734,9 @@ map fn attr =
 
         Shrink i ->
             Shrink i
+
+        Overflow x ->
+            Overflow x
 
 
 

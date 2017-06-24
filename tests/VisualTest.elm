@@ -153,6 +153,7 @@ view model =
                     , [ otherTextLayout ]
                     , viewRowLayouts
                     , viewColumnLayouts
+                    , viewTable
                     , viewGridLayout
                     , viewNamedGridLayout
                     , testForm
@@ -189,7 +190,7 @@ screenExample =
                 , el Box [ padding 8, width (px 200) ] (text "test")
                     |> above
                         [ column Container
-                            [ moveUp 20, moveLeft 20, spacing 8, alignRight ]
+                            [ moveUp 22, moveRight 20, spacing 8, alignRight ]
                             [ el Box [ width (px 85), height (px 30), padding 8 ] (text "AAAA")
                             , el Box [ width (px 85), height (px 30), padding 8 ] (text "BBBB")
                             , el Box [ width (px 85), height (px 30), padding 8 ] (text "CCCC")
@@ -203,68 +204,69 @@ screenExample2 =
         el Box [ padding 8, width (px 200), alignRight ] (text "test")
 
 
-table =
-    grid Container
-        { columns = []
-        , rows =
-            []
-        }
-        []
-        [ area
-            { start = ( 0, 0 )
-            , width = 1
-            , height = 1
-            }
-            (el Box [] (text "box"))
-        , area
-            { start = ( 1, 0 )
-            , width = 1
-            , height = 1
-            }
-            (el Box [] (text "reallly big box here is all the content, woohooo!!"))
-        , area
-            { start = ( 2, 0 )
-            , width = 1
-            , height = 1
-            }
-            (el Box [] (text "box"))
-        , area
-            { start = ( 0, 1 )
-            , width = 3
-            , height = 1
-            }
-            (el Box [] (text "reallly big box here is all the content, woohooo!!"))
-        , area
-            { start = ( 0, 2 )
-            , width = 3
-            , height = 1
-            }
-            (el Box [] (text "box"))
-        , area
-            { start = ( 0, 3 )
-            , width = 3
-            , height = 1
-            }
-            (el Box [] (text "box"))
-        , area
-            { start = ( 1, 4 )
-            , width = 1
-            , height = 1
-            }
-            (el Box [] (text "box"))
-        , area
-            { start = ( 0, 4 )
-            , width = 1
-            , height = 1
-            }
-            (el Box [] (text "reallly big box here is all the content, woohooo!!"))
-        , area
-            { start = ( 2, 4 )
-            , width = 1
-            , height = 1
-            }
-            (el Box [] (text "box"))
-        ]
+
+-- table =
+--     grid Container
+--         { columns = []
+--         , rows =
+--             []
+--         }
+--         []
+--         [ area
+--             { start = ( 0, 0 )
+--             , width = 1
+--             , height = 1
+--             }
+--             (el Box [] (text "box"))
+--         , area
+--             { start = ( 1, 0 )
+--             , width = 1
+--             , height = 1
+--             }
+--             (el Box [] (text "reallly big box here is all the content, woohooo!!"))
+--         , area
+--             { start = ( 2, 0 )
+--             , width = 1
+--             , height = 1
+--             }
+--             (el Box [] (text "box"))
+--         , area
+--             { start = ( 0, 1 )
+--             , width = 3
+--             , height = 1
+--             }
+--             (el Box [] (text "reallly big box here is all the content, woohooo!!"))
+--         , area
+--             { start = ( 0, 2 )
+--             , width = 3
+--             , height = 1
+--             }
+--             (el Box [] (text "box"))
+--         , area
+--             { start = ( 0, 3 )
+--             , width = 3
+--             , height = 1
+--             }
+--             (el Box [] (text "box"))
+--         , area
+--             { start = ( 1, 4 )
+--             , width = 1
+--             , height = 1
+--             }
+--             (el Box [] (text "box"))
+--         , area
+--             { start = ( 0, 4 )
+--             , width = 1
+--             , height = 1
+--             }
+--             (el Box [] (text "reallly big box here is all the content, woohooo!!"))
+--         , area
+--             { start = ( 2, 4 )
+--             , width = 1
+--             , height = 1
+--             }
+--             (el Box [] (text "box"))
+--         ]
 
 
 basics =
@@ -784,6 +786,26 @@ viewGridLayout =
             , height = 1
             }
             (el Box [] (text "box"))
+        ]
+    ]
+
+
+viewTable =
+    [ el Label [] (text "Table Layout")
+    , table Container
+        [ spacing 20 ]
+        [ [ (el Box [] (text "box"))
+          , (el Box [ spacing 100 ] (text "box"))
+          , (el Box [] (text "box"))
+          ]
+        , [ el Box [] (text "reallly big box here is all the content, woohooo!!")
+          , (el Box [ spacing 100 ] (text "box"))
+          , (el Box [] (text "box"))
+          ]
+        , [ (el Box [ spacing 100 ] (text "box"))
+          , el Box [] (text "reallly big box here is all the content, woohooo!!")
+          , (el Box [] (text "box"))
+          ]
         ]
     ]
 
