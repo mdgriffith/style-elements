@@ -41,6 +41,7 @@ module Element
         , wrappedRow
         , wrappedColumn
         , grid
+        , table
         , namedGrid
         , area
         , named
@@ -117,7 +118,7 @@ Make sure to check out the Style Element specific attributes in `Element.Attribu
 
 ## Grid Layout
 
-@docs Grid, NamedGrid, grid, namedGrid, OnGrid, NamedOnGrid, area, named, span, spanAll
+@docs table, Grid, NamedGrid, grid, namedGrid, OnGrid, NamedOnGrid, area, named, span, spanAll
 
 
 ## Convenience Elements
@@ -851,6 +852,31 @@ type alias Grid =
     { rows : List Length
     , columns : List Length
     }
+
+
+{-| A table is a special grid
+-}
+table : style -> List (Attribute variation msg) -> List (List (Element style variation msg)) -> Element style variation msg
+table style attrs rows =
+    let
+        children =
+            List.concat <|
+                List.indexedMap
+                    (\row columns ->
+                        List.indexedMap
+                            (\col content ->
+                                area
+                                    { start = ( row, col )
+                                    , width = 1
+                                    , height = 1
+                                    }
+                                    content
+                            )
+                            columns
+                    )
+                    rows
+    in
+        grid style { columns = [], rows = [] } attrs children
 
 
 {-| An interface to css grid. Here's a basic example:
