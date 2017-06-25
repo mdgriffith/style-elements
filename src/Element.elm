@@ -1037,6 +1037,24 @@ area box el =
     OnGrid <| Modify.addAttr (GridCoords <| Style.GridPosition box) el
 
 
+
+{-
+   Could make a dynamic positioner based on list index.
+
+        at
+           (\i ->
+               { start :
+                   ( i % 3
+                   , i / 3
+                   )
+               , width = 1
+               , height = 1
+               }
+           )
+           (text "Hi!")
+-}
+
+
 {-| Specify a named postion on a `namedGrid`.
 -}
 named : String -> Element style variation msg -> NamedOnGrid (Element style variation msg)

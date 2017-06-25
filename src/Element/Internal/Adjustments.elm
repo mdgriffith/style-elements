@@ -11,6 +11,7 @@ import Html.Attributes
 import Element.Internal.Modify as Modify
 
 
+apply : Element style variation msg -> ( Element style variation msg, Maybe (List (Element style variation msg)) )
 apply root =
     let
         stack parent el =
@@ -23,10 +24,12 @@ apply root =
         adjust stack Nothing root
 
 
+tagIntermediates : Bool
 tagIntermediates =
-    True
+    False
 
 
+tag : String -> Attribute variation msg
 tag str =
     if tagIntermediates then
         Attr <| Html.Attributes.class str
@@ -58,21 +61,6 @@ positionNearby parent elm =
 
         setPosition nearbyPosition ( aligned, unaligned ) el =
             let
-                noColor =
-                    Html.Attributes.style
-                        [ ( "background-color"
-                          , "rgba(0,0,0,0)"
-                          )
-                        , ( "color"
-                          , "rgba(0,0,0,0)"
-                          )
-                        , ( "border-color"
-                          , "rgba(0,0,0,0)"
-                          )
-                        , ( "transform", "none" )
-                        , ( "opacity", "1" )
-                        ]
-
                 framed =
                     case nearbyPosition of
                         Nothing ->
@@ -137,7 +125,6 @@ positionNearby parent elm =
                                             )
                                         , Position Nothing (Just 0) Nothing
                                         , VAlign Bottom
-                                        , Attr <| noColor
                                         ]
                                     , child =
                                         (counterSpacing
@@ -180,7 +167,6 @@ positionNearby parent elm =
                                                , PositionFrame Relative
                                                , Position (Just 0) (Just 0) Nothing
                                                , Padding (Just 0) (Just 0) (Just 0) (Just 0)
-                                               , Attr <| noColor
                                                , tag "nearby-intermediate"
                                                ]
                                         )
