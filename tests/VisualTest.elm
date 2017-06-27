@@ -139,18 +139,19 @@ main =
 
 view model =
     Element.layout stylesheet <|
-        el (Crazy (Thing 5)) [ center, width (px 800) ] <|
-            -- otherTextLayout
+        el None [ center, width (px 800) ] <|
             column Main
                 [ spacingXY 50 100 ]
                 (List.concat
                     [ basics
+                    , invisibleText
                     , anchoredWithContent
                     , anchoredNoContent
                     , anchoredLayoutWithContent
                     , anchoredAboveLayout
                     , viewTextLayout
                     , [ otherTextLayout ]
+                    , overflowIssue
                     , viewRowLayouts
                     , viewColumnLayouts
                     , viewTable
@@ -202,71 +203,6 @@ screenExample =
 screenExample2 =
     screen <|
         el Box [ padding 8, width (px 200), alignRight ] (text "test")
-
-
-
--- table =
---     grid Container
---         { columns = []
---         , rows =
---             []
---         }
---         []
---         [ area
---             { start = ( 0, 0 )
---             , width = 1
---             , height = 1
---             }
---             (el Box [] (text "box"))
---         , area
---             { start = ( 1, 0 )
---             , width = 1
---             , height = 1
---             }
---             (el Box [] (text "reallly big box here is all the content, woohooo!!"))
---         , area
---             { start = ( 2, 0 )
---             , width = 1
---             , height = 1
---             }
---             (el Box [] (text "box"))
---         , area
---             { start = ( 0, 1 )
---             , width = 3
---             , height = 1
---             }
---             (el Box [] (text "reallly big box here is all the content, woohooo!!"))
---         , area
---             { start = ( 0, 2 )
---             , width = 3
---             , height = 1
---             }
---             (el Box [] (text "box"))
---         , area
---             { start = ( 0, 3 )
---             , width = 3
---             , height = 1
---             }
---             (el Box [] (text "box"))
---         , area
---             { start = ( 1, 4 )
---             , width = 1
---             , height = 1
---             }
---             (el Box [] (text "box"))
---         , area
---             { start = ( 0, 4 )
---             , width = 1
---             , height = 1
---             }
---             (el Box [] (text "reallly big box here is all the content, woohooo!!"))
---         , area
---             { start = ( 2, 4 )
---             , width = 1
---             , height = 1
---             }
---             (el Box [] (text "box"))
---         ]
 
 
 basics =
@@ -628,6 +564,45 @@ viewTextLayout =
             text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris vel lectus eget lorem lobortis suscipit. Fusce porta auctor purus sed tempor. Mauris auctor sapien sit amet elementum egestas. Maecenas placerat consequat mauris, at dapibus enim tristique a. Quisque feugiat ultricies lorem nec volutpat. Sed risus enim, facilisis id fermentum quis, eleifend in diam. Suspendisse euismod, urna nec consectetur volutpat, massa libero aliquam urna, hendrerit venenatis leo lacus faucibus nulla. Curabitur et mattis dolor."
         ]
     ]
+
+
+invisibleText =
+    [ row Container
+        []
+        [ el None [] (text "Test! (Should be visible)") ]
+    ]
+
+
+overflowIssue =
+    let
+        long =
+            "something very long too long to fit on a mobile screen and should break lorem ipsum dolar sit amet lorem ipsum lorem ipsum dolar sit amet lorem ipsum lorem ipsum dolar sit amet lorem ipsum lorem ipsum dolar sit amet lorem ipsum "
+    in
+        [ el Label [] (text "No overflow")
+        , row Container
+            []
+            [ el None [] (text long) ]
+        , row Container
+            [ width (px 800) ]
+            [ el None [] (text long) ]
+        , row Container
+            [ width (percent 100) ]
+            [ el None [] (text long) ]
+        , row Container
+            [ width (fill 1) ]
+            [ el None [] (text long) ]
+        , el Label [] (text "Overflow on purpose")
+        , row Container
+            []
+            [ el None [ width (px 1800) ] (text long)
+            ]
+        , row Container
+            [ width (fill 1) ]
+            [ el None [ width (percent 120) ] (text long) ]
+        , row Container
+            [ width (fill 1) ]
+            [ el None [ width (fill 1.2) ] (text long) ]
+        ]
 
 
 viewRowLayouts =

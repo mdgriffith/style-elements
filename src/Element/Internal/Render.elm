@@ -1097,13 +1097,27 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                             in
                                 case layout of
                                     Internal.FlexLayout dir _ ->
-                                        if isHorizontal dir && isPercent elem.width then
+                                        if isHorizontal dir && isPx elem.width then
+                                            ("flex-shrink" => "0") :: attrs
+                                        else if isHorizontal dir && isPercent elem.width then
+                                            ("flex-shrink" => "0") :: attrs
+                                        else if isHorizontal dir && elem.width /= Nothing then
                                             ("flex-shrink" => "1") :: attrs
                                         else if isHorizontal dir && horizontalOverflow then
                                             ("flex-shrink" => "1") :: attrs
+                                        else if isVertical dir && isPx elem.height then
+                                            ("flex-shrink" => "0") :: attrs
                                         else if isVertical dir && isPercent elem.height then
+                                            ("flex-shrink" => "0") :: attrs
+                                        else if isVertical dir && elem.height /= Nothing then
                                             ("flex-shrink" => "1") :: attrs
                                         else if isVertical dir && verticalOverflow then
+                                            ("flex-shrink" => "1") :: attrs
+                                            -- If width is not set, then we want it to wrap,
+                                            -- which apparently involves flex-shrink being 1
+                                        else if isHorizontal dir && elem.width == Nothing then
+                                            ("flex-shrink" => "1") :: attrs
+                                        else if isVertical dir && elem.height == Nothing then
                                             ("flex-shrink" => "1") :: attrs
                                         else
                                             ("flex-shrink" => "0") :: attrs

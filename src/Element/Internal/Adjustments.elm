@@ -319,7 +319,7 @@ counterSpacing elm =
                                         Just ( top, right, bottom, left ) ->
                                             ( ( -1 * top, -1 * right, -1 * bottom, -1 * left )
                                             , Spacing right bottom
-                                            , right + left
+                                            , (right + left) / 2
                                             )
 
                                 phantomPadding =

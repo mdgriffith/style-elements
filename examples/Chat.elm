@@ -70,7 +70,7 @@ main =
             [ height <| fill 1 ]
             [ navbar
             , row None
-                [ height <| percent 100
+                [ height <| fill 1
                 , width <| fill 1
                 ]
                 [ sidebar, body, inspector ]
