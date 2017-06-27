@@ -570,6 +570,13 @@ invisibleText =
     [ row Container
         []
         [ el None [] (text "Test! (Should be visible)") ]
+    , column Main
+        [ width <| percent 60
+
+        --, center
+        ]
+        [ text "Test! (Should be visible 2)"
+        ]
     ]
 
 
