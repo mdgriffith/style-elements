@@ -27,6 +27,7 @@ type Styles
     | Container
     | Label
     | Blue
+    | BlackText
     | Crazy Other
 
 
@@ -68,6 +69,9 @@ stylesheet =
             [ Color.text Color.white
             , Color.background Color.blue
             , Font.center
+            ]
+        , style BlackText
+            [ Color.text Color.black
             ]
         , style Box
             [ Transition.all
@@ -152,6 +156,7 @@ view model =
                     , viewTextLayout
                     , [ otherTextLayout ]
                     , overflowIssue
+                    , [ overFlowIssue2 ]
                     , viewRowLayouts
                     , viewColumnLayouts
                     , viewTable
@@ -823,3 +828,29 @@ viewTransforms =
             empty
         ]
     ]
+
+
+
+{- OVERFLOW ISSUE -}
+
+
+overFlowIssue2 =
+    let
+        followingMessage =
+            row Box
+                [ padding 10, width (px 200) ]
+                [ el BlackText [] (text lorem)
+                ]
+
+        lorem =
+            "Donec interdum elementum aliquam. Maecenas cursus sem tellus, id elementum elit condimentum eget. Proin quis massa mi. In fermentum risus at quam tristique vestibulum. Quisque convallis odio in sodales euismod. Maecenas convallis nec justo nec facilisis."
+    in
+        column Container
+            [ spacing 10, height <| px 800 ]
+            [ followingMessage
+            , followingMessage
+            , followingMessage
+            , followingMessage
+            , followingMessage
+            , followingMessage
+            ]

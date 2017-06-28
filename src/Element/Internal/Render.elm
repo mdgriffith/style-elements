@@ -1118,7 +1118,12 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                         else if isHorizontal dir && elem.width == Nothing then
                                             ("flex-shrink" => "1") :: attrs
                                         else if isVertical dir && elem.height == Nothing then
-                                            ("flex-shrink" => "1") :: attrs
+                                            case elType of
+                                                Single ->
+                                                    ("flex-shrink" => "1") :: attrs
+
+                                                LayoutElement elLayout ->
+                                                    ("flex-shrink" => "0") :: attrs
                                         else
                                             ("flex-shrink" => "0") :: attrs
 

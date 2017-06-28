@@ -114,8 +114,6 @@ messages =
         [ width <| fill 1
         , alignLeft
         , yScrollbar
-
-        -- , inlineStyle [ ( "overflow-y", "auto" ) ]
         ]
         (List.map message <| List.range 1 100)
 
