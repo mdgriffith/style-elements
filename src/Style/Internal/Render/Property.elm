@@ -7,11 +7,6 @@ import Style.Internal.Render.Value as Value
 import Time
 
 
-(=>) : x -> y -> ( x, y )
-(=>) =
-    (,)
-
-
 visibility : Visible -> List ( String, String )
 visibility vis =
     case vis of
@@ -114,8 +109,9 @@ filters filters =
         if List.length filters == 0 then
             []
         else
-            [ "filter"
-                => (String.join " " <| List.map filterName filters)
+            [ ( "filter"
+              , (String.join " " <| List.map filterName filters)
+              )
             ]
 
 
@@ -135,11 +131,11 @@ shadow shadows =
             [ if renderedBox == "" then
                 Nothing
               else
-                Just ("box-shadow" => renderedBox)
+                Just ( "box-shadow", renderedBox )
             , if renderedText == "" then
                 Nothing
               else
-                Just ("text-shadow" => renderedText)
+                Just ( "text-shadow", renderedText )
             ]
 
 
@@ -170,7 +166,7 @@ transformations transforms =
 
         renderedTransforms =
             if String.length transformString > 0 then
-                [ "transform" => transformString ]
+                [ ( "transform", transformString ) ]
             else
                 []
     in
@@ -275,9 +271,9 @@ background prop =
                 [ ( name, val ) ]
 
             BackgroundImage { src, position, repeat } ->
-                [ "background-image" => src
-                , "background-repeat"
-                    => case repeat of
+                [ ( "background-image", src )
+                , ( "background-repeat"
+                  , case repeat of
                         RepeatX ->
                             "repeat-x"
 
@@ -295,11 +291,12 @@ background prop =
 
                         NoRepeat ->
                             "no-repeat"
-                , "background-position" => (toString (Tuple.first position) ++ "px " ++ toString (Tuple.second position) ++ "px")
+                  )
+                , ( "background-position", (toString (Tuple.first position) ++ "px " ++ toString (Tuple.second position) ++ "px") )
                 ]
 
             BackgroundLinearGradient dir steps ->
-                [ "background-image" => ("linear-gradient(" ++ (String.join ", " <| directionName dir :: List.map renderStep steps) ++ ")") ]
+                [ ( "background-image", ("linear-gradient(" ++ (String.join ", " <| directionName dir :: List.map renderStep steps) ++ ")") ) ]
 
 
 {-| -}
@@ -307,19 +304,21 @@ layout : Bool -> LayoutModel -> List ( String, String )
 layout inline lay =
     case lay of
         Internal.TextLayout _ ->
-            [ "display"
-                => if inline then
+            [ ( "display"
+              , if inline then
                     "inline-block"
-                   else
+                else
                     "block"
+              )
             ]
 
         Internal.FlexLayout dir flexProps ->
-            ("display"
-                => if inline then
-                    "inline-flex"
-                   else
-                    "flex"
+            (( "display"
+             , if inline then
+                "inline-flex"
+               else
+                "flex"
+             )
             )
                 :: direction dir
                 :: List.map (flexbox dir) flexProps
@@ -328,9 +327,9 @@ layout inline lay =
             let
                 grid =
                     if inline then
-                        ("display" => "inline-grid")
+                        ( "display", "inline-grid" )
                     else
-                        ("display" => "grid")
+                        ( "display", "grid" )
 
                 renderLen len =
                     case len of
@@ -414,9 +413,9 @@ layout inline lay =
             let
                 grid =
                     if inline then
-                        ("display" => "inline-grid")
+                        ( "display", "inline-grid" )
                     else
-                        ("display" => "grid")
+                        ( "display", "grid" )
 
                 renderLen len =
                     case len of
@@ -452,57 +451,57 @@ gridAlignment : GridAlignment -> ( String, String )
 gridAlignment align =
     case align of
         GridGap row column ->
-            "grid-gap" => (toString row ++ "px " ++ toString column ++ "px")
+            ( "grid-gap", (toString row ++ "px " ++ toString column ++ "px") )
 
         GridH horizontal ->
             case horizontal of
                 Other Left ->
-                    "justify-content" => "start"
+                    ( "justify-content", "start" )
 
                 Other Right ->
-                    "justify-content" => "end"
+                    ( "justify-content", "end" )
 
                 Center ->
-                    "justify-content" => "center"
+                    ( "justify-content", "center" )
 
                 Justify ->
-                    "justify-content" => "space-between"
+                    ( "justify-content", "space-between" )
 
                 JustifyAll ->
-                    "justify-content" => "space-between"
+                    ( "justify-content", "space-between" )
 
         GridV vertical ->
             case vertical of
                 Other Top ->
-                    "align-content" => "start"
+                    ( "align-content", "start" )
 
                 Other Bottom ->
-                    "align-content" => "end"
+                    ( "align-content", "end" )
 
                 Center ->
-                    "align-content" => "center"
+                    ( "align-content", "center" )
 
                 Justify ->
-                    "align-content" => "space-between"
+                    ( "align-content", "space-between" )
 
                 JustifyAll ->
-                    "align-content" => "space-between"
+                    ( "align-content", "space-between" )
 
 
 direction : Direction -> ( String, String )
 direction dir =
     case dir of
         GoRight ->
-            "flex-direction" => "row"
+            ( "flex-direction", "row" )
 
         GoLeft ->
-            "flex-direction" => "row-reverse"
+            ( "flex-direction", "row-reverse" )
 
         Down ->
-            "flex-direction" => "column"
+            ( "flex-direction", "column" )
 
         Up ->
-            "flex-direction" => "column-reverse"
+            ( "flex-direction", "column-reverse" )
 
 
 transition : Transition -> String
@@ -522,146 +521,146 @@ flexbox dir el =
     case el of
         Wrap wrap ->
             if wrap then
-                "flex-wrap" => "wrap"
+                ( "flex-wrap", "wrap" )
             else
-                "flex-wrap" => "nowrap"
+                ( "flex-wrap", "nowrap" )
 
         Horz horizontal ->
             case dir of
                 GoRight ->
                     case horizontal of
                         Other Left ->
-                            "justify-content" => "flex-start"
+                            ( "justify-content", "flex-start" )
 
                         Other Right ->
-                            "justify-content" => "flex-end"
+                            ( "justify-content", "flex-end" )
 
                         Center ->
-                            "justify-content" => "center"
+                            ( "justify-content", "center" )
 
                         Justify ->
-                            "justify-content" => "space-between"
+                            ( "justify-content", "space-between" )
 
                         JustifyAll ->
-                            "justify-content" => "space-between"
+                            ( "justify-content", "space-between" )
 
                 GoLeft ->
                     case horizontal of
                         Other Left ->
-                            "justify-content" => "flex-end"
+                            ( "justify-content", "flex-end" )
 
                         Other Right ->
-                            "justify-content" => "flex-start"
+                            ( "justify-content", "flex-start" )
 
                         Center ->
-                            "justify-content" => "center"
+                            ( "justify-content", "center" )
 
                         Justify ->
-                            "justify-content" => "space-between"
+                            ( "justify-content", "space-between" )
 
                         JustifyAll ->
-                            "justify-content" => "space-between"
+                            ( "justify-content", "space-between" )
 
                 Down ->
                     case horizontal of
                         Other Left ->
-                            "align-items" => "flex-start"
+                            ( "align-items", "flex-start" )
 
                         Other Right ->
-                            "align-items" => "flex-end"
+                            ( "align-items", "flex-end" )
 
                         Center ->
-                            "align-items" => "center"
+                            ( "align-items", "center" )
 
                         Justify ->
-                            "align-items" => "Justify"
+                            ( "align-items", "Justify" )
 
                         JustifyAll ->
-                            "align-items" => "Justify"
+                            ( "align-items", "Justify" )
 
                 Up ->
                     case horizontal of
                         Other Left ->
-                            "align-items" => "flex-start"
+                            ( "align-items", "flex-start" )
 
                         Other Right ->
-                            "align-items" => "flex-end"
+                            ( "align-items", "flex-end" )
 
                         Center ->
-                            "align-items" => "center"
+                            ( "align-items", "center" )
 
                         Justify ->
-                            "align-items" => "Justify"
+                            ( "align-items", "Justify" )
 
                         JustifyAll ->
-                            "align-items" => "Justify"
+                            ( "align-items", "Justify" )
 
         Vert vertical ->
             case dir of
                 GoRight ->
                     case vertical of
                         Other Top ->
-                            "align-items" => "flex-start"
+                            ( "align-items", "flex-start" )
 
                         Other Bottom ->
-                            "align-items" => "flex-end"
+                            ( "align-items", "flex-end" )
 
                         Center ->
-                            "align-items" => "center"
+                            ( "align-items", "center" )
 
                         Justify ->
-                            "align-items" => "Justify"
+                            ( "align-items", "Justify" )
 
                         JustifyAll ->
-                            "align-items" => "Justify"
+                            ( "align-items", "Justify" )
 
                 GoLeft ->
                     case vertical of
                         Other Top ->
-                            "align-items" => "flex-start"
+                            ( "align-items", "flex-start" )
 
                         Other Bottom ->
-                            "align-items" => "flex-end"
+                            ( "align-items", "flex-end" )
 
                         Center ->
-                            "align-items" => "center"
+                            ( "align-items", "center" )
 
                         Justify ->
-                            "align-items" => "Justify"
+                            ( "align-items", "Justify" )
 
                         JustifyAll ->
-                            "align-items" => "Justify"
+                            ( "align-items", "Justify" )
 
                 Down ->
                     case vertical of
                         Other Top ->
-                            "justify-content" => "flex-start"
+                            ( "justify-content", "flex-start" )
 
                         Other Bottom ->
-                            "justify-content" => "flex-end"
+                            ( "justify-content", "flex-end" )
 
                         Center ->
-                            "justify-content" => "center"
+                            ( "justify-content", "center" )
 
                         Justify ->
-                            "justify-content" => "space-between"
+                            ( "justify-content", "space-between" )
 
                         JustifyAll ->
-                            "align-items" => "Justify"
+                            ( "align-items", "Justify" )
 
                 Up ->
                     case vertical of
                         Other Top ->
-                            "justify-content" => "flex-end"
+                            ( "justify-content", "flex-end" )
 
                         Other Bottom ->
-                            "justify-content" => "flex-start"
+                            ( "justify-content", "flex-start" )
 
                         Center ->
-                            "justify-content" => "center"
+                            ( "justify-content", "center" )
 
                         Justify ->
-                            "justify-content" => "space-between"
+                            ( "justify-content", "space-between" )
 
                         JustifyAll ->
-                            "align-items" => "Justify"
+                            ( "align-items", "Justify" )

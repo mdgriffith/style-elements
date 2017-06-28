@@ -11,11 +11,6 @@ import Style.Internal.Intermediate as Intermediate
 import Style.Internal.Render.Css as Css
 
 
-(=>) : x -> y -> ( x, y )
-(=>) =
-    (,)
-
-
 single : Bool -> Internal.Style class variation -> ( String, String )
 single guard style =
     Intermediate.raw << renderStyle guard << preprocess <| style
@@ -344,12 +339,12 @@ renderProp parentClass prop =
         SelectionColor color ->
             (Intermediate.SubClass << Intermediate.Class)
                 { selector = Selector.pseudo "::selection" parentClass
-                , props = [ Intermediate.props [ "background-color" => Value.color color ] ]
+                , props = [ Intermediate.props [ ( "background-color", Value.color color ) ] ]
                 }
 
         TextColor color ->
             Intermediate.props <|
-                [ "color" => Value.color color
+                [ ( "color", Value.color color )
                 ]
 
         Transitions trans ->
@@ -416,13 +411,13 @@ renderVariationProp parentClass prop =
 
         TextColor color ->
             (Just << Intermediate.props) <|
-                [ "color" => Value.color color
+                [ ( "color", Value.color color )
                 ]
 
         SelectionColor color ->
             (Just << Intermediate.SubClass << Intermediate.Class)
                 { selector = Selector.pseudo "::selection" parentClass
-                , props = [ Intermediate.props [ "background-color" => Value.color color ] ]
+                , props = [ Intermediate.props [ ( "background-color", Value.color color ) ] ]
                 }
 
         Transitions trans ->
