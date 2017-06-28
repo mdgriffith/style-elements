@@ -142,7 +142,7 @@ positionNearby parent elm =
                                 ]
                         , absolutelyPositioned = Nothing
                         }
-                else if framed || not (List.isEmpty aligned) then
+                else if framed then
                     Layout
                         { node = "div"
                         , style = Nothing
@@ -174,6 +174,52 @@ positionNearby parent elm =
                                         (counterSpacing
                                             (Modify.addAttrList
                                                 (PointerEvents True :: PositionFrame (Absolute TopLeft) :: Position (Just 0) (Just 0) Nothing :: [])
+                                                el
+                                            )
+                                        )
+                                    , absolutelyPositioned = Nothing
+                                    }
+                                ]
+                        , absolutelyPositioned = Nothing
+                        }
+                else if not (List.isEmpty aligned) then
+                    -- This differs from the above in that the intermediate elements
+                    -- are set with position:relative instead of position:absolute;
+                    -- We can do this because we have a guarantee that if the element is not framed,
+                    -- and has no layout parent,
+                    -- then it's the only child.
+                    Layout
+                        { node = "div"
+                        , style = Nothing
+                        , layout = Internal.FlexLayout Internal.GoRight []
+                        , attrs =
+                            (tag "nearby-intermediate-parent"
+                                :: PointerEvents False
+                                :: Height (Internal.Percent 100)
+                                :: Width (Internal.Percent 100)
+                                -- :: PositionFrame (Absolute TopLeft)
+                                :: PositionFrame Relative
+                                :: Position (Just 0) (Just 0) Nothing
+                                :: (nearbyAlignment ++ aligned)
+                            )
+                        , children =
+                            Normal
+                                [ Element
+                                    { node = "div"
+                                    , style = Nothing
+                                    , attrs =
+                                        (unaligned
+                                            ++ [ PointerEvents False
+                                               , PositionFrame Relative
+                                               , Position (Just 0) (Just 0) Nothing
+                                               , Padding (Just 0) (Just 0) (Just 0) (Just 0)
+                                               , tag "nearby-intermediate"
+                                               ]
+                                        )
+                                    , child =
+                                        (counterSpacing
+                                            (Modify.addAttrList
+                                                (PointerEvents True :: PositionFrame Relative :: Position (Just 0) (Just 0) Nothing :: [])
                                                 el
                                             )
                                         )

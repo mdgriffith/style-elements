@@ -158,6 +158,7 @@ view model =
                     , overflowIssue
                     , [ overFlowIssue2 ]
                     , viewRowLayouts
+                    , [ verticalCenterText ]
                     , viewColumnLayouts
                     , viewTable
                     , viewGridLayout
@@ -185,7 +186,7 @@ otherTextLayout =
 
 screenExample =
     screen <|
-        el Box [ width (percent 100), alignBottom ] <|
+        el None [ width (percent 100), alignBottom ] <|
             row Container
                 [ spacing 20
                 , justify
@@ -854,3 +855,19 @@ overFlowIssue2 =
             , followingMessage
             , followingMessage
             ]
+
+
+
+{- Vertical Center text if height is set.
+
+-}
+
+
+verticalCenterText =
+    row Container
+        [ center, height (px 300), spacing 10 ]
+        [ el Box [] (text "normal")
+        , el Box [ height (px 100), verticalCenter ] <|
+            (el None [ verticalCenter ] <| text "vertical centered in box")
+        , el Box [] (text "normal")
+        ]
