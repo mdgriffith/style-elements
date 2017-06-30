@@ -49,6 +49,7 @@ module Element
         , spanAll
         , link
         , when
+        , whenJust
         , within
         , above
         , below
@@ -96,7 +97,7 @@ By building your view with `Elements`, you have a single place to go to adjust o
 
 @docs Element, Attribute
 
-@docs empty, text, el, html, map
+@docs empty, text, el, html, map, when, whenJust
 
 
 # Layout
@@ -106,14 +107,14 @@ A layout element will explicitly define how it's children are layed out.
 Make sure to check out the Style Element specific attributes in `Element.Attributes` as they will help out when doing layout!
 
 
-## Text Layout
-
-@docs textLayout, paragraph
-
-
 ## Linear Layouts
 
 @docs row, column, wrappedRow, wrappedColumn
+
+
+## Text Layout
+
+@docs textLayout, paragraph
 
 
 ## Grid Layout
@@ -123,7 +124,7 @@ Make sure to check out the Style Element specific attributes in `Element.Attribu
 
 ## Convenience Elements
 
-@docs full, spacer, hairline, link, image, circle, break, when
+@docs full, spacer, hairline, link, image, circle, break
 
 
 ## Positioning
@@ -1116,6 +1117,29 @@ when bool elm =
         elm
     else
         empty
+
+
+{-| Another helper function that defaults to `empty`
+
+    whenJust (Just ("Hi!")) text
+
+is sugar for
+
+    case maybe of
+        Nothing ->
+            empty
+        Just x ->
+            text x
+
+-}
+whenJust : Maybe a -> (a -> Element style variation msg) -> Element style variation msg
+whenJust maybe view =
+    case maybe of
+        Nothing ->
+            empty
+
+        Just thing ->
+            view thing
 
 
 {-| -}
