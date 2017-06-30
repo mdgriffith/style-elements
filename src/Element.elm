@@ -1213,7 +1213,7 @@ layout =
     Render.root
 
 
-{-| Same as `root`, but the height and width of the site is set to the height and width of the screen.
+{-| Same as `layout`, but the height and width of the site is set to the height and width of the screen.
 -}
 viewport : StyleSheet style variation -> Element style variation msg -> Html msg
 viewport =
