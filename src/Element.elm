@@ -1237,7 +1237,7 @@ layout =
     Render.root
 
 
-{-| Same as `root`, but the height and width of the site is set to the height and width of the screen.
+{-| Same as `layout`, but the height and width of the site is set to the height and width of the screen.
 -}
 viewport : StyleSheet style variation -> Element style variation msg -> Html msg
 viewport =
@@ -1260,7 +1260,7 @@ embedStylesheet sheet =
     Render.embed False sheet
 
 
-{-| DEPRECATED, will be removed in the next major version
+{-| DEPRECATED, will be removed in the next major version. Use `toHtml` instead.
 -}
 render : StyleSheet style variation -> Element style variation msg -> Html msg
 render stylesheet el =
@@ -1268,14 +1268,14 @@ render stylesheet el =
         (Render.render stylesheet el)
 
 
-{-| DEPRECATED, will be removed in the next major version
+{-| DEPRECATED, will be removed in the next major version. Use `layout` instead.
 -}
 root : StyleSheet style variation -> Element style variation msg -> Html msg
 root =
     Render.root
 
 
-{-| DEPRECATED, will be removed in the next major version
+{-| DEPRECATED, will be removed in the next major version. Use `embedStylesheet` instead.
 -}
 embed : StyleSheet style variation -> Html msg
 embed sheet =

@@ -8,7 +8,7 @@ The most common goal when working with your view is usually to set or to adjust 
 
 HTML and CSS make this difficult because there's no central place that represents your layout.
 
-You're generally forced to bounce back and forth between multiple definitions in multiple files in order to adjust layout, even though it's pribably the most common thing you'll do.
+You're generally forced to bounce back and forth between multiple definitions in multiple files in order to adjust layout, even though it's probably the most common thing you'll do.
 
 ### Separating Layout and Style
 
