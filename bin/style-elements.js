@@ -5,7 +5,7 @@ var pkg = require("../package.json");
 var program = require("commander");
 var fs = require("fs");
 var chalk = require("chalk");
-var requiredOptions = ["stylesheetModule", "stylesheetFunction", "output"];
+var requiredOptions = ["stylesheetModule", "stylesheetFunction", "mode", "output"];
 var utils = require("../js/utils");
 var writeFile = utils.writeFile;
 var assertKeysPresent = utils.assertKeysPresent;
@@ -14,7 +14,8 @@ var options = getOptions(process.argv, program);
 
 styleElements({
   stylesheetModule: options.stylesheetModule,
-  stylesheetFunction: options.stylesheetFunction
+  stylesheetFunction: options.stylesheetFunction,
+  mode: options.mode
 })
   .then(result => writeFile(options.output, result))
   .then(() => {
@@ -32,12 +33,18 @@ function getOptions(argv, program) {
       "(optional) file to write the CSS to",
       "out.css"
     )
+    .option(
+      "-m, --mode [layout/viewport]",
+      "(optional) whether to render stylesheet for 'layout' or 'viewport'",
+      "layout"
+    )
     .parse(argv);
 
   var options = {
     stylesheetModule: program.args[0],
     stylesheetFunction: program.args[1],
-    output: program.output
+    output: program.output,
+    mode: program.mode
   };
 
   assertKeysPresent(options, requiredOptions, _missingOptions => {

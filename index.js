@@ -7,7 +7,7 @@ var writeFile = utils.writeFile;
 var withTmpDir = utils.withTmpDir;
 var assertKeysPresent = utils.assertKeysPresent;
 
-var requiredOptions = ["stylesheetModule", "stylesheetFunction"];
+var requiredOptions = ["stylesheetModule", "stylesheetFunction", "mode"];
 
 function generateCss(opts) {
   assertKeysPresent(opts, requiredOptions, missingOptions => {
@@ -19,7 +19,8 @@ function generateCss(opts) {
     var emitterWorkerFile = path.join(tmpDirPath, "style-elements-emitter.js");
     var emitterTemplate = buildEmitterTemplate(
       opts.stylesheetModule,
-      opts.stylesheetFunction
+      opts.stylesheetFunction,
+      opts.mode
     );
 
     return writeFile(emitterSourceFile, emitterTemplate)
@@ -28,30 +29,39 @@ function generateCss(opts) {
   });
 }
 
-function buildEmitterTemplate(stylesheetModule, stylesheetFunction) {
+function buildEmitterTemplate(stylesheetModule, stylesheetFunction, mode) {
   return unindent(
     `
     port module StyleElementsEmitter exposing (..)
 
     import ${stylesheetModule}
+    import Element
 
 
     port result : String -> Cmd msg
 
 
-    stylesheet =
-        ${stylesheetModule}.${stylesheetFunction}
+    styles =
+        Element.${renderFunction(mode)} ${stylesheetModule}.${stylesheetFunction}
 
 
     main : Program Never () Never
     main =
         Platform.program
-            { init = ( (), result stylesheet.css )
+            { init = ( (), result styles )
             , update = \\_ _ -> ( (), Cmd.none )
             , subscriptions = \\_ -> Sub.none
             }
     `
   );
+}
+
+function renderFunction(mode) {
+  switch (mode) {
+    case "viewport": return "toViewportCss";
+    case "layout": return "toLayoutCss";
+    default: throw new Error(`Invalid mode: ${mode}, must be either 'layout' or 'viewport'`);
+  }
 }
 
 function compile(src, options) {
