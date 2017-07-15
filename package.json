@@ -1,0 +1,28 @@
+{
+  "name": "style-elements",
+  "version": "3.2.3",
+  "description": "CSS Preprocoessor for Elm's style-elements",
+  "main": "index.js",
+  "bin": {
+    "style-elements": "./bin/style-elements.js"
+  },
+  "files": [
+    "js/utils.js"
+  ],
+  "dependencies": {
+    "chalk": "^2.0.1",
+    "commander": "^2.11.0",
+    "postcss": "^6.0.6",
+    "tmp": "0.0.31"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://package.elm-lang.org/packages/mdgriffith/style-elements"
+  },
+  "author": "Matthew Griffith",
+  "license": "BSD-3-Clause"
+}
