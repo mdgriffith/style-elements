@@ -6,15 +6,17 @@ var program = require("commander");
 var fs = require("fs");
 var chalk = require("chalk");
 var requiredOptions = ["stylesheetModule", "stylesheetFunction", "output"];
-var { writeFile, assertKeysPresent } = require("../js/utils");
+var utils = require("../js/utils");
+var writeFile = utils.writeFile;
+var assertKeysPresent = utils.assertKeysPresent;
 
-var { output, stylesheetModule, stylesheetFunction } = getOptions(
-  process.argv,
-  program
-);
+var options = getOptions(process.argv, program);
 
-styleElements({ stylesheetModule, stylesheetFunction })
-  .then(result => writeFile(output, result))
+styleElements({
+  stylesheetModule: options.stylesheetModule,
+  stylesheetFunction: options.stylesheetFunction
+})
+  .then(result => writeFile(options.output, result))
   .then(() => {
     console.warn(
       chalk.green(`\n----> Success! styles were written to ${program.output}\n`)

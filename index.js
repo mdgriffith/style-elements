@@ -1,11 +1,11 @@
 var path = require("path");
 var compileElm = require("node-elm-compiler").compile;
-var {
-  unindent,
-  writeFile,
-  withTmpDir,
-  assertKeysPresent
-} = require("./js/utils.js");
+var utils = require("./js/utils.js");
+
+var unindent = utils.unindent;
+var writeFile = utils.writeFile;
+var withTmpDir = utils.withTmpDir;
+var assertKeysPresent = utils.assertKeysPresent;
 
 var requiredOptions = ["stylesheetModule", "stylesheetFunction"];
 

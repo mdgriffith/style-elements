@@ -15,9 +15,9 @@ module.exports = {
       : text;
   },
 
-  writeFile: function(...args) {
+  writeFile: function(path, content) {
     return new Promise((resolve, reject) => {
-      return fs.writeFile(...args, err => (err ? reject(err) : resolve()));
+      return fs.writeFile(path, content, err => (err ? reject(err) : resolve()));
     });
   },
 
@@ -33,11 +33,11 @@ module.exports = {
     });
   },
 
-  assertKeysPresent: function(object = {}, requiredKeys, missingCallback) {
-    var providedKeys = Object.keys(object);
+  assertKeysPresent: function(object, requiredKeys, missingCallback) {
+    var providedKeys = Object.keys(object || {});
     var missingKeys = requiredKeys.filter(key => {
       return (
-        !providedKeys.includes(key) || providedKeys[key] === ""
+        providedKeys.indexOf(key) === -1 || providedKeys[key] === ""
       );
     });
 
