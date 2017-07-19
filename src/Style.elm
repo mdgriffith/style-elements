@@ -226,8 +226,15 @@ importCss str =
 {-| -}
 style : class -> List (Property class variation) -> Style class variation
 style cls props =
-    Batchable.one (Internal.Style cls (prop "border-style" "solid" :: props))
+    Batchable.one (Internal.Style cls (defaultStyleProperties ++ props))
 
+
+{-| -}
+defaultStyleProperties : List (Property class variation)
+defaultStyleProperties =
+    [ prop "border-style" "solid"
+    , prop "border-width" "0"
+    ]
 
 {-| -}
 variation : variation -> List (Property class Never) -> Property class variation
