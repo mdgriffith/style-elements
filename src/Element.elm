@@ -337,13 +337,26 @@ spacer =
 
 {-| A convenience node for images. Accepts an image src as the first argument.
 -}
-image : String -> style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
-image src style attrs child =
+image : style -> List (Attribute variation msg) -> { src : String, caption : String } -> Element style variation msg
+image style attrs { src, caption } =
+    Element
+        { node = "img"
+        , style = Just style
+        , attrs = (Attr (Html.Attributes.src src) :: Attr (Html.Attributes.alt caption) :: attrs)
+        , child = empty
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| A convenience node for images. Accepts an image src as the first argument.
+-}
+decorativeImage : style -> List (Attribute variation msg) -> { src : String } -> Element style variation msg
+decorativeImage style attrs { src } =
     Element
         { node = "img"
         , style = Just style
         , attrs = (Attr (Html.Attributes.src src) :: attrs)
-        , child = child
+        , child = empty
         , absolutelyPositioned = Nothing
         }
 
