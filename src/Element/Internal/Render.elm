@@ -2,14 +2,14 @@ module Element.Internal.Render exposing (..)
 
 {-| -}
 
-import Html exposing (Html)
-import Html.Keyed
-import Html.Attributes
-import Element.Internal.Model exposing (..)
-import Style.Internal.Model as Internal exposing (Length)
-import Style.Internal.Render.Value as Value
-import Style.Internal.Render.Property as Property
 import Element.Internal.Adjustments as Adjustments
+import Element.Internal.Model exposing (..)
+import Html exposing (Html)
+import Html.Attributes
+import Html.Keyed
+import Style.Internal.Model as Internal exposing (Length)
+import Style.Internal.Render.Property as Property
+import Style.Internal.Render.Value as Value
 
 
 {-| A modified version of CSS normalize is used.
@@ -19,7 +19,7 @@ The unminified version lives in `references/modified-normalize.css`.
 -}
 normalize : String
 normalize =
-    """html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video,hr{margin:0;padding:0;border:0;font-size:100%;font:inherit}html{line-height:1;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}article,aside,footer,header,nav,section{display:block}h1{font-size:2em;margin:0.67em 0}figcaption,figure,main{display:block}figure{margin:1em 40px}hr{box-sizing:content-box;height:0;overflow:visible}pre{font-family:monospace, monospace;font-size:1em}a{background-color:transparent;-webkit-text-decoration-skip:objects}abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}b,strong{font-weight:inherit}b,strong{font-weight:bolder}code,kbd,samp{font-family:monospace, monospace;font-size:1em}dfn{font-style:italic}mark{background-color:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-0.25em}sup{top:-0.5em}audio,video{display:inline-block}audio:not([controls]){display:none;height:0}img{border-style:none}svg:not(:root){overflow:hidden}button,input,optgroup,select,textarea{font-family:sans-serif;font-size:100%;margin:0}button,input{overflow:visible}button,select{text-transform:none}button,html [type="button"],[type="reset"],[type="submit"]{-webkit-appearance:button}button::-moz-focus-inner,[type="button"]::-moz-focus-inner,[type="reset"]::-moz-focus-inner,[type="submit"]::-moz-focus-inner{border-style:none;padding:0}button:-moz-focusring,[type="button"]:-moz-focusring,[type="reset"]:-moz-focusring,[type="submit"]:-moz-focusring{outline:1px dotted ButtonText}fieldset{padding:0.35em 0.75em 0.625em}legend{box-sizing:border-box;color:inherit;display:table;max-width:100%;padding:0;white-space:normal}progress{display:inline-block;vertical-align:baseline}textarea{overflow:auto}[type="checkbox"],[type="radio"]{box-sizing:border-box;padding:0}[type="number"]::-webkit-inner-spin-button,[type="number"]::-webkit-outer-spin-button{height:auto}[type="search"]{-webkit-appearance:textfield;outline-offset:-2px}[type="search"]::-webkit-search-cancel-button,[type="search"]::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}details,menu{display:block}summary{display:list-item}canvas{display:inline-block}template{display:none}[hidden]{display:none}em{font-style:italic}strong{font-weight:bold}a{text-decoration:none}input,textarea{border:0}.clearfix:after{content:"";display:table;clear:both}"""
+    """.style-elements div,.style-elements span,.style-elements applet,.style-elements object,.style-elements iframe,.style-elements h1,.style-elements h2,.style-elements h3,.style-elements h4,.style-elements h5,.style-elements h6,.style-elements p,.style-elements blockquote,.style-elements pre,.style-elements a,.style-elements abbr,.style-elements acronym,.style-elements address,.style-elements big,.style-elements cite,.style-elements code,.style-elements del,.style-elements dfn,.style-elements em,.style-elements img,.style-elements ins,.style-elements kbd,.style-elements q,.style-elements s,.style-elements samp,.style-elements small,.style-elements strike,.style-elements strong,.style-elements sub,.style-elements sup,.style-elements tt,.style-elements var,.style-elements b,.style-elements u,.style-elements i,.style-elements center,.style-elements dl,.style-elements dt,.style-elements dd,.style-elements ol,.style-elements ul,.style-elements li,.style-elements fieldset,.style-elements form,.style-elements label,.style-elements legend,.style-elements table,.style-elements caption,.style-elements tbody,.style-elements tfoot,.style-elements thead,.style-elements tr,.style-elements th,.style-elements td,.style-elements article,.style-elements aside,.style-elements canvas,.style-elements details,.style-elements embed,.style-elements figure,.style-elements figcaption,.style-elements footer,.style-elements header,.style-elements hgroup,.style-elements menu,.style-elements nav,.style-elements output,.style-elements ruby,.style-elements section,.style-elements summary,.style-elements time,.style-elements mark,.style-elements audio,.style-elements video,.style-elements hr{margin:0;padding:0;border:0;font-size:100%;font:inherit}.style-elements html{line-height:1;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}.style-elements body{margin:0}.style-elements article,.style-elements aside,.style-elements footer,.style-elements header,.style-elements nav,.style-elements section{display:block}.style-elements h1{font-size:2em;margin:0.67em 0}.style-elements figcaption,.style-elements figure,.style-elements main{display:block}.style-elements figure{margin:1em 40px}.style-elements hr{box-sizing:content-box;height:0;overflow:visible}.style-elements pre{font-family:monospace, monospace;font-size:1em}.style-elements a{background-color:transparent;-webkit-text-decoration-skip:objects}.style-elements abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}.style-elements b,.style-elements strong{font-weight:inherit}.style-elements b,.style-elements strong{font-weight:bolder}.style-elements code,.style-elements kbd,.style-elements samp{font-family:monospace, monospace;font-size:1em}.style-elements dfn{font-style:italic}.style-elements mark{background-color:#ff0;color:#000}.style-elements small{font-size:80%}.style-elements sub,.style-elements sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}.style-elements sub{bottom:-0.25em}.style-elements sup{top:-0.5em}.style-elements audio,.style-elements video{display:inline-block}.style-elements audio:not([controls]){display:none;height:0}.style-elements img{border-style:none}.style-elements svg:not(:root){overflow:hidden}.style-elements button,.style-elements input,.style-elements optgroup,.style-elements select,.style-elements textarea{font-family:sans-serif;font-size:100%;margin:0}.style-elements button,.style-elements input{overflow:visible}.style-elements button,.style-elements select{text-transform:none}.style-elements button,.style-elements html [type="button"],.style-elements [type="reset"],.style-elements [type="submit"]{-webkit-appearance:button}.style-elements button::-moz-focus-inner,.style-elements [type="button"]::-moz-focus-inner,.style-elements [type="reset"]::-moz-focus-inner,.style-elements [type="submit"]::-moz-focus-inner{border-style:none;padding:0}.style-elements button:-moz-focusring,.style-elements [type="button"]:-moz-focusring,.style-elements [type="reset"]:-moz-focusring,.style-elements [type="submit"]:-moz-focusring{outline:1px dotted ButtonText}.style-elements fieldset{padding:0.35em 0.75em 0.625em}.style-elements legend{box-sizing:border-box;color:inherit;display:table;max-width:100%;padding:0;white-space:normal}.style-elements progress{display:inline-block;vertical-align:baseline}.style-elements textarea{overflow:auto}.style-elements [type="checkbox"],.style-elements [type="radio"]{box-sizing:border-box;padding:0}.style-elements [type="number"]::-webkit-inner-spin-button,.style-elements [type="number"]::-webkit-outer-spin-button{height:auto}.style-elements [type="search"]{-webkit-appearance:textfield;outline-offset:-2px}.style-elements [type="search"]::-webkit-search-cancel-button,.style-elements [type="search"]::-webkit-search-decoration{-webkit-appearance:none}.style-elements ::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}.style-elements details,.style-elements menu{display:block}.style-elements summary{display:list-item}.style-elements canvas{display:inline-block}.style-elements template{display:none}.style-elements [hidden]{display:none}.style-elements em{font-style:italic}.style-elements strong{font-weight:bold}.style-elements a{text-decoration:none}.style-elements input,.style-elements textarea{border:0}.style-elements .clearfix:after{content:"";display:table;clear:both}"""
 
 
 normalizeFull : () -> String
@@ -71,8 +71,8 @@ render stylesheet elm =
                 Just screenEls ->
                     List.map (renderElement Nothing stylesheet FirstAndLast) screenEls
     in
-        renderElement Nothing stylesheet FirstAndLast adjusted
-            :: fixedScreenElements
+    renderElement Nothing stylesheet FirstAndLast adjusted
+        :: fixedScreenElements
 
 
 type alias Parent =
@@ -88,14 +88,14 @@ detectOrder list i =
         len =
             List.length list
     in
-        if i == 0 && len == 1 then
-            FirstAndLast
-        else if i == 0 then
-            First
-        else if i == len - 1 then
-            Last
-        else
-            Middle i
+    if i == 0 && len == 1 then
+        FirstAndLast
+    else if i == 0 then
+        First
+    else if i == len - 1 then
+        Last
+    else
+        Middle i
 
 
 spacingToMargin : List (Attribute variation msg) -> List (Attribute variation msg)
@@ -109,7 +109,7 @@ spacingToMargin attrs =
                 a ->
                     a
     in
-        List.map spaceToMarg attrs
+    List.map spaceToMarg attrs
 
 
 calcPosition : Frame -> ( Maybe Float, Maybe Float, Maybe Float ) -> List ( String, String )
@@ -124,83 +124,83 @@ calcPosition frame ( mx, my, mz ) =
         z =
             Maybe.withDefault 0 mz
     in
-        case frame of
-            Relative ->
-                [ ( "position", "relative" )
-                , ( "left", (toString x ++ "px") )
-                , ( "top", (toString y ++ "px") )
+    case frame of
+        Relative ->
+            [ ( "position", "relative" )
+            , ( "left", toString x ++ "px" )
+            , ( "top", toString y ++ "px" )
+            ]
+
+        Screen ->
+            [ ( "position", "fixed" )
+            , ( "left", toString x ++ "px" )
+            , ( "top", toString y ++ "px" )
+            , ( "z-index", "1000" )
+            ]
+
+        Absolute TopLeft ->
+            List.filterMap identity
+                [ Just ( "position", "absolute" )
+                , case mx of
+                    Just x ->
+                        Just ( "left", toString x ++ "px" )
+
+                    Nothing ->
+                        Nothing
+                , case my of
+                    Just y ->
+                        Just ( "top", toString y ++ "px" )
+
+                    Nothing ->
+                        Nothing
                 ]
 
-            Screen ->
-                [ ( "position", "fixed" )
-                , ( "left", (toString x ++ "px") )
-                , ( "top", (toString y ++ "px") )
-                , ( "z-index", "1000" )
+        Absolute BottomLeft ->
+            List.filterMap identity
+                [ Just ( "position", "absolute" )
+                , case mx of
+                    Just x ->
+                        Just ( "left", toString x ++ "px" )
+
+                    Nothing ->
+                        Nothing
+                , case my of
+                    Just y ->
+                        Just ( "bottom", toString y ++ "px" )
+
+                    Nothing ->
+                        Nothing
                 ]
 
-            Absolute TopLeft ->
-                List.filterMap identity
-                    [ Just ( "position", "absolute" )
-                    , case mx of
-                        Just x ->
-                            Just ( "left", (toString x ++ "px") )
+        Nearby Within ->
+            [ ( "position", "relative" )
+            , ( "top", toString y ++ "px" )
+            , ( "left", toString x ++ "px" )
+            ]
 
-                        Nothing ->
-                            Nothing
-                    , case my of
-                        Just y ->
-                            Just ( "top", (toString y ++ "px") )
+        Nearby Above ->
+            [ ( "position", "relative" )
+            , ( "top", toString y ++ "px" )
+            , ( "left", toString x ++ "px" )
+            ]
 
-                        Nothing ->
-                            Nothing
-                    ]
+        Nearby Below ->
+            [ ( "position", "relative" )
+            , ( "top", "calc(100% + " ++ toString y ++ "px)" )
+            , ( "left", toString x ++ "px" )
+            ]
 
-            Absolute BottomLeft ->
-                List.filterMap identity
-                    [ Just ( "position", "absolute" )
-                    , case mx of
-                        Just x ->
-                            Just ( "left", (toString x ++ "px") )
+        Nearby OnLeft ->
+            [ ( "position", "relative" )
+            , ( "right", "calc(100% - " ++ toString x ++ "px)" )
+            , ( "top", toString y ++ "px" )
+            ]
 
-                        Nothing ->
-                            Nothing
-                    , case my of
-                        Just y ->
-                            Just ( "bottom", (toString y ++ "px") )
-
-                        Nothing ->
-                            Nothing
-                    ]
-
-            Nearby Within ->
-                [ ( "position", "relative" )
-                , ( "top", (toString y ++ "px") )
-                , ( "left", (toString x ++ "px") )
-                ]
-
-            Nearby Above ->
-                [ ( "position", "relative" )
-                , ( "top", (toString y ++ "px") )
-                , ( "left", (toString x ++ "px") )
-                ]
-
-            Nearby Below ->
-                [ ( "position", "relative" )
-                , ( "top", ("calc(100% + " ++ toString y ++ "px)") )
-                , ( "left", (toString x ++ "px") )
-                ]
-
-            Nearby OnLeft ->
-                [ ( "position", "relative" )
-                , ( "right", ("calc(100% - " ++ toString x ++ "px)") )
-                , ( "top", (toString y ++ "px") )
-                ]
-
-            Nearby OnRight ->
-                [ ( "position", "relative" )
-                , ( "left", ("calc(100% + " ++ toString x ++ "px)") )
-                , ( "top", (toString y ++ "px") )
-                ]
+        Nearby OnRight ->
+            [ ( "position", "relative" )
+            , ( "left", "calc(100% + " ++ toString x ++ "px)" )
+            , ( "top", toString y ++ "px" )
+            ]
 
 
 defaultPadding : ( Maybe Float, Maybe Float, Maybe Float, Maybe Float ) -> ( Float, Float, Float, Float ) -> ( Float, Float, Float, Float )
@@ -241,12 +241,12 @@ renderElement parent stylesheet order elm =
                             Nothing
 
                 inline =
-                    [ ( "width", (toString (x * spacingX) ++ "px") )
-                    , ( "height", (toString (x * spacingY) ++ "px") )
+                    [ ( "width", toString (x * spacingX) ++ "px" )
+                    , ( "height", toString (x * spacingY) ++ "px" )
                     , ( "visibility", "hidden" )
                     ]
             in
-                Html.div [ Html.Attributes.style inline ] []
+            Html.div [ Html.Attributes.style inline ] []
 
         Text dec str ->
             case dec of
@@ -311,7 +311,7 @@ renderElement parent stylesheet order elm =
                 htmlAttrs =
                     renderAttributes Single order style parent stylesheet (gather attributes)
             in
-                Html.node node htmlAttrs childHtml
+            Html.node node htmlAttrs childHtml
 
         Layout { node, layout, style, attrs, children, absolutelyPositioned } ->
             let
@@ -409,47 +409,47 @@ renderElement parent stylesheet order elm =
                     renderAttributes (LayoutElement layout) order style parent stylesheet (gather attributes)
                         |> clearfix
             in
-                case children of
-                    Normal childList ->
-                        let
-                            childHtml =
-                                List.indexedMap
-                                    (\i child ->
-                                        renderElement
-                                            (Just inherit)
-                                            stylesheet
-                                            (detectOrder childList i)
-                                            child
+            case children of
+                Normal childList ->
+                    let
+                        childHtml =
+                            List.indexedMap
+                                (\i child ->
+                                    renderElement
+                                        (Just inherit)
+                                        stylesheet
+                                        (detectOrder childList i)
+                                        child
+                                )
+                                childList
+
+                        allChildren =
+                            case absolutelyPositioned of
+                                Nothing ->
+                                    childHtml
+
+                                Just absol ->
+                                    childHtml ++ List.map (renderElement Nothing stylesheet FirstAndLast) absol
+                    in
+                    adjacentFlexboxCorrection <| Html.node node htmlAttrs allChildren
+
+                Keyed keyed ->
+                    let
+                        -- DOES NOT RENDER ABSOLUTE CHILDREN
+                        childHtml =
+                            List.indexedMap
+                                (\i ( key, child ) ->
+                                    ( key
+                                    , renderElement
+                                        (Just inherit)
+                                        stylesheet
+                                        (detectOrder keyed i)
+                                        child
                                     )
-                                    childList
-
-                            allChildren =
-                                case absolutelyPositioned of
-                                    Nothing ->
-                                        childHtml
-
-                                    Just absol ->
-                                        childHtml ++ (List.map (renderElement Nothing stylesheet FirstAndLast) absol)
-                        in
-                            adjacentFlexboxCorrection <| Html.node node htmlAttrs allChildren
-
-                    Keyed keyed ->
-                        let
-                            -- DOES NOT RENDER ABSOLUTE CHILDREN
-                            childHtml =
-                                List.indexedMap
-                                    (\i ( key, child ) ->
-                                        ( key
-                                        , renderElement
-                                            (Just inherit)
-                                            stylesheet
-                                            (detectOrder keyed i)
-                                            child
-                                        )
-                                    )
-                                    keyed
-                        in
-                            adjacentFlexboxCorrection <| Html.Keyed.node node htmlAttrs childHtml
+                                )
+                                keyed
+                    in
+                    adjacentFlexboxCorrection <| Html.Keyed.node node htmlAttrs childHtml
 
 
 type alias Positionable variation msg =
@@ -557,7 +557,7 @@ makePositionable attr pos =
                         Just a ->
                             Just a
             in
-                { pos | positioned = ( newX, newY, newZ ) }
+            { pos | positioned = ( newX, newY, newZ ) }
 
         PositionFrame frame ->
             { pos | frame = Just frame }
@@ -615,7 +615,7 @@ makePositionable attr pos =
                         Just a ->
                             Just a
             in
-                { pos | padding = ( newTop, newRight, newBottom, newLeft ) }
+            { pos | padding = ( newTop, newRight, newBottom, newLeft ) }
 
         Hidden ->
             { pos | hidden = True }
@@ -672,10 +672,10 @@ alignLayout maybeHorizontal maybeVertical layout =
                     Internal.Horz (Internal.Other Internal.Right)
 
                 Center ->
-                    Internal.Horz (Internal.Center)
+                    Internal.Horz Internal.Center
 
                 Justify ->
-                    Internal.Horz (Internal.Justify)
+                    Internal.Horz Internal.Justify
 
         alignFlexboxVertical align =
             case align of
@@ -686,7 +686,7 @@ alignLayout maybeHorizontal maybeVertical layout =
                     Internal.Vert (Internal.Other Internal.Bottom)
 
                 VerticalCenter ->
-                    Internal.Vert (Internal.Center)
+                    Internal.Vert Internal.Center
 
         alignGridHorizontal align =
             case align of
@@ -697,10 +697,10 @@ alignLayout maybeHorizontal maybeVertical layout =
                     Internal.GridH (Internal.Other Internal.Right)
 
                 Center ->
-                    Internal.GridH (Internal.Center)
+                    Internal.GridH Internal.Center
 
                 Justify ->
-                    Internal.GridH (Internal.Justify)
+                    Internal.GridH Internal.Justify
 
         alignGridVertical align =
             case align of
@@ -711,39 +711,39 @@ alignLayout maybeHorizontal maybeVertical layout =
                     Internal.GridV (Internal.Other Internal.Bottom)
 
                 VerticalCenter ->
-                    Internal.GridV (Internal.Center)
+                    Internal.GridV Internal.Center
     in
-        case layout of
-            Internal.TextLayout clearfix ->
-                Internal.TextLayout clearfix
+    case layout of
+        Internal.TextLayout clearfix ->
+            Internal.TextLayout clearfix
 
-            Internal.FlexLayout dir els ->
-                case ( maybeHorizontal, maybeVertical ) of
-                    ( Nothing, Nothing ) ->
-                        Internal.FlexLayout dir els
+        Internal.FlexLayout dir els ->
+            case ( maybeHorizontal, maybeVertical ) of
+                ( Nothing, Nothing ) ->
+                    Internal.FlexLayout dir els
 
-                    ( Just h, Nothing ) ->
-                        Internal.FlexLayout dir (alignFlexboxHorizontal h :: els)
+                ( Just h, Nothing ) ->
+                    Internal.FlexLayout dir (alignFlexboxHorizontal h :: els)
 
-                    ( Nothing, Just v ) ->
-                        Internal.FlexLayout dir (alignFlexboxVertical v :: els)
+                ( Nothing, Just v ) ->
+                    Internal.FlexLayout dir (alignFlexboxVertical v :: els)
 
-                    ( Just h, Just v ) ->
-                        Internal.FlexLayout dir (alignFlexboxHorizontal h :: alignFlexboxVertical v :: els)
+                ( Just h, Just v ) ->
+                    Internal.FlexLayout dir (alignFlexboxHorizontal h :: alignFlexboxVertical v :: els)
 
-            Internal.Grid template els ->
-                case ( maybeHorizontal, maybeVertical ) of
-                    ( Nothing, Nothing ) ->
-                        Internal.Grid template els
+        Internal.Grid template els ->
+            case ( maybeHorizontal, maybeVertical ) of
+                ( Nothing, Nothing ) ->
+                    Internal.Grid template els
 
-                    ( Just h, Nothing ) ->
-                        Internal.Grid template (alignGridHorizontal h :: els)
+                ( Just h, Nothing ) ->
+                    Internal.Grid template (alignGridHorizontal h :: els)
 
-                    ( Nothing, Just v ) ->
-                        Internal.Grid template (alignGridVertical v :: els)
+                ( Nothing, Just v ) ->
+                    Internal.Grid template (alignGridVertical v :: els)
 
-                    ( Just h, Just v ) ->
-                        Internal.Grid template (alignGridHorizontal h :: alignGridVertical v :: els)
+                ( Just h, Just v ) ->
+                    Internal.Grid template (alignGridHorizontal h :: alignGridVertical v :: els)
 
 
 flexboxHorizontalIndividualAlignment :
@@ -875,7 +875,7 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                     Property.layout elem.inline (alignLayout elem.horizontal elem.vertical lay) ++ attrs
 
         position attrs =
-            (calcPosition (Maybe.withDefault Relative elem.frame) elem.positioned) ++ attrs
+            calcPosition (Maybe.withDefault Relative elem.frame) elem.positioned ++ attrs
 
         passthrough attrs =
             case elem.pointerevents of
@@ -1015,7 +1015,7 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
         shrink attrs =
             case elem.shrink of
                 Just i ->
-                    ( "flex-shrink", (toString i) ) :: attrs
+                    ( "flex-shrink", toString i ) :: attrs
 
                 Nothing ->
                     case parent of
@@ -1090,40 +1090,40 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                         _ ->
                                             False
                             in
-                                case layout of
-                                    Internal.FlexLayout dir _ ->
-                                        if isHorizontal dir && isPx elem.width then
-                                            ( "flex-shrink", "0" ) :: attrs
-                                        else if isHorizontal dir && isPercent elem.width then
-                                            ( "flex-shrink", "0" ) :: attrs
-                                        else if isHorizontal dir && elem.width /= Nothing then
-                                            ( "flex-shrink", "1" ) :: attrs
-                                        else if isHorizontal dir && horizontalOverflow then
-                                            ( "flex-shrink", "1" ) :: attrs
-                                        else if isVertical dir && isPx elem.height then
-                                            ( "flex-shrink", "0" ) :: attrs
-                                        else if isVertical dir && isPercent elem.height then
-                                            ( "flex-shrink", "0" ) :: attrs
-                                        else if isVertical dir && elem.height /= Nothing then
-                                            ( "flex-shrink", "1" ) :: attrs
-                                        else if isVertical dir && verticalOverflow then
-                                            ( "flex-shrink", "1" ) :: attrs
-                                            -- If width is not set, then we want it to wrap,
-                                            -- which apparently involves flex-shrink being 1
-                                        else if isHorizontal dir && elem.width == Nothing then
-                                            ( "flex-shrink", "1" ) :: attrs
-                                        else if isVertical dir && elem.height == Nothing then
-                                            case elType of
-                                                Single ->
-                                                    ( "flex-shrink", "1" ) :: attrs
+                            case layout of
+                                Internal.FlexLayout dir _ ->
+                                    if isHorizontal dir && isPx elem.width then
+                                        ( "flex-shrink", "0" ) :: attrs
+                                    else if isHorizontal dir && isPercent elem.width then
+                                        ( "flex-shrink", "0" ) :: attrs
+                                    else if isHorizontal dir && elem.width /= Nothing then
+                                        ( "flex-shrink", "1" ) :: attrs
+                                    else if isHorizontal dir && horizontalOverflow then
+                                        ( "flex-shrink", "1" ) :: attrs
+                                    else if isVertical dir && isPx elem.height then
+                                        ( "flex-shrink", "0" ) :: attrs
+                                    else if isVertical dir && isPercent elem.height then
+                                        ( "flex-shrink", "0" ) :: attrs
+                                    else if isVertical dir && elem.height /= Nothing then
+                                        ( "flex-shrink", "1" ) :: attrs
+                                    else if isVertical dir && verticalOverflow then
+                                        ( "flex-shrink", "1" ) :: attrs
+                                        -- If width is not set, then we want it to wrap,
+                                        -- which apparently involves flex-shrink being 1
+                                    else if isHorizontal dir && elem.width == Nothing then
+                                        ( "flex-shrink", "1" ) :: attrs
+                                    else if isVertical dir && elem.height == Nothing then
+                                        case elType of
+                                            Single ->
+                                                ( "flex-shrink", "1" ) :: attrs
 
-                                                LayoutElement elLayout ->
-                                                    ( "flex-shrink", "0" ) :: attrs
-                                        else
-                                            ( "flex-shrink", "0" ) :: attrs
+                                            LayoutElement elLayout ->
+                                                ( "flex-shrink", "0" ) :: attrs
+                                    else
+                                        ( "flex-shrink", "0" ) :: attrs
 
-                                    _ ->
-                                        attrs
+                                _ ->
+                                    attrs
 
         width attrs =
             case elem.width of
@@ -1140,15 +1140,15 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                 paddingAdjustment =
                                     (rightPad + leftPad) / 2
                             in
-                                case layout of
-                                    Internal.FlexLayout Internal.GoRight _ ->
-                                        Property.flexWidth len paddingAdjustment :: attrs
+                            case layout of
+                                Internal.FlexLayout Internal.GoRight _ ->
+                                    Property.flexWidth len paddingAdjustment :: attrs
 
-                                    Internal.FlexLayout Internal.GoLeft _ ->
-                                        Property.flexWidth len paddingAdjustment :: attrs
+                                Internal.FlexLayout Internal.GoLeft _ ->
+                                    Property.flexWidth len paddingAdjustment :: attrs
 
-                                    _ ->
-                                        ( "width", Value.parentAdjustedLength len paddingAdjustment ) :: attrs
+                                _ ->
+                                    ( "width", Value.parentAdjustedLength len paddingAdjustment ) :: attrs
 
                         Nothing ->
                             ( "width", Value.length len ) :: attrs
@@ -1182,27 +1182,27 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                         _ ->
                                             False
                             in
-                                case layout of
-                                    Internal.FlexLayout Internal.Down _ ->
-                                        Property.flexHeight len :: attrs
+                            case layout of
+                                Internal.FlexLayout Internal.Down _ ->
+                                    Property.flexHeight len :: attrs
 
-                                    Internal.FlexLayout Internal.Up _ ->
-                                        Property.flexHeight len :: attrs
+                                Internal.FlexLayout Internal.Up _ ->
+                                    Property.flexHeight len :: attrs
 
-                                    Internal.FlexLayout Internal.GoRight _ ->
-                                        if hundredPercentOrFill len then
-                                            ( "height", "auto" ) :: attrs
-                                        else
-                                            ( "height", Value.parentAdjustedLength len paddingAdjustment ) :: attrs
-
-                                    Internal.FlexLayout Internal.GoLeft _ ->
-                                        if hundredPercentOrFill len then
-                                            ( "height", "auto" ) :: attrs
-                                        else
-                                            ( "height", Value.parentAdjustedLength len paddingAdjustment ) :: attrs
-
-                                    _ ->
+                                Internal.FlexLayout Internal.GoRight _ ->
+                                    if hundredPercentOrFill len then
+                                        ( "height", "auto" ) :: attrs
+                                    else
                                         ( "height", Value.parentAdjustedLength len paddingAdjustment ) :: attrs
+
+                                Internal.FlexLayout Internal.GoLeft _ ->
+                                    if hundredPercentOrFill len then
+                                        ( "height", "auto" ) :: attrs
+                                    else
+                                        ( "height", Value.parentAdjustedLength len paddingAdjustment ) :: attrs
+
+                                _ ->
+                                    ( "height", Value.parentAdjustedLength len paddingAdjustment ) :: attrs
 
                         Nothing ->
                             ( "height", Value.length len ) :: attrs
@@ -1220,10 +1220,10 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                 paddings =
                     renderPadding elem.padding
             in
-                if List.length paddings > 0 then
-                    paddings ++ attrs
-                else
-                    attrs
+            if List.length paddings > 0 then
+                paddings ++ attrs
+            else
+                attrs
 
         gridPos attrs =
             case elem.gridPosition of
@@ -1259,63 +1259,63 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                         _ ->
                             False
             in
-                if onScreen then
-                    ( 0, 0, 0, 0 )
-                else
-                    case parent of
-                        Nothing ->
-                            ( top, right, bottom, left )
+            if onScreen then
+                ( 0, 0, 0, 0 )
+            else
+                case parent of
+                    Nothing ->
+                        ( top, right, bottom, left )
 
-                        Just { layout } ->
-                            case layout of
-                                Internal.TextLayout _ ->
-                                    case elem.horizontal of
-                                        Nothing ->
-                                            if order == Last || order == FirstAndLast then
-                                                ( 0, 0, 0, 0 )
-                                            else if elem.inline then
-                                                -- If an element is inline, spacing is horizontal, otherwise it's vertical.
-                                                ( 0, right, 0, 0 )
-                                            else
-                                                ( 0, 0, bottom, 0 )
+                    Just { layout } ->
+                        case layout of
+                            Internal.TextLayout _ ->
+                                case elem.horizontal of
+                                    Nothing ->
+                                        if order == Last || order == FirstAndLast then
+                                            ( 0, 0, 0, 0 )
+                                        else if elem.inline then
+                                            -- If an element is inline, spacing is horizontal, otherwise it's vertical.
+                                            ( 0, right, 0, 0 )
+                                        else
+                                            ( 0, 0, bottom, 0 )
 
-                                        Just align ->
-                                            if not elem.inline && elem.frame == Nothing then
-                                                case align of
-                                                    Left ->
-                                                        if order == First then
-                                                            ( 0, right, bottom, 0 )
-                                                        else if order == FirstAndLast then
-                                                            ( 0, right, 0, 0 )
-                                                        else if order == Last then
-                                                            ( 0, right, 0, 0 )
-                                                        else
-                                                            ( 0, right, bottom, 0 )
+                                    Just align ->
+                                        if not elem.inline && elem.frame == Nothing then
+                                            case align of
+                                                Left ->
+                                                    if order == First then
+                                                        ( 0, right, bottom, 0 )
+                                                    else if order == FirstAndLast then
+                                                        ( 0, right, 0, 0 )
+                                                    else if order == Last then
+                                                        ( 0, right, 0, 0 )
+                                                    else
+                                                        ( 0, right, bottom, 0 )
 
-                                                    Right ->
-                                                        if order == First then
-                                                            ( 0, 0, bottom, left )
-                                                        else if order == FirstAndLast then
-                                                            ( 0, 0, 0, left )
-                                                        else if order == Last then
-                                                            ( 0, 0, 0, left )
-                                                        else
-                                                            ( 0, 0, bottom, left )
+                                                Right ->
+                                                    if order == First then
+                                                        ( 0, 0, bottom, left )
+                                                    else if order == FirstAndLast then
+                                                        ( 0, 0, 0, left )
+                                                    else if order == Last then
+                                                        ( 0, 0, 0, left )
+                                                    else
+                                                        ( 0, 0, bottom, left )
 
-                                                    _ ->
-                                                        if order == Last || order == FirstAndLast then
-                                                            ( 0, 0, 0, 0 )
-                                                        else
-                                                            ( 0, 0, bottom, 0 )
-                                            else
-                                                ( top
-                                                , right
-                                                , bottom
-                                                , left
-                                                )
+                                                _ ->
+                                                    if order == Last || order == FirstAndLast then
+                                                        ( 0, 0, 0, 0 )
+                                                    else
+                                                        ( 0, 0, bottom, 0 )
+                                        else
+                                            ( top
+                                            , right
+                                            , bottom
+                                            , left
+                                            )
 
-                                _ ->
-                                    halved
+                            _ ->
+                                halved
 
         defaults =
             [ ( "box-sizing", "border-box" )
@@ -1332,146 +1332,144 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                     else
                         Html.Attributes.class (stylesheet.style elemID) :: elem.attrs
     in
-        if elem.hidden then
-            Html.Attributes.style [ ( "display", "none" ) ] :: attributes
-        else if elem.expand then
-            let
-                expandedProps =
-                    case parent of
-                        Nothing ->
-                            [ ( "width", "100%" )
-                            , ( "height", "100%" )
-                            , ( "margin", "0" )
-                            ]
+    if elem.hidden then
+        Html.Attributes.style [ ( "display", "none" ) ] :: attributes
+    else if elem.expand then
+        let
+            expandedProps =
+                case parent of
+                    Nothing ->
+                        [ ( "width", "100%" )
+                        , ( "height", "100%" )
+                        , ( "margin", "0" )
+                        ]
 
-                        Just { layout, parentPadding, parentSpecifiedSpacing } ->
-                            case layout of
-                                Internal.TextLayout _ ->
-                                    let
-                                        ( top, right, bottom, left ) =
-                                            parentPadding
+                    Just { layout, parentPadding, parentSpecifiedSpacing } ->
+                        case layout of
+                            Internal.TextLayout _ ->
+                                let
+                                    ( top, right, bottom, left ) =
+                                        parentPadding
 
-                                        borders =
-                                            List.concat
-                                                [ if order == Last then
-                                                    [ ( "border-top-right-radius", "0" )
-                                                    , ( "border-top-left-radius", "0" )
-                                                    ]
-                                                  else if order == First then
-                                                    [ ( "border-bottom-right-radius", "0" )
-                                                    , ( "border-bottom-left-radius", "0" )
-                                                    ]
-                                                  else if order == FirstAndLast then
-                                                    [ ( "border-top-right-radius", "0" )
-                                                    , ( "border-top-left-radius", "0" )
-                                                    , ( "border-bottom-right-radius", "0" )
-                                                    , ( "border-bottom-left-radius", "0" )
-                                                    ]
-                                                  else
-                                                    []
+                                    borders =
+                                        List.concat
+                                            [ if order == Last then
+                                                [ ( "border-top-right-radius", "0" )
+                                                , ( "border-top-left-radius", "0" )
                                                 ]
-                                    in
-                                        [ ( "width", ("calc(100% + " ++ toString (right + left) ++ "px") )
-                                        , ( "margin", "0" )
-                                        , ( "margin-left", (toString (-1 * left) ++ "px") )
-                                        , if order == First || order == FirstAndLast then
-                                            ( "margin-top", (toString (-1 * top) ++ "px") )
-                                          else
-                                            ( "margin-top", "0" )
-                                        , if order == Last || order == FirstAndLast then
-                                            ( "margin-bottom", (toString (-1 * bottom) ++ "px") )
-                                          else
-                                            ( "margin-bottom", "0" )
-                                        , ( "padding", (Value.box <| defaultPadding elem.padding parentPadding) )
-                                        ]
-                                            ++ borders
+                                              else if order == First then
+                                                [ ( "border-bottom-right-radius", "0" )
+                                                , ( "border-bottom-left-radius", "0" )
+                                                ]
+                                              else if order == FirstAndLast then
+                                                [ ( "border-top-right-radius", "0" )
+                                                , ( "border-top-left-radius", "0" )
+                                                , ( "border-bottom-right-radius", "0" )
+                                                , ( "border-bottom-left-radius", "0" )
+                                                ]
+                                              else
+                                                []
+                                            ]
+                                in
+                                [ ( "width", "calc(100% + " ++ toString (right + left) ++ "px" )
+                                , ( "margin", "0" )
+                                , ( "margin-left", toString (-1 * left) ++ "px" )
+                                , if order == First || order == FirstAndLast then
+                                    ( "margin-top", toString (-1 * top) ++ "px" )
+                                  else
+                                    ( "margin-top", "0" )
+                                , if order == Last || order == FirstAndLast then
+                                    ( "margin-bottom", toString (-1 * bottom) ++ "px" )
+                                  else
+                                    ( "margin-bottom", "0" )
+                                , ( "padding", Value.box <| defaultPadding elem.padding parentPadding )
+                                ]
+                                    ++ borders
 
-                                Internal.FlexLayout dir flex ->
-                                    let
-                                        ( top, right, bottom, left ) =
-                                            parentPadding
+                            Internal.FlexLayout dir flex ->
+                                let
+                                    ( top, right, bottom, left ) =
+                                        parentPadding
 
-                                        ( parentSpaceTop, parentSpaceRight, parentSpaceBottom, parentSpaceLeft ) =
-                                            case parentSpecifiedSpacing of
-                                                Nothing ->
-                                                    ( 0, 0, 0, 0 )
+                                    ( parentSpaceTop, parentSpaceRight, parentSpaceBottom, parentSpaceLeft ) =
+                                        case parentSpecifiedSpacing of
+                                            Nothing ->
+                                                ( 0, 0, 0, 0 )
 
-                                                Just p ->
-                                                    p
-                                    in
-                                        case dir of
-                                            Internal.GoRight ->
-                                                width
-                                                    [ ( "height", ("calc(100% + " ++ toString (top + bottom - ((parentSpaceTop + parentSpaceBottom) / 2)) ++ "px") )
-                                                    , ( "margin", "0" )
-                                                    , ( "margin-top", (toString ((-1 * top) + (parentSpaceTop / 2)) ++ "px") )
-                                                    , if order == First || order == FirstAndLast then
-                                                        ( "margin-left", (toString (-1 * left) ++ "px") )
-                                                      else
-                                                        ( "margin-left", (toString (parentSpaceLeft / 2) ++ "px") )
-                                                    , if order == Last || order == FirstAndLast then
-                                                        ( "margin-right", (toString (-1 * right) ++ "px") )
-                                                      else
-                                                        ( "margin-right", (toString (parentSpaceRight / 2) ++ "px") )
-                                                    ]
+                                            Just p ->
+                                                p
+                                in
+                                case dir of
+                                    Internal.GoRight ->
+                                        width
+                                            [ ( "height", "calc(100% + " ++ toString (top + bottom - ((parentSpaceTop + parentSpaceBottom) / 2)) ++ "px" )
+                                            , ( "margin", "0" )
+                                            , ( "margin-top", toString ((-1 * top) + (parentSpaceTop / 2)) ++ "px" )
+                                            , if order == First || order == FirstAndLast then
+                                                ( "margin-left", toString (-1 * left) ++ "px" )
+                                              else
+                                                ( "margin-left", toString (parentSpaceLeft / 2) ++ "px" )
+                                            , if order == Last || order == FirstAndLast then
+                                                ( "margin-right", toString (-1 * right) ++ "px" )
+                                              else
+                                                ( "margin-right", toString (parentSpaceRight / 2) ++ "px" )
+                                            ]
 
-                                            Internal.GoLeft ->
-                                                width
-                                                    [ ( "height", ("calc(100% + " ++ toString (top + bottom - ((parentSpaceTop + parentSpaceBottom) / 2)) ++ "px") )
-                                                    , ( "margin", "0" )
-                                                    , ( "margin-top", (toString ((-1 * top) + (parentSpaceTop / 2)) ++ "px") )
-                                                    , if order == First || order == FirstAndLast then
-                                                        ( "margin-right", (toString (-1 * right) ++ "px") )
-                                                      else
-                                                        ( "margin-right", (toString (parentSpaceRight / 2) ++ "px") )
-                                                    , if order == Last || order == FirstAndLast then
-                                                        ( "margin-left", (toString (-1 * left) ++ "px") )
-                                                      else
-                                                        ( "margin-left", (toString (parentSpaceLeft / 2) ++ "px") )
-                                                    ]
+                                    Internal.GoLeft ->
+                                        width
+                                            [ ( "height", "calc(100% + " ++ toString (top + bottom - ((parentSpaceTop + parentSpaceBottom) / 2)) ++ "px" )
+                                            , ( "margin", "0" )
+                                            , ( "margin-top", toString ((-1 * top) + (parentSpaceTop / 2)) ++ "px" )
+                                            , if order == First || order == FirstAndLast then
+                                                ( "margin-right", toString (-1 * right) ++ "px" )
+                                              else
+                                                ( "margin-right", toString (parentSpaceRight / 2) ++ "px" )
+                                            , if order == Last || order == FirstAndLast then
+                                                ( "margin-left", toString (-1 * left) ++ "px" )
+                                              else
+                                                ( "margin-left", toString (parentSpaceLeft / 2) ++ "px" )
+                                            ]
 
-                                            Internal.Up ->
-                                                height
-                                                    [ ( "width", ("calc(100% + " ++ toString (left + right - ((parentSpaceLeft + parentSpaceRight) / 2)) ++ "px") )
-                                                    , ( "margin", "0" )
-                                                    , ( "margin-left", (toString ((-1 * left) + (parentSpaceLeft / 2)) ++ "px") )
-                                                    , if order == First || order == FirstAndLast then
-                                                        ( "margin-bottom", (toString (-1 * top) ++ "px") )
-                                                      else
-                                                        ( "margin-bottom", (toString (parentSpaceBottom / 2) ++ "px") )
-                                                    , if order == Last || order == FirstAndLast then
-                                                        ( "margin-top", (toString (-1 * bottom) ++ "px") )
-                                                      else
-                                                        ( "margin-top", (toString (parentSpaceTop / 2) ++ "px") )
-                                                    ]
+                                    Internal.Up ->
+                                        height
+                                            [ ( "width", "calc(100% + " ++ toString (left + right - ((parentSpaceLeft + parentSpaceRight) / 2)) ++ "px" )
+                                            , ( "margin", "0" )
+                                            , ( "margin-left", toString ((-1 * left) + (parentSpaceLeft / 2)) ++ "px" )
+                                            , if order == First || order == FirstAndLast then
+                                                ( "margin-bottom", toString (-1 * top) ++ "px" )
+                                              else
+                                                ( "margin-bottom", toString (parentSpaceBottom / 2) ++ "px" )
+                                            , if order == Last || order == FirstAndLast then
+                                                ( "margin-top", toString (-1 * bottom) ++ "px" )
+                                              else
+                                                ( "margin-top", toString (parentSpaceTop / 2) ++ "px" )
+                                            ]
 
-                                            Internal.Down ->
-                                                height
-                                                    [ ( "width", ("calc(100% + " ++ toString (left + right - ((parentSpaceLeft + parentSpaceRight) / 2)) ++ "px") )
-                                                    , ( "margin", "0" )
-                                                    , ( "margin-left", (toString ((-1 * left) + (parentSpaceLeft / 2)) ++ "px") )
-                                                    , if order == First || order == FirstAndLast then
-                                                        ( "margin-top", (toString (-1 * top) ++ "px") )
-                                                      else
-                                                        ( "margin-top", (toString (parentSpaceTop / 2) ++ "px") )
-                                                    , if order == Last || order == FirstAndLast then
-                                                        ( "margin-bottom", (toString (-1 * bottom) ++ "px") )
-                                                      else
-                                                        ( "margin-bottom", (toString (parentSpaceBottom / 2) ++ "px") )
-                                                    ]
+                                    Internal.Down ->
+                                        height
+                                            [ ( "width", "calc(100% + " ++ toString (left + right - ((parentSpaceLeft + parentSpaceRight) / 2)) ++ "px" )
+                                            , ( "margin", "0" )
+                                            , ( "margin-left", toString ((-1 * left) + (parentSpaceLeft / 2)) ++ "px" )
+                                            , if order == First || order == FirstAndLast then
+                                                ( "margin-top", toString (-1 * top) ++ "px" )
+                                              else
+                                                ( "margin-top", toString (parentSpaceTop / 2) ++ "px" )
+                                            , if order == Last || order == FirstAndLast then
+                                                ( "margin-bottom", toString (-1 * bottom) ++ "px" )
+                                              else
+                                                ( "margin-bottom", toString (parentSpaceBottom / 2) ++ "px" )
+                                            ]
 
-                                _ ->
-                                    []
-            in
-                (Html.Attributes.style
-                    (( "box-sizing", "border-box" ) :: ((passthrough << gridPos << layout << spacing << opacity << shrink << padding << position << overflow) <| expandedProps))
-                )
-                    :: attributes
-        else
-            (Html.Attributes.style
-                ((passthrough << gridPos << layout << spacing << opacity << shrink << width << height << padding << horizontal << vertical << position << overflow) <| defaults)
-            )
-                :: attributes
+                            _ ->
+                                []
+        in
+        Html.Attributes.style
+            (( "box-sizing", "border-box" ) :: ((passthrough << gridPos << layout << spacing << opacity << shrink << padding << position << overflow) <| expandedProps))
+            :: attributes
+    else
+        Html.Attributes.style
+            ((passthrough << gridPos << layout << spacing << opacity << shrink << width << height << padding << horizontal << vertical << position << overflow) <| defaults)
+            :: attributes
 
 
 renderPadding ( top, right, bottom, left ) =
@@ -1479,9 +1477,9 @@ renderPadding ( top, right, bottom, left ) =
         format name x =
             ( name, toString x ++ "px" )
     in
-        List.filterMap identity
-            [ Maybe.map (format "padding-top") top
-            , Maybe.map (format "padding-bottom") bottom
-            , Maybe.map (format "padding-left") left
-            , Maybe.map (format "padding-right") right
-            ]
+    List.filterMap identity
+        [ Maybe.map (format "padding-top") top
+        , Maybe.map (format "padding-bottom") bottom
+        , Maybe.map (format "padding-left") left
+        , Maybe.map (format "padding-right") right
+        ]
