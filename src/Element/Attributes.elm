@@ -25,6 +25,7 @@ module Element.Attributes
         , px
         , fill
         , percent
+        , auto
         , vary
         , spacing
         , spacingXY
@@ -466,6 +467,11 @@ fill =
 percent : Float -> Length
 percent =
     Style.Percent
+
+{-| -}
+auto : Length
+auto =
+    Style.Auto
 
 
 {-| Apply a style variation.
