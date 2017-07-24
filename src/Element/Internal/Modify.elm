@@ -240,6 +240,62 @@ addChild parent el =
                 }
 
 
+
+-- {-| Converts to a row if element is not already specified as a 1-d layout.
+-- Adds the new children specified
+-- -}
+-- convertToRow : (Element style variation msg -> List (Element style variation msg)) -> Element style variation msg -> Element style variation msg
+-- convertToRow toChildren el =
+--     case el of
+--         Empty ->
+--             Layout
+--                 { node = "div"
+--                 , style = Nothing
+--                 , layout = Style.FlexLayout Style.GoRight []
+--                 , attrs = []
+--                 , children = Internal.Normal (toChildren Empty)
+--                 , absolutelyPositioned = Nothing
+--                 }
+--         Spacer x ->
+--             Layout
+--                 { node = "div"
+--                 , style = Nothing
+--                 , layout = Style.FlexLayout Style.GoRight []
+--                 , attrs = [ Spacing x x ]
+--                 , children = Internal.Normal (toChildren Empty)
+--                 , absolutelyPositioned = Nothing
+--                 }
+--         Raw h ->
+--             Layout
+--                 { node = "div"
+--                 , style = Nothing
+--                 , layout = Style.FlexLayout Style.GoRight []
+--                 , attrs = []
+--                 , children = Internal.Normal (toChildren (Raw h))
+--                 , absolutelyPositioned = Nothing
+--                 }
+--         Layout layout ->
+--             el
+--         Element elem ->
+--             Layout
+--                 { node = elem.node
+--                 , style = elem.style
+--                 , layout = Style.FlexLayout Style.GoRight []
+--                 , attrs = elem.attrs
+--                 , children = Internal.Normal (toChildren elem.child)
+--                 , absolutelyPositioned = Nothing
+--                 }
+--         Text dec content ->
+--             Layout
+--                 { node = "div"
+--                 , style = Nothing
+--                 , layout = Style.FlexLayout Style.GoRight []
+--                 , attrs = []
+--                 , children = Internal.Normal (toChildren (Text dec content))
+--                 , absolutelyPositioned = Nothing
+--                 }
+
+
 getAttrs : Element style variation msg -> List (Attribute variation msg)
 getAttrs el =
     case el of
