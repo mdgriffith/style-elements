@@ -23,6 +23,7 @@ module Element.Attributes
         , maxHeight
         , height
         , px
+        , content
         , fill
         , percent
         , vary
@@ -112,13 +113,6 @@ module Element.Attributes
         , rowspan
         , headers
         , scope
-        , async
-        , charset
-        , content
-        , defer
-        , httpEquiv
-        , language
-        , scoped
         , accesskey
         , contenteditable
         , contextmenu
@@ -169,7 +163,7 @@ When applied to singular elements like `el`, alignment will affect the alignment
 
 ## Sizing
 
-@docs width, minWidth, maxWidth, height, minHeight, maxHeight, px, fill, percent
+@docs width, minWidth, maxWidth, height, minHeight, maxHeight, px, fill, percent, content
 
 
 ## Spacing ++ Padding
@@ -279,11 +273,6 @@ Attributes](#custom-attributes) section to learn how to create new helpers.
 # Tables
 
 @docs align, colspan, rowspan, headers, scope
-
-
-# Header Stuff
-
-@docs async, charset, content, defer, httpEquiv, language, scoped
 
 
 # Less Common Global Attributes
@@ -454,6 +443,12 @@ height =
 px : Float -> Length
 px =
     Style.Px
+
+
+{-| -}
+content : Length
+content =
+    Style.Auto
 
 
 {-| -}
@@ -847,70 +842,6 @@ instead.
 tabindex : Int -> Attribute variation msg
 tabindex index =
     Attr <| Html.Attributes.tabindex index
-
-
-
--- HEADER STUFF
-
-
-{-| Indicates that the `script` should be executed asynchronously.
--}
-async : Bool -> Attribute variation msg
-async on =
-    Attr <| Html.Attributes.async on
-
-
-{-| Declares the character encoding of the page or script. Common values include:
-
-  - UTF-8 - Character encoding for Unicode
-  - ISO-8859-1 - Character encoding for the Latin alphabet
-
-For `meta` and `script`.
-
--}
-charset : String -> Attribute variation msg
-charset char =
-    Attr <| Html.Attributes.charset char
-
-
-{-| A value associated with http-equiv or name depending on the context. For
-`meta`.
--}
-content : String -> Attribute variation msg
-content str =
-    Attr <| Html.Attributes.content str
-
-
-{-| Indicates that a `script` should be executed after the page has been
-parsed.
--}
-defer : Bool -> Attribute variation msg
-defer def =
-    Attr <| Html.Attributes.defer def
-
-
-{-| This attribute is an indicator that is paired with the `content` attribute,
-indicating what that content means. `httpEquiv` can take on three different
-values: content-type, default-style, or refresh. For `meta`.
--}
-httpEquiv : String -> Attribute variation msg
-httpEquiv str =
-    Attr <| Html.Attributes.httpEquiv str
-
-
-{-| Defines the script language used in a `script`.
--}
-language : String -> Attribute variation msg
-language lang =
-    Attr <| Html.Attributes.language lang
-
-
-{-| Indicates that a `style` should only apply to its parent and all of the
-parents children.
--}
-scoped : Bool -> Attribute variation msg
-scoped on =
-    Attr <| Html.Attributes.scoped on
 
 
 
