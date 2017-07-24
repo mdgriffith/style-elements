@@ -80,13 +80,14 @@ import Json.Decode as Json
 
 
 
-    (Form.text inputStyle []
-        { value = "LazerCat"
-        |> label style [] (text "First Name")
-        |> below
-            [ whenJust firstname.error
-                (text << String.join ", ")
-            ]
+    Input.text inputStyle []
+        { onChange = UpdateSearch
+        , value = "Hi!"
+        }
+        |> Input.error False
+            (text << String.join ", ")
+        |> Input.label style [] (text "First Name")
+
 
 
 -}
@@ -187,7 +188,7 @@ search elem attrs { value, onChange } =
         [ Internal.Element
             { node = "input"
             , style = Just elem
-            , attrs = (Attr.type_ "search" :: Attr.value value :: Events.onInput onChange :: attrs)
+            , attrs = (Attr.attribute "role" "search" :: Attr.type_ "search" :: Attr.value value :: Events.onInput onChange :: attrs)
             , child = Internal.Empty
             , absolutelyPositioned = Nothing
             }
