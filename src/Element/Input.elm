@@ -661,3 +661,96 @@ radioElement horizontal style attrs { onChange, options, selected } =
             row style attrs (List.map renderOption options)
         else
             column style attrs (List.map renderOption options)
+
+
+{-| A Select Menu
+-}
+select : style -> List (Attribute variation msg) -> Radio option style variation msg -> Element style variation msg
+select style attrs { onChange, options, selected } =
+    let
+        renderOption option =
+            case option of
+                Option value el ->
+                    let
+                        style =
+                            Modify.getStyle el
+
+                        attrs =
+                            Modify.getAttrs el
+
+                        ( inputEvents, nonInputEventAttrs ) =
+                            List.partition forInputEvents
+                                (if Just value /= selected then
+                                    attrs ++ [ Events.onCheck (\_ -> onChange value) ]
+                                 else
+                                    attrs
+                                )
+
+                        forInputEvents attr =
+                            case attr of
+                                Internal.InputEvent ev ->
+                                    True
+
+                                _ ->
+                                    False
+
+                        rune =
+                            el
+                                |> Modify.setNode "option"
+                                |> Modify.addAttrList
+                                    ([ Attr.type_ "radio"
+                                     , Attr.value (optionToString value)
+                                     , Attr.checked (Just value == selected)
+                                     , Internal.VAlign Internal.VerticalCenter
+                                     , Internal.Position Nothing (Just -2) Nothing
+                                     ]
+                                        ++ inputEvents
+                                    )
+                                |> Modify.removeContent
+                                |> Modify.removeStyle
+
+                        literalLabel =
+                            el
+                                |> Modify.getChild
+                                |> Modify.removeAllAttrs
+                                |> Modify.removeStyle
+                    in
+                        Internal.Layout
+                            { node = "label"
+                            , style = style
+                            , layout = Style.FlexLayout Style.GoRight []
+                            , attrs = Attr.spacing 5 :: nonInputEventAttrs
+                            , children = Internal.Normal [ rune, literalLabel ]
+                            , absolutelyPositioned = Nothing
+                            }
+
+                OptionWith value elem ->
+                    let
+                        hiddenInput =
+                            Internal.Element
+                                { node = "option"
+                                , style = Nothing
+                                , attrs =
+                                    ([ Attr.hidden
+                                     , Attr.value (optionToString value)
+                                     , Attr.checked (Just value == selected)
+                                     ]
+                                        ++ if Just value /= selected then
+                                            [ Events.onCheck (\_ -> onChange value) ]
+                                           else
+                                            []
+                                    )
+                                , child = Internal.Empty
+                                , absolutelyPositioned = Nothing
+                                }
+                    in
+                        Internal.Layout
+                            { node = "label"
+                            , style = Nothing
+                            , layout = Style.FlexLayout Style.GoRight []
+                            , attrs = []
+                            , children = Internal.Normal [ hiddenInput, elem (Just value == selected) ]
+                            , absolutelyPositioned = Nothing
+                            }
+    in
+        Element.node "select" <| column style attrs (List.map renderOption options)
