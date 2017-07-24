@@ -70,6 +70,8 @@ module Element
         , NamedOnGrid
         , Grid
         , NamedGrid
+        , GridPosition
+        , NamedGridPosition
         , select
         , option
         , Option
@@ -119,7 +121,7 @@ Make sure to check out the Style Element specific attributes in `Element.Attribu
 
 ## Grid Layout
 
-@docs table, Grid, NamedGrid, grid, namedGrid, OnGrid, NamedOnGrid, area, named, span, spanAll
+@docs table, Grid, NamedGrid, grid, namedGrid, GridPosition, NamedGridPosition, OnGrid, NamedOnGrid, area, named, span, spanAll
 
 
 ## Convenience Elements
@@ -1076,6 +1078,7 @@ named name el =
     NamedOnGrid <| Modify.addAttr (GridArea name) el
 
 
+{-| -}
 type alias NamedGridPosition =
     Style.NamedGridPosition
 
