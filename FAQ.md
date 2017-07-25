@@ -16,6 +16,6 @@ zIndex n =
 
 Supporting both margins and padding make consistent layouts difficult, so style-elements only uses padding.
 
-If you need spacing between children in a layout, use ['Element.Attributes.spacing`](http://package.elm-lang.org/packages/mdgriffith/style-elements/latest/Element-Attributes#spacing).
+If you need spacing between children in a layout, use [`Element.Attributes.spacing`](http://package.elm-lang.org/packages/mdgriffith/style-elements/latest/Element-Attributes#spacing).
 
 To set more space around a single element, wrap the element in a spacer a set padding. This is more explicit and you can predict exactly how your element will be laid out.
