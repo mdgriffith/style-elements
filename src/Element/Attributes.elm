@@ -671,7 +671,10 @@ attribute name val =
     Attr <| Html.Attributes.attribute name val
 
 
-{-| Convert an existing `Html.Attribute` to an `Element.Attribute`
+{-| Convert an existing `Html.Attribute` to an `Element.Attribute`.
+
+This is useful for working with any library that returns a `Html.Attribute`.
+
 -}
 toAttr : Html.Attribute msg -> Attribute variation msg
 toAttr =
