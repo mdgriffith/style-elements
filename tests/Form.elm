@@ -4,7 +4,7 @@ import Color
 import Element exposing (..)
 import Element.Attributes exposing (..)
 import Element.Events
-import Element.Form as Form
+import Element.Input as Input
 import Html
 import Style exposing (..)
 import Style.Background as Background
@@ -122,6 +122,7 @@ main =
         { init =
             ( { checkbox = False
               , lunch = Taco
+              , text = "hi"
               }
             , Cmd.none
             )
@@ -135,6 +136,7 @@ type Msg
     = Log String
     | Check Bool
     | ChooseLunch Lunch
+    | ChangeText String
 
 
 update msg model =
@@ -156,51 +158,105 @@ update msg model =
             , Cmd.none
             )
 
+        ChangeText str ->
+            ( { model | text = str }
+            , Cmd.none
+            )
+
 
 type Lunch
     = Taco
     | Burrito
+    | Gyro
 
 
 view model =
     Element.layout stylesheet <|
         el None [ center, width (px 800) ] <|
             column Main
-                [ spacingXY 50 100 ]
-                [ Form.checkbox Blue
+                [ spacing 20 ]
+                [ Input.checkbox Blue
                     []
                     { onChange = Check
-                    , value = model.checkbox
+                    , checked = model.checkbox
                     , label = text "hello!"
                     }
-                , Form.checkboxWith Blue
+                , Input.checkboxWith Blue
                     []
                     { onChange = Check
-                    , value = model.checkbox
-                    , label = text "hello!"
+                    , checked = model.checkbox
                     , elem =
                         \on ->
-                            circle 5
-                                (if on then
-                                    Yellow
-                                 else
-                                    Grey
-                                )
-                                []
-                                empty
+                            row Container
+                                [ verticalCenter, spacing 5 ]
+                                [ circle 5
+                                    (if on then
+                                        Yellow
+                                     else
+                                        Grey
+                                    )
+                                    []
+                                    empty
+                                , el None [] (text "Hello!")
+                                ]
                     }
-                , Form.radio Container
-                    [ padding 40, spacing 10 ]
+                , Input.radio Container
+                    [ padding 40
+                    , spacing 5
+                    , height (px 200)
+                    ]
                     { onChange = ChooseLunch
-                    , selected = model.lunch
+                    , selected = Just model.lunch
                     , options =
-                        [ Form.optionWith Burrito <|
-                            \selected ->
+                        [ Input.optionWith Burrito
+                            (\selected ->
                                 if selected then
                                     text ":D Burrito"
                                 else
                                     text ":( No Burrito"
-                        , Form.option Taco (text "A Taco!")
+                            )
+                        , Input.option Taco (text "Taco!")
+                        , Input.option Gyro (text "Gyro")
                         ]
                     }
+                , Input.radioRow Container
+                    [ padding 40, spacing 20 ]
+                    { onChange = ChooseLunch
+                    , selected = Just model.lunch
+                    , options =
+                        [ Input.option Taco (text "Taco!")
+                        , Input.option Gyro (text "Gyro")
+                        , Input.optionWith Burrito
+                            (\selected ->
+                                if selected then
+                                    text ":D Burrito"
+                                else
+                                    text ":( No Burrito"
+                            )
+                        ]
+                    }
+                , Input.label (text "A Greeting") <|
+                    Input.text None
+                        []
+                        { onChange = ChangeText
+                        , value = model.text
+                        }
+                , Input.label (text "A Greeting") <|
+                    Input.multiline None
+                        []
+                        { onChange = ChangeText
+                        , value = model.text
+                        }
+                , Input.label (text "A Greeting") <|
+                    Input.search None
+                        []
+                        { onChange = ChangeText
+                        , value = model.text
+                        }
+                , Input.labelBelow (text "My super password") <|
+                    Input.password None
+                        []
+                        { onChange = ChangeText
+                        , value = model.text
+                        }
                 ]
