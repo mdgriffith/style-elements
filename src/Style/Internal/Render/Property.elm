@@ -270,8 +270,9 @@ background prop =
             BackgroundElement name val ->
                 [ ( name, val ) ]
 
-            BackgroundImage { src, position, repeat } ->
-                [ ( "background-image", src )
+            BackgroundImage { src, position, repeat, size } ->
+                [ ( "background-image", "url(" ++ src ++ ")" )
+                , ( "background-position", (toString (Tuple.first position) ++ "px " ++ toString (Tuple.second position) ++ "px") )
                 , ( "background-repeat"
                   , case repeat of
                         RepeatX ->
@@ -292,7 +293,23 @@ background prop =
                         NoRepeat ->
                             "no-repeat"
                   )
-                , ( "background-position", (toString (Tuple.first position) ++ "px " ++ toString (Tuple.second position) ++ "px") )
+                , ( "background-size"
+                  , case size of
+                        Contain ->
+                            "container"
+
+                        Cover ->
+                            "cover"
+
+                        BackgroundWidth width ->
+                            Value.length width ++ " auto"
+
+                        BackgroundHeight height ->
+                            "auto " ++ Value.length height
+
+                        BackgroundSize { width, height } ->
+                            Value.length width ++ " " ++ Value.length height
+                  )
                 ]
 
             BackgroundLinearGradient dir steps ->

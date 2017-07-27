@@ -20,6 +20,11 @@ module Style.Background
         , space
         , round
         , noRepeat
+        , cover
+        , contain
+        , width
+        , height
+        , size
         )
 
 {-|
@@ -28,6 +33,11 @@ module Style.Background
 ## Background Image
 
 @docs image, imageWith, repeatX, repeatY, repeat, space, round, noRepeat
+
+
+### Background Image Sizes
+
+@docs cover, contain, width, height, size
 
 
 ## Background Gradient
@@ -165,7 +175,48 @@ image src =
             { src = src
             , position = ( 0, 0 )
             , repeat = noRepeat
+            , size = cover
             }
+
+
+{-| -}
+type alias Size =
+    Internal.BackgroundSize
+
+
+{-| Scale the image proportionally so that it fits entirely in view.
+-}
+contain : Size
+contain =
+    Internal.Contain
+
+
+{-| Scale the image proportionally so that it covers the background.
+-}
+cover : Size
+cover =
+    Internal.Cover
+
+
+{-| Set only the background image width, the height will be scaled autmatically.
+-}
+width : Internal.Length -> Size
+width =
+    Internal.BackgroundWidth
+
+
+{-| Set only the background image height, the width will be scaled autmatically.
+-}
+height : Internal.Length -> Size
+height =
+    Internal.BackgroundHeight
+
+
+{-| Set both the width and height independently. This can potentially skew the image.
+-}
+size : { height : Internal.Length, width : Internal.Length } -> Size
+size =
+    Internal.BackgroundSize
 
 
 {-| -}
@@ -173,6 +224,7 @@ imageWith :
     { src : String
     , position : ( Float, Float )
     , repeat : Repeat
+    , size : Size
     }
     -> Property class variation
 imageWith attrs =

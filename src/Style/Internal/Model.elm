@@ -161,6 +161,17 @@ type Property class variation
     | Transitions (List Transition)
 
 
+type BackgroundSize
+    = Contain
+    | Cover
+    | BackgroundWidth Length
+    | BackgroundHeight Length
+    | BackgroundSize
+        { width : Length
+        , height : Length
+        }
+
+
 type Transition
     = Transition
         { delay : Time
@@ -255,6 +266,7 @@ type BackgroundElement
         { src : String
         , position : ( Float, Float )
         , repeat : Repeat
+        , size : BackgroundSize
         }
     | BackgroundElement String String
     | BackgroundLinearGradient GradientDirection (List GradientStep)
