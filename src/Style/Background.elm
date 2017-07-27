@@ -13,6 +13,7 @@ module Style.Background
         , gradientBottomLeft
         , gradient
         , image
+        , coverImage
         , imageWith
         , repeatX
         , repeatY
@@ -33,7 +34,7 @@ module Style.Background
 
 ## Background Image
 
-@docs image, imageWith, repeatX, repeatY, repeat, space, stretch, noRepeat
+@docs image, coverImage, imageWith, repeatX, repeatY, repeat, space, stretch, noRepeat
 
 
 ### Background Image Sizes
@@ -168,9 +169,23 @@ gradientBottomLeft steps =
         |> Internal.Background
 
 
-{-| -}
+{-| A background image that keeps it's natural width and height.
+-}
 image : String -> Property class variation
 image src =
+    Internal.Background <|
+        Internal.BackgroundImage
+            { src = src
+            , position = ( 0, 0 )
+            , repeat = noRepeat
+            , size = natural
+            }
+
+
+{-| A background image that will scale to cover the entire background.
+-}
+coverImage : String -> Property class variation
+coverImage src =
     Internal.Background <|
         Internal.BackgroundImage
             { src = src
