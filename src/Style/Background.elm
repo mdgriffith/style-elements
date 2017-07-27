@@ -18,10 +18,11 @@ module Style.Background
         , repeatY
         , repeat
         , space
-        , round
+        , stretch
         , noRepeat
         , cover
         , contain
+        , natural
         , width
         , height
         , size
@@ -32,12 +33,12 @@ module Style.Background
 
 ## Background Image
 
-@docs image, imageWith, repeatX, repeatY, repeat, space, round, noRepeat
+@docs image, imageWith, repeatX, repeatY, repeat, space, stretch, noRepeat
 
 
 ### Background Image Sizes
 
-@docs cover, contain, width, height, size
+@docs natural, cover, contain, width, height, size
 
 
 ## Background Gradient
@@ -198,6 +199,16 @@ cover =
     Internal.Cover
 
 
+{-| Keep the image at it's natural size.
+-}
+natural : Size
+natural =
+    size
+        { height = Internal.Auto
+        , width = Internal.Auto
+        }
+
+
 {-| Set only the background image width, the height will be scaled autmatically.
 -}
 width : Internal.Length -> Size
@@ -250,15 +261,17 @@ repeat =
     Internal.Repeat
 
 
-{-| -}
+{-| Leftover space between tiled images will be blank.
+-}
 space : Repeat
 space =
     Internal.Space
 
 
-{-| -}
-round : Repeat
-round =
+{-| Images will stretch to take up to take up leftover space. Background position will be ignored.
+-}
+stretch : Repeat
+stretch =
     Internal.Round
 
 
