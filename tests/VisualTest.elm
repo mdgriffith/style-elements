@@ -79,7 +79,6 @@ stylesheet =
             , Color.background Color.blue
             , Color.border Color.blue
             , Border.rounded 3
-            , paddingHint 20
             , hover
                 [ Color.text Color.white
                 , Color.background Color.red

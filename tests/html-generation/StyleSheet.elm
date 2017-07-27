@@ -39,7 +39,6 @@ stylesheet =
             , Color.background Color.blue
             , Color.border Color.blue
             , Border.rounded 3
-            , paddingHint 20
             , hover
                 [ Color.text Color.white
                 , Color.background Color.red
@@ -58,22 +57,18 @@ stylesheet =
                 ]
             ]
         , style Shadow
-            [ Style.shadows
-                [ Shadow.drop
-                    { offset = ( 0.0, 2.0 )
-                    , blur = 4.0
-                    , color = Color.rgba 0 0 0 0.8
-                    }
-                ]
+            [ Shadow.drop
+                { offset = ( 0.0, 2.0 )
+                , blur = 4.0
+                , color = Color.rgba 0 0 0 0.8
+                }
             ]
         , style FixedShadow
-            [ Style.shadows
-                [ Shadow.drop
-                    { offset = ( 0.0, 2.0 )
-                    , blur = 4.0
-                    , color = Color.rgba 0 0 0 0.8
-                    }
-                ]
-            , Style.filters [ Filter.blur 0 ]
+            [ Shadow.drop
+                { offset = ( 0.0, 2.0 )
+                , blur = 4.0
+                , color = Color.rgba 0 0 0 0.8
+                }
+            , Filter.blur 0
             ]
         ]

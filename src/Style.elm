@@ -7,22 +7,13 @@ module Style
         , unguarded
         , Style
         , Property
-        , Shadow
-        , Filter
         , StyleSheet
         , Option
         , style
         , variation
         , prop
         , cursor
-        , shadows
-        , paddingHint
-        , paddingLeftHint
-        , paddingRightHint
-        , paddingTopHint
-        , paddingBottomHint
         , opacity
-        , filters
         , origin
         , translate
         , rotate
@@ -139,21 +130,7 @@ The main difference between these two is that `variations` can combine with othe
 
 ## Properties
 
-@docs Property, prop, opacity, cursor, paddingHint, paddingLeftHint, paddingRightHint, paddingTopHint, paddingBottomHint
-
-
-## Shadows
-
-Check out the `Style.Shadow` module for more about shadows.
-
-@docs Shadow, shadows
-
-
-## Filters
-
-Check out the `Style.Filter` module for more about filters.
-
-@docs Filter, filters
+@docs Property, prop, opacity, cursor
 
 
 ## Transformations
@@ -282,41 +259,6 @@ paddingTopHint x =
 paddingBottomHint : Float -> Property class variation
 paddingBottomHint x =
     Internal.Exact "padding-bottom" (toString x ++ "px")
-
-
-{-| -}
-type alias Shadow =
-    Internal.ShadowModel
-
-
-{-| -}
-shadows : List Shadow -> Property class variation
-shadows shades =
-    Internal.Shadows shades
-
-
-{-| -}
-type alias Filter =
-    Internal.Filter
-
-
-{-| Apply a stack of filters. The actual filters are in `Style.Filter`.
-
-    import Style.Filter as Filter
-    import Style exposing (..)
-
-    style MyFitleredStyle
-        [ filters
-            [ Filter.blur 0.5
-            , Filter.invert 0.5
-            ]
-
-        ]
-
--}
-filters : List Filter -> Property class variation
-filters fs =
-    Internal.Filters fs
 
 
 {-| Set the transform origin.

@@ -186,45 +186,29 @@ preprocess style =
                                 )
                             |> applyTransforms
 
-                moveDropShadow props =
+                mergeShadowsAndFilters props =
                     let
-                        asDropShadow (ShadowModel shadow) =
-                            DropShadow
-                                { offset = shadow.offset
-                                , size = shadow.size
-                                , blur = shadow.blur
-                                , color = shadow.color
-                                }
-
-                        moveDropped prop ( existing, dropped ) =
+                        gather prop existing =
                             case prop of
-                                Shadows shadows ->
-                                    ( (Shadows <| List.filter (not << dropShadow) shadows) :: existing
-                                    , case List.filter dropShadow shadows of
-                                        [] ->
-                                            Nothing
+                                Filters fs ->
+                                    { existing | filters = fs ++ existing.filters }
 
-                                        d ->
-                                            Just d
-                                    )
-
-                                Filters filters ->
-                                    case dropped of
-                                        Nothing ->
-                                            ( prop :: existing
-                                            , dropped
-                                            )
-
-                                        Just drop ->
-                                            ( Filters (filters ++ (List.map asDropShadow drop)) :: existing
-                                            , dropped
-                                            )
+                                Shadows ss ->
+                                    { existing | shadows = ss ++ existing.shadows }
 
                                 _ ->
-                                    ( prop :: existing, dropped )
+                                    { existing | others = prop :: existing.others }
+
+                        combine { filters, shadows, others } =
+                            Filters filters :: Shadows shadows :: others
                     in
-                        List.foldr moveDropped ( [], Nothing ) props
-                            |> Tuple.first
+                        props
+                            |> List.foldr gather
+                                { filters = []
+                                , shadows = []
+                                , others = []
+                                }
+                            |> combine
 
                 processed =
                     props
@@ -232,7 +216,7 @@ preprocess style =
                         |> overridePrevious visible
                         |> prioritize shadows
                         |> overridePrevious shadows
-                        |> moveDropShadow
+                        |> mergeShadowsAndFilters
                         |> mergeTransforms
             in
                 Internal.Style class processed

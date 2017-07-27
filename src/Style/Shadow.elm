@@ -43,7 +43,7 @@ These are for when you want to specify shadows manually. They're meant to be spe
 
 import Color exposing (Color)
 import Style.Internal.Model as Internal
-import Style exposing (Shadow, Property)
+import Style exposing (Property)
 
 
 {-| A simple glow by specifying the color and size.
@@ -93,14 +93,14 @@ textGlow color size =
 -}
 simple : Property class variation
 simple =
-    Style.shadows
-        [ box
+    Internal.Shadows
+        [ boxHelper
             { color = Color.rgba 0 0 0 0.5
             , offset = ( 0, 29 )
             , blur = 32
             , size = -20
             }
-        , box
+        , boxHelper
             { color = Color.rgba 0 0 0 0.25
             , offset = ( 0, 4 )
             , blur = 11
@@ -113,14 +113,12 @@ simple =
 -}
 deep : Property class variation
 deep =
-    Style.shadows
-        [ box
-            { color = Color.rgba 0 0 0 0.2
-            , offset = ( 0, 14 )
-            , blur = 20
-            , size = -12
-            }
-        ]
+    box
+        { color = Color.rgba 0 0 0 0.2
+        , offset = ( 0, 14 )
+        , blur = 20
+        , size = -12
+        }
 
 
 {-| -}
@@ -130,8 +128,14 @@ box :
     , blur : Float
     , color : Color
     }
-    -> Shadow
-box { offset, size, blur, color } =
+    -> Property class variation
+box shadow =
+    Internal.Shadows
+        [ boxHelper shadow
+        ]
+
+
+boxHelper { offset, size, blur, color } =
     Internal.ShadowModel
         { kind = "box"
         , offset = offset
@@ -148,15 +152,17 @@ inset :
     , blur : Float
     , color : Color
     }
-    -> Shadow
+    -> Property class variation
 inset { offset, blur, color, size } =
-    Internal.ShadowModel
-        { kind = "inset"
-        , offset = offset
-        , size = size
-        , blur = blur
-        , color = color
-        }
+    Internal.Shadows
+        [ Internal.ShadowModel
+            { kind = "inset"
+            , offset = offset
+            , size = size
+            , blur = blur
+            , color = color
+            }
+        ]
 
 
 {-| -}
@@ -165,15 +171,17 @@ text :
     , blur : Float
     , color : Color
     }
-    -> Shadow
+    -> Property class variation
 text { offset, blur, color } =
-    Internal.ShadowModel
-        { kind = "text"
-        , offset = offset
-        , size = 0
-        , blur = blur
-        , color = color
-        }
+    Internal.Shadows
+        [ Internal.ShadowModel
+            { kind = "text"
+            , offset = offset
+            , size = 0
+            , blur = blur
+            , color = color
+            }
+        ]
 
 
 {-| -}
@@ -182,12 +190,13 @@ drop :
     , blur : Float
     , color : Color
     }
-    -> Shadow
+    -> Property class variation
 drop { offset, blur, color } =
-    Internal.ShadowModel
-        { kind = "drop"
-        , offset = offset
-        , size = 0
-        , blur = blur
-        , color = color
-        }
+    Internal.Filters
+        [ Internal.DropShadow
+            { offset = offset
+            , size = 0
+            , blur = blur
+            , color = color
+            }
+        ]
