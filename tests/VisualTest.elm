@@ -189,7 +189,7 @@ screenExample =
             row Container
                 [ spacing 20
                 , justify
-                , width (percent 100)
+                , width (percent 60)
                 , paddingXY 30 4
                 ]
                 [ el Box [ padding 8, width (px 200) ] (text "test")

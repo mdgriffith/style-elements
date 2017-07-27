@@ -2,15 +2,14 @@ module ViewSnippets exposing (..)
 
 {-| -}
 
-import Color
 import Element exposing (..)
 import Element.Attributes exposing (..)
 import Element.Events
-import Element.Keyed
 import Html exposing (Html)
 import StyleSheet exposing (..)
 
 
+box : Element Styles variation msg
 box =
     el Box [ width (px 20), height (px 20) ] empty
 
@@ -37,6 +36,21 @@ singleElement =
 singleElementText : Html msg
 singleElementText =
     Element.layout (StyleSheet.stylesheet) (Element.el None [] (text "My first Element!"))
+
+
+singleElementPercentWidthText : Html msg
+singleElementPercentWidthText =
+    Element.layout (StyleSheet.stylesheet) (Element.el None [ width (percent 60) ] (text "My first Element!"))
+
+
+centeredSingleElementPercentWidthText : Html msg
+centeredSingleElementPercentWidthText =
+    Element.layout (StyleSheet.stylesheet) (Element.el None [ center, width (percent 60) ] (text "My first Element!"))
+
+
+centeredSingleElementText : Html msg
+centeredSingleElementText =
+    Element.layout (StyleSheet.stylesheet) (Element.el None [ center ] (text "My first Element!"))
 
 
 viewBox : Html msg

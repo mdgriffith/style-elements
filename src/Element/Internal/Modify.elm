@@ -3,6 +3,7 @@ module Element.Internal.Modify
         ( setNode
         , addAttrToNonText
         , addAttr
+        , addAttrPriority
         , removeAttrs
         , addChild
         , addAttrList
@@ -87,6 +88,34 @@ addAttr prop el =
 
         Element elm ->
             Element { elm | attrs = (prop :: elm.attrs) }
+
+        Text dec content ->
+            Element
+                { node = "div"
+                , style = Nothing
+                , attrs = [ prop ]
+                , child = (Text dec content)
+                , absolutelyPositioned = Nothing
+                }
+
+
+addAttrPriority : Attribute variation msg -> Element style variation msg -> Element style variation msg
+addAttrPriority prop el =
+    case el of
+        Empty ->
+            Empty
+
+        Raw h ->
+            Raw h
+
+        Spacer x ->
+            Spacer x
+
+        Layout elm ->
+            Layout { elm | attrs = (elm.attrs ++ [ prop ]) }
+
+        Element elm ->
+            Element { elm | attrs = (elm.attrs ++ [ prop ]) }
 
         Text dec content ->
             Element
