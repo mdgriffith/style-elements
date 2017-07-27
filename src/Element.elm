@@ -212,8 +212,8 @@ import Html.Attributes
 import Element.Internal.Model as Internal exposing (..)
 import Element.Internal.Modify as Modify
 import Style exposing (Style, StyleSheet)
-import Style.Internal.Model as Style exposing (Length)
-import Element.Attributes as Attr
+import Style.Internal.Model as Style
+import Element.Attributes as Attr exposing (Length)
 import Element.Internal.Render as Render
 import Window
 

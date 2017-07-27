@@ -22,6 +22,7 @@ module Element.Attributes
         , minHeight
         , maxHeight
         , height
+        , Length
         , px
         , content
         , fill
@@ -163,7 +164,7 @@ When applied to singular elements like `el`, alignment will affect the alignment
 
 ## Sizing
 
-@docs width, minWidth, maxWidth, height, minHeight, maxHeight, px, fill, percent, content
+@docs width, minWidth, maxWidth, height, minHeight, maxHeight, Length, px, fill, percent, content
 
 
 ## Spacing ++ Padding
@@ -293,12 +294,17 @@ Attributes that can be attached to any HTML tag but are less commonly used.
 -}
 
 import Element.Internal.Model as Internal exposing (..)
-import Style.Internal.Model as Style exposing (Length)
+import Style.Internal.Model as Style
 import Style.Internal.Render.Value as StyleValue
 import Html.Attributes
 import VirtualDom
 import Json.Decode as Json
 import Style exposing (Style)
+
+
+{-| -}
+type alias Length =
+    Style.Length
 
 
 {-| -}
