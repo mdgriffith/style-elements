@@ -1167,7 +1167,7 @@ within nearbys parent =
                 |> Modify.addAttr (PositionFrame (Nearby Within))
                 |> Modify.addChild p
     in
-        List.foldl position parent nearbys
+        List.foldr position parent nearbys
 
 
 {-| -}
@@ -1180,7 +1180,7 @@ above nearbys parent =
                 |> Modify.removeAttrs [ VAlign Top, VAlign Bottom ]
                 |> Modify.addChild p
     in
-        List.foldl position parent nearbys
+        List.foldr position parent nearbys
 
 
 {-| -}
@@ -1193,7 +1193,7 @@ below nearbys parent =
                 |> Modify.removeAttrs [ VAlign Top, VAlign Bottom ]
                 |> Modify.addChild p
     in
-        List.foldl position parent nearbys
+        List.foldr position parent nearbys
 
 
 {-| -}
@@ -1206,7 +1206,7 @@ onRight nearbys parent =
                 |> Modify.removeAttrs [ HAlign Right, HAlign Left ]
                 |> Modify.addChild p
     in
-        List.foldl position parent nearbys
+        List.foldr position parent nearbys
 
 
 {-| -}
@@ -1219,7 +1219,7 @@ onLeft nearbys parent =
                 |> Modify.removeAttrs [ HAlign Right, HAlign Left ]
                 |> Modify.addChild p
     in
-        List.foldl position parent nearbys
+        List.foldr position parent nearbys
 
 
 {-| Position an element relative to the window.
