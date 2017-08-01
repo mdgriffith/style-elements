@@ -16,11 +16,13 @@ module Element.Input
         , password
         , label
         , labelBelow
+        , labelLeft
+        , labelRight
         )
 
 {-| Elements for creating forms.
 
-@docs label, labelBelow, text, multiline, search, email, password
+@docs label, labelBelow, labelLeft, labelRight, text, multiline, search, email, password
 
 @docs checkbox, checkboxWith
 
@@ -107,37 +109,115 @@ text elem attrs { value, onChange } =
         ]
 
 
-{-| -}
+{-| Put a label above any of the text inputs.
+
+The spacing property on the label will be the spacing between the label and the input element.
+
+All other properties will apply normally to the label element
+
+-}
 label : Element style variation msg -> Input style variation msg -> Element style variation msg
 label el (Input inputElems) =
-    Internal.Layout
-        { node = "label"
-        , style = Nothing
-        , layout = Style.FlexLayout Style.Down []
-        , attrs =
-            []
-        , children = Internal.Normal (el :: inputElems)
-        , absolutelyPositioned = Nothing
-        }
+    let
+        forSpacing posAttr =
+            case posAttr of
+                Internal.Spacing x y ->
+                    True
+
+                _ ->
+                    False
+    in
+        Internal.Layout
+            { node = "label"
+            , style = Nothing
+            , layout = Style.FlexLayout Style.Down []
+            , attrs =
+                el
+                    |> Modify.getAttrs
+                    |> List.filter forSpacing
+            , children = Internal.Normal (el :: inputElems)
+            , absolutelyPositioned = Nothing
+            }
 
 
 {-| -}
 labelBelow : Element style variation msg -> Input style variation msg -> Element style variation msg
 labelBelow el (Input inputElems) =
-    Internal.Layout
-        { node = "label"
-        , style = Nothing
-        , layout = Style.FlexLayout Style.Down []
-        , attrs =
-            []
-        , children = Internal.Normal (inputElems ++ [ el ])
-        , absolutelyPositioned = Nothing
-        }
+    let
+        forSpacing posAttr =
+            case posAttr of
+                Internal.Spacing x y ->
+                    True
+
+                _ ->
+                    False
+    in
+        Internal.Layout
+            { node = "label"
+            , style = Nothing
+            , layout = Style.FlexLayout Style.Down []
+            , attrs =
+                el
+                    |> Modify.getAttrs
+                    |> List.filter forSpacing
+            , children = Internal.Normal (inputElems ++ [ el ])
+            , absolutelyPositioned = Nothing
+            }
+
+
+{-| -}
+labelRight : Element style variation msg -> Input style variation msg -> Element style variation msg
+labelRight el (Input inputElems) =
+    let
+        forSpacing posAttr =
+            case posAttr of
+                Internal.Spacing x y ->
+                    True
+
+                _ ->
+                    False
+    in
+        Internal.Layout
+            { node = "label"
+            , style = Nothing
+            , layout = Style.FlexLayout Style.GoRight []
+            , attrs =
+                el
+                    |> Modify.getAttrs
+                    |> List.filter forSpacing
+            , children = Internal.Normal (inputElems ++ [ el ])
+            , absolutelyPositioned = Nothing
+            }
+
+
+{-| -}
+labelLeft : Element style variation msg -> Input style variation msg -> Element style variation msg
+labelLeft el (Input inputElems) =
+    let
+        forSpacing posAttr =
+            case posAttr of
+                Internal.Spacing x y ->
+                    True
+
+                _ ->
+                    False
+    in
+        Internal.Layout
+            { node = "label"
+            , style = Nothing
+            , layout = Style.FlexLayout Style.GoRight []
+            , attrs =
+                el
+                    |> Modify.getAttrs
+                    |> List.filter forSpacing
+            , children = Internal.Normal (el :: inputElems)
+            , absolutelyPositioned = Nothing
+            }
 
 
 {-| Rendered as a `textarea`.
 
-Will automatically be resized by content unless a height/width is set.
+Will automatically be the height and width of the content unless a height/width is set.
 
 -}
 multiline : style -> List (Attribute variation msg) -> { onChange : String -> msg, value : String } -> Input style variation msg
