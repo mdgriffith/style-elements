@@ -18,8 +18,24 @@
                 "viewFunction": "singleElementText"
             }, 
             {
+                "output": "rendered/singleElementPercentWidthText.html", 
+                "viewFunction": "singleElementPercentWidthText"
+            }, 
+            {
+                "output": "rendered/centeredSingleElementPercentWidthText.html", 
+                "viewFunction": "centeredSingleElementPercentWidthText"
+            }, 
+            {
+                "output": "rendered/centeredSingleElementText.html", 
+                "viewFunction": "centeredSingleElementText"
+            }, 
+            {
                 "output": "rendered/viewBox.html", 
                 "viewFunction": "viewBox"
+            }, 
+            {
+                "output": "rendered/viewWithinOrder.html", 
+                "viewFunction": "viewWithinOrder"
             }, 
             {
                 "output": "rendered/viewRow.html", 
