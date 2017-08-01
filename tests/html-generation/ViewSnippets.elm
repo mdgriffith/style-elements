@@ -59,6 +59,18 @@ viewBox =
         box
 
 
+viewWithinOrder : Html msg
+viewWithinOrder =
+    Element.layout (StyleSheet.stylesheet) <|
+        (Element.el None [] Element.empty
+            |> Element.within
+                [ box
+                , el None [] empty
+                , el None [] empty
+                ]
+        )
+
+
 viewRow : Html msg
 viewRow =
     Element.layout (StyleSheet.stylesheet) <|
