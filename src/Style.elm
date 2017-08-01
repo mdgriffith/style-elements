@@ -87,17 +87,17 @@ Styles can have variations. Here's what it looks like to have a button style wit
 
     type Styles = Button
 
-    -- You need to create a new type to capture vartiations.
+    -- You need to create a new type to capture variations.
     type Variations
-            = Large
+        = Disabled
 
 
     stylesheet =
         Style.styleSheet
             [ style Button
-                [ Font.size 16
-                , variation Large
-                    [ Font.size 20
+                [ Color.background blue
+                , variation Disabled
+                    [ Color.background grey
                     ]
                 ]
             ]
