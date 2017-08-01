@@ -6,3 +6,5 @@ repl-temp-*
 */index.html
 index.html
 .elm-static-html
+
+test/html-generation/rendered/*.html
