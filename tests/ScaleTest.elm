@@ -8,19 +8,12 @@ import Test exposing (..)
 
 fakeModular : Float -> Float -> Int -> Float
 fakeModular a b n =
-    let
-        resize n =
-            if n > 0 then
-                a * b ^ (n - 1)
-            else
-                a * b ^ n
-    in
-        case n of
-            0 ->
-                a
-
-            x ->
-                resize x
+    if n == 0 then
+        a
+    else if n < 0 then
+        a * b ^ (toFloat n)
+    else
+        a * b ^ (toFloat n - 1)
 
 
 fakeRounded a b =
