@@ -1,8 +1,6 @@
 module Style
     exposing
-        ( stylesheet
-        , stylesheetWith
-        , styleSheet
+        ( styleSheet
         , styleSheetWith
         , unguarded
         , Style
@@ -148,11 +146,6 @@ Psuedo classes can be nested.
 ## Render into a Style Sheet
 
 @docs StyleSheet, styleSheet, styleSheetWith, Option, unguarded, importUrl, importCss
-
-
-## Deprecated
-
-@docs stylesheet, stylesheetWith
 
 -}
 
@@ -367,24 +360,6 @@ styleSheet styles =
 {-| -}
 styleSheetWith : List Option -> List (Style elem variation) -> StyleSheet elem variation
 styleSheetWith options styles =
-    let
-        unguarded =
-            List.any ((==) Unguarded) options
-    in
-        prepareSheet (Render.stylesheet "" (not <| unguarded) styles)
-
-
-{-| DEPRECATED, use styleSheet. This will be removed in the next major version
--}
-stylesheet : List (Style elem variation) -> StyleSheet elem variation
-stylesheet styles =
-    styleSheetWith [] styles
-
-
-{-| DEPRECATED, use styleSheetWith. This will be removed in the next major version
--}
-stylesheetWith : List Option -> List (Style elem variation) -> StyleSheet elem variation
-stylesheetWith options styles =
     let
         unguarded =
             List.any ((==) Unguarded) options
