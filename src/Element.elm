@@ -56,9 +56,6 @@ module Element
         , onRight
         , onLeft
         , screen
-        , render
-        , root
-        , embed
         , layout
         , viewport
         , toHtml
@@ -199,11 +196,6 @@ Some convient elements for working with forms.
 ## Advanced Rendering
 
 @docs toHtml, embedStylesheet
-
-
-### Deprecated
-
-@docs root, embed, render
 
 -}
 
@@ -758,6 +750,8 @@ textLayout style attrs children =
     Layout
         { node = "div"
         , style = Just style
+
+        -- True means it's clearfixed
         , layout = Style.TextLayout True
         , attrs = attrs
         , children = Normal children
@@ -1272,29 +1266,6 @@ toHtml stylesheet el =
 -}
 embedStylesheet : StyleSheet style variation -> Html msg
 embedStylesheet sheet =
-    -- We embed it not as a fullscreen
-    Render.embed False sheet
-
-
-{-| DEPRECATED, will be removed in the next major version. Use `toHtml` instead.
--}
-render : StyleSheet style variation -> Element style variation msg -> Html msg
-render stylesheet el =
-    Html.div []
-        (Render.render stylesheet el)
-
-
-{-| DEPRECATED, will be removed in the next major version. Use `layout` instead.
--}
-root : StyleSheet style variation -> Element style variation msg -> Html msg
-root =
-    Render.root
-
-
-{-| DEPRECATED, will be removed in the next major version. Use `embedStylesheet` instead.
--}
-embed : StyleSheet style variation -> Html msg
-embed sheet =
     -- We embed it not as a fullscreen
     Render.embed False sheet
 
