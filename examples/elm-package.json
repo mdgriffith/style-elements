@@ -18,7 +18,8 @@
         "BrianHicks/elm-benchmark": "1.0.0 <= v < 2.0.0",
         "elm-lang/animation-frame": "1.0.0 <= v < 2.0.0",
         "elm-lang/window": "1.0.0 <= v < 2.0.0",
-        "elm-lang/virtual-dom": "2.0.0 <= v < 3.0.0"
+        "elm-lang/virtual-dom": "2.0.0 <= v < 3.0.0",
+        "mdgriffith/elm-style-animation": "3.0.0 <= v < 4.0.0"
     },
     "elm-version": "0.18.0 <= v < 0.19.0"
 }

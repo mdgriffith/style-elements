@@ -2,6 +2,7 @@ module Element.Attributes
     exposing
         ( property
         , attribute
+        , toAttr
         , center
         , verticalCenter
         , justify
@@ -207,6 +208,11 @@ Is rendered into something like this:
 @docs clip, clipX, clipY
 
 
+## Conversion
+
+@docs toAttr
+
+
 # Normal `Html.Attributes`
 
 Helper functions for HTML attributes. They are organized roughly by
@@ -308,6 +314,7 @@ import Element.Internal.Model as Internal exposing (..)
 import Style.Internal.Model as Style exposing (Length)
 import Style.Internal.Render.Value as StyleValue
 import Html.Attributes
+import Html
 import VirtualDom
 import Json.Decode as Json
 import Style exposing (Style)
@@ -668,6 +675,16 @@ Read more about the difference between properties and attributes [here].
 attribute : String -> String -> Attribute variation msg
 attribute name val =
     Attr <| Html.Attributes.attribute name val
+
+
+{-| Convert an existing `Html.Attribute` to an `Element.Attribute`.
+
+This is useful for working with any library that returns a `Html.Attribute`.
+
+-}
+toAttr : Html.Attribute msg -> Attribute variation msg
+toAttr =
+    Attr
 
 
 {-| Transform the messages produced by an `Attribute`.
