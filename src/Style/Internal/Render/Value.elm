@@ -3,6 +3,7 @@ module Style.Internal.Render.Value exposing (..)
 {-| -}
 
 import Color exposing (Color)
+import Set exposing (Set)
 import Style.Internal.Model as Internal exposing (..)
 
 
@@ -105,7 +106,29 @@ gridPosition (GridPosition { start, width, height }) =
                     ]
 
 
+
+
+genericFamilies : Set String
+genericFamilies =
+    Set.fromList
+        [ "serif"
+        , "sans-serif"
+        , "cursive"
+        , "fantasy"
+        , "monospace"
+        ]
+
+
+typeface : List String -> String
 typeface families =
     families
-        |> List.map (\fam -> "\"" ++ fam ++ "\"")
+        |> List.map
+            (\fam ->
+                if Set.member fam genericFamilies then
+                    -- https://www.w3.org/TR/css-fonts-3/#generic-family-value
+                    -- Generic font families are keywords and must not be quoted.
+                    fam
+                else
+                    "\"" ++ fam ++ "\""
+            )
         |> String.join ", "
