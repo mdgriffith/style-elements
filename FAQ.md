@@ -19,3 +19,9 @@ Supporting both margins and padding make consistent layouts difficult, so style-
 If you need spacing between children in a layout, use [`Element.Attributes.spacing`](http://package.elm-lang.org/packages/mdgriffith/style-elements/latest/Element-Attributes#spacing).
 
 To set more space around a single element, wrap the element in a spacer a set padding. This is more explicit and you can predict exactly how your element will be laid out.
+
+## How do I use `em` instead of `px` for padding?
+
+Style-elements doesn't support `em`s. They give inconsistent results depending on where in the tree they live.
+
+Check out the functions in [`Style.Scale`](http://package.elm-lang.org/packages/mdgriffith/style-elements/latest/Style-Scale) to get something similar to `em`, but calculated in Elm.
