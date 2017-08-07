@@ -20,21 +20,20 @@ These can be used directly as properties.
 
 # Advanced Shadows
 
-These are for when you want to specify shadows manually. They're meant to be specified in a shadow stack using `Style.shadows`:
+You can also have more control over the paraters of the shadow, such as the `Shadow.box` shown below.
 
     import Color
     import Style exposing (..)
     import Style.Shadow as Shadow
 
     style MyStyleWithShadow
-        [ Style.shadows
-            [ Shadow.inset
-                { offset = ( 0, 0 )
-                , size = 5
-                , blur = 2
-                , color = Color.blue
-                }
-            ]
+        [ Shadow.box
+            { offset = ( 0, 0 )
+            , size = 5
+            , blur = 2
+            , color = Color.blue
+            }
+
         ]
 
 @docs box, drop, inset, text
@@ -135,6 +134,7 @@ box shadow =
         ]
 
 
+boxHelper : { a | blur : Float, color : Color, offset : ( Float, Float ), size : Float } -> Internal.ShadowModel
 boxHelper { offset, size, blur, color } =
     Internal.ShadowModel
         { kind = "box"
@@ -184,7 +184,11 @@ text { offset, blur, color } =
         ]
 
 
-{-| -}
+{-| A drop shadow will add a shadow to whatever shape you give it.
+
+So, if you apply a drop shadow to an image with an alpha channel, the shadow will appear around the eges.
+
+-}
 drop :
     { offset : ( Float, Float )
     , blur : Float
