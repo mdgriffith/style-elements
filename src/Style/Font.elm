@@ -109,7 +109,7 @@ justify =
 {-| -}
 justifyAll : Property class variation
 justifyAll =
-    Internal.Font "text-align" "justifyAll"
+    Internal.Font "text-align" "justify-all"
 
 
 {-| Renders as "white-space:normal", which is the standard wrapping behavior you're probably used to.
