@@ -873,7 +873,7 @@ when bool elm =
 
 {-| Another helper function that defaults to `empty`
 
-    whenJust text (Just ("Hi!"))
+    whenJust (Just ("Hi!")) text
 
 is sugar for
 
@@ -884,8 +884,8 @@ is sugar for
             text x
 
 -}
-whenJust : (a -> Element style variation msg) -> Maybe a -> Element style variation msg
-whenJust view maybe =
+whenJust : Maybe a -> (a -> Element style variation msg) -> Element style variation msg
+whenJust maybe view =
     case maybe of
         Nothing ->
             empty
