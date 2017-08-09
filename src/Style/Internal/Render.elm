@@ -9,6 +9,7 @@ import Style.Internal.Selector as Selector exposing (Selector)
 import Style.Internal.Batchable as Batchable exposing (Batchable)
 import Style.Internal.Intermediate as Intermediate
 import Style.Internal.Render.Css as Css
+import Set
 
 
 single : Bool -> Internal.Style class variation -> ( String, String )
@@ -81,6 +82,7 @@ reorderImportAddReset reset styles =
         importedFonts =
             styles
                 |> List.concatMap getFontStyle
+                |> (Set.toList << Set.fromList)
                 |> List.map (\uri -> Import ("url('" ++ uri ++ "')"))
 
         reorder style ( imports, remainingStyles ) =
