@@ -105,7 +105,32 @@ gridPosition (GridPosition { start, width, height }) =
                     ]
 
 
+typeface : List Font -> String
 typeface families =
-    families
-        |> List.map (\fam -> "\"" ++ fam ++ "\"")
-        |> String.join ", "
+    let
+        renderFont font =
+            case font of
+                Serif ->
+                    "serif"
+
+                SansSerif ->
+                    "sans-serif"
+
+                Cursive ->
+                    "cursive"
+
+                Fantasy ->
+                    "fantasy"
+
+                Monospace ->
+                    "monospace"
+
+                FontName name ->
+                    "\"" ++ name ++ "\""
+
+                ImportFont name url ->
+                    "\"" ++ name ++ "\""
+    in
+        families
+            |> List.map renderFont
+            |> String.join ", "

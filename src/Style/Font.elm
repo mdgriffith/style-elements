@@ -10,11 +10,6 @@ module Style.Font
         , center
         , justify
         , justifyAll
-        , wrap
-        , pre
-        , preWrap
-        , preLine
-        , noWrap
         , underline
         , strike
         , italic
@@ -24,6 +19,13 @@ module Style.Font
         , uppercase
         , capitalize
         , lowercase
+        , font
+        , serif
+        , sansSerif
+        , cursive
+        , monospace
+        , fantasy
+        , importUrl
         )
 
 {-| Font Properties
@@ -32,23 +34,73 @@ Meant to be imported as:
 
     import Style.Font as Font
 
-@docs typeface, size, lineHeight, letterSpacing, wordSpacing, alignLeft, alignRight, center, justify, justifyAll
 
-@docs wrap, pre, preWrap, preLine, noWrap
+## Typefaces
+
+@docs typeface, font, serif, sansSerif, cursive, fantasy, monospace, importUrl
+
+
+## Properties
+
+@docs size, lineHeight, letterSpacing, wordSpacing, alignLeft, alignRight, center, justify, justifyAll
+
+
+## Font Styles
 
 @docs uppercase, capitalize, lowercase, underline, strike, italic, bold, weight, light
 
 -}
 
 import Style.Internal.Model as Internal
-import Style.Internal.Render.Value as Value
-import Style exposing (Property)
+import Style exposing (Property, Font)
 
 
 {-| -}
-typeface : List String -> Property class variation
+typeface : List Font -> Property class variation
 typeface families =
-    Internal.Font "font-family" (Value.typeface families)
+    Internal.FontFamily families
+
+
+{-| -}
+serif : Font
+serif =
+    Internal.Serif
+
+
+{-| -}
+sansSerif : Font
+sansSerif =
+    Internal.SansSerif
+
+
+{-| -}
+cursive : Font
+cursive =
+    Internal.Cursive
+
+
+{-| -}
+fantasy : Font
+fantasy =
+    Internal.Fantasy
+
+
+{-| -}
+monospace : Font
+monospace =
+    Internal.Monospace
+
+
+{-| -}
+font : String -> Font
+font =
+    Internal.FontName
+
+
+{-| -}
+importUrl : { url : String, name : String } -> Font
+importUrl { url, name } =
+    Internal.ImportFont name url
 
 
 {-| Font size specified in `px`
@@ -110,37 +162,6 @@ justify =
 justifyAll : Property class variation
 justifyAll =
     Internal.Font "text-align" "justify-all"
-
-
-{-| Renders as "white-space:normal", which is the standard wrapping behavior you're probably used to.
--}
-wrap : Property class variation
-wrap =
-    Internal.Font "white-space" "normal"
-
-
-{-| -}
-pre : Property class variation
-pre =
-    Internal.Font "white-space" "pre"
-
-
-{-| -}
-preWrap : Property class variation
-preWrap =
-    Internal.Font "white-space" "pre-wrap"
-
-
-{-| -}
-preLine : Property class variation
-preLine =
-    Internal.Font "white-space" "pre-line"
-
-
-{-| -}
-noWrap : Property class variation
-noWrap =
-    Internal.Font "white-space" "nowrap"
 
 
 {-| -}

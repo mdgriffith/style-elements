@@ -7,6 +7,8 @@ module Style
         , Property
         , StyleSheet
         , Option
+        , Font
+        , Transform
         , style
         , variation
         , prop
@@ -128,12 +130,12 @@ The main difference between these two is that `variations` can combine with othe
 
 ## Properties
 
-@docs Property, prop, opacity, cursor
+@docs Property, prop, opacity, cursor, Font
 
 
 ## Transformations
 
-@docs origin, translate, rotate, rotateAround, scale
+@docs Transform, origin, translate, rotate, rotateAround, scale
 
 
 ## Pseudo Classes
@@ -172,13 +174,13 @@ type alias Property class variation =
 
 
 {-| -}
-type alias Length =
-    Internal.Length
+type alias Transform =
+    Internal.Transformation
 
 
 {-| -}
-type alias Transform =
-    Internal.Transformation
+type alias Font =
+    Internal.Font
 
 
 {-| -}

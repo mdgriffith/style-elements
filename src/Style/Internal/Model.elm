@@ -89,6 +89,9 @@ mapPropClassAndVar fn fnVar prop =
         SelectionColor clr ->
             SelectionColor clr
 
+        FontFamily fam ->
+            FontFamily fam
+
 
 mapPropClass : (class -> classB) -> Property class var -> Property classB var
 mapPropClass fn prop =
@@ -141,6 +144,9 @@ mapPropClass fn prop =
         SelectionColor clr ->
             SelectionColor clr
 
+        FontFamily fam ->
+            FontFamily fam
+
 
 type Property class variation
     = Exact String String
@@ -150,6 +156,7 @@ type Property class variation
     | PseudoElement String (List (Property class variation))
     | Position (List PositionElement)
     | Font String String
+    | FontFamily (List Font)
     | Layout LayoutModel
     | Background BackgroundElement
     | Shadows (List ShadowModel)
@@ -159,6 +166,20 @@ type Property class variation
     | SelectionColor Color
     | TextColor Color
     | Transitions (List Transition)
+
+
+type Font
+    = Serif
+    | SansSerif
+    | Cursive
+    | Fantasy
+    | Monospace
+    | FontName String
+    | ImportFont String String
+
+
+
+-- | Face {}
 
 
 type BackgroundSize

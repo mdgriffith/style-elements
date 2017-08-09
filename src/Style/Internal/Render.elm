@@ -52,6 +52,37 @@ stylesheet reset guard batched =
 reorderImportAddReset : String -> List (Style class variation) -> List (Style class variation)
 reorderImportAddReset reset styles =
     let
+        getFontStyle style =
+            case style of
+                Style _ props ->
+                    let
+                        forFont prop =
+                            case prop of
+                                FontFamily fams ->
+                                    let
+                                        forImport font =
+                                            case font of
+                                                ImportFont _ url ->
+                                                    Just url
+
+                                                _ ->
+                                                    Nothing
+                                    in
+                                        List.filterMap forImport fams
+
+                                _ ->
+                                    []
+                    in
+                        List.concatMap forFont props
+
+                _ ->
+                    []
+
+        importedFonts =
+            styles
+                |> List.concatMap getFontStyle
+                |> List.map (\uri -> Import ("url('" ++ uri ++ "')"))
+
         reorder style ( imports, remainingStyles ) =
             case style of
                 Import _ ->
@@ -63,7 +94,7 @@ reorderImportAddReset reset styles =
         ( imports, allStyles ) =
             List.foldr reorder ( [], [] ) styles
     in
-        imports ++ [ Reset reset ] ++ allStyles
+        imports ++ importedFonts ++ [ Reset reset ] ++ allStyles
 
 
 unbatchedStylesheet : Bool -> List (Internal.Style class variation) -> Intermediate.Rendered class variation
@@ -340,6 +371,11 @@ renderProp parentClass prop =
                   )
                 ]
 
+        FontFamily fam ->
+            Intermediate.props <|
+                [ ( "font-family", Value.typeface fam )
+                ]
+
 
 renderVariationProp : Selector class variation -> Property class Never -> Maybe (Intermediate.Prop class variation)
 renderVariationProp parentClass prop =
@@ -377,6 +413,11 @@ renderVariationProp parentClass prop =
 
         Font name val ->
             (Just << Intermediate.props) <| [ ( name, val ) ]
+
+        FontFamily fam ->
+            (Just << Intermediate.props) <|
+                [ ( "font-family", Value.typeface fam )
+                ]
 
         Layout lay ->
             (Just << Intermediate.props) (Render.layout False lay)
