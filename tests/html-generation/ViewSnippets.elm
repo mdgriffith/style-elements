@@ -20,48 +20,48 @@ box =
 
 emptyElement : Html msg
 emptyElement =
-    Element.layout (StyleSheet.stylesheet) Element.empty
+    Element.toHtml (StyleSheet.stylesheet) Element.empty
 
 
 textElement : Html msg
 textElement =
-    Element.layout (StyleSheet.stylesheet) (text "My first Element!")
+    Element.toHtml (StyleSheet.stylesheet) (text "My first Element!")
 
 
 singleElement : Html msg
 singleElement =
-    Element.layout (StyleSheet.stylesheet) (Element.el None [] Element.empty)
+    Element.toHtml (StyleSheet.stylesheet) (Element.el None [] Element.empty)
 
 
 singleElementText : Html msg
 singleElementText =
-    Element.layout (StyleSheet.stylesheet) (Element.el None [] (text "My first Element!"))
+    Element.toHtml (StyleSheet.stylesheet) (Element.el None [] (text "My first Element!"))
 
 
 singleElementPercentWidthText : Html msg
 singleElementPercentWidthText =
-    Element.layout (StyleSheet.stylesheet) (Element.el None [ width (percent 60) ] (text "My first Element!"))
+    Element.toHtml (StyleSheet.stylesheet) (Element.el None [ width (percent 60) ] (text "My first Element!"))
 
 
 centeredSingleElementPercentWidthText : Html msg
 centeredSingleElementPercentWidthText =
-    Element.layout (StyleSheet.stylesheet) (Element.el None [ center, width (percent 60) ] (text "My first Element!"))
+    Element.toHtml (StyleSheet.stylesheet) (Element.el None [ center, width (percent 60) ] (text "My first Element!"))
 
 
 centeredSingleElementText : Html msg
 centeredSingleElementText =
-    Element.layout (StyleSheet.stylesheet) (Element.el None [ center ] (text "My first Element!"))
+    Element.toHtml (StyleSheet.stylesheet) (Element.el None [ center ] (text "My first Element!"))
 
 
 viewBox : Html msg
 viewBox =
-    Element.layout (StyleSheet.stylesheet) <|
+    Element.toHtml (StyleSheet.stylesheet) <|
         box
 
 
 viewWithinOrder : Html msg
 viewWithinOrder =
-    Element.layout (StyleSheet.stylesheet) <|
+    Element.toHtml (StyleSheet.stylesheet) <|
         (Element.el None [] Element.empty
             |> Element.within
                 [ box
@@ -73,7 +73,7 @@ viewWithinOrder =
 
 viewRow : Html msg
 viewRow =
-    Element.layout (StyleSheet.stylesheet) <|
+    Element.toHtml (StyleSheet.stylesheet) <|
         Element.row None
             []
             [ box
@@ -84,7 +84,7 @@ viewRow =
 
 viewRowWithSpacing : Html msg
 viewRowWithSpacing =
-    Element.layout (StyleSheet.stylesheet) <|
+    Element.toHtml (StyleSheet.stylesheet) <|
         Element.row None
             [ spacingXY 20 20 ]
             [ box
@@ -95,7 +95,7 @@ viewRowWithSpacing =
 
 viewRowWithSpacingPadding : Html msg
 viewRowWithSpacingPadding =
-    Element.layout (StyleSheet.stylesheet) <|
+    Element.toHtml (StyleSheet.stylesheet) <|
         Element.row None
             [ spacingXY 20 20, padding 100 ]
             [ box
