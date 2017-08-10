@@ -16,7 +16,7 @@ function getBoundingBox(id)
 
         return box;
     } else {
-        console.log("No element found");
+        console.log("No element found: #" + id);
         var box = {
             width: 0,
             height: 0,

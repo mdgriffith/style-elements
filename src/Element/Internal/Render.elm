@@ -41,7 +41,7 @@ viewport stylesheet elm =
 
 root : Internal.StyleSheet elem variation -> Element elem variation msg -> Html msg
 root stylesheet elm =
-    Html.div [ Html.Attributes.class "style-elements-root" ]
+    Html.div [ Html.Attributes.class "style-elements-root", Html.Attributes.id "style-elements-root" ]
         (embed False stylesheet :: render stylesheet elm)
 
 
