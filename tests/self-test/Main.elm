@@ -1,7 +1,6 @@
 module Main exposing (..)
 
 import Html
-import Html.Events exposing (..)
 import AutoSelfTest
 import Element exposing (..)
 import Element.Attributes exposing (..)
@@ -36,10 +35,26 @@ main =
         }
 
 
+type alias Model =
+    { results :
+        Maybe
+            (List
+                ( String
+                , Maybe
+                    { given : Maybe String
+                    , message : String
+                    }
+                )
+            )
+    , seed : Random.Pcg.Seed
+    }
+
+
 type Msg
     = Refresh
 
 
+update : Msg -> Model -> ( Model, Cmd msg )
 update msg model =
     case msg of
         Refresh ->
@@ -73,6 +88,7 @@ update msg model =
                 )
 
 
+view : Model -> Html.Html msg
 view model =
     Element.layout
         stylesheet
@@ -97,6 +113,7 @@ indent i str =
         |> String.join "\n"
 
 
+viewResults : Maybe (List ( String, Maybe { a | message : String } )) -> Element Styles variation msg
 viewResults results =
     case results of
         Nothing ->
@@ -121,6 +138,7 @@ viewResults results =
                     (List.map viewResult res)
 
 
+stylesheet : Style.StyleSheet Styles variation
 stylesheet =
     Style.styleSheet
         [ Style.style None
@@ -143,10 +161,43 @@ stylesheet =
         ]
 
 
+elementView : Element Styles variation msg
 elementView =
+    viewAbove
+
+
+centeredElement =
     Element.el Blue
         [ center
         , height (px 80)
         , width (percent 60)
         ]
         (text "My first Element!")
+
+
+viewAbove =
+    Element.el Blue [ width (px 200), height (px 200) ] empty
+        |> above
+            [ el Blue [ width (px 10), height (px 10) ] empty
+
+            -- , el Blue [ width (px 10), height (px 10), alignRight ] empty
+            -- , el Blue [ width (px 10), height (px 10), center ] empty
+            ]
+
+
+
+-- |> below
+--     [ el Blue [ width (px 10), height (px 10) ] empty
+--     , el Blue [ width (px 10), height (px 10), alignRight ] empty
+--     , el Blue [ width (px 10), height (px 10), center ] empty
+--     ]
+-- |> onRight
+--     [ el Blue [ width (px 10), height (px 10) ] empty
+--     , el Blue [ width (px 10), height (px 10), alignBottom ] empty
+--     , el Blue [ width (px 10), height (px 10), verticalCenter ] empty
+--     ]
+-- |> onLeft
+--     [ el Blue [ width (px 10), height (px 10) ] empty
+--     , el Blue [ width (px 10), height (px 10), alignBottom ] empty
+--     , el Blue [ width (px 10), height (px 10), verticalCenter ] empty
+--     ]

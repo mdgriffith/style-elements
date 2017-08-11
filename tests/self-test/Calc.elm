@@ -17,12 +17,50 @@ import Style.Internal.Model as Style exposing (Length(..))
 
 position attrs parent local =
     let
+        positionNearby ( label, positionBox ) =
+            let
+                forAnchor attr =
+                    case attr of
+                        PositionFrame frame ->
+                            case frame of
+                                Screen ->
+                                    Nothing
+
+                                Nearby Within ->
+                                    Just <| 5
+
+                                Nearby Below ->
+                                    Just <| 5
+
+                                Nearby Above ->
+                                    Just <| 5
+
+                                Nearby OnLeft ->
+                                    Just <| 5
+
+                                Nearby OnRight ->
+                                    Just <| 5
+
+                                Relative ->
+                                    -- used internally, not exposed to user
+                                    Nothing
+
+                                Absolute frame ->
+                                    -- used internally, not exposed to user
+                                    Nothing
+
+                        _ ->
+                            Nothing
+            in
+                ( label, positionBox )
+
         addWidthAndHeight ( label, positionBox ) =
             ( label
             , { positionBox
                 | width = width
                 , height = height
                 , bottom = positionBox.top + height
+                , right = positionBox.left + width
               }
             )
 
@@ -182,7 +220,12 @@ position attrs parent local =
                         )
 
                     Just Right ->
-                        ( label ++ [ "aligned right" ], positionBox )
+                        ( label ++ [ "aligned right" ]
+                        , { positionBox
+                            | left = parent.box.width - local.width
+                            , right = parent.box.width
+                          }
+                        )
 
                     Just Justify ->
                         ( label ++ [ "justified" ], positionBox )
