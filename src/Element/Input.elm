@@ -42,6 +42,13 @@ import Style.Internal.Selector
 import Json.Decode as Json
 
 
+{-| -}
+form : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+form =
+    (Modify.setNode "form" << Element.el)
+
+
+
 -- submitButton (Does a submit button have accessibility concerns?)
 {-
    button
@@ -107,6 +114,25 @@ text elem attrs { value, onChange } =
             , absolutelyPositioned = Nothing
             }
         ]
+
+
+{-| -}
+type AutoComplete
+    = AutoCompelte
+
+
+{-| -}
+type alias AutoCompleteConfig style variation msg =
+    { focus : AutoComplete
+    , max : Int
+    , option : String -> Bool -> Element style variation msg
+    }
+
+
+{-| -}
+autocomplete : style -> List (Attribute variation msg) -> AutoCompleteConfig style variation msg -> Input style variation msg -> Input style variation msg
+autocomplete style attrs { focus, max, option } input =
+    input
 
 
 {-| Put a label above any of the text inputs.
