@@ -42,14 +42,14 @@ options =
 
 stylesheet : StyleSheet Styles variation
 stylesheet =
-    Style.stylesheet
+    Style.styleSheet
         [ style None []
         , style Main
             [ Border.all 1
             , Color.text Color.darkCharcoal
             , Color.background Color.white
             , Color.border Color.lightGrey
-            , Font.typeface [ "helvetica", "arial", "sans-serif" ]
+            , Font.typeface [ Font.font "helvetica", Font.font "arial", Font.sansSerif ]
             , Font.size 16
             , Font.lineHeight 1.3
             ]
@@ -104,31 +104,32 @@ stylesheet =
         ]
 
 
-testForm =
-    [ Element.form <|
-        column
-            Box
-            [ spacingXY 10 20 ]
-            [ checkbox True None [] (text "Yes, Lunch pls.")
-            , label None [] (text "check this out") <|
-                inputText None [] "The Value!"
-            , label None [] (text "check this out") <|
-                textArea None [] "The Value!"
-            , radio "lunch"
-                None
-                []
-                [ option "burrito" True (text "A Burrito!")
-                , option "taco" False (text " A Taco!")
-                ]
-            , select "favorite-animal"
-                None
-                []
-                [ option "manatee" False (text "Manatees are pretty cool")
-                , option "pangolin" False (text "But so are pangolins")
-                , option "bee" True (text "Bees")
-                ]
-            ]
-    ]
+
+-- testForm =
+--     [ Element.form <|
+--         column
+--             Box
+--             [ spacingXY 10 20 ]
+--             [ checkbox True None [] (text "Yes, Lunch pls.")
+--             , label None [] (text "check this out") <|
+--                 inputText None [] "The Value!"
+--             , label None [] (text "check this out") <|
+--                 textArea None [] "The Value!"
+--             , radio "lunch"
+--                 None
+--                 []
+--                 [ option "burrito" True (text "A Burrito!")
+--                 , option "taco" False (text " A Taco!")
+--                 ]
+--             , select "favorite-animal"
+--                 None
+--                 []
+--                 [ option "manatee" False (text "Manatees are pretty cool")
+--                 , option "pangolin" False (text "But so are pangolins")
+--                 , option "bee" True (text "Bees")
+--                 ]
+--             ]
+--     ]
 
 
 main =
@@ -162,7 +163,8 @@ view model =
                     , viewTable
                     , viewGridLayout
                     , viewNamedGridLayout
-                    , testForm
+
+                    -- , testForm
                     , [ screenExample
                       , screenExample2
                       ]
