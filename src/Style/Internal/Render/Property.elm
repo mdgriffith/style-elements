@@ -2,7 +2,7 @@ module Style.Internal.Render.Property exposing (..)
 
 {-| -}
 
-import Style.Internal.Model as Internal exposing (..)
+import Style.Internal.Model exposing (..)
 import Style.Internal.Render.Value as Value
 import Time
 
@@ -320,7 +320,7 @@ background prop =
 layout : Bool -> LayoutModel -> List ( String, String )
 layout inline lay =
     case lay of
-        Internal.TextLayout _ ->
+        TextLayout _ ->
             [ ( "display"
               , if inline then
                     "inline-block"
@@ -329,7 +329,7 @@ layout inline lay =
               )
             ]
 
-        Internal.FlexLayout dir flexProps ->
+        FlexLayout dir flexProps ->
             (( "display"
              , if inline then
                 "inline-flex"
@@ -340,7 +340,7 @@ layout inline lay =
                 :: direction dir
                 :: List.map (flexbox dir) flexProps
 
-        Internal.Grid (NamedGridTemplate { rows, columns }) options ->
+        Grid (NamedGridTemplate { rows, columns }) options ->
             let
                 grid =
                     if inline then
@@ -426,7 +426,7 @@ layout inline lay =
                        )
                     :: alignment
 
-        Internal.Grid (GridTemplate { rows, columns }) options ->
+        Grid (GridTemplate { rows, columns }) options ->
             let
                 grid =
                     if inline then

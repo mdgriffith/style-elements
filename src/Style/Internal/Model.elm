@@ -178,10 +178,6 @@ type Font
     | ImportFont String String
 
 
-
--- | Face {}
-
-
 type BackgroundSize
     = Contain
     | Cover
