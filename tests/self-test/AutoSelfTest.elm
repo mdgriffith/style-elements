@@ -440,7 +440,7 @@ createTest parent boxed =
                     Calc.position attrs parent local
 
                 testPosition =
-                    Test.test (applyTag ("Calculated position matches real position: " ++ String.join "," calcLabel) tag) <|
+                    Test.test (applyTag ("Calculated position matches real position: " ++ String.join ", " calcLabel) tag) <|
                         \_ ->
                             Expect.equal (roundBox calculatedPosition) (roundBox box)
 
@@ -639,7 +639,7 @@ testAttribute tag parent local attr =
                 Px px ->
                     Just <|
                         Test.test (applyTag "pixel height should match render height" tag) <|
-                            \_ -> Expect.equal px local.height
+                            \_ -> Expect.equal (round px) (round local.height)
 
                 Percent pc ->
                     Just <|
@@ -664,8 +664,8 @@ testAttribute tag parent local attr =
             case len of
                 Px px ->
                     Just <|
-                        Test.test (applyTag "px width should match rendered width" tag) <|
-                            \_ -> Expect.equal px local.width
+                        Test.test (applyTag "pixel width should match rendered width" tag) <|
+                            \_ -> Expect.equal (round px) (round local.width)
 
                 Percent pc ->
                     Just <|

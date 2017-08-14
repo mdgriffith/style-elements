@@ -179,25 +179,21 @@ viewAbove =
     Element.el Blue [ width (px 200), height (px 200) ] empty
         |> above
             [ el Blue [ width (px 10), height (px 10) ] empty
-
-            -- , el Blue [ width (px 10), height (px 10), alignRight ] empty
-            -- , el Blue [ width (px 10), height (px 10), center ] empty
+            , el Blue [ width (px 10), height (px 10), alignRight ] empty
+            , el Blue [ width (px 10), height (px 10), center ] empty
             ]
-
-
-
--- |> below
---     [ el Blue [ width (px 10), height (px 10) ] empty
---     , el Blue [ width (px 10), height (px 10), alignRight ] empty
---     , el Blue [ width (px 10), height (px 10), center ] empty
---     ]
--- |> onRight
---     [ el Blue [ width (px 10), height (px 10) ] empty
---     , el Blue [ width (px 10), height (px 10), alignBottom ] empty
---     , el Blue [ width (px 10), height (px 10), verticalCenter ] empty
---     ]
--- |> onLeft
---     [ el Blue [ width (px 10), height (px 10) ] empty
---     , el Blue [ width (px 10), height (px 10), alignBottom ] empty
---     , el Blue [ width (px 10), height (px 10), verticalCenter ] empty
---     ]
+        |> below
+            [ el Blue [ width (px 10), height (px 10) ] empty
+            , el Blue [ width (px 10), height (px 10), alignRight ] empty
+            , el Blue [ width (px 10), height (px 10), center ] empty
+            ]
+        |> onRight
+            [ el Blue [ width (px 10), height (px 10) ] empty
+            , el Blue [ width (px 10), height (px 10), alignBottom ] empty
+            , el Blue [ width (px 10), height (px 10), verticalCenter ] empty
+            ]
+        |> onLeft
+            [ el Blue [ width (px 10), height (px 10) ] empty
+            , el Blue [ width (px 10), height (px 10), alignBottom ] empty
+            , el Blue [ width (px 10), height (px 10), verticalCenter ] empty
+            ]

@@ -27,19 +27,59 @@ position attrs parent local =
                                     Nothing
 
                                 Nearby Within ->
-                                    Just <| 5
+                                    Just
+                                        ( label ++ [ "within" ]
+                                        , { positionBox
+                                            | top = parent.box.top
+                                            , left = parent.box.left
+                                            , right = parent.box.left + positionBox.width
+                                            , bottom = parent.box.top + positionBox.height
+                                          }
+                                        )
 
                                 Nearby Below ->
-                                    Just <| 5
+                                    Just
+                                        ( label ++ [ "below" ]
+                                        , { positionBox
+                                            | top = parent.box.bottom
+                                            , left = parent.box.left
+                                            , right = parent.box.left + positionBox.width
+                                            , bottom = parent.box.bottom + positionBox.height
+                                          }
+                                        )
 
                                 Nearby Above ->
-                                    Just <| 5
+                                    Just
+                                        ( label ++ [ "above" ]
+                                        , { positionBox
+                                            | top = parent.box.top - positionBox.height
+                                            , left = parent.box.left
+                                            , right = parent.box.left + positionBox.width
+                                            , bottom = parent.box.top
+                                          }
+                                        )
 
                                 Nearby OnLeft ->
-                                    Just <| 5
+                                    Just
+                                        ( label ++ [ "on left" ]
+                                        , { positionBox
+                                            | top = parent.box.top
+                                            , left = parent.box.left - positionBox.width
+                                            , right = parent.box.left
+                                            , bottom = parent.box.top + positionBox.height
+                                          }
+                                        )
 
                                 Nearby OnRight ->
-                                    Just <| 5
+                                    Just
+                                        ( label ++ [ "on right" ]
+                                        , { positionBox
+                                            | top = parent.box.top
+                                            , left = parent.box.right
+                                            , right = parent.box.right + positionBox.width
+                                            , bottom = parent.box.top + positionBox.height
+                                          }
+                                        )
 
                                 Relative ->
                                     -- used internally, not exposed to user
@@ -52,7 +92,9 @@ position attrs parent local =
                         _ ->
                             Nothing
             in
-                ( label, positionBox )
+                List.filterMap forAnchor attrs
+                    |> List.head
+                    |> Maybe.withDefault ( label, positionBox )
 
         addWidthAndHeight ( label, positionBox ) =
             ( label
@@ -250,16 +292,36 @@ position attrs parent local =
                         ( label, positionBox )
 
                     Just Top ->
-                        ( label ++ [ "aligned top" ], positionBox )
+                        ( label ++ [ "aligned top" ]
+                        , { positionBox
+                            | bottom = parent.box.top + positionBox.height
+                            , top = parent.box.top
+                          }
+                        )
 
                     Just VerticalCenter ->
-                        ( label ++ [ "aligned vertical center" ], positionBox )
+                        let
+                            remaining =
+                                parent.box.width - positionBox.width
+                        in
+                            ( label ++ [ "aligned vertical center" ]
+                            , { positionBox
+                                | top = remaining / 2 + parent.box.top
+                                , bottom = remaining / 2 + parent.box.top + positionBox.height
+                              }
+                            )
 
                     Just Bottom ->
-                        ( label ++ [ "aligned bottom" ], positionBox )
+                        ( label ++ [ "aligned bottom" ]
+                        , { positionBox
+                            | bottom = parent.box.bottom
+                            , top = parent.box.bottom - positionBox.height
+                          }
+                        )
     in
         ( [], parent.inheritedPosition )
             |> addWidthAndHeight
+            |> positionNearby
             |> applyHAlignment
             |> applyVAlignment
             |> applyPositionAdjustment
