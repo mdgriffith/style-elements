@@ -4,18 +4,15 @@ module Element.Attributes
         , attribute
         , center
         , verticalCenter
-        , justify
+        , spread
         , alignTop
         , alignBottom
         , alignLeft
         , alignRight
-        , moveX
-        , moveY
         , moveUp
         , moveDown
         , moveRight
         , moveLeft
-        , moveXY
         , width
         , minWidth
         , maxWidth
@@ -26,6 +23,7 @@ module Element.Attributes
         , px
         , content
         , fill
+        , fillPortion
         , percent
         , vary
         , spacing
@@ -159,12 +157,12 @@ When applied to layout elements like `row` and `grid`, alignment will affect the
 
 When applied to singular elements like `el`, alignment will affect the alignment of that individual element.
 
-@docs center, verticalCenter, justify, alignTop, alignBottom, alignLeft, alignRight
+@docs center, verticalCenter, spread, alignTop, alignBottom, alignLeft, alignRight
 
 
 ## Sizing
 
-@docs width, minWidth, maxWidth, height, minHeight, maxHeight, Length, px, fill, percent, content
+@docs width, minWidth, maxWidth, height, minHeight, maxHeight, Length, px, fill, fillPortion, percent, content
 
 
 ## Spacing ++ Padding
@@ -188,7 +186,7 @@ Is rendered into something like this:
 
 ## Positioning
 
-@docs moveUp, moveDown, moveRight, moveLeft, moveXY, moveX, moveY
+@docs moveUp, moveDown, moveRight, moveLeft
 
 
 ## Scrollbars
@@ -320,8 +318,8 @@ verticalCenter =
 
 
 {-| -}
-justify : Attribute variation msg
-justify =
+spread : Attribute variation msg
+spread =
     HAlign Justify
 
 
@@ -378,38 +376,6 @@ moveLeft x =
 
 
 {-| -}
-moveX : Float -> Attribute variation msg
-moveX x =
-    Position (Just x) Nothing Nothing
-
-
-{-| -}
-moveY : Float -> Attribute variation msg
-moveY y =
-    Position Nothing (Just y) Nothing
-
-
-
--- {-| -}
--- moveZ : Float -> Attribute variation msg
--- moveZ z =
---     Position Nothing Nothing (Just z)
-
-
-{-| Adjust the position of the element.
--}
-moveXY : Float -> Float -> Attribute variation msg
-moveXY x y =
-    Position (Just x) (Just y) Nothing
-
-
-
--- moveXYZ : Float -> Float -> Float -> Attribute variation msg
--- moveXYZ x y z =
---     Position (Just x) (Just y) (Just z)
-
-
-{-| -}
 width : Length -> Attribute variation msg
 width =
     Width
@@ -458,9 +424,15 @@ content =
 
 
 {-| -}
-fill : Float -> Length
+fill : Length
 fill =
-    Style.Fill
+    Style.Fill 1
+
+
+{-| -}
+fillPortion : Int -> Length
+fillPortion =
+    Style.Fill << toFloat
 
 
 {-| -}
