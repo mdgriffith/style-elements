@@ -41,6 +41,9 @@ module Element
         , span
         , spanAll
         , link
+        , newTab
+        , download
+        , downloadAs
         , when
         , whenJust
         , within
@@ -111,9 +114,14 @@ Make sure to check out the Style Element specific attributes in `Element.Attribu
 @docs table, Grid, NamedGrid, grid, namedGrid, GridPosition, NamedGridPosition, OnGrid, NamedOnGrid, area, named, span, spanAll
 
 
+## Linking
+
+@docs link, newTab, download, downloadAs
+
+
 ## Convenience Elements
 
-@docs full, spacer, hairline, link, image, circle, break
+@docs full, spacer, hairline, image, circle, break
 
 
 ## Positioning
@@ -838,17 +846,90 @@ spanAll name =
     link "http://zombo.com"
         <| el MyStyle (text "Welcome to Zombocom")
 
-Changes an element's node to `<a>` and sets the href. `rel` properties are set to `noopener` and `noreferrer`.
+Wraps an element in an `<a>` and sets the href. `rel` properties are set to `noopener` and `noreferrer`.
 
 -}
 link : String -> Element style variation msg -> Element style variation msg
 link src el =
-    el
-        |> Modify.setNode "a"
-        |> Modify.addAttrList
+    Element
+        { node = "a"
+        , style = Nothing
+        , attrs =
             [ Attr (Html.Attributes.href src)
             , Attr (Html.Attributes.rel "noopener noreferrer")
             ]
+        , child = el
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| Make a link that opens in a new tab.
+
+Depending on the browsers configiration, it may open in a new window.
+
+    newTab "<http://zombo.com">
+        <| el MyStyle (text "Welcome to Zombocom")
+
+-}
+newTab : String -> Element style variation msg -> Element style variation msg
+newTab src el =
+    Element
+        { node = "a"
+        , style = Nothing
+        , attrs =
+            [ Attr (Html.Attributes.href src)
+            , Attr (Html.Attributes.rel "noopener noreferrer")
+            , Attr (Html.Attributes.target "_blank")
+            ]
+        , child = el
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| Make a link that will download a file
+
+    download "http://zombo.com/schedule.pdf"
+        <| el MyStyle (text "Welcome to Zombocom")
+
+-}
+download : String -> Element style variation msg -> Element style variation msg
+download src el =
+    Element
+        { node = "a"
+        , style = Nothing
+        , attrs =
+            [ Attr (Html.Attributes.href src)
+            , Attr (Html.Attributes.rel "noopener noreferrer")
+            , Attr (Html.Attributes.download True)
+            ]
+        , child = el
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| Make a link that will download a file and give it a specific filename.
+
+    downloadAs
+        { src = "<http://zombo.com/schedule.pdf">
+        , filename = "zombocomSchedule.pdf"
+        }
+        <| el MyStyle (text "Welcome to Zombocom")
+
+-}
+downloadAs : { src : String, filename : String } -> Element style variation msg -> Element style variation msg
+downloadAs { src, filename } el =
+    Element
+        { node = "a"
+        , style = Nothing
+        , attrs =
+            [ Attr (Html.Attributes.href src)
+            , Attr (Html.Attributes.rel "noopener noreferrer")
+            , Attr (Html.Attributes.download True)
+            , Attr (Html.Attributes.downloadAs filename)
+            ]
+        , child = el
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| A helper function. This:
