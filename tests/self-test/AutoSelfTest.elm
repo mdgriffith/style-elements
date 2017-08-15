@@ -590,10 +590,48 @@ createTest parent boxed =
                                                         child
                                                     )
 
-                                                _ ->
+                                                Style.GoLeft ->
+                                                    -- TODO
+                                                    ( cursor.x + width + spacingX
+                                                    , cursor.y
+                                                    , createTest
+                                                        { box =
+                                                            adjustedForPadding
+                                                        , childElementInitialPosition =
+                                                            Calc.move cursor.x cursor.y 0 adjustedForPadding
+                                                        , attrs = attrs
+                                                        , layout = Layout layout
+
+                                                        -- TODO: Calculate fillPortions!
+                                                        , fillPortionX = fillPortionX
+                                                        , fillPortionY = adjustedForPadding.height
+                                                        }
+                                                        child
+                                                    )
+
+                                                Style.Down ->
                                                     -- TODO
                                                     ( cursor.x
-                                                    , cursor.y
+                                                    , cursor.y + height + spacingY
+                                                    , createTest
+                                                        { box =
+                                                            adjustedForPadding
+                                                        , childElementInitialPosition =
+                                                            Calc.move cursor.x cursor.y 0 adjustedForPadding
+                                                        , attrs = attrs
+                                                        , layout = Layout layout
+
+                                                        -- TODO: Calculate fillPortions!
+                                                        , fillPortionX = adjustedForPadding.width
+                                                        , fillPortionY = adjustedForPadding.height
+                                                        }
+                                                        child
+                                                    )
+
+                                                Style.Up ->
+                                                    -- TODO
+                                                    ( cursor.x
+                                                    , cursor.y + height + spacingY
                                                     , createTest
                                                         { box =
                                                             adjustedForPadding

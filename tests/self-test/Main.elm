@@ -177,7 +177,7 @@ stylesheet =
 
 elementView : Element Styles variation msg
 elementView =
-    viewFillRow
+    viewColumn
 
 
 centeredElement : Element Styles variation msg
@@ -193,6 +193,16 @@ centeredElement =
 viewRow : Element Styles variation msg
 viewRow =
     Element.row Grey
+        [ spacing 10 ]
+        [ el Blue [ width (px 10), height (px 10) ] empty
+        , el Blue [ width (px 10), height (px 10) ] empty
+        , el Blue [ width (px 10), height (px 10) ] empty
+        ]
+
+
+viewColumn : Element Styles variation msg
+viewColumn =
+    Element.column Grey
         [ spacing 10 ]
         [ el Blue [ width (px 10), height (px 10) ] empty
         , el Blue [ width (px 10), height (px 10) ] empty
