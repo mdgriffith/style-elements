@@ -232,7 +232,7 @@ background prop =
                     "to top"
 
                 ToDown ->
-                    "to bottomn"
+                    "to bottom"
 
                 ToRight ->
                     "to right"
