@@ -12,9 +12,7 @@ import Keyboard
 import Style.Color as Color
 import Color
 import Style.Font as Font
-
-
--- run test =
+import Window
 
 
 ( elems, tests ) =
@@ -26,12 +24,18 @@ main =
         { init =
             ( { seed = Random.Pcg.initialSeed 227852860
               , results = Nothing
+              , window = Window.Size 0 0
               }
             , Cmd.none
             )
         , update = update
         , view = view
-        , subscriptions = \_ -> Keyboard.presses (\_ -> Refresh)
+        , subscriptions =
+            \_ ->
+                Sub.batch
+                    [ Keyboard.presses (\_ -> Refresh)
+                    , Window.resizes Resize
+                    ]
         }
 
 
@@ -47,20 +51,25 @@ type alias Model =
                 )
             )
     , seed : Random.Pcg.Seed
+    , window : Window.Size
     }
 
 
 type Msg
     = Refresh
+    | Resize Window.Size
 
 
-update : Msg -> Model -> ( Model, Cmd msg )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        Resize size ->
+            ( { model | window = size }, Cmd.none )
+
         Refresh ->
             let
                 runners =
-                    Test.Runner.fromTest 100 model.seed (tests ())
+                    Test.Runner.fromTest 100 model.seed (tests model.window)
 
                 results =
                     case runners of
@@ -103,6 +112,7 @@ type Styles
     | TestResults
     | PassingTest
     | Blue
+    | Grey
 
 
 indent : Int -> String -> String
@@ -158,14 +168,19 @@ stylesheet =
             [ Color.background Color.blue
             , Color.text Color.white
             ]
+        , Style.style Grey
+            [ Color.background Color.lightGrey
+            , Color.text Color.white
+            ]
         ]
 
 
 elementView : Element Styles variation msg
 elementView =
-    viewAbove
+    viewFillRow
 
 
+centeredElement : Element Styles variation msg
 centeredElement =
     Element.el Blue
         [ center
@@ -175,6 +190,27 @@ centeredElement =
         (text "My first Element!")
 
 
+viewRow : Element Styles variation msg
+viewRow =
+    Element.row Grey
+        [ spacing 10 ]
+        [ el Blue [ width (px 10), height (px 10) ] empty
+        , el Blue [ width (px 10), height (px 10) ] empty
+        , el Blue [ width (px 10), height (px 10) ] empty
+        ]
+
+
+viewFillRow : Element Styles variation msg
+viewFillRow =
+    Element.row Grey
+        [ spacing 10 ]
+        [ el Blue [ width fill, height (px 10) ] empty
+        , el Blue [ width fill, height (px 10) ] empty
+        , el Blue [ width fill, height (px 10) ] empty
+        ]
+
+
+viewAbove : Element Styles variation msg
 viewAbove =
     Element.el Blue [ width (px 200), height (px 200) ] empty
         |> above

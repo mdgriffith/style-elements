@@ -12,10 +12,200 @@ import Style.Internal.Model as Style exposing (Length(..))
 
 
 
+-- height : Float -> { b | box : { a | height : Float } } -> List (Attribute variation msg) -> Float
+
+
+height parent attrs =
+    let
+        findHeight attr =
+            case attr of
+                Height len ->
+                    case len of
+                        Px px ->
+                            Just <|
+                                px
+
+                        Percent pc ->
+                            Just <|
+                                (parent.box.height * (pc / 100.0))
+
+                        Auto ->
+                            -- How can we know the size of the content?
+                            Nothing
+
+                        Fill x ->
+                            Just (x * parent.fillPortionY)
+
+                        Calc percent adjust ->
+                            Just <|
+                                ((parent.box.height * percent) - adjust)
+
+                _ ->
+                    Nothing
+    in
+        List.filterMap findHeight attrs
+            |> List.reverse
+            |> List.head
+            |> Maybe.withDefault parent.box.height
+
+
+
+-- width : Float -> { b | box : { a | width : Float } } -> List (Attribute variation msg) -> Float
+
+
+width parent attrs =
+    let
+        findHeight attr =
+            case attr of
+                Width len ->
+                    case len of
+                        Px px ->
+                            Just <|
+                                px
+
+                        Percent pc ->
+                            Just <|
+                                (parent.box.width * (pc / 100.0))
+
+                        Auto ->
+                            -- How can we know the size of the content?
+                            Nothing
+
+                        Fill x ->
+                            Just (x * parent.fillPortionX)
+
+                        Calc percent adjust ->
+                            Just <|
+                                ((parent.box.width * percent) - adjust)
+
+                _ ->
+                    Nothing
+    in
+        List.filterMap findHeight attrs
+            |> List.reverse
+            |> List.head
+            |> Maybe.withDefault parent.box.width
+
+
+fillHeightPortions : List (Attribute variation msg) -> Float
+fillHeightPortions attrs =
+    let
+        findPortion attr =
+            case attr of
+                Height len ->
+                    case len of
+                        Fill x ->
+                            Just x
+
+                        _ ->
+                            Nothing
+
+                _ ->
+                    Nothing
+    in
+        List.filterMap findPortion attrs
+            |> List.reverse
+            |> List.head
+            |> Maybe.withDefault 0
+
+
+fillWidthPortions : List (Attribute variation msg) -> Float
+fillWidthPortions attrs =
+    let
+        findPortion attr =
+            case attr of
+                Width len ->
+                    case len of
+                        Fill x ->
+                            Just x
+
+                        _ ->
+                            Nothing
+
+                _ ->
+                    Nothing
+    in
+        List.filterMap findPortion attrs
+            |> List.reverse
+            |> List.head
+            |> Maybe.withDefault 0
+
+
+concreteWidth : Float -> List (Attribute variation msg) -> Float
+concreteWidth parentWidth attrs =
+    let
+        findHeight attr =
+            case attr of
+                Width len ->
+                    case len of
+                        Px px ->
+                            Just <|
+                                px
+
+                        Percent pc ->
+                            Just <|
+                                (parentWidth * (pc / 100.0))
+
+                        Auto ->
+                            -- How can we know the size of the content?
+                            Nothing
+
+                        Fill x ->
+                            Nothing
+
+                        Calc percent adjust ->
+                            Just <|
+                                ((parentWidth * percent) - adjust)
+
+                _ ->
+                    Nothing
+    in
+        List.filterMap findHeight attrs
+            |> List.reverse
+            |> List.head
+            |> Maybe.withDefault 0
+
+
+concreteHeight : Float -> List (Attribute variation msg) -> Float
+concreteHeight parentHeight attrs =
+    let
+        findHeight attr =
+            case attr of
+                Height len ->
+                    case len of
+                        Px px ->
+                            Just <|
+                                px
+
+                        Percent pc ->
+                            Just <|
+                                (parentHeight * (pc / 100.0))
+
+                        Auto ->
+                            -- How can we know the size of the content?
+                            Nothing
+
+                        Fill x ->
+                            Nothing
+
+                        Calc percent adjust ->
+                            Just <|
+                                ((parentHeight * percent) - adjust)
+
+                _ ->
+                    Nothing
+    in
+        List.filterMap findHeight attrs
+            |> List.reverse
+            |> List.head
+            |> Maybe.withDefault 0
+
+
+
 -- position : List a -> Box -> ( List String, Box )
 
 
-position attrs parent local =
+position attrs parent =
     let
         positionNearby ( label, positionBox ) =
             let
@@ -97,82 +287,21 @@ position attrs parent local =
                     |> Maybe.withDefault ( label, positionBox )
 
         addWidthAndHeight ( label, positionBox ) =
-            ( label
-            , { positionBox
-                | width = width
-                , height = height
-                , bottom = positionBox.top + height
-                , right = positionBox.left + width
-              }
-            )
-
-        height =
             let
-                findHeight attr =
-                    case attr of
-                        Height len ->
-                            case len of
-                                Px px ->
-                                    Just <|
-                                        px
+                childWidth =
+                    width parent attrs
 
-                                Percent pc ->
-                                    Just <|
-                                        (parent.box.height * (pc / 100.0))
-
-                                Auto ->
-                                    -- How can we know the size of the content?
-                                    Nothing
-
-                                Fill x ->
-                                    Just <|
-                                        parent.box.height
-
-                                Calc percent adjust ->
-                                    Just <|
-                                        ((parent.box.height * percent) - adjust)
-
-                        _ ->
-                            Nothing
+                childHeight =
+                    height parent attrs
             in
-                List.filterMap findHeight attrs
-                    |> List.reverse
-                    |> List.head
-                    |> Maybe.withDefault 0
-
-        width =
-            let
-                findHeight attr =
-                    case attr of
-                        Width len ->
-                            case len of
-                                Px px ->
-                                    Just <|
-                                        px
-
-                                Percent pc ->
-                                    Just <|
-                                        (parent.box.width * (pc / 100.0))
-
-                                Auto ->
-                                    -- How can we know the size of the content?
-                                    Nothing
-
-                                Fill x ->
-                                    Just <|
-                                        parent.box.width
-
-                                Calc percent adjust ->
-                                    Just <|
-                                        ((parent.box.width * percent) - adjust)
-
-                        _ ->
-                            Nothing
-            in
-                List.filterMap findHeight attrs
-                    |> List.reverse
-                    |> List.head
-                    |> Maybe.withDefault 0
+                ( label
+                , { positionBox
+                    | width = childWidth
+                    , height = childHeight
+                    , bottom = positionBox.top + childHeight
+                    , right = positionBox.left + childWidth
+                  }
+                )
 
         applyPositionAdjustment ( label, positionBox ) =
             let
@@ -220,7 +349,7 @@ position attrs parent local =
                         |> List.foldl mergePos ( Nothing, Nothing, Nothing )
                         |> withDefault ( 0, 0, 0 )
             in
-                ( label, move ( x, y, z ) positionBox )
+                ( label, move x y z positionBox )
 
         applyHAlignment ( label, positionBox ) =
             let
@@ -244,12 +373,12 @@ position attrs parent local =
                     Just Center ->
                         let
                             remaining =
-                                parent.box.width - local.width
+                                parent.box.width - positionBox.width
                         in
                             ( label ++ [ "centered" ]
                             , { positionBox
                                 | left = remaining / 2 + parent.box.left
-                                , right = remaining / 2 + parent.box.left + local.width
+                                , right = remaining / 2 + parent.box.left + positionBox.width
                               }
                             )
 
@@ -257,14 +386,14 @@ position attrs parent local =
                         ( label ++ [ "aligned left" ]
                         , { positionBox
                             | left = 0
-                            , right = local.width
+                            , right = positionBox.width
                           }
                         )
 
                     Just Right ->
                         ( label ++ [ "aligned right" ]
                         , { positionBox
-                            | left = parent.box.width - local.width
+                            | left = parent.box.width - positionBox.width
                             , right = parent.box.width
                           }
                         )
@@ -319,7 +448,7 @@ position attrs parent local =
                           }
                         )
     in
-        ( [], parent.inheritedPosition )
+        ( [], parent.childElementInitialPosition )
             |> addWidthAndHeight
             |> positionNearby
             |> applyHAlignment
@@ -340,12 +469,12 @@ relative parent element =
     }
 
 
-move : ( Float, Float, Float ) -> Box -> Box
-move ( x, y, z ) box =
+move : Float -> Float -> Float -> Box -> Box
+move x y z box =
     { left = box.left + x
-    , right = box.right - x
+    , right = box.right + x
     , top = box.top + y
-    , bottom = box.bottom - y
+    , bottom = box.bottom + y
     , width = box.width
     , height = box.height
     }
