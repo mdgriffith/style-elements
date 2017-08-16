@@ -189,8 +189,7 @@ screenExample =
     screen <|
         el None [ width (percent 100), alignBottom ] <|
             row Container
-                [ spacing 20
-                , justify
+                [ spread
                 , width (percent 60)
                 , paddingXY 30 4
                 ]
@@ -380,15 +379,15 @@ anchoredWithContent =
             [ el Label [] (text "Move 20 20")
             , el Container [ width (px 200), height (px 200) ] (text "Hi!")
                 |> within
-                    [ el Box [ moveXY 20 20, alignTop, alignRight ] (text "Hi!")
-                    , el Box [ moveXY 20 20, alignTop, alignLeft ] (text "Hi!")
-                    , el Box [ moveXY 20 20, alignBottom, alignRight ] (text "Hi!")
-                    , el Box [ moveXY 20 20, alignBottom, alignLeft ] (text "Hi!")
-                    , el Box [ moveXY 20 20, alignTop, center ] (text "Hi!")
-                    , el Box [ moveXY 20 20, alignBottom, center ] (text "Hi!")
-                    , el Box [ moveXY 20 20, verticalCenter, center ] (text "Hi!")
-                    , el Box [ moveXY 20 20, verticalCenter, alignRight ] (text "Hi!")
-                    , el Box [ moveXY 20 20, verticalCenter, alignLeft ] (text "Hi!")
+                    [ el Box [ moveRight 20, moveDown 20, alignTop, alignRight ] (text "Hi!")
+                    , el Box [ moveRight 20, moveDown 20, alignTop, alignLeft ] (text "Hi!")
+                    , el Box [ moveRight 20, moveDown 20, alignBottom, alignRight ] (text "Hi!")
+                    , el Box [ moveRight 20, moveDown 20, alignBottom, alignLeft ] (text "Hi!")
+                    , el Box [ moveRight 20, moveDown 20, alignTop, center ] (text "Hi!")
+                    , el Box [ moveRight 20, moveDown 20, alignBottom, center ] (text "Hi!")
+                    , el Box [ moveRight 20, moveDown 20, verticalCenter, center ] (text "Hi!")
+                    , el Box [ moveRight 20, moveDown 20, verticalCenter, alignRight ] (text "Hi!")
+                    , el Box [ moveRight 20, moveDown 20, verticalCenter, alignLeft ] (text "Hi!")
                     ]
             ]
         , column None
@@ -396,24 +395,24 @@ anchoredWithContent =
             [ el Label [] (text "Move 20 20")
             , el Container [ width (px 200), height (px 200) ] (text "Hi!")
                 |> above
-                    [ el Box [ moveXY 20 20 ] (text "Hi!")
-                    , el Box [ moveXY 20 20, alignRight ] (text "Hi!")
-                    , el Box [ moveXY 20 20, center ] (text "Hi!")
+                    [ el Box [ moveRight 20, moveDown 20 ] (text "Hi!")
+                    , el Box [ moveRight 20, moveDown 20, alignRight ] (text "Hi!")
+                    , el Box [ moveRight 20, moveDown 20, center ] (text "Hi!")
                     ]
                 |> below
-                    [ el Box [ moveXY 20 20 ] (text "Hi!")
-                    , el Box [ moveXY 20 20, alignRight ] (text "Hi!")
-                    , el Box [ moveXY 20 20, center ] (text "Hi!")
+                    [ el Box [ moveRight 20, moveDown 20 ] (text "Hi!")
+                    , el Box [ moveRight 20, moveDown 20, alignRight ] (text "Hi!")
+                    , el Box [ moveRight 20, moveDown 20, center ] (text "Hi!")
                     ]
                 |> onRight
-                    [ el Box [ moveXY 20 20 ] (text "Hi!")
-                    , el Box [ moveXY 20 20, alignBottom ] (text "Hi!")
-                    , el Box [ moveXY 20 20, verticalCenter ] (text "Hi!")
+                    [ el Box [ moveRight 20, moveDown 20 ] (text "Hi!")
+                    , el Box [ moveRight 20, moveDown 20, alignBottom ] (text "Hi!")
+                    , el Box [ moveRight 20, moveDown 20, verticalCenter ] (text "Hi!")
                     ]
                 |> onLeft
-                    [ el Box [ moveXY 20 20 ] (text "Hi!")
-                    , el Box [ moveXY 20 20, alignBottom ] (text "Hi!")
-                    , el Box [ moveXY 20 20, verticalCenter ] (text "Hi!")
+                    [ el Box [ moveRight 20, moveDown 20 ] (text "Hi!")
+                    , el Box [ moveRight 20, moveDown 20, alignBottom ] (text "Hi!")
+                    , el Box [ moveRight 20, moveDown 20, verticalCenter ] (text "Hi!")
                     ]
             ]
         ]
@@ -431,16 +430,16 @@ anchoredLayoutWithContent =
             [ section <| el Label [] (text "Nearby Layouts")
             , el Container [ width (px 200), height (px 200) ] (text "Hi!")
                 |> above
-                    [ row Container [ moveY -20, spacing 10, alignRight ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    [ row Container [ moveDown -20, spacing 10, alignRight ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
                     ]
                 |> below
-                    [ row Container [ moveY 20, spacing 10 ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    [ row Container [ moveDown 20, spacing 10 ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
                     ]
                 |> onRight
-                    [ column Container [ moveX 20, spacing 10, alignBottom ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    [ column Container [ moveRight 20, spacing 10, alignBottom ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
                     ]
                 |> onLeft
-                    [ column Container [ moveX -20, spacing 10 ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    [ column Container [ moveRight -20, spacing 10 ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
                     ]
             ]
         , column
@@ -470,24 +469,24 @@ anchoredAboveLayout =
             , el None [ center ] <|
                 (row Container [ spacing 10, padding 30, width (px 200), height (px 200) ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
                     |> above
-                        [ el Box [ moveXY 20 20 ] (text "Hi!")
-                        , el Box [ moveXY 20 20, alignRight ] (text "Hi!")
-                        , el Box [ moveXY 20 20, center ] (text "Hi!")
+                        [ el Box [ moveRight 20, moveDown 20 ] (text "Hi!")
+                        , el Box [ moveRight 20, moveDown 20, alignRight ] (text "Hi!")
+                        , el Box [ moveRight 20, moveDown 20, center ] (text "Hi!")
                         ]
                     |> below
-                        [ el Box [ moveXY 20 20 ] (text "Hi!")
-                        , el Box [ moveXY 20 20, alignRight ] (text "Hi!")
-                        , el Box [ moveXY 20 20, center ] (text "Hi!")
+                        [ el Box [ moveRight 20, moveDown 20 ] (text "Hi!")
+                        , el Box [ moveRight 20, moveDown 20, alignRight ] (text "Hi!")
+                        , el Box [ moveRight 20, moveDown 20, center ] (text "Hi!")
                         ]
                     |> onRight
-                        [ el Box [ moveXY 20 20 ] (text "Hi!")
-                        , el Box [ moveXY 20 20, alignBottom ] (text "Hi!")
-                        , el Box [ moveXY 20 20, verticalCenter ] (text "Hi!")
+                        [ el Box [ moveRight 20, moveDown 20 ] (text "Hi!")
+                        , el Box [ moveRight 20, moveDown 20, alignBottom ] (text "Hi!")
+                        , el Box [ moveRight 20, moveDown 20, verticalCenter ] (text "Hi!")
                         ]
                     |> onLeft
-                        [ el Box [ moveXY 20 20 ] (text "Hi!")
-                        , el Box [ moveXY 20 20, alignBottom ] (text "Hi!")
-                        , el Box [ moveXY 20 20, verticalCenter ] (text "Hi!")
+                        [ el Box [ moveRight 20, moveDown 20 ] (text "Hi!")
+                        , el Box [ moveRight 20, moveDown 20, alignBottom ] (text "Hi!")
+                        , el Box [ moveRight 20, moveDown 20, verticalCenter ] (text "Hi!")
                         ]
                 )
             ]
@@ -603,7 +602,7 @@ overflowIssue =
             [ width (percent 100) ]
             [ el None [] (text long) ]
         , row Container
-            [ width (fill 1) ]
+            [ width fill ]
             [ el None [] (text long) ]
         , el Label [] (text "Overflow on purpose")
         , row Container
@@ -611,21 +610,42 @@ overflowIssue =
             [ el None [ width (px 1800) ] (text long)
             ]
         , row Container
-            [ width (fill 1) ]
+            [ width fill ]
             [ el None [ width (percent 120) ] (text long) ]
         , row Container
-            [ width (fill 1) ]
-            [ el None [ width (fill 1.2) ] (text long) ]
+            [ width fill ]
+            [ el None [ width (fillPortion 2) ] (text long) ]
         ]
 
 
 viewRowLayouts =
     [ el Label [] (text "Row Layout")
     , row Container
-        [ spacingXY 20 20 ]
+        [ spacing 20 ]
         [ box
         , box
         , box
+        ]
+    , el Label [] (text "Row with Text Layout (should be centered and spaced with 20px)")
+    , row Container
+        [ spacing 20, center ]
+        [ text "box"
+        , text "box"
+        , text "box"
+        ]
+    , el Label [] (text "Row with uneven content and fill widths (should match up)")
+    , column Container
+        [ spacing 20 ]
+        [ row Container
+            []
+            [ el Box [ width fill ] (text ".")
+            , el Box [ width fill ] (text "short")
+            ]
+        , row Container
+            []
+            [ el Box [ width fill ] (text "short")
+            , el Box [ width fill ] (text "looooooooong")
+            ]
         ]
     , el Label [] (text "Row Child Alignment")
     , row Container
@@ -647,8 +667,8 @@ viewRowLayouts =
     , el Label [] (text "Row Width/Heights")
     , row Container
         [ spacingXY 20 20, height (px 300) ]
-        [ el Box [ width (px 200), height (fill 1) ] (text "fill height")
-        , el Box [ width (fill 1), height (px 200) ] (text "fill width")
+        [ el Box [ width (px 200), height fill ] (text "fill height")
+        , el Box [ width fill, height (px 200) ] (text "fill width")
         ]
     , el Label [] (text "Row Center ++ Spacing")
     , row Container
@@ -688,6 +708,13 @@ viewColumnLayouts =
         , box
         , box
         ]
+    , el Label [] (text "Column Layout, Justified")
+    , column Container
+        [ verticalSpread, height (px 800) ]
+        [ box
+        , box
+        , box
+        ]
     , el Label [] (text "Column ++ Spacing")
     , column Container
         [ spacingXY 20 20 ]
@@ -719,22 +746,22 @@ viewColumnLayouts =
     , el Label [] (text "Column Alignments ++ Width fill")
     , column Container
         [ spacingXY 20 20 ]
-        [ el Box [ width (fill 1), height (px 200), alignLeft ] empty
-        , el Box [ width (fill 1), height (px 200), center ] empty
-        , el Box [ width (fill 1), height (px 200), alignRight ] empty
-        , el Box [ width (fill 1), height (px 200), alignTop ] empty
-        , el Box [ width (fill 1), height (px 200), alignBottom ] empty
-        , el Box [ width (fill 1), height (px 200), verticalCenter ] empty
+        [ el Box [ width fill, height (px 200), alignLeft ] empty
+        , el Box [ width fill, height (px 200), center ] empty
+        , el Box [ width fill, height (px 200), alignRight ] empty
+        , el Box [ width fill, height (px 200), alignTop ] empty
+        , el Box [ width fill, height (px 200), alignBottom ] empty
+        , el Box [ width fill, height (px 200), verticalCenter ] empty
         ]
     , el Label [] (text "Column Alignments ++ Height fill")
     , column Container
         [ spacingXY 20 20 ]
-        [ el Box [ width (px 200), height (fill 1), alignLeft ] empty
-        , el Box [ width (px 200), height (fill 1), center ] empty
-        , el Box [ width (px 200), height (fill 1), alignRight ] empty
-        , el Box [ width (px 200), height (fill 1), alignTop ] empty
-        , el Box [ width (px 200), height (fill 1), alignBottom ] empty
-        , el Box [ width (px 200), height (fill 1), verticalCenter ] empty
+        [ el Box [ width (px 200), height fill, alignLeft ] empty
+        , el Box [ width (px 200), height fill, center ] empty
+        , el Box [ width (px 200), height fill, alignRight ] empty
+        , el Box [ width (px 200), height fill, alignTop ] empty
+        , el Box [ width (px 200), height fill, alignBottom ] empty
+        , el Box [ width (px 200), height fill, verticalCenter ] empty
         ]
     ]
 
@@ -802,7 +829,7 @@ viewTable =
 viewNamedGridLayout =
     [ el Label [] (text "Named Grid Layout")
     , namedGrid Container
-        { columns = [ px 200, px 200, px 200, fill 1 ]
+        { columns = [ px 200, px 200, px 200, fill ]
         , rows =
             [ px 200 => [ spanAll "header" ]
             , px 200 => [ span 3 "content", span 1 "sidebar" ]
@@ -825,7 +852,7 @@ viewTransforms =
         [ spacingXY 20 20 ]
         [ el Box
             [ width (px 200)
-            , height (fill 1)
+            , height fill
             ]
             empty
         ]
