@@ -52,6 +52,8 @@ module Element
         , onRight
         , onLeft
         , screen
+        , numbered
+        , bulleted
         , layout
         , viewport
         , toHtml
@@ -106,7 +108,7 @@ Make sure to check out the Style Element specific attributes in `Element.Attribu
 
 ## Text Layout
 
-@docs textLayout, paragraph
+@docs textLayout, paragraph, numbered, bulleted
 
 
 ## Grid Layout
@@ -263,6 +265,34 @@ sub =
 super : String -> Element style variation msg
 super =
     Text Super
+
+
+{-| A numbered list of items, rendered as a column.
+-}
+numbered : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
+numbered style attrs children =
+    Layout
+        { node = "ol"
+        , style = Just style
+        , layout = Style.FlexLayout Style.Down []
+        , attrs = attrs
+        , children = Normal (List.map (Modify.setNode "li" << Modify.addAttr (Attr.inlineStyle [ ( "display", "list-item" ) ])) children)
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| A bulleted list.
+-}
+bulleted : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
+bulleted style attrs children =
+    Layout
+        { node = "ul"
+        , style = Just style
+        , layout = Style.FlexLayout Style.Down []
+        , attrs = attrs
+        , children = Normal (List.map (Modify.setNode "li" << Modify.addAttr (Attr.inlineStyle [ ( "display", "list-item" ) ])) children)
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| The most basic element.
