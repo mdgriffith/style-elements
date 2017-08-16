@@ -1,6 +1,7 @@
 module Element.Internal.Modify
     exposing
         ( setNode
+        , wrapHtml
         , addAttrToNonText
         , addAttr
         , addAttrPriority
@@ -19,6 +20,24 @@ module Element.Internal.Modify
 {-| -}
 
 import Element.Internal.Model as Internal exposing (..)
+
+
+{-| Wraps Html in an element.
+-}
+wrapHtml : Element style variation msg -> Element style variation msg
+wrapHtml el =
+    case el of
+        Raw h ->
+            Element
+                { node = "div"
+                , style = Nothing
+                , attrs = []
+                , child = Raw h
+                , absolutelyPositioned = Nothing
+                }
+
+        x ->
+            x
 
 
 setNode : String -> Element style variation msg -> Element style variation msg

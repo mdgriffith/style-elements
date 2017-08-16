@@ -1011,6 +1011,7 @@ within nearbys parent =
     let
         position el p =
             el
+                |> Modify.wrapHtml
                 |> Modify.addAttr (PositionFrame (Nearby Within))
                 |> Modify.addChild p
     in
@@ -1023,6 +1024,7 @@ above nearbys parent =
     let
         position el p =
             el
+                |> Modify.wrapHtml
                 |> Modify.addAttr (PositionFrame (Nearby Above))
                 |> Modify.removeAttrs [ VAlign Top, VAlign Bottom ]
                 |> Modify.addChild p
@@ -1036,6 +1038,7 @@ below nearbys parent =
     let
         position el p =
             el
+                |> Modify.wrapHtml
                 |> Modify.addAttr (PositionFrame (Nearby Below))
                 |> Modify.removeAttrs [ VAlign Top, VAlign Bottom ]
                 |> Modify.addChild p
@@ -1049,6 +1052,7 @@ onRight nearbys parent =
     let
         position el p =
             el
+                |> Modify.wrapHtml
                 |> Modify.addAttr (PositionFrame (Nearby OnRight))
                 |> Modify.removeAttrs [ HAlign Right, HAlign Left ]
                 |> Modify.addChild p
@@ -1062,6 +1066,7 @@ onLeft nearbys parent =
     let
         position el p =
             el
+                |> Modify.wrapHtml
                 |> Modify.addAttr (PositionFrame (Nearby OnLeft))
                 |> Modify.removeAttrs [ HAlign Right, HAlign Left ]
                 |> Modify.addChild p

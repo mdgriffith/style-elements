@@ -461,6 +461,7 @@ anchoredLayoutWithContent =
 anchoredAboveLayout =
     [ row None
         [ center
+        , spacing 150
         ]
         [ column
             None
@@ -489,6 +490,15 @@ anchoredAboveLayout =
                         , el Box [ moveRight 20, moveDown 20, verticalCenter ] (text "Hi!")
                         ]
                 )
+            ]
+        , column
+            None
+            [ spacing 20 ]
+            [ section <| el Label [] (text "Raw Html Below")
+            , el Container [ width (px 200), height (px 200) ] (text "Hi!")
+                |> below
+                    [ html <| Html.div [] [ Html.text "This is raw HTML! (Should be Below" ]
+                    ]
             ]
         ]
     ]
