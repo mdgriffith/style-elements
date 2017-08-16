@@ -251,7 +251,7 @@ renderElement parent stylesheet order elm =
         Text dec str ->
             case dec of
                 NoDecoration ->
-                    Html.text str
+                    Html.span [] [ Html.text str ]
 
                 Bold ->
                     Html.strong [] [ Html.text str ]
@@ -688,6 +688,9 @@ alignLayout maybeHorizontal maybeVertical layout =
                 VerticalCenter ->
                     Internal.Vert (Internal.Center)
 
+                VerticalJustify ->
+                    Internal.Vert (Internal.Justify)
+
         alignGridHorizontal align =
             case align of
                 Left ->
@@ -712,6 +715,9 @@ alignLayout maybeHorizontal maybeVertical layout =
 
                 VerticalCenter ->
                     Internal.GridV (Internal.Center)
+
+                VerticalJustify ->
+                    Internal.GridV (Internal.Justify)
     in
         case layout of
             Internal.TextLayout clearfix ->
@@ -826,6 +832,9 @@ flexboxVerticalIndividualAlignment direction alignment =
                 VerticalCenter ->
                     Just ( "align-self", "center" )
 
+                VerticalJustify ->
+                    Just ( "align-self", "center" )
+
         Internal.GoLeft ->
             case alignment of
                 Top ->
@@ -835,6 +844,9 @@ flexboxVerticalIndividualAlignment direction alignment =
                     Just ( "align-self", "flex-end" )
 
                 VerticalCenter ->
+                    Just ( "align-self", "center" )
+
+                VerticalJustify ->
                     Just ( "align-self", "center" )
 
         Internal.Down ->
@@ -848,6 +860,9 @@ flexboxVerticalIndividualAlignment direction alignment =
                 VerticalCenter ->
                     Nothing
 
+                VerticalJustify ->
+                    Nothing
+
         Internal.Up ->
             case alignment of
                 Top ->
@@ -857,6 +872,9 @@ flexboxVerticalIndividualAlignment direction alignment =
                     Nothing
 
                 VerticalCenter ->
+                    Nothing
+
+                VerticalJustify ->
                     Nothing
 
 
@@ -909,6 +927,9 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                             VerticalCenter ->
                                 -- If an element is centered,
                                 -- it would be transformed to a single element centered layout before hitting here
+                                attrs
+
+                            VerticalJustify ->
                                 attrs
                     else
                         case parent of
@@ -1142,10 +1163,10 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                             in
                                 case layout of
                                     Internal.FlexLayout Internal.GoRight _ ->
-                                        Property.flexWidth len paddingAdjustment :: attrs
+                                        Property.flexWidth len paddingAdjustment ++ attrs
 
                                     Internal.FlexLayout Internal.GoLeft _ ->
-                                        Property.flexWidth len paddingAdjustment :: attrs
+                                        Property.flexWidth len paddingAdjustment ++ attrs
 
                                     _ ->
                                         ( "width", Value.parentAdjustedLength len paddingAdjustment ) :: attrs
@@ -1184,10 +1205,10 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                             in
                                 case layout of
                                     Internal.FlexLayout Internal.Down _ ->
-                                        Property.flexHeight len :: attrs
+                                        Property.flexHeight len ++ attrs
 
                                     Internal.FlexLayout Internal.Up _ ->
-                                        Property.flexHeight len :: attrs
+                                        Property.flexHeight len ++ attrs
 
                                     Internal.FlexLayout Internal.GoRight _ ->
                                         if hundredPercentOrFill len then
@@ -1464,7 +1485,7 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                                     []
             in
                 (Html.Attributes.style
-                    (( "box-sizing", "border-box" ) :: ((passthrough << gridPos << layout << spacing << opacity << shrink << padding << position << overflow) <| expandedProps))
+                    (defaults ++ ((passthrough << gridPos << layout << spacing << opacity << shrink << padding << position << overflow) <| expandedProps))
                 )
                     :: attributes
         else

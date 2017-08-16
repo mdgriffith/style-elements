@@ -401,3 +401,4 @@ type VerticalAlignment
     = Top
     | Bottom
     | VerticalCenter
+    | VerticalJustify
