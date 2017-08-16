@@ -20,42 +20,42 @@ visibility vis =
             [ ( "opacity", toString x ) ]
 
 
-flexWidth : Length -> Float -> ( String, String )
+flexWidth : Length -> Float -> List ( String, String )
 flexWidth len adjustment =
     case len of
         Px x ->
-            ( "width", toString x ++ "px" )
+            [ ( "width", toString x ++ "px" ) ]
 
         Percent x ->
-            ( "width", "calc(" ++ toString x ++ "% - " ++ toString adjustment ++ "px)" )
+            [ ( "width", "calc(" ++ toString x ++ "% - " ++ toString adjustment ++ "px)" ) ]
 
         Auto ->
-            ( "width", "auto" )
+            [ ( "width", "auto" ) ]
 
         Fill i ->
-            ( "flex-grow", toString i )
+            [ ( "flex-grow", toString i ), ( "flex-basis", "0" ) ]
 
         Calc perc px ->
-            ( "width", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" )
+            [ ( "width", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" ) ]
 
 
-flexHeight : Length -> ( String, String )
+flexHeight : Length -> List ( String, String )
 flexHeight l =
     case l of
         Px x ->
-            ( "height", toString x ++ "px" )
+            [ ( "height", toString x ++ "px" ) ]
 
         Percent x ->
-            ( "height", toString x ++ "%" )
+            [ ( "height", toString x ++ "%" ) ]
 
         Auto ->
-            ( "height", "auto" )
+            [ ( "height", "auto" ) ]
 
         Fill i ->
-            ( "flex-grow", toString i )
+            [ ( "flex-grow", toString i ), ( "flex-basis", "0" ) ]
 
         Calc perc px ->
-            ( "height", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" )
+            [ ( "height", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" ) ]
 
 
 filters : List Filter -> List ( String, String )
