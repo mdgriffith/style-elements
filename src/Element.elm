@@ -1150,7 +1150,7 @@ classifyDevice { width, height } =
     , tablet = width > 600 && width <= 1200
     , desktop = width > 1200 && width <= 1800
     , bigDesktop = width > 1800
-    , portrait = width > height
+    , portrait = width < height
     }
 
 
