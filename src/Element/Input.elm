@@ -700,9 +700,11 @@ radioElement horizontal style attrs { onChange, options, selected } =
                                 , absolutelyPositioned = Nothing
                                 }
                     in
-                        view (Just val == selected)
-                            |> Modify.setNode "label"
-                            |> Modify.addChild hiddenInput
+                        hiddenInput
+                            |> Modify.addChild
+                                (view (Just val == selected)
+                                    |> Modify.setNode "label"
+                                )
     in
         if horizontal then
             row style attrs (List.map renderOption options)
@@ -791,8 +793,10 @@ select style attrs { onChange, options, selected } =
                                 , absolutelyPositioned = Nothing
                                 }
                     in
-                        view (Just val == selected)
-                            |> Modify.setNode "label"
-                            |> Modify.addChild hiddenInput
+                        hiddenInput
+                            |> Modify.addChild
+                                (view (Just val == selected)
+                                    |> Modify.setNode "label"
+                                )
     in
         Element.node "select" <| column style attrs (List.map renderOption options)
