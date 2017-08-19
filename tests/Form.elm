@@ -44,14 +44,18 @@ options =
 
 stylesheet : StyleSheet Styles variation
 stylesheet =
-    Style.stylesheet
+    Style.styleSheet
         [ style None []
         , style Main
             [ Border.all 1
             , Color.text Color.darkCharcoal
             , Color.background Color.white
             , Color.border Color.lightGrey
-            , Font.typeface [ "helvetica", "arial", "sans-serif" ]
+            , Font.typeface
+                [ Font.font "helvetica"
+                , Font.font "arial"
+                , Font.font "sans-serif"
+                ]
             , Font.size 16
             , Font.lineHeight 1.3
             ]
@@ -91,7 +95,6 @@ stylesheet =
             , Color.background Color.blue
             , Color.border Color.blue
             , Border.rounded 3
-            , paddingHint 20
             , hover
                 [ Color.text Color.white
                 , Color.background Color.red
@@ -175,85 +178,94 @@ view model =
         el None [ center, width (px 800) ] <|
             column Main
                 [ spacing 20 ]
-                [ Input.checkbox Blue
-                    []
-                    { onChange = Check
-                    , checked = model.checkbox
-                    , label = text "hello!"
-                    }
-                , Input.checkboxWith Blue
-                    []
-                    { onChange = Check
-                    , checked = model.checkbox
-                    , elem =
-                        \on ->
-                            row Container
-                                [ verticalCenter, spacing 5 ]
-                                [ circle 5
+                [ Input.label None [] (text "hello!") <|
+                    Input.checkbox
+                        { onChange = Check
+                        , checked = model.checkbox
+                        }
+                , Input.label None [] (text "hello!") <|
+                    Input.checkboxWith
+                        { onChange = Check
+                        , checked = model.checkbox
+                        , icon =
+                            \on ->
+                                circle 7
                                     (if on then
-                                        Yellow
+                                        Blue
                                      else
                                         Grey
                                     )
                                     []
                                     empty
-                                , el None [] (text "Hello!")
-                                ]
-                    }
-                , Input.radio Container
-                    [ padding 40
-                    , spacing 5
-                    , height (px 200)
-                    ]
-                    { onChange = ChooseLunch
-                    , selected = Just model.lunch
-                    , options =
-                        [ Input.optionWith Burrito
-                            (\selected ->
-                                if selected then
-                                    text ":D Burrito"
-                                else
-                                    text ":( No Burrito"
-                            )
-                        , Input.option Taco (text "Taco!")
-                        , Input.option Gyro (text "Gyro")
+                        }
+                , Input.label None [] (text "Lunch!") <|
+                    Input.radio Container
+                        [ padding 40
+                        , spacing 5
+                        , height (px 200)
                         ]
-                    }
-                , Input.radioRow Container
-                    [ padding 40, spacing 20 ]
-                    { onChange = ChooseLunch
-                    , selected = Just model.lunch
-                    , options =
-                        [ Input.option Taco (text "Taco!")
-                        , Input.option Gyro (text "Gyro")
-                        , Input.optionWith Burrito
-                            (\selected ->
-                                if selected then
-                                    text ":D Burrito"
-                                else
-                                    text ":( No Burrito"
-                            )
-                        ]
-                    }
-                , Input.label (text "A Greeting") <|
+                        { onChange = ChooseLunch
+                        , selected = Just model.lunch
+                        , options =
+                            [ Input.optionWith Burrito
+                                (\selected ->
+                                    let
+                                        icon =
+                                            if selected then
+                                                text ":D"
+                                            else
+                                                text ":("
+                                    in
+                                        row None
+                                            [ spacing 5 ]
+                                            [ icon, text "burrito" ]
+                                )
+                            , Input.option Taco (text "Taco!")
+                            , Input.option Gyro (text "Gyro")
+                            ]
+                        }
+                , Input.label None [] (text "Lunch") <|
+                    Input.radioRow Container
+                        [ padding 40, spacing 20 ]
+                        { onChange = ChooseLunch
+                        , selected = Just model.lunch
+                        , options =
+                            [ Input.option Taco (text "Taco!")
+                            , Input.option Gyro (text "Gyro")
+                            , Input.optionWith Burrito
+                                (\selected ->
+                                    let
+                                        icon =
+                                            if selected then
+                                                text ":D"
+                                            else
+                                                text ":("
+                                    in
+                                        row None
+                                            [ spacing 5 ]
+                                            [ icon, text "burrito" ]
+                                )
+                            ]
+                        }
+                , Input.label None [] (text "A Greeting") <|
                     Input.text None
                         []
                         { onChange = ChangeText
                         , value = model.text
                         }
-                , Input.label (text "A Greeting") <|
+                , Input.label None [] (text "A Greeting") <|
                     Input.multiline None
                         []
                         { onChange = ChangeText
                         , value = model.text
                         }
-                , Input.label (text "A Greeting") <|
+                , Input.label None [] (text "A Greeting") <|
                     Input.search None
                         []
                         { onChange = ChangeText
                         , value = model.text
                         }
-                , Input.labelBelow (text "My super password") <|
+                , Input.label None [] (text "My super password") <|
                     Input.password None
                         []
                         { onChange = ChangeText
