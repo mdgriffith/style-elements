@@ -47,6 +47,7 @@ module Element.Attributes
         , id
         , map
         , hidden
+        , toAttr
           -- , ping
           -- , rel
         )
@@ -120,6 +121,11 @@ Is rendered into something like this:
 @docs clip, clipX, clipY
 
 
+## Conversion
+
+@docs toAttr
+
+
 # Primitives
 
 @docs inlineStyle, property, attribute, map
@@ -137,6 +143,7 @@ import Style.Internal.Render.Value as StyleValue
 import Html.Attributes
 import VirtualDom
 import Json.Decode as Json
+import Html
 
 
 {-| -}
@@ -609,3 +616,11 @@ language str =
 -- rel : String -> Attribute variation msg
 -- rel str =
 --     Attr <| Html.Attributes.rel str
+
+
+{-| Convert an existing `Html.Attribute` to an `Element.Attribute`.
+This is useful for working with any library that returns a `Html.Attribute`.
+-}
+toAttr : Html.Attribute msg -> Attribute variation msg
+toAttr =
+    Attr
