@@ -986,36 +986,41 @@ renderAttributes elType order maybeElemID parent stylesheet elem =
                             Justify ->
                                 attrs
                     else
-                        case parent of
-                            Nothing ->
+                        case elType of
+                            LayoutElement _ ->
                                 attrs
 
-                            Just { layout } ->
-                                case layout of
-                                    Internal.TextLayout _ ->
-                                        case align of
-                                            Left ->
-                                                ( "z-index", "1" ) :: ( "float", "left" ) :: attrs
-
-                                            Right ->
-                                                ( "z-index", "1" ) :: ( "float", "right" ) :: attrs
-
-                                            Center ->
-                                                attrs
-
-                                            Justify ->
-                                                attrs
-
-                                    Internal.FlexLayout dir _ ->
-                                        case flexboxHorizontalIndividualAlignment dir align of
-                                            Nothing ->
-                                                attrs
-
-                                            Just a ->
-                                                a :: attrs
-
-                                    _ ->
+                            Single ->
+                                case parent of
+                                    Nothing ->
                                         attrs
+
+                                    Just { layout } ->
+                                        case layout of
+                                            Internal.TextLayout _ ->
+                                                case align of
+                                                    Left ->
+                                                        ( "z-index", "1" ) :: ( "float", "left" ) :: attrs
+
+                                                    Right ->
+                                                        ( "z-index", "1" ) :: ( "float", "right" ) :: attrs
+
+                                                    Center ->
+                                                        attrs
+
+                                                    Justify ->
+                                                        attrs
+
+                                            Internal.FlexLayout dir _ ->
+                                                case flexboxHorizontalIndividualAlignment dir align of
+                                                    Nothing ->
+                                                        attrs
+
+                                                    Just a ->
+                                                        a :: attrs
+
+                                            _ ->
+                                                attrs
 
         overflow attrs =
             case elem.overflow of
