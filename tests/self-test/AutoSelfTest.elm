@@ -18,7 +18,7 @@ import Test exposing (Test)
 import Expect
 import BoundingBox exposing (Box)
 import Style
-import Calc
+import Calc exposing (Parent, ParentLayout(..))
 import Window
 
 
@@ -111,24 +111,48 @@ test el =
             taggedEls
 
         createTests window =
-            tagged
-                |> fetchBoxes
-                |> createTest
-                    { box = BoundingBox.get "style-elements-root"
-                    , childElementInitialPosition =
-                        { left = 0
-                        , right = 0
-                        , top = 0
-                        , bottom = 0
-                        , width = toFloat window.width
-                        , height = toFloat window.height
+            let
+                -- rootBox =
+                --     Debug.log "root" <| BoundingBox.get "style-elements-root"
+                root =
+                    Debug.log "doc size" <| BoundingBox.documentSize ()
+
+                -- _ =
+                --     Debug.log "window" window
+            in
+                tagged
+                    |> fetchBoxes
+                    |> createTest
+                        { box =
+                            { left = 0
+                            , right = root.width
+                            , top = 0
+                            , bottom = root.height
+                            , width = root.width
+                            , height = root.height
+                            }
+                        , childElementInitialPosition =
+                            { left = 0
+                            , right = root.width
+                            , top = 0
+                            , bottom = root.height
+                            , width = root.width
+                            , height = root.height
+                            }
+                        , attrs = []
+                        , layout = NoLayout
+                        , fillPortionX = root.width
+                        , fillPortionY = root.height
+                        , boxWithPadding =
+                            { left = 0
+                            , right = root.width
+                            , top = 0
+                            , bottom = root.height
+                            , width = root.width
+                            , height = root.height
+                            }
                         }
-                    , attrs = []
-                    , layout = NoLayout
-                    , fillPortionX = toFloat window.width
-                    , fillPortionY = toFloat window.height
-                    }
-                |> Test.describe "Style Elements Auto Test"
+                    |> Test.describe "Style Elements Auto Test"
     in
         ( rendered, createTests )
 
@@ -307,6 +331,15 @@ fetchBoxes tagged =
     let
         getBoundingBox (Tag tag) =
             BoundingBox.get tag
+
+        emptyBox =
+            { width = 0
+            , height = 0
+            , left = 0
+            , top = 0
+            , right = 0
+            , bottom = 0
+            }
     in
         case tagged of
             TaggedEmpty ->
@@ -324,7 +357,7 @@ fetchBoxes tagged =
 
             TaggedText { decoration, content, tag } ->
                 BoxedText
-                    { boundingBox = getBoundingBox tag
+                    { boundingBox = emptyBox
                     , content = content
                     , decoration = decoration
                     , tag = tag
@@ -385,22 +418,6 @@ roundBox box =
     }
 
 
-type ParentLayout
-    = AbsolutelyPositioned
-    | Layout Style.LayoutModel
-    | NoLayout
-
-
-type alias Parent variation msg =
-    { box : Box
-    , childElementInitialPosition : Box
-    , attrs : List (Model.Attribute variation msg)
-    , layout : ParentLayout
-    , fillPortionX : Float
-    , fillPortionY : Float
-    }
-
-
 {-| Generates a test suite
 -}
 createTest : Parent variation msg -> Boxed style variation msg -> List Test
@@ -425,12 +442,27 @@ createTest parent boxed =
 
                 -- This is the calculated position of the element
                 ( calcLabel, calculatedPosition ) =
-                    Calc.position attrs parent
+                    Calc.position attrs parent boundingBox
 
+                inline =
+                    List.any (\a -> a == Inline) attrs
+
+                -- _ =
+                --     Debug.log (applyTag "boundingBox" tag) boundingBox
+                -- _ =
+                --     Debug.log (applyTag "parent" tag) parent
+                -- _ =
+                --     Debug.log (applyTag "parent" tag) parent
                 testPosition =
-                    Test.test (applyTag ("calculated vs real position: " ++ String.join ", " calcLabel) tag) <|
-                        \_ ->
-                            Expect.equal (roundBox calculatedPosition) (roundBox boundingBox)
+                    if inline then
+                        Test.test (applyTag ("inline element, position test skipped!") tag) <|
+                            (\_ ->
+                                Expect.equal True True
+                            )
+                    else
+                        Test.test (applyTag ("calculated vs real position " ++ String.join ", " calcLabel) tag) <|
+                            \_ ->
+                                Expect.equal (roundBox calculatedPosition) (roundBox boundingBox)
 
                 adjustedForPadding =
                     Calc.adjustForPadding attrs calculatedPosition
@@ -445,6 +477,7 @@ createTest parent boxed =
                         , layout = NoLayout
                         , fillPortionX = adjustedForPadding.width
                         , fillPortionY = adjustedForPadding.height
+                        , boxWithPadding = calculatedPosition
                         }
                         child
 
@@ -452,15 +485,16 @@ createTest parent boxed =
                     List.map
                         (\child ->
                             createTest
-                                { box = adjustedForPadding
+                                { box = calculatedPosition
                                 , childElementInitialPosition =
-                                    adjustedForPadding
+                                    calculatedPosition
                                 , attrs = attrs
                                 , layout = AbsolutelyPositioned
-                                , fillPortionX = adjustedForPadding.width
+                                , fillPortionX = calculatedPosition.width
 
                                 -- QUESTION: what is the expected fill width/height for a "below" element
-                                , fillPortionY = adjustedForPadding.height
+                                , fillPortionY = calculatedPosition.height
+                                , boxWithPadding = calculatedPosition
                                 }
                                 child
                         )
@@ -486,8 +520,12 @@ createTest parent boxed =
         BoxedLayout { layout, boundingBox, attrs, children, absolutelyPositioned, tag } ->
             let
                 ( calcLabel, calculatedPosition ) =
-                    Calc.position (List.filter (not << alignment) attrs) parent
+                    Calc.position (List.filter (not << alignment) attrs) parent boundingBox
 
+                -- _ =
+                --     Debug.log (applyTag "boundingBox" tag) boundingBox
+                -- _ =
+                --     Debug.log (applyTag "parent" tag) parent
                 testPosition =
                     Test.test (applyTag ("calculated vs real position: " ++ String.join "," calcLabel) tag) <|
                         \_ ->
@@ -515,7 +553,7 @@ createTest parent boxed =
                     { parent | fillPortionX = fillPortionX, fillPortionY = fillPortionY }
 
                 attributeTests =
-                    List.filterMap (testAttribute tag filled boundingBox) attrs
+                    List.filterMap (testAttribute tag parent boundingBox) attrs
 
                 -- The calculated position of the element
                 alignment attr =
@@ -529,8 +567,34 @@ createTest parent boxed =
                         _ ->
                             False
 
+                hAlignmentAttr attr =
+                    case attr of
+                        HAlign a ->
+                            Just a
+
+                        _ ->
+                            Nothing
+
+                vAlignmentAttr attr =
+                    case attr of
+                        VAlign a ->
+                            Just a
+
+                        _ ->
+                            Nothing
+
                 adjustedForPadding =
                     Calc.adjustForPadding attrs calculatedPosition
+
+                hAlignment =
+                    List.filterMap hAlignmentAttr attrs
+                        |> List.reverse
+                        |> List.head
+
+                vAlignment =
+                    List.filterMap vAlignmentAttr attrs
+                        |> List.reverse
+                        |> List.head
 
                 childrenTest =
                     let
@@ -538,7 +602,29 @@ createTest parent boxed =
                             { tests = []
                             , x = 0
                             , y = 0
+                            , i = 0
                             }
+
+                        totalChildren =
+                            toFloat <| List.length children
+
+                        totalChildrenWidth =
+                            let
+                                sumWidth child total =
+                                    getChildWidth filled child + total
+                            in
+                                children
+                                    |> List.foldl (sumWidth) 0
+                                    |> (+) ((totalChildren - 1) * spacingX)
+
+                        totalChildrenHeight =
+                            let
+                                sumHeight child total =
+                                    getChildHeight filled child + total
+                            in
+                                children
+                                    |> List.foldl (sumHeight) 0
+                                    |> (+) ((totalChildren - 1) * spacingY)
 
                         applyLayout child cursor =
                             let
@@ -548,26 +634,79 @@ createTest parent boxed =
                                 height =
                                     getChildHeight filled child
 
+                                leftRightAttr attr =
+                                    case attr of
+                                        HAlign Left ->
+                                            True
+
+                                        HAlign Right ->
+                                            True
+
+                                        _ ->
+                                            False
+
+                                hAlignmentAdjustment box =
+                                    case hAlignment of
+                                        Nothing ->
+                                            box
+
+                                        Just Left ->
+                                            box
+
+                                        Just Right ->
+                                            Calc.move ((adjustedForPadding.width - totalChildrenWidth)) 0 0 box
+
+                                        Just Center ->
+                                            Calc.move ((adjustedForPadding.width - totalChildrenWidth) / 2) 0 0 box
+
+                                        Just Justify ->
+                                            Calc.move (((adjustedForPadding.width - totalChildrenWidth) / (totalChildren - 1)) * cursor.i) 0 0 box
+
+                                vAlignmentAdjustment box =
+                                    case vAlignment of
+                                        Nothing ->
+                                            box
+
+                                        Just Top ->
+                                            box
+
+                                        Just Bottom ->
+                                            Calc.move 0 ((adjustedForPadding.height - totalChildrenHeight)) 0 box
+
+                                        Just VerticalCenter ->
+                                            Calc.move 0 ((adjustedForPadding.height - totalChildrenHeight) / 2) 0 box
+
+                                        Just VerticalJustify ->
+                                            Calc.move 0 (((adjustedForPadding.height - totalChildrenHeight) / (totalChildren - 1)) * cursor.i) 0 box
+
                                 ( newX, newY, layedOut ) =
                                     case layout of
                                         Style.TextLayout clearfixed ->
-                                            -- TODO
-                                            ( cursor.x
-                                            , cursor.y
-                                            , createTest
-                                                { box =
-                                                    adjustedForPadding
-                                                , childElementInitialPosition =
-                                                    Calc.move cursor.x cursor.y 0 adjustedForPadding
-                                                , attrs = attrs
-                                                , layout = Layout layout
-
-                                                -- TODO: Calculate fillPortions!
-                                                , fillPortionX = adjustedForPadding.width
-                                                , fillPortionY = adjustedForPadding.height
-                                                }
-                                                child
-                                            )
+                                            let
+                                                leftRightAlignment =
+                                                    child
+                                                        |> mapBoxAttrs (\attrs -> List.any leftRightAttr attrs)
+                                            in
+                                                ( cursor.x
+                                                , if leftRightAlignment then
+                                                    cursor.y
+                                                  else
+                                                    cursor.y + height + spacingY
+                                                , createTest
+                                                    { box =
+                                                        adjustedForPadding
+                                                    , childElementInitialPosition =
+                                                        adjustedForPadding
+                                                            |> hAlignmentAdjustment
+                                                            |> Calc.move cursor.x cursor.y 0
+                                                    , attrs = attrs
+                                                    , layout = Calc.Layout layout
+                                                    , fillPortionX = fillPortionX
+                                                    , fillPortionY = fillPortionY
+                                                    , boxWithPadding = calculatedPosition
+                                                    }
+                                                    child
+                                                )
 
                                         Style.FlexLayout dir flexAttrs ->
                                             case dir of
@@ -579,13 +718,16 @@ createTest parent boxed =
                                                         { box =
                                                             adjustedForPadding
                                                         , childElementInitialPosition =
-                                                            Calc.move cursor.x cursor.y 0 adjustedForPadding
+                                                            adjustedForPadding
+                                                                |> hAlignmentAdjustment
+                                                                |> Calc.move cursor.x cursor.y 0
                                                         , attrs = attrs
-                                                        , layout = Layout layout
+                                                        , layout = Calc.Layout layout
 
                                                         -- TODO: Calculate fillPortions!
                                                         , fillPortionX = fillPortionX
-                                                        , fillPortionY = adjustedForPadding.height
+                                                        , fillPortionY = fillPortionY
+                                                        , boxWithPadding = calculatedPosition
                                                         }
                                                         child
                                                     )
@@ -598,13 +740,16 @@ createTest parent boxed =
                                                         { box =
                                                             adjustedForPadding
                                                         , childElementInitialPosition =
-                                                            Calc.move cursor.x cursor.y 0 adjustedForPadding
+                                                            adjustedForPadding
+                                                                |> hAlignmentAdjustment
+                                                                |> Calc.move cursor.x cursor.y 0
                                                         , attrs = attrs
-                                                        , layout = Layout layout
+                                                        , layout = Calc.Layout layout
 
                                                         -- TODO: Calculate fillPortions!
                                                         , fillPortionX = fillPortionX
-                                                        , fillPortionY = adjustedForPadding.height
+                                                        , fillPortionY = fillPortionY
+                                                        , boxWithPadding = calculatedPosition
                                                         }
                                                         child
                                                     )
@@ -617,13 +762,14 @@ createTest parent boxed =
                                                         { box =
                                                             adjustedForPadding
                                                         , childElementInitialPosition =
-                                                            Calc.move cursor.x cursor.y 0 adjustedForPadding
+                                                            adjustedForPadding
+                                                                |> Calc.move cursor.x cursor.y 0
+                                                                |> vAlignmentAdjustment
                                                         , attrs = attrs
-                                                        , layout = Layout layout
-
-                                                        -- TODO: Calculate fillPortions!
-                                                        , fillPortionX = adjustedForPadding.width
-                                                        , fillPortionY = adjustedForPadding.height
+                                                        , layout = Calc.Layout layout
+                                                        , fillPortionX = fillPortionX
+                                                        , fillPortionY = fillPortionY
+                                                        , boxWithPadding = calculatedPosition
                                                         }
                                                         child
                                                     )
@@ -636,13 +782,14 @@ createTest parent boxed =
                                                         { box =
                                                             adjustedForPadding
                                                         , childElementInitialPosition =
-                                                            Calc.move cursor.x cursor.y 0 adjustedForPadding
+                                                            adjustedForPadding
+                                                                |> Calc.move cursor.x cursor.y 0
+                                                                |> vAlignmentAdjustment
                                                         , attrs = attrs
-                                                        , layout = Layout layout
-
-                                                        -- TODO: Calculate fillPortions!
-                                                        , fillPortionX = adjustedForPadding.width
-                                                        , fillPortionY = adjustedForPadding.height
+                                                        , layout = Calc.Layout layout
+                                                        , fillPortionX = fillPortionX
+                                                        , fillPortionY = fillPortionY
+                                                        , boxWithPadding = calculatedPosition
                                                         }
                                                         child
                                                     )
@@ -657,11 +804,12 @@ createTest parent boxed =
                                                 , childElementInitialPosition =
                                                     adjustedForPadding
                                                 , attrs = attrs
-                                                , layout = Layout layout
+                                                , layout = Calc.Layout layout
 
                                                 -- TODO: Calculate fillPortions!
                                                 , fillPortionX = adjustedForPadding.width
                                                 , fillPortionY = adjustedForPadding.height
+                                                , boxWithPadding = calculatedPosition
                                                 }
                                                 child
                                             )
@@ -670,6 +818,7 @@ createTest parent boxed =
                                     | tests = cursor.tests ++ [ layedOut ]
                                     , x = newX
                                     , y = newY
+                                    , i = cursor.i + 1
                                 }
                     in
                         List.foldl applyLayout init children
@@ -679,15 +828,16 @@ createTest parent boxed =
                     List.map
                         (\child ->
                             createTest
-                                { box = adjustedForPadding
+                                { box = calculatedPosition
                                 , childElementInitialPosition =
-                                    adjustedForPadding
+                                    calculatedPosition
                                 , attrs = attrs
                                 , layout = AbsolutelyPositioned
 
                                 -- QUESTION: what is the expected fill width/height for a "below" element
-                                , fillPortionX = adjustedForPadding.width
-                                , fillPortionY = adjustedForPadding.height
+                                , fillPortionX = calculatedPosition.width
+                                , fillPortionY = calculatedPosition.height
+                                , boxWithPadding = calculatedPosition
                                 }
                                 child
                         )
@@ -696,7 +846,7 @@ createTest parent boxed =
                 [ Test.describe (applyTag "Layout" tag)
                     (List.filterMap identity
                         [ Just <| Test.describe (applyTag "Attributes" tag) (testPosition :: attributeTests)
-                        , if List.length childrenTest == 0 then
+                        , if List.length (List.concat childrenTest) == 0 then
                             Nothing
                           else
                             Just <| Test.describe (applyTag "Children" tag) (List.concat childrenTest)
@@ -732,8 +882,8 @@ testAttribute tag parent groundTruth attr =
 
                 Fill x ->
                     Just <|
-                        Test.test (applyTag "fill height should match parent height" tag) <|
-                            \_ -> Expect.equal (parent.fillPortionY * x) groundTruth.height
+                        Test.test (applyTag ("fill " ++ toString x ++ " height vs ground truth") tag) <|
+                            \_ -> Expect.equal (round <| parent.fillPortionY * x) (round groundTruth.height)
 
                 Calc percent adjust ->
                     Just <|
@@ -744,7 +894,7 @@ testAttribute tag parent groundTruth attr =
             case len of
                 Px px ->
                     Just <|
-                        Test.test (applyTag "pixel width should match rendered width" tag) <|
+                        Test.test (applyTag "pixel width vs found" tag) <|
                             \_ -> Expect.equal (round px) (round groundTruth.width)
 
                 Percent pc ->
@@ -757,9 +907,19 @@ testAttribute tag parent groundTruth attr =
                     Nothing
 
                 Fill x ->
-                    Just <|
-                        Test.test (applyTag "fill width" tag) <|
-                            \_ -> Expect.equal (parent.fillPortionX * x) groundTruth.width
+                    let
+                        _ =
+                            Debug.log (applyTag "fill width" tag) (parent.fillPortionX * x)
+
+                        _ =
+                            Debug.log (applyTag "fill portion" tag) (parent.fillPortionX)
+
+                        _ =
+                            Debug.log (applyTag "fill x" tag) (x)
+                    in
+                        Just <|
+                            Test.test (applyTag ("fill " ++ toString x ++ " width vs ground truth") tag) <|
+                                \_ -> Expect.equal (parent.fillPortionX * x) groundTruth.width
 
                 Calc percent adjust ->
                     Just <|
@@ -932,6 +1092,28 @@ mapBoxAttrs fn el =
             fn attrs
 
 
+getBox el =
+    case el of
+        BoxedEmpty ->
+            Nothing
+
+        BoxedSpacer _ ->
+            Nothing
+
+        BoxedRaw _ ->
+            Nothing
+
+        -- How can we figure this out?
+        BoxedText _ ->
+            Nothing
+
+        BoxedElement { boundingBox } ->
+            Just boundingBox
+
+        BoxedLayout { boundingBox } ->
+            Just boundingBox
+
+
 getChildFillWidthPortions child =
     mapBoxAttrs Calc.fillWidthPortions child
 
@@ -949,8 +1131,18 @@ getChildConcreteHeight parentHeight child =
 
 
 getChildWidth parent child =
-    mapBoxAttrs (Calc.width parent) child
+    let
+        auto =
+            getBox child
+                |> Maybe.withDefault parent.box
+    in
+        mapBoxAttrs (\child -> Calc.width parent child |> Maybe.withDefault auto.width) child
 
 
 getChildHeight parent child =
-    mapBoxAttrs (Calc.height parent) child
+    let
+        auto =
+            getBox child
+                |> Maybe.withDefault parent.box
+    in
+        mapBoxAttrs (\child -> Calc.height parent child |> Maybe.withDefault auto.height) child

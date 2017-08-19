@@ -1,4 +1,4 @@
-module BoundingBox exposing (Box, get)
+module BoundingBox exposing (Box, get, documentSize)
 
 import Native.BoundingBox
 
@@ -16,3 +16,8 @@ type alias Box =
 get : String -> Box
 get =
     Native.BoundingBox.getBoundingBox
+
+
+documentSize : () -> { width : Float, height : Float }
+documentSize =
+    Native.BoundingBox.documentSize

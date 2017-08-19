@@ -9,6 +9,21 @@ import Style.Internal.Model as Style exposing (Length(..))
 
 {-| Calculate the position of an element based on the attributes
 -}
+type ParentLayout
+    = AbsolutelyPositioned
+    | Layout Style.LayoutModel
+    | NoLayout
+
+
+type alias Parent variation msg =
+    { box : Box
+    , childElementInitialPosition : Box
+    , attrs : List (Model.Attribute variation msg)
+    , layout : ParentLayout
+    , fillPortionX : Float
+    , fillPortionY : Float
+    , boxWithPadding : Box
+    }
 
 
 
@@ -46,10 +61,11 @@ height parent attrs =
         List.filterMap findHeight attrs
             |> List.reverse
             |> List.head
-            |> Maybe.withDefault parent.box.height
 
 
 
+-- |> Maybe.withDefault 0
+-- |> Maybe.withDefault parent.box.height
 -- width : Float -> { b | box : { a | width : Float } } -> List (Attribute variation msg) -> Float
 
 
@@ -84,7 +100,70 @@ width parent attrs =
         List.filterMap findHeight attrs
             |> List.reverse
             |> List.head
-            |> Maybe.withDefault parent.box.width
+
+
+
+-- |> Maybe.withDefault parent.box.width
+
+
+widthName attrs =
+    let
+        findHeight attr =
+            case attr of
+                Width len ->
+                    case len of
+                        Px px ->
+                            Just "px width"
+
+                        Percent pc ->
+                            Just "percent width"
+
+                        Auto ->
+                            Just "auto width"
+
+                        Fill x ->
+                            Just "fill width"
+
+                        Calc percent adjust ->
+                            Just "calc width"
+
+                _ ->
+                    Nothing
+    in
+        List.filterMap findHeight attrs
+            |> List.reverse
+            |> List.head
+            |> Maybe.withDefault "empty width"
+
+
+heightName attrs =
+    let
+        findHeight attr =
+            case attr of
+                Height len ->
+                    case len of
+                        Px px ->
+                            Just "px height"
+
+                        Percent pc ->
+                            Just "percent height"
+
+                        Auto ->
+                            Just "auto height"
+
+                        Fill x ->
+                            Just "fill height"
+
+                        Calc percent adjust ->
+                            Just "calc height"
+
+                _ ->
+                    Nothing
+    in
+        List.filterMap findHeight attrs
+            |> List.reverse
+            |> List.head
+            |> Maybe.withDefault "empty height"
 
 
 fillHeightPortions : List (Attribute variation msg) -> Float
@@ -205,7 +284,7 @@ concreteHeight parentHeight attrs =
 -- position : List a -> Box -> ( List String, Box )
 
 
-position attrs parent =
+position attrs parent boundingBoxOverride =
     let
         positionNearby ( label, positionBox ) =
             let
@@ -290,11 +369,15 @@ position attrs parent =
             let
                 childWidth =
                     width parent attrs
+                        -- If no width set, then it's auto, so we cheat
+                        |> Maybe.withDefault boundingBoxOverride.width
 
                 childHeight =
                     height parent attrs
+                        -- If no width set, then it's auto, so we cheat
+                        |> Maybe.withDefault boundingBoxOverride.height
             in
-                ( label
+                ( widthName attrs :: heightName attrs :: label
                 , { positionBox
                     | width = childWidth
                     , height = childHeight
@@ -365,41 +448,60 @@ position attrs parent =
                     List.filterMap forHAlign attrs
                         |> List.reverse
                         |> List.head
-            in
-                case hAlign of
-                    Nothing ->
-                        ( label, positionBox )
 
-                    Just Center ->
-                        let
-                            remaining =
-                                parent.box.width - positionBox.width
-                        in
-                            ( label ++ [ "centered" ]
+                isNullified =
+                    case parent.layout of
+                        Layout x ->
+                            case x of
+                                Style.FlexLayout Style.GoRight _ ->
+                                    True
+
+                                Style.FlexLayout Style.GoLeft _ ->
+                                    True
+
+                                _ ->
+                                    False
+
+                        _ ->
+                            False
+            in
+                if isNullified then
+                    ( label, positionBox )
+                else
+                    case hAlign of
+                        Nothing ->
+                            ( label, positionBox )
+
+                        Just Center ->
+                            let
+                                remaining =
+                                    parent.box.width - positionBox.width
+                            in
+                                ( label ++ [ "centered" ]
+                                , { positionBox
+                                    | left = remaining / 2 + parent.box.left
+                                    , right = remaining / 2 + parent.box.left + positionBox.width
+                                  }
+                                )
+
+                        Just Left ->
+                            ( label ++ [ "aligned left" ]
                             , { positionBox
-                                | left = remaining / 2 + parent.box.left
-                                , right = remaining / 2 + parent.box.left + positionBox.width
+                                | left = parent.box.left
+                                , right = parent.box.left + positionBox.width
                               }
                             )
 
-                    Just Left ->
-                        ( label ++ [ "aligned left" ]
-                        , { positionBox
-                            | left = 0
-                            , right = positionBox.width
-                          }
-                        )
+                        Just Right ->
+                            ( label ++ [ "aligned right" ]
+                            , { positionBox
+                                | left = parent.box.right - positionBox.width
+                                , right = parent.box.right
+                              }
+                            )
 
-                    Just Right ->
-                        ( label ++ [ "aligned right" ]
-                        , { positionBox
-                            | left = parent.box.width - positionBox.width
-                            , right = parent.box.width
-                          }
-                        )
-
-                    Just Justify ->
-                        ( label ++ [ "justified" ], positionBox )
+                        Just Justify ->
+                            ( label ++ [ "justified" ], positionBox )
 
         applyVAlignment ( label, positionBox ) =
             let
@@ -415,38 +517,60 @@ position attrs parent =
                     List.filterMap forVAlign attrs
                         |> List.reverse
                         |> List.head
+
+                isNullified =
+                    case parent.layout of
+                        Layout x ->
+                            case x of
+                                Style.FlexLayout Style.Down _ ->
+                                    True
+
+                                Style.FlexLayout Style.Up _ ->
+                                    True
+
+                                _ ->
+                                    False
+
+                        _ ->
+                            False
             in
-                case vAlign of
-                    Nothing ->
-                        ( label, positionBox )
+                if isNullified then
+                    ( label, positionBox )
+                else
+                    case vAlign of
+                        Nothing ->
+                            ( label, positionBox )
 
-                    Just Top ->
-                        ( label ++ [ "aligned top" ]
-                        , { positionBox
-                            | bottom = parent.box.top + positionBox.height
-                            , top = parent.box.top
-                          }
-                        )
-
-                    Just VerticalCenter ->
-                        let
-                            remaining =
-                                parent.box.width - positionBox.width
-                        in
-                            ( label ++ [ "aligned vertical center" ]
+                        Just Top ->
+                            ( label ++ [ "aligned top" ]
                             , { positionBox
-                                | top = remaining / 2 + parent.box.top
-                                , bottom = remaining / 2 + parent.box.top + positionBox.height
+                                | bottom = parent.box.top + positionBox.height
+                                , top = parent.box.top
                               }
                             )
 
-                    Just Bottom ->
-                        ( label ++ [ "aligned bottom" ]
-                        , { positionBox
-                            | bottom = parent.box.bottom
-                            , top = parent.box.bottom - positionBox.height
-                          }
-                        )
+                        Just VerticalCenter ->
+                            let
+                                remaining =
+                                    parent.box.width - positionBox.width
+                            in
+                                ( label ++ [ "aligned vertical center" ]
+                                , { positionBox
+                                    | top = remaining / 2 + parent.box.top
+                                    , bottom = remaining / 2 + parent.box.top + positionBox.height
+                                  }
+                                )
+
+                        Just Bottom ->
+                            ( label ++ [ "aligned bottom" ]
+                            , { positionBox
+                                | bottom = parent.box.bottom
+                                , top = parent.box.bottom - positionBox.height
+                              }
+                            )
+
+                        Just VerticalJustify ->
+                            ( label, positionBox )
     in
         ( [], parent.childElementInitialPosition )
             |> addWidthAndHeight

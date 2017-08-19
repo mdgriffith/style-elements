@@ -29,9 +29,18 @@ function getBoundingBox(id)
         return box;
     }
 }
+function documentSize(unit)
+{
+    var size = {
+        width: document.body.scrollWidth,
+        height: document.body.scrollHeight
+    }
+    return size;
+}
 
 return {
-    getBoundingBox: getBoundingBox
+    getBoundingBox: getBoundingBox,
+    documentSize: documentSize
 };
 
 }();

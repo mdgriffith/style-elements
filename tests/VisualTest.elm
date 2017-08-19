@@ -3,7 +3,7 @@ module VisualTest exposing (..)
 import Color
 import Element exposing (..)
 import Element.Attributes exposing (..)
-import Element.Events
+import Element.Events as Events
 import Element.Keyed
 import Html
 import Style exposing (..)
@@ -139,6 +139,28 @@ main =
         , view = view
         , subscriptions = \_ -> Sub.none
         }
+
+
+type Msg
+    = Ping
+
+
+update msg model =
+    case msg of
+        Ping ->
+            let
+                _ =
+                    Debug.log "ping" "pong"
+            in
+                ( model, Cmd.none )
+
+
+box =
+    el Box [ width (px 200), height (px 200) ] empty
+
+
+miniBox =
+    el Box [ width (px 20), height (px 20) ] empty
 
 
 view model =
@@ -354,7 +376,7 @@ anchoredWithContent =
                         , el Box [ center ] (text "Hi!")
                         ]
                     |> below
-                        [ el Box [] (text "Hi!")
+                        [ el Box [] (text "H!")
                         , el Box [ alignRight ] (text "Hi!")
                         , el Box [ center ] (text "Hi!")
                         ]
@@ -502,18 +524,6 @@ anchoredAboveLayout =
             ]
         ]
     ]
-
-
-update msg model =
-    ( model, Cmd.none )
-
-
-box =
-    el Box [ width (px 200), height (px 200) ] empty
-
-
-miniBox =
-    el Box [ width (px 20), height (px 20) ] empty
 
 
 viewTextLayout =
