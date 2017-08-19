@@ -145,6 +145,14 @@ positionNearby parent elm =
                         _ ->
                             True
 
+                isLayout =
+                    case elm of
+                        Layout _ ->
+                            True
+
+                        _ ->
+                            False
+
                 nearbyAlignment =
                     case nearbyPosition of
                         Just (Nearby Above) ->
@@ -181,7 +189,11 @@ positionNearby parent elm =
                                         )
                                     )
                                 :: Position (Just 0) (Just 0) Nothing
-                                :: (nearbyAlignment ++ aligned)
+                                :: (if isLayout then
+                                        nearbyAlignment
+                                    else
+                                        nearbyAlignment ++ aligned
+                                   )
                             )
                         , children =
                             Normal
@@ -228,7 +240,11 @@ positionNearby parent elm =
                                 :: Width (Internal.Percent 100)
                                 :: PositionFrame (Absolute TopLeft)
                                 :: Position (Just 0) (Just 0) Nothing
-                                :: (nearbyAlignment ++ aligned)
+                                :: (if isLayout then
+                                        nearbyAlignment
+                                    else
+                                        nearbyAlignment ++ aligned
+                                   )
                             )
                         , children =
                             Normal
@@ -275,7 +291,11 @@ positionNearby parent elm =
                                 :: Width (Internal.Percent 100)
                                 :: PositionFrame Relative
                                 :: Position (Just 0) (Just 0) Nothing
-                                :: (nearbyAlignment ++ aligned)
+                                :: (if isLayout then
+                                        nearbyAlignment
+                                    else
+                                        nearbyAlignment ++ aligned
+                                   )
                             )
                         , children =
                             Normal
