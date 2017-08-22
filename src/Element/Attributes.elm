@@ -611,7 +611,7 @@ classList =
 
     myStyle : Attribute msg
     myStyle =
-        style
+        inlineStyle
             [ ( "backgroundColor", "red" )
             , ( "height", "90px" )
             , ( "width", "100%" )
