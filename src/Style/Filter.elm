@@ -19,8 +19,8 @@ Apply a stack of filters.
 
 -}
 
-import Style.Internal.Model as Internal
 import Style exposing (Filter)
+import Style.Internal.Model as Internal
 
 
 {-| -}

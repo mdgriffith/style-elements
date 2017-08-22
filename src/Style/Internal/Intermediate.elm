@@ -3,9 +3,9 @@ module Style.Internal.Intermediate exposing (..)
 {-| -}
 
 import Murmur3
-import Style.Internal.Selector as Selector exposing (Selector)
-import Style.Internal.Render.Css as Css
 import Style.Internal.Find as Findable
+import Style.Internal.Render.Css as Css
+import Style.Internal.Selector as Selector exposing (Selector)
 
 
 type Class class variation

@@ -205,14 +205,14 @@ Some convient elements for working with forms.
 
 -}
 
-import Html exposing (Html)
-import Html.Attributes
+import Element.Attributes as Attr
 import Element.Internal.Model as Internal exposing (..)
 import Element.Internal.Modify as Modify
+import Element.Internal.Render as Render
+import Html exposing (Html)
+import Html.Attributes
 import Style exposing (Style, StyleSheet)
 import Style.Internal.Model as Style exposing (Length)
-import Element.Attributes as Attr
-import Element.Internal.Render as Render
 import Window
 
 

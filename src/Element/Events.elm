@@ -53,11 +53,11 @@ The only difference is that the HTML.Events are turned into Element.Events
 
 -}
 
+import Element.Internal.Model as Internal exposing (Attribute(..))
 import Html
 import Html.Events
-import VirtualDom
 import Json.Decode as Json
-import Element.Internal.Model as Internal exposing (Attribute(..))
+import VirtualDom
 
 
 -- MOUSE EVENTS

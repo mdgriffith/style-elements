@@ -2,9 +2,9 @@ module Element.Internal.Model exposing (..)
 
 {-| -}
 
-import Style.Internal.Model as Style
 import Html exposing (Html)
 import Html.Attributes
+import Style.Internal.Model as Style
 
 
 name el =

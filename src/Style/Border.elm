@@ -35,9 +35,9 @@ module Style.Border
 
 -}
 
+import Style exposing (Property)
 import Style.Internal.Model as Internal
 import Style.Internal.Render.Value as Render
-import Style exposing (Property)
 
 
 {-| -}

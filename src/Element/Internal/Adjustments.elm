@@ -4,11 +4,9 @@ module Element.Internal.Adjustments exposing (..)
 -}
 
 import Element.Internal.Model exposing (..)
-import Style.Internal.Model as Internal exposing (Length)
-import Style.Internal.Render.Value as Value
-import Style.Internal.Render.Property as Property
-import Html.Attributes
 import Element.Internal.Modify as Modify
+import Html.Attributes
+import Style.Internal.Model as Internal exposing (Length)
 
 
 apply : Element style variation msg -> ( Element style variation msg, Maybe (List (Element style variation msg)) )

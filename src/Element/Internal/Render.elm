@@ -2,14 +2,14 @@ module Element.Internal.Render exposing (..)
 
 {-| -}
 
-import Html exposing (Html)
-import Html.Keyed
-import Html.Attributes
-import Element.Internal.Model exposing (..)
-import Style.Internal.Model as Internal exposing (Length)
-import Style.Internal.Render.Value as Value
-import Style.Internal.Render.Property as Property
 import Element.Internal.Adjustments as Adjustments
+import Element.Internal.Model exposing (..)
+import Html exposing (Html)
+import Html.Attributes
+import Html.Keyed
+import Style.Internal.Model as Internal exposing (Length)
+import Style.Internal.Render.Property as Property
+import Style.Internal.Render.Value as Value
 
 
 {-| A modified version of CSS normalize is used.

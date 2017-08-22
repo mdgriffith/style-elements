@@ -179,10 +179,10 @@ Psuedo classes can be nested.
 
 -}
 
-import Style.Internal.Model as Internal
 import Style.Internal.Batchable as Batchable exposing (Batchable)
-import Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
 import Style.Internal.Find as Find
+import Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
+import Style.Internal.Model as Internal
 import Style.Internal.Render as Render
 
 

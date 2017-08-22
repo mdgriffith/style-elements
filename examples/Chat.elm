@@ -4,12 +4,8 @@ import Color exposing (rgba)
 import Element exposing (..)
 import Element.Attributes exposing (..)
 import Style exposing (..)
-import Style.Border as Border
 import Style.Color as Color
 import Style.Font as Font
-import Style.Transition as Transition
-import Html
-import Html.Attributes as Html
 
 
 type Styles
