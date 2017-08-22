@@ -14,18 +14,20 @@ module Element
         , circle
         , spacer
         , image
+        , decorativeImage
         , hairline
         , node
-        , header
+        , subheading
+        , h1
+        , h2
+        , h3
+        , h4
+        , h5
+        , h6
         , section
-        , nav
         , article
         , aside
-        , canvas
         , button
-        , iframe
-        , audio
-        , video
         , full
         , textLayout
         , paragraph
@@ -68,7 +70,6 @@ module Element
         , GridPosition
         , NamedGridPosition
         , html
-        , break
         , map
         )
 
@@ -91,7 +92,7 @@ By building your view with `Elements`, you have a single place to go to adjust o
 
 @docs Element, Attribute
 
-@docs empty, text, el, html, map, when, whenJust
+@docs empty, text, el, when, whenJust, html, map, full
 
 
 # Layout
@@ -121,9 +122,19 @@ Make sure to check out the Style Element specific attributes in `Element.Attribu
 @docs link, newTab, download, downloadAs
 
 
-## Convenience Elements
+## Markup
 
-@docs full, spacer, hairline, image, circle, break
+@docs node, button, hairline, article, section, aside, spacer, circle
+
+
+## Headings
+
+@docs h1, h2, h3, h4, h5, h6, subheading
+
+
+## Images
+
+@docs image, decorativeImage
 
 
 ## Positioning
@@ -157,8 +168,6 @@ Here's how it's done:
 3.  Use the `Device` record in your view to specify how your page changes with window size.
 4.  If things get crazy, use the `responsive` function to map one range to another.
 
-Check out the [elm.style website source](https://github.com/mdgriffith/elm.style) for a real example.
-
 @docs Device, classifyDevice, responsive
 
 
@@ -167,23 +176,6 @@ Check out the [elm.style website source](https://github.com/mdgriffith/elm.style
 These elements are useful for quick text markup.
 
 @docs bold, italic, strike, underline, sub, super
-
-
-## Semantic Markup
-
-This library made the opinionated choice to make layout a first class concern of your `view` function.
-
-However it's still very useful to have semantic markup in places. The following nodes can be used to annotate your layouts.
-
-So, if we wanted to make a standard element be rendered as a `section` node, we could do the following
-
-    -- Regular element
-    el MyStyle [] (text "Hello World!")
-
-    -- Same element annotated as a `section`
-    section <| el MyStyle [] (text "Hello World!")
-
-@docs node, button, header, section, nav, article, aside, canvas, iframe, audio, video
 
 
 ## Advanced Rendering
@@ -316,6 +308,42 @@ el style attrs child =
         }
 
 
+{-| -}
+section : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+section style attrs child =
+    Internal.Element
+        { node = "section"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| -}
+article : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+article style attrs child =
+    Internal.Element
+        { node = "article"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| -}
+aside : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+aside style attrs child =
+    Internal.Element
+        { node = "aside"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
+
+
 {-| A simple circle. Provide the radius it should have.
 
 Automatically sets the propery width, height, and corner rounded.
@@ -350,7 +378,7 @@ spacer =
     Spacer
 
 
-{-| A convenience node for images. Accepts an image src as the first argument.
+{-| For images, both a source and a caption are required. The caption will serve as the alt-text.
 -}
 image : style -> List (Attribute variation msg) -> { src : String, caption : String } -> Element style variation msg
 image style attrs { src, caption } =
@@ -363,7 +391,7 @@ image style attrs { src, caption } =
         }
 
 
-{-| A convenience node for images. Accepts an image src as the first argument.
+{-| If an image is purely decorative, you can skip the caption.
 -}
 decorativeImage : style -> List (Attribute variation msg) -> { src : String } -> Element style variation msg
 decorativeImage style attrs { src } =
@@ -392,22 +420,6 @@ hairline style =
         }
 
 
-{-| Make a line-break.
-
-You probably want to use `paragraph` instead. This is only for adjusting where a sentance should break, not for formating paragraphs.
-
--}
-break : Element style variation msg
-break =
-    Element
-        { node = "br"
-        , style = Nothing
-        , attrs = []
-        , child = empty
-        , absolutelyPositioned = Nothing
-        }
-
-
 {-| For when you want to embed `Html`.
 
 If you're using this library, I'd encourage you to try to solve your problem without using this escape hatch.
@@ -420,12 +432,6 @@ html =
     Raw
 
 
-
----------------------
---- Semantic Markup
----------------------
-
-
 {-| -}
 node : String -> Element style variation msg -> Element style variation msg
 node str =
@@ -433,69 +439,100 @@ node str =
 
 
 {-| -}
-header : Element style variation msg -> Element style variation msg
-header =
-    Modify.setNode "header"
+button : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+button style attrs child =
+    Element
+        { node = "button"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| Don't use a heading like `h2` if you want a subheading/subtitle, instead use this element!
+-}
+subheading : style -> List (Attribute variation msg) -> String -> Element style variation msg
+subheading style attrs str =
+    Element
+        { node = "p"
+        , style = Just style
+        , attrs = attrs
+        , child = text str
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
-section : Element style variation msg -> Element style variation msg
-section =
-    Modify.setNode "section"
+h1 : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+h1 style attrs child =
+    Element
+        { node = "h1"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
-nav : Element style variation msg -> Element style variation msg
-nav =
-    Modify.setNode "nav"
+h2 : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+h2 style attrs child =
+    Element
+        { node = "h2"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
-article : Element style variation msg -> Element style variation msg
-article =
-    Modify.setNode "article"
+h3 : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+h3 style attrs child =
+    Element
+        { node = "h3"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
-aside : Element style variation msg -> Element style variation msg
-aside =
-    Modify.setNode "aside"
+h4 : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+h4 style attrs child =
+    Element
+        { node = "h4"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
-button : Element style variation msg -> Element style variation msg
-button =
-    Modify.setNode "button"
-
-
-
----------------------
---- Specialized Elements
----------------------
-
-
-{-| -}
-canvas : Element style variation msg -> Element style variation msg
-canvas =
-    Modify.setNode "canvas"
+h5 : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+h5 style attrs child =
+    Element
+        { node = "h5"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
-iframe : Element style variation msg -> Element style variation msg
-iframe =
-    Modify.setNode "iframe"
-
-
-{-| -}
-audio : Element style variation msg -> Element style variation msg
-audio =
-    Modify.setNode "audio"
-
-
-{-| -}
-video : Element style variation msg -> Element style variation msg
-video =
-    Modify.setNode "video"
+h6 : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+h6 style attrs child =
+    Element
+        { node = "h5"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
 
 
 
