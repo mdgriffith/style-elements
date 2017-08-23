@@ -38,7 +38,7 @@ module Element
         , grid
         , table
         , namedGrid
-        , area
+        , cell
         , named
         , span
         , spanAll
@@ -114,7 +114,25 @@ Make sure to check out the Style Element specific attributes in `Element.Attribu
 
 ## Grid Layout
 
-@docs table, Grid, NamedGrid, grid, namedGrid, GridPosition, NamedGridPosition, OnGrid, NamedOnGrid, area, named, span, spanAll
+@docs table, Grid, NamedGrid, grid, namedGrid, GridPosition, NamedGridPosition, OnGrid, NamedOnGrid, cell, named, span, spanAll
+
+
+## Positioning
+
+It can be useful to position something near another element.
+
+In CSS terms, this positions children using 'position:absolute'. So, to position three boxes below a container, we could do the following:
+
+     el MyStyle [ width (px 200), height (px 200) ] empty
+        |> below
+            [ el Box [ width (px 40), height (px 40) ] empty
+            -- below on the right
+            , el Box [ alignRight, width (px 40), height (px 40) ] empty
+            -- below and centered
+            , el Box [ center, width (px 40), height (px 40) ] empty
+            ]
+
+@docs below, above, onRight, onLeft, within, screen
 
 
 ## Linking
@@ -137,22 +155,11 @@ Make sure to check out the Style Element specific attributes in `Element.Attribu
 @docs image, decorativeImage
 
 
-## Positioning
+## Text Markup
 
-It can be useful to position something near another element.
+These elements are useful for quick text markup.
 
-In CSS terms, this positions children using 'position:absolute'. So, to position three boxes below a container, we could do the following:
-
-     el MyStyle [ width (px 200), height (px 200) ] empty
-        |> below
-            [ el Box [ width (px 40), height (px 40) ] empty
-            -- below on the right
-            , el Box [ alignRight, width (px 40), height (px 40) ] empty
-            -- below and centered
-            , el Box [ center, width (px 40), height (px 40) ] empty
-            ]
-
-@docs below, above, onRight, onLeft, within, screen
+@docs bold, italic, strike, underline, sub, super
 
 
 ## Responsive
@@ -169,13 +176,6 @@ Here's how it's done:
 4.  If things get crazy, use the `responsive` function to map one range to another.
 
 @docs Device, classifyDevice, responsive
-
-
-## Text Markup
-
-These elements are useful for quick text markup.
-
-@docs bold, italic, strike, underline, sub, super
 
 
 ## Advanced Rendering
@@ -692,7 +692,7 @@ table style attrs rows =
                     (\row columns ->
                         List.indexedMap
                             (\col content ->
-                                area
+                                cell
                                     { start = ( row, col )
                                     , width = 1
                                     , height = 1
@@ -718,13 +718,13 @@ table style attrs rows =
             ]
         }
         []
-        [ area
+        [ cell
             { start = ( 0, 0 )
             , width = 1
             , height = 1
             }
             (el Box [] (text "box"))
-        , area
+        , cell
             { start = ( 1, 1 )
             , width = 1
             , height = 2
@@ -859,8 +859,8 @@ type alias NamedOnGrid thing =
 
 {-| Specify a specific position on a normal `grid`.
 -}
-area : GridPosition -> Element style variation msg -> OnGrid (Element style variation msg)
-area box el =
+cell : GridPosition -> Element style variation msg -> OnGrid (Element style variation msg)
+cell box el =
     OnGrid <| Modify.addAttr (GridCoords <| Style.GridPosition box) el
 
 
