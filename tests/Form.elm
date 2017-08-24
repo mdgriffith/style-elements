@@ -21,16 +21,15 @@ import Style.Transition as Transition
 
 type Styles
     = None
-    | Main
     | Page
-    | Box
-    | Container
-    | Label
-    | Blue
-    | BlackText
-    | Crazy Other
-    | Yellow
-    | Grey
+    | Field
+    | Error
+    | InputError
+    | Checkbox
+    | CheckboxChecked
+    | LabelBox
+    | Button
+    | CustomRadio
 
 
 type Other
@@ -46,11 +45,48 @@ stylesheet : StyleSheet Styles variation
 stylesheet =
     Style.styleSheet
         [ style None []
-        , style Main
-            [ Border.all 1
-            , Color.text Color.darkCharcoal
+        , style Error
+            [ Color.text Color.red
+            ]
+        , style CustomRadio
+            [ Border.rounded 5
+            , Border.all 1
+            , Border.solid
+            , Color.border Color.grey
+            ]
+        , style LabelBox
+            [-- focus
+             -- [ Color.border Color.red
+             -- , Border.all 1
+             -- , Border.solid
+             -- , prop "outline" "none"
+             -- ]
+            ]
+        , style Checkbox
+            [ Color.background Color.white
+            , Border.all 1
+            , Border.solid
+            , Color.border Color.grey
+
+            -- , focus
+            --     [ Color.border Color.red
+            --     , prop "outline" "none"
+            --     ]
+            ]
+        , style CheckboxChecked
+            [ Color.background Color.blue
+            , Border.all 1
+            , Border.solid
+            , Color.border Color.blue
+
+            -- , focus
+            --     [ Color.border Color.red
+            --     , prop "outline" "none"
+            --     ]
+            ]
+        , style Page
+            [ Color.text Color.darkCharcoal
             , Color.background Color.white
-            , Color.border Color.lightGrey
             , Font.typeface
                 [ Font.font "helvetica"
                 , Font.font "arial"
@@ -59,64 +95,24 @@ stylesheet =
             , Font.size 16
             , Font.lineHeight 1.3
             ]
-        , style Page
+        , style Field
             [ Border.rounded 5
-            , Border.all 5
+            , Border.all 1
             , Border.solid
-            , Color.text Color.darkCharcoal
-            , Color.background Color.white
             , Color.border Color.lightGrey
+
+            -- , focus
+            --     [ Color.border Color.blue
+            --     , prop "outline" "none"
+            --     ]
             ]
-        , style Label
-            [ Font.size 25
-            , Font.center
-            ]
-        , style Blue
-            [ Color.text Color.white
-            , Color.background Color.blue
-            , Font.center
-            ]
-        , style Yellow
-            [ Color.text Color.white
-            , Color.background Color.yellow
-            , Font.center
-            ]
-        , style Grey
-            [ Color.text Color.white
-            , Color.background Color.grey
-            , Font.center
-            ]
-        , style BlackText
-            [ Color.text Color.black
-            ]
-        , style Box
-            [ Transition.all
-            , Color.text Color.white
-            , Color.background Color.blue
+        , style Button
+            [ Border.rounded 5
+            , Border.all 1
+            , Border.solid
             , Color.border Color.blue
-            , Border.rounded 3
-            , hover
-                [ Color.text Color.white
-                , Color.background Color.red
-                , Color.border Color.red
-                , cursor "pointer"
-                ]
+            , Color.background Color.lightBlue
             ]
-        , style Container
-            [ Color.text Color.black
-            , Color.background Color.lightGrey
-            , Color.border Color.lightGrey
-            , hover
-                [ Color.background Color.grey
-                , Color.border Color.grey
-                , cursor "pointer"
-                ]
-            ]
-        , style
-            (Crazy
-                (Thing 5)
-            )
-            []
         ]
 
 
@@ -175,15 +171,17 @@ type Lunch
 
 view model =
     Element.layout stylesheet <|
-        el None [ center, width (px 800) ] <|
-            column Main
+        el None [ center, width (px 800), paddingXY 0 80 ] <|
+            column Page
                 [ spacing 20 ]
-                [ Input.label None [] (text "hello!") <|
-                    Input.checkbox
-                        { onChange = Check
-                        , checked = model.checkbox
-                        }
-                , Input.label None [] (text "hello!") <|
+                [ Input.checkbox
+                    { onChange = Check
+                    , checked = model.checkbox
+                    }
+                    |> Input.error True (el Error [] <| text "you must check!")
+                    |> Input.disabled True
+                    |> Input.label None [] (text "hello!")
+                , Input.label LabelBox [] (text "hello!") <|
                     Input.checkboxWith
                         { onChange = Check
                         , checked = model.checkbox
@@ -191,18 +189,17 @@ view model =
                             \on ->
                                 circle 7
                                     (if on then
-                                        Blue
+                                        CheckboxChecked
                                      else
-                                        Grey
+                                        Checkbox
                                     )
                                     []
                                     empty
                         }
                 , Input.label None [] (text "Lunch!") <|
-                    Input.radio Container
-                        [ padding 40
+                    Input.radio Field
+                        [ padding 10
                         , spacing 5
-                        , height (px 200)
                         ]
                         { onChange = ChooseLunch
                         , selected = Just model.lunch
@@ -216,7 +213,7 @@ view model =
                                             else
                                                 text ":("
                                     in
-                                        row None
+                                        row CustomRadio
                                             [ spacing 5 ]
                                             [ icon, text "burrito" ]
                                 )
@@ -225,8 +222,8 @@ view model =
                             ]
                         }
                 , Input.label None [] (text "Lunch") <|
-                    Input.radioRow Container
-                        [ padding 40, spacing 20 ]
+                    Input.radioRow Field
+                        [ padding 10, spacing 20 ]
                         { onChange = ChooseLunch
                         , selected = Just model.lunch
                         , options =
@@ -248,27 +245,73 @@ view model =
                             ]
                         }
                 , Input.label None [] (text "A Greeting") <|
-                    Input.text None
-                        []
-                        { onChange = ChangeText
-                        , value = model.text
-                        }
+                    Input.error True (el Error [] (text "DO this one")) <|
+                        Input.text Field
+                            [ paddingXY 10 5 ]
+                            { onChange = ChangeText
+                            , value = model.text
+                            }
                 , Input.label None [] (text "A Greeting") <|
-                    Input.multiline None
-                        []
+                    Input.multiline Field
+                        [ paddingXY 10 5 ]
                         { onChange = ChangeText
                         , value = model.text
                         }
-                , Input.label None [] (text "A Greeting") <|
-                    Input.search None
-                        []
-                        { onChange = ChangeText
-                        , value = model.text
-                        }
+                , Input.search Field
+                    [ paddingXY 10 5 ]
+                    { onChange = ChangeText
+                    , value = model.text
+                    }
+                    |> Input.disabled True
+                    |> Input.label None [] (text "A Greeting")
                 , Input.label None [] (text "My super password") <|
-                    Input.password None
-                        []
+                    Input.password Field
+                        [ paddingXY 10 5 ]
                         { onChange = ChangeText
                         , value = model.text
                         }
+                , Input.grid Field
+                    { onChange = ChooseLunch
+                    , selected = Just model.lunch
+                    , columns = [ px 100, px 100, px 100, px 100 ]
+                    , rows =
+                        [ px 100
+                        , px 100
+                        , px 100
+                        , px 100
+                        ]
+                    }
+                    []
+                    [ Input.cell
+                        { start = ( 0, 0 )
+                        , width = 1
+                        , height = 1
+                        , value = Gyro
+                        , el =
+                            el CustomRadio [] (text "Gyro")
+                        }
+                    , Input.cell
+                        { start = ( 1, 1 )
+                        , width = 1
+                        , height = 2
+                        , value = Taco
+                        , el =
+                            (el CustomRadio [] (text "Taco"))
+                        }
+                    , Input.cellWith
+                        { start = ( 2, 1 )
+                        , width = 1
+                        , height = 2
+                        , value = Burrito
+                        , view =
+                            \selected ->
+                                if selected then
+                                    text ":D Burrito!"
+                                else
+                                    text ":( Burrito"
+                        }
+                    ]
+                , button Button
+                    []
+                    (text "Push me!")
                 ]
