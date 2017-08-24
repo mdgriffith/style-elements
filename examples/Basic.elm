@@ -44,7 +44,7 @@ If you want to use something like em
 -}
 stylesheet : StyleSheet Styles variation
 stylesheet =
-    Style.stylesheet
+    Style.styleSheet
         [ style None [] -- It's handy to have a blank style
         , style Main
             [ Border.all 1 -- set all border widths to 1 px.
@@ -110,7 +110,7 @@ which you can think of as Html with layout, positioning, and spacing built in.
 
 -}
 view _ =
-    Element.root stylesheet <|
+    Element.layout stylesheet <|
         column None
             []
             [ navigation

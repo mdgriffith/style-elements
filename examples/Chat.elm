@@ -36,7 +36,7 @@ colors =
 
 stylesheet : StyleSheet Styles variation
 stylesheet =
-    Style.stylesheet
+    Style.styleSheet
         [ style None []
         , style Container
             [ Color.text Color.black
