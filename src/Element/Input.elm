@@ -6,7 +6,9 @@ module Element.Input
         , optionWith
         , radio
         , radioRow
-        , radioGrid
+        , grid
+        , cell
+        , cellWith
         , GridOption
         , RadioGrid
         , text
@@ -15,9 +17,14 @@ module Element.Input
         , email
         , password
         , label
+        , error
+        , disabled
         )
 
-{-| Elements for creating forms.
+{-|
+
+
+# Elements for handling user input
 
 @docs label, text, multiline, search, email, password
 
@@ -25,7 +32,12 @@ module Element.Input
 
 @docs radio, radioRow, option, optionWith
 
-@docs radioGrid, Radiogrid, GridOption, gridOption, gridOptionWith
+@docs grid, Radiogrid, GridOption, cell, cellWith
+
+
+## Validation
+
+@docs error, disabled
 
 -}
 
@@ -43,26 +55,34 @@ import Html.Attributes
 {- Attributes -}
 
 
+pointer : Internal.Attribute variation msg
+pointer =
+    Attr.inlineStyle [ ( "cursor", "pointer" ) ]
+
+
+type_ : String -> Internal.Attribute variation msg
 type_ =
     Attr.toAttr << Html.Attributes.type_
 
 
+checked : Bool -> Internal.Attribute variation msg
 checked =
     Attr.toAttr << Html.Attributes.checked
 
 
+name : String -> Internal.Attribute variation msg
 name =
     Attr.toAttr << Html.Attributes.name
 
 
+value : String -> Internal.Attribute variation msg
 value =
     Attr.toAttr << Html.Attributes.value
 
 
-{-| -}
-form : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
-form style attrs el =
-    Modify.setNode "form" <| Element.el style attrs el
+tabindex : Int -> Internal.Attribute variation msg
+tabindex =
+    Attr.toAttr << Html.Attributes.tabindex
 
 
 
@@ -122,7 +142,7 @@ form style attrs el =
 {-| -}
 text : style -> List (Attribute variation msg) -> { onChange : String -> msg, value : String } -> Input style variation msg
 text elem attrs input =
-    Input LabelAbove <|
+    initialInput LabelAbove <|
         [ Internal.Element
             { node = "input"
             , style = Just elem
@@ -152,13 +172,59 @@ autocomplete style attrs { focus, max, option } input =
     input
 
 
-{-| -}
-hint : Bool -> style -> List (Attribute variation msg) -> Element style variation msg -> Input style variation msg -> Input style variation msg
-hint on style attrs el input =
-    input
+{-| Show a validation error for a particular input.
+
+    import Element.Input as Input
+
+    showError = True
+
+    Input.checkbox
+        { onChange = Check
+        , checked = model.checkbox
+        }
+        |> Input.error showError (el Error [] <| text "This is required!")
+        |> Input.label None [] (text "hello!")
+
+-}
+error : Bool -> Element style variation msg -> Input style variation msg -> Input style variation msg
+error on err (Input input) =
+    if on then
+        Input { input | errors = Just err }
+    else
+        Input input
 
 
-{-| Put a label above any of the text inputs.
+{-| Disable an input.
+
+A disabled input will:
+
+  - Not send 'onChange' messages
+  - Not show any validation errors
+  - Not be focusable (it will be skipped if tab is pressed)
+  - Background will be switched to grey
+
+Here's an example of usage.
+
+    import Element.Input as Input
+
+    disable = True
+
+    Input.checkbox
+        { onChange = Check
+        , checked = model.checkbox
+        }
+        |> Input.disabled True
+        |> Input.label None [] (text "hello!")
+
+-}
+disabled : Bool -> Input style variation msg -> Input style variation msg
+disabled on (Input input) =
+    Input { input | disabled = on }
+
+
+{-| All input elements must be labeled.
+
+Put a label above any of the text inputs.
 
 The spacing property on the label will be the spacing between the label and the input element.
 
@@ -166,49 +232,108 @@ All other properties will apply normally to the label element
 
 -}
 label : style -> List (Attribute variation msg) -> Element style variation msg -> Input style variation msg -> Element style variation msg
-label style attrs labelElement (Input labelPosHint inputElems) =
+label style attrs labelElement (Input { labelPosition, input, errors, disabled }) =
     let
-        forSpacing posAttr =
-            case posAttr of
-                Internal.Spacing x y ->
-                    True
+        errorWithHints =
+            if disabled then
+                Nothing
+            else
+                Maybe.map (Modify.addAttr (Attr.attribute "aria-live" "assertive")) errors
 
-                _ ->
-                    False
+        inputWithHints =
+            if disabled then
+                input
+            else
+                case errors of
+                    Nothing ->
+                        input
+
+                    Just _ ->
+                        input
+                            |> List.map (Modify.addAttr (Attr.attribute "aria-invalid" "true"))
     in
-        case labelPosHint of
+        case labelPosition of
             LabelAbove ->
-                Internal.Layout
-                    { node = "label"
-                    , style = Just style
-                    , layout = Style.FlexLayout Style.Down []
-                    , attrs = attrs
-                    , children = Internal.Normal (labelElement :: inputElems)
-                    , absolutelyPositioned = Nothing
-                    }
+                let
+                    details =
+                        case errorWithHints of
+                            Nothing ->
+                                Internal.Layout
+                                    { node = "div"
+                                    , style = Nothing
+                                    , layout = Style.FlexLayout Style.GoRight []
+                                    , attrs = [ Attr.alignLeft ]
+                                    , children = Internal.Normal (labelElement :: [])
+                                    , absolutelyPositioned = Nothing
+                                    }
+
+                            Just err ->
+                                Internal.Layout
+                                    { node = "div"
+                                    , style = Nothing
+                                    , layout = Style.FlexLayout Style.GoRight []
+                                    , attrs = [ Attr.spacing 5 ]
+                                    , children = Internal.Normal (labelElement :: err :: [])
+                                    , absolutelyPositioned = Nothing
+                                    }
+                in
+                    Internal.Layout
+                        { node = "label"
+                        , style = Just style
+                        , layout = Style.FlexLayout Style.Down []
+                        , attrs =
+                            if disabled then
+                                attrs
+                            else
+                                pointer :: attrs
+                        , children = Internal.Normal (details :: inputWithHints)
+                        , absolutelyPositioned = Nothing
+                        }
 
             LabelOnRight ->
-                Internal.Layout
-                    { node = "label"
-                    , style = Just style
-                    , layout = Style.FlexLayout Style.GoRight []
-                    , attrs =
-                        Attr.spacing 5
-                            :: Attr.verticalCenter
-                            :: attrs
-                    , children = Internal.Normal (inputElems ++ [ labelElement ])
-                    , absolutelyPositioned = Nothing
-                    }
+                let
+                    withError inputRow =
+                        case errorWithHints of
+                            Nothing ->
+                                Internal.Layout
+                                    { node = "div"
+                                    , style = Nothing
+                                    , layout = Style.FlexLayout Style.Down []
+                                    , attrs = [ Attr.spacing 5 ]
+                                    , children = Internal.Normal (inputRow :: [])
+                                    , absolutelyPositioned = Nothing
+                                    }
+
+                            Just err ->
+                                Internal.Layout
+                                    { node = "div"
+                                    , style = Nothing
+                                    , layout = Style.FlexLayout Style.Down []
+                                    , attrs = [ Attr.spacing 5 ]
+                                    , children = Internal.Normal (err :: inputRow :: [])
+                                    , absolutelyPositioned = Nothing
+                                    }
+                in
+                    withError <|
+                        Internal.Layout
+                            { node = "label"
+                            , style = Just style
+                            , layout = Style.FlexLayout Style.GoRight []
+                            , attrs =
+                                Attr.spacing 5
+                                    :: Attr.verticalCenter
+                                    :: pointer
+                                    :: attrs
+                            , children = Internal.Normal (inputWithHints ++ [ labelElement ])
+                            , absolutelyPositioned = Nothing
+                            }
 
 
-{-| Rendered as a `textarea`.
-
-Will automatically be the height and width of the content unless a height/width is set.
-
+{-| A multiline text input.
 -}
 multiline : style -> List (Attribute variation msg) -> { onChange : String -> msg, value : String } -> Input style variation msg
 multiline elem attrs { value, onChange } =
-    Input LabelAbove <|
+    initialInput LabelAbove <|
         [ Internal.Element
             { node = "textarea"
             , style = Just elem
@@ -222,7 +347,7 @@ multiline elem attrs { value, onChange } =
 {-| -}
 password : style -> List (Attribute variation msg) -> { onChange : String -> msg, value : String } -> Input style variation msg
 password elem attrs input =
-    Input LabelAbove <|
+    initialInput LabelAbove <|
         [ Internal.Element
             { node = "input"
             , style = Just elem
@@ -236,7 +361,7 @@ password elem attrs input =
 {-| -}
 email : style -> List (Attribute variation msg) -> { onChange : String -> msg, value : String } -> Input style variation msg
 email elem attrs input =
-    Input LabelAbove <|
+    initialInput LabelAbove <|
         [ Internal.Element
             { node = "input"
             , style = Just elem
@@ -250,7 +375,7 @@ email elem attrs input =
 {-| -}
 search : style -> List (Attribute variation msg) -> { onChange : String -> msg, value : String } -> Input style variation msg
 search elem attrs input =
-    Input LabelAbove <|
+    initialInput LabelAbove <|
         [ Internal.Element
             { node = "input"
             , style = Just elem
@@ -262,12 +387,26 @@ search elem attrs input =
 
 
 type Input style variation msg
-    = Input LabelPositionHint (List (Element style variation msg))
+    = Input
+        { labelPosition : LabelPositionHint
+        , input : List (Element style variation msg)
+        , errors : Maybe (Element style variation msg)
+        , disabled : Bool
+        }
 
 
 type LabelPositionHint
     = LabelAbove
     | LabelOnRight
+
+
+initialInput pos input =
+    Input
+        { labelPosition = pos
+        , input = input
+        , errors = Nothing
+        , disabled = False
+        }
 
 
 {-| Your basic checkbox
@@ -293,20 +432,25 @@ type LabelPositionHint
 -}
 checkbox : { onChange : Bool -> msg, checked : Bool } -> Input style variation msg
 checkbox input =
-    Input LabelOnRight
+    initialInput LabelOnRight
         [ Internal.Element
             { node = "input"
             , style = Nothing
             , attrs =
-                (type_ "checkbox"
-                    :: checked input.checked
-                    :: Events.onCheck input.onChange
-                    :: []
-                )
+                [ type_ "checkbox"
+                , checked input.checked
+                , pointer
+                , Events.onCheck input.onChange
+                ]
             , child = Internal.Empty
             , absolutelyPositioned = Nothing
             }
         ]
+
+
+hidden : Attribute variation msg
+hidden =
+    Attr.inlineStyle [ ( "position", "absolute" ), ( "opacity", "0" ) ]
 
 
 {-| -}
@@ -318,19 +462,21 @@ checkboxWith input =
                 { node = "input"
                 , style = Nothing
                 , attrs =
-                    (type_ "checkbox"
-                        :: checked input.checked
-                        :: Events.onCheck input.onChange
-                        :: Attr.inlineStyle [ ( "display", "none" ) ]
-                        :: []
-                    )
+                    [ type_ "checkbox"
+                    , checked input.checked
+                    , Events.onCheck input.onChange
+                    , tabindex 0
+                    , hidden
+                    , Attr.toAttr <| Html.Attributes.class "focus-override"
+                    ]
                 , child = Internal.Empty
                 , absolutelyPositioned = Nothing
                 }
     in
-        Input LabelOnRight <|
-            [ input.icon input.checked
-            , inputElem
+        initialInput LabelOnRight <|
+            [ inputElem
+            , input.icon input.checked
+                |> Modify.addAttr (Attr.toAttr <| Html.Attributes.class "alt-icon")
             ]
 
 
@@ -380,12 +526,16 @@ type alias Radio option style variation msg =
         { onChange = ChooseLunch
         , selected = Just currentlySelected -- : Maybe Lunch
         , options =
-            [ optionWith Burrito (text "A Burrito!") <|
+            [ optionWith Burrito <|
                 \selected ->
-                    if selected then
-                        text ":)"
-                    else
-                        text ":("
+                    let
+                        icon =
+                            if selected then
+                                ":)"
+                            else
+                                ":("
+                    in
+                        text (icon ++ " A Burrito!"")
 
             , option Taco (text "A Taco!")
 
@@ -394,15 +544,15 @@ type alias Radio option style variation msg =
 -}
 radio : style -> List (Attribute variation msg) -> Radio option style variation msg -> Input style variation msg
 radio style attrs config =
-    Input LabelAbove <| [ radioElement False style attrs config ]
+    initialInput LabelAbove [ radioHelper False style attrs config ]
 
 
 {-| Same as `radio`, but arranges the options in a row instead of a column
 -}
 radioRow : style -> List (Attribute variation msg) -> Radio option style variation msg -> Input style variation msg
 radioRow style attrs config =
-    Input LabelAbove <|
-        [ radioElement True style attrs config
+    initialInput LabelAbove
+        [ radioHelper True style attrs config
         ]
 
 
@@ -421,8 +571,8 @@ type GridOption value style variation msg
 
 
 {-| -}
-gridOption : { el : Element style variation msg, height : Int, start : ( Int, Int ), value : a, width : Int } -> GridOption a style variation msg
-gridOption { start, width, height, value, el } =
+cell : { el : Element style variation msg, height : Int, start : ( Int, Int ), value : a, width : Int } -> GridOption a style variation msg
+cell { start, width, height, value, el } =
     GridOption
         { position =
             { start = start
@@ -435,8 +585,8 @@ gridOption { start, width, height, value, el } =
 
 
 {-| -}
-gridOptionWith : { view : Bool -> Element style variation msg, height : Int, start : ( Int, Int ), value : a, width : Int } -> GridOption a style variation msg
-gridOptionWith { start, width, height, value, view } =
+cellWith : { view : Bool -> Element style variation msg, height : Int, start : ( Int, Int ), value : a, width : Int } -> GridOption a style variation msg
+cellWith { start, width, height, value, view } =
     GridOptionWith
         { position =
             { start = start
@@ -459,7 +609,9 @@ type alias RadioGrid value msg =
 
 {-| A grid radiobutton layout
 
-    radioGrid MyGridStyle
+    import Element.Input as Input
+
+    Input.grid MyGridStyle
         { onChange = ChooseLunch
         , selected = Just currentlySelected -- : Maybe Lunch
         , columns = [ px 100, px 100, px 100, px 100 ]
@@ -471,7 +623,7 @@ type alias RadioGrid value msg =
             ]
         }
         []
-        [ gridOption
+        [ Input.cell
             { start = ( 0, 0 )
             , width = 1
             , height = 1
@@ -479,7 +631,7 @@ type alias RadioGrid value msg =
             , el =
                 el Box [] (text "box")
             }
-        , gridOption
+        , Input.cell
             { start = ( 1, 1 )
             , width = 1
             , height = 2
@@ -488,7 +640,7 @@ type alias RadioGrid value msg =
                 (el Box [] (text "box"))
             }
 
-        , gridOptionWith
+        , Input.cellWith
             { start = ( 1, 1 )
             , width = 1
             , height = 2
@@ -504,8 +656,8 @@ type alias RadioGrid value msg =
         ]
 
 -}
-radioGrid : style -> RadioGrid value msg -> List (Attribute variation msg) -> List (GridOption value style variation msg) -> Element style variation msg
-radioGrid style { selected, onChange, rows, columns } attrs options =
+grid : style -> RadioGrid value msg -> List (Attribute variation msg) -> List (GridOption value style variation msg) -> Element style variation msg
+grid style { selected, onChange, rows, columns } attrs options =
     let
         getGridOptionValue opt =
             case opt of
@@ -554,7 +706,6 @@ radioGrid style { selected, onChange, rows, columns } attrs options =
                                      , name group
                                      , value (optionToString grid.value)
                                      , checked (Just grid.value == selected)
-                                     , Internal.VAlign Internal.VerticalCenter
                                      , Internal.Position Nothing (Just -2) Nothing
                                      ]
                                         ++ inputEvents
@@ -568,12 +719,17 @@ radioGrid style { selected, onChange, rows, columns } attrs options =
                                 |> Modify.removeAllAttrs
                                 |> Modify.removeStyle
                     in
-                        Element.area grid.position <|
+                        Element.cell grid.position <|
                             Internal.Layout
                                 { node = "label"
                                 , style = style
                                 , layout = Style.FlexLayout Style.GoRight []
-                                , attrs = Attr.spacing 5 :: nonInputEventAttrs
+                                , attrs =
+                                    Attr.spacing 5
+                                        :: Attr.center
+                                        :: Attr.verticalCenter
+                                        :: pointer
+                                        :: nonInputEventAttrs
                                 , children = Internal.Normal [ rune, literalLabel ]
                                 , absolutelyPositioned = Nothing
                                 }
@@ -586,10 +742,12 @@ radioGrid style { selected, onChange, rows, columns } attrs options =
                                 , style = Nothing
                                 , attrs =
                                     ([ type_ "radio"
-                                     , Attr.inlineStyle [ ( "display", "none" ) ]
+                                     , hidden
+                                     , tabindex 0
                                      , name group
                                      , value (optionToString grid.value)
                                      , checked (Just grid.value == selected)
+                                     , Attr.toAttr <| Html.Attributes.class "focus-override"
                                      ]
                                         ++ if Just grid.value /= selected then
                                             [ Events.onCheck (\_ -> onChange grid.value) ]
@@ -600,21 +758,26 @@ radioGrid style { selected, onChange, rows, columns } attrs options =
                                 , absolutelyPositioned = Nothing
                                 }
                     in
-                        Element.area grid.position <|
+                        Element.cell grid.position <|
                             Internal.Layout
                                 { node = "label"
                                 , style = Nothing
                                 , layout = Style.FlexLayout Style.GoRight []
-                                , attrs = []
-                                , children = Internal.Normal [ hiddenInput, grid.view (Just grid.value == selected) ]
+                                , attrs = [ pointer ]
+                                , children =
+                                    Internal.Normal
+                                        [ hiddenInput
+                                        , grid.view (Just grid.value == selected)
+                                            |> Modify.addAttr (Attr.toAttr <| Html.Attributes.class "alt-icon")
+                                        ]
                                 , absolutelyPositioned = Nothing
                                 }
     in
         Element.grid style { rows = rows, columns = columns } attrs (List.map renderOption options)
 
 
-radioElement : Bool -> style -> List (Attribute variation msg) -> Radio option style variation msg -> Element style variation msg
-radioElement horizontal style attrs { onChange, options, selected } =
+radioHelper : Bool -> style -> List (Attribute variation msg) -> Radio option style variation msg -> Element style variation msg
+radioHelper horizontal style attrs { onChange, options, selected } =
     let
         group =
             options
@@ -653,6 +816,7 @@ radioElement horizontal style attrs { onChange, options, selected } =
                                 |> Modify.addAttrList
                                     ([ type_ "radio"
                                      , name group
+                                     , pointer
                                      , value (optionToString val)
                                      , checked (Just val == selected)
                                      , Internal.VAlign Internal.VerticalCenter
@@ -673,7 +837,7 @@ radioElement horizontal style attrs { onChange, options, selected } =
                             { node = "label"
                             , style = style
                             , layout = Style.FlexLayout Style.GoRight []
-                            , attrs = Attr.spacing 5 :: nonInputEventAttrs
+                            , attrs = pointer :: Attr.spacing 5 :: nonInputEventAttrs
                             , children = Internal.Normal [ rune, literalLabel ]
                             , absolutelyPositioned = Nothing
                             }
@@ -686,10 +850,12 @@ radioElement horizontal style attrs { onChange, options, selected } =
                                 , style = Nothing
                                 , attrs =
                                     ([ type_ "radio"
-                                     , Attr.inlineStyle [ ( "display", "none" ) ]
+                                     , hidden
+                                     , tabindex 0
                                      , name group
                                      , value (optionToString val)
                                      , checked (Just val == selected)
+                                     , Attr.toAttr <| Html.Attributes.class "focus-override"
                                      ]
                                         ++ if Just val /= selected then
                                             [ Events.onCheck (\_ -> onChange val) ]
@@ -700,11 +866,19 @@ radioElement horizontal style attrs { onChange, options, selected } =
                                 , absolutelyPositioned = Nothing
                                 }
                     in
-                        hiddenInput
-                            |> Modify.addChild
-                                (view (Just val == selected)
-                                    |> Modify.setNode "label"
-                                )
+                        Internal.Layout
+                            { node = "label"
+                            , style = Nothing
+                            , layout = Style.FlexLayout Style.GoRight []
+                            , attrs = [ pointer ]
+                            , children =
+                                Internal.Normal
+                                    [ hiddenInput
+                                    , view (Just val == selected)
+                                        |> Modify.addAttr (Attr.toAttr <| Html.Attributes.class "alt-icon")
+                                    ]
+                            , absolutelyPositioned = Nothing
+                            }
     in
         if horizontal then
             row style attrs (List.map renderOption options)
