@@ -293,6 +293,9 @@ renderElement parent stylesheet order elm =
                 NoDecoration ->
                     Html.span [] [ Html.text str ]
 
+                RawText ->
+                    Html.text str
+
                 Bold ->
                     Html.strong [] [ Html.text str ]
 

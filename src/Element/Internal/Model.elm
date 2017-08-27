@@ -362,6 +362,7 @@ type Axis
 
 type Decoration
     = NoDecoration
+    | RawText
     | Bold
     | Italic
     | Underline
