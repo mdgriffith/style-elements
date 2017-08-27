@@ -14,7 +14,6 @@ module Element.Input
         , option
         , optionWith
         , Option
-        , select
         , labelLeft
         , labelRight
         , labelAbove
@@ -22,7 +21,7 @@ module Element.Input
         , errorBelow
         , errorAbove
         , valid
-        , withPlaceholder
+        , placeholder
         , enabled
         , disabled
         , grid
@@ -373,14 +372,15 @@ type Label style variation msg
 -- | FloatingPlaceholder (Element style variation msg)
 
 
-withPlaceholder : String -> Label style variation msg -> Label style variation msg
-withPlaceholder placeholder label =
+{-| -}
+placeholder : { text : String, label : Label style variation msg } -> Label style variation msg
+placeholder { text, label } =
     case label of
         PlaceHolder _ existingLabel ->
-            PlaceHolder placeholder existingLabel
+            PlaceHolder text existingLabel
 
         x ->
-            PlaceHolder placeholder x
+            PlaceHolder text x
 
 
 labelLeft : Element style variation msg -> Label style variation msg
@@ -711,62 +711,67 @@ radioHelper horizontal style attrs { onChange, options, selected } =
             column style attrs (List.map renderOption options)
 
 
-{-| -}
-type alias Select option style variation msg =
-    { onChange : option -> msg
-    , options : List ( String, option )
-    , selected : Maybe option
-    , label : Label style variation msg
-    , disabled : Disabled
-    , errors : Error style variation msg
-    }
 
-
-{-| A Select Menu
--}
-select : Select option style variation msg -> Element style variation msg
-select { onChange, options, selected } =
-    let
-        renderOption ( label, option ) =
-            Html.option [ Html.Attributes.value label, Html.Attributes.selected (Just option == selected) ]
-                [ Html.text label
-                ]
-
-        event newSelection =
-            options
-                |> List.filterMap
-                    (\( label, option ) ->
-                        if newSelection == label then
-                            Just option
-                        else
-                            Nothing
-                    )
-                |> List.head
-                |> \maybeOption ->
-                    case maybeOption of
-                        Nothing ->
-                            Json.fail "No Option present in Select box"
-
-                        Just opt ->
-                            Json.succeed opt
-
-        onSelect =
-            Json.map onChange
-                (Json.andThen event Html.Events.targetValue)
-    in
-        Internal.Element
-            { node = "div"
-            , style = Nothing
-            , attrs = []
-            , child =
-                Internal.Raw <|
-                    Html.select
-                        [ Html.Attributes.name "lunch"
-                        , Html.Events.on "change" onSelect
-                        ]
-                        (List.map renderOption options)
-            , absolutelyPositioned = Nothing
-            }
+-- I'm currently under the impressiong that <select> isn't the best at form elements, and that usually you'd want a radio or an autocomplete instead.
+-- Problems:
+--      You can't style it and it looks terrible
+--      It leads to bad UX (think: a dropdown of 1,000 countrys)
+--
+--
+--{-| -}
+-- type alias Select option style variation msg =
+--     { onChange : option -> msg
+--     , options : List ( String, option )
+--     , selected : Maybe option
+--     , label : Label style variation msg
+--     , disabled : Disabled
+--     , errors : Error style variation msg
+--     }
+--
+--
+--
+-- {-| A Select Menu
+-- -}
+-- select : Select option style variation msg -> Element style variation msg
+-- select { onChange, options, selected } =
+--     let
+--         renderOption ( label, option ) =
+--             Html.option [ Html.Attributes.value label, Html.Attributes.selected (Just option == selected) ]
+--                 [ Html.text label
+--                 ]
+--         event newSelection =
+--             options
+--                 |> List.filterMap
+--                     (\( label, option ) ->
+--                         if newSelection == label then
+--                             Just option
+--                         else
+--                             Nothing
+--                     )
+--                 |> List.head
+--                 |> \maybeOption ->
+--                     case maybeOption of
+--                         Nothing ->
+--                             Json.fail "No Option present in Select box"
+--                         Just opt ->
+--                             Json.succeed opt
+--         onSelect =
+--             Json.map onChange
+--                 (Json.andThen event Html.Events.targetValue)
+--     in
+--         Internal.Element
+--             { node = "div"
+--             , style = Nothing
+--             , attrs = []
+--             , child =
+--                 Internal.Raw <|
+--                     Html.select
+--                         [ Html.Attributes.name "lunch"
+--                         , Html.Events.on "change" onSelect
+--                         ]
+--                         (List.map renderOption options)
+--             , absolutelyPositioned = Nothing
+--             }
 
 
 {-| -}
