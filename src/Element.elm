@@ -674,13 +674,6 @@ wrappedColumn style attrs children =
         }
 
 
-{-| -}
-type alias Grid =
-    { rows : List Length
-    , columns : List Length
-    }
-
-
 {-| A table is a special grid
 -}
 table : style -> List (Attribute variation msg) -> List (List (Element style variation msg)) -> Element style variation msg
@@ -703,12 +696,20 @@ table style attrs rows =
                     )
                     rows
     in
-        grid style { columns = [], rows = [] } attrs children
+        grid style attrs { columns = [], rows = [], cells = children }
+
+
+{-| -}
+type alias Grid style variation msg =
+    { rows : List Length
+    , columns : List Length
+    , cells : List (OnGrid (Element style variation msg))
+    }
 
 
 {-| An interface to css grid. Here's a basic example:
 
-    grid MyGridStyle
+    grid MyGridStyle []
         { columns = [ px 100, px 100, px 100, px 100 ]
         , rows =
             [ px 100
@@ -716,25 +717,25 @@ table style attrs rows =
             , px 100
             , px 100
             ]
+        , cells =
+             [ cell
+                { start = ( 0, 0 )
+                , width = 1
+                , height = 1
+                }
+                (el Box [] (text "box"))
+            , cell
+                { start = ( 1, 1 )
+                , width = 1
+                , height = 2
+                }
+                (el Box [] (text "box"))
+            ]
         }
-        []
-        [ cell
-            { start = ( 0, 0 )
-            , width = 1
-            , height = 1
-            }
-            (el Box [] (text "box"))
-        , cell
-            { start = ( 1, 1 )
-            , width = 1
-            , height = 2
-            }
-            (el Box [] (text "box"))
-        ]
 
 -}
-grid : style -> Grid -> List (Attribute variation msg) -> List (OnGrid (Element style variation msg)) -> Element style variation msg
-grid style template attrs children =
+grid : style -> List (Attribute variation msg) -> Grid style variation msg -> Element style variation msg
+grid style attrs config =
     let
         prepare el =
             Normal <| List.map (\(OnGrid x) -> x) el
@@ -764,17 +765,18 @@ grid style template attrs children =
         Layout
             { node = "div"
             , style = Just style
-            , layout = Style.Grid (Style.GridTemplate template) gridAttributes
+            , layout = Style.Grid (Style.GridTemplate { rows = config.rows, columns = config.columns }) gridAttributes
             , attrs = notSpacingAttrs
-            , children = prepare children
+            , children = prepare config.cells
             , absolutelyPositioned = Nothing
             }
 
 
 {-| -}
-type alias NamedGrid =
+type alias NamedGrid style variation msg =
     { rows : List ( Length, List Style.NamedGridPosition )
     , columns : List Length
+    , cells : List (NamedOnGrid (Element style variation msg))
     }
 
 
@@ -801,8 +803,8 @@ Here's an example:
 **note:** this example uses rocket(`=>`) as a synonym for creating a tuple. For more, check out the [rocket update](https://github.com/NoRedInk/rocket-update) package!
 
 -}
-namedGrid : style -> NamedGrid -> List (Attribute variation msg) -> List (NamedOnGrid (Element style variation msg)) -> Element style variation msg
-namedGrid style template attrs children =
+namedGrid : style -> List (Attribute variation msg) -> NamedGrid style variation msg -> Element style variation msg
+namedGrid style attrs config =
     let
         prepare el =
             Normal <| List.map (\(NamedOnGrid x) -> x) el
@@ -832,9 +834,9 @@ namedGrid style template attrs children =
         Layout
             { node = "div"
             , style = Just style
-            , layout = Style.Grid (Style.NamedGridTemplate template) gridAttributes
+            , layout = Style.Grid (Style.NamedGridTemplate { rows = config.rows, columns = config.columns }) gridAttributes
             , attrs = notSpacingAttrs
-            , children = (prepare children)
+            , children = (prepare config.cells)
             , absolutelyPositioned = Nothing
             }
 
