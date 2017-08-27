@@ -14,6 +14,7 @@ module Element.Input
         , option
         , optionWith
         , Option
+        , select
         , labelLeft
         , labelRight
         , labelAbove
@@ -37,6 +38,8 @@ import Style.Internal.Model as Style exposing (Length)
 import Style.Internal.Selector
 import Json.Decode as Json
 import Html.Attributes
+import Html
+import Html.Events
 
 
 {- Attributes -}
@@ -55,6 +58,11 @@ type_ =
 checked : Bool -> Internal.Attribute variation msg
 checked =
     Attr.toAttr << Html.Attributes.checked
+
+
+selectedAttr : Bool -> Internal.Attribute variation msg
+selectedAttr =
+    Attr.toAttr << Html.Attributes.selected
 
 
 name : String -> Internal.Attribute variation msg
@@ -80,15 +88,6 @@ disabledAttr =
 hidden : Attribute variation msg
 hidden =
     Attr.inlineStyle [ ( "position", "absolute" ), ( "opacity", "0" ) ]
-
-
-
--- { onChange = Check
--- , checked = model.checkbox
--- , label = el None [] (text "hello!")
--- , errors = Nothing
--- , disabled = False
--- }
 
 
 {-| -}
@@ -718,3 +717,61 @@ radioHelper horizontal style attrs { onChange, options, selected } =
             row style attrs (List.map renderOption options)
         else
             column style attrs (List.map renderOption options)
+
+
+{-| -}
+type alias Select option style variation msg =
+    { onChange : option -> msg
+    , options : List ( String, option )
+    , selected : Maybe option
+    , label : Label style variation msg
+    , disabled : Disabled
+    , errors : Error style variation msg
+    }
+
+
+{-| A Select Menu
+-}
+select : Select option style variation msg -> Element style variation msg
+select { onChange, options, selected } =
+    let
+        renderOption ( label, option ) =
+            Html.option [ Html.Attributes.value label, Html.Attributes.selected (Just option == selected) ]
+                [ Html.text label
+                ]
+
+        event newSelection =
+            options
+                |> List.filterMap
+                    (\( label, option ) ->
+                        if newSelection == label then
+                            Just option
+                        else
+                            Nothing
+                    )
+                |> List.head
+                |> \maybeOption ->
+                    case maybeOption of
+                        Nothing ->
+                            Json.fail "No Option present in Select box"
+
+                        Just opt ->
+                            Json.succeed opt
+
+        onSelect =
+            Json.map onChange
+                (Json.andThen event Html.Events.targetValue)
+    in
+        Internal.Element
+            { node = "div"
+            , style = Nothing
+            , attrs = []
+            , child =
+                Internal.Raw <|
+                    Html.select
+                        [ Html.Attributes.name "lunch"
+                        , Html.Events.on "change" onSelect
+                        ]
+                        (List.map renderOption options)
+            , absolutelyPositioned = Nothing
+            }
