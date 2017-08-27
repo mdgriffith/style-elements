@@ -1,10 +1,19 @@
 module Element.Input
     exposing
-        ( text
+        ( checkbox
+        , Checkbox
+        , checkboxWith
+        , CheckboxWith
+        , text
         , multiline
         , search
         , email
         , password
+        , radio
+        , radioRow
+        , option
+        , optionWith
+        , Option
         , labelLeft
         , labelRight
         , labelAbove
@@ -66,6 +75,147 @@ tabindex =
 disabledAttr : Bool -> Internal.Attribute variation msg
 disabledAttr =
     Attr.toAttr << Html.Attributes.disabled
+
+
+hidden : Attribute variation msg
+hidden =
+    Attr.inlineStyle [ ( "position", "absolute" ), ( "opacity", "0" ) ]
+
+
+
+-- { onChange = Check
+-- , checked = model.checkbox
+-- , label = el None [] (text "hello!")
+-- , errors = Nothing
+-- , disabled = False
+-- }
+
+
+{-| -}
+type alias Checkbox style variation msg =
+    { onChange : Bool -> msg
+    , label : Element style variation msg
+    , checked : Bool
+    , errors : Error style variation msg
+    , disabled : Disabled
+    }
+
+
+{-| Your basic checkbox
+
+    Input.checkbox CheckBoxStyle [ ]
+        { checked = True
+        , onChange = ChangeMsg
+        }
+        |> Input.label (text "hello!")
+
+-- For more involved checkbox styling
+
+    Input.checkboxWith CheckBoxStyle [ ]
+        { value = True
+        , onChange = ChangeMsg
+        , elem =
+            \checked ->
+                el CheckedStyle [] (text if checked then "✓" else "x")
+
+        }
+        |> Input.label (text "hello!")
+
+-}
+checkbox : style -> List (Attribute variation msg) -> Checkbox style variation msg -> Element style variation msg
+checkbox style attrs input =
+    let
+        withDisabled attrs =
+            case input.disabled of
+                Disabled ->
+                    Attr.class "disabled-input" :: disabledAttr True :: attrs
+
+                Enabled ->
+                    attrs
+
+        withError attrs =
+            case input.errors of
+                NoError ->
+                    attrs
+
+                _ ->
+                    Attr.attribute "aria-invalid" "true" :: attrs
+
+        inputElem =
+            [ Internal.Element
+                { node = "input"
+                , style = Nothing
+                , attrs =
+                    (withError << withDisabled)
+                        [ type_ "checkbox"
+                        , checked input.checked
+                        , pointer
+                        , Events.onCheck input.onChange
+                        ]
+                , child = Internal.Empty
+                , absolutelyPositioned = Nothing
+                }
+            ]
+    in
+        applyLabel Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attrs) (LabelOnRight input.label) input.errors input.disabled inputElem
+
+
+{-| -}
+type alias CheckboxWith style variation msg =
+    { onChange : Bool -> msg
+    , label : Element style variation msg
+    , checked : Bool
+    , errors : Error style variation msg
+    , disabled : Disabled
+    , icon : Bool -> Element style variation msg
+    }
+
+
+{-| -}
+checkboxWith : style -> List (Attribute variation msg) -> CheckboxWith style variation msg -> Element style variation msg
+checkboxWith style attrs input =
+    let
+        withDisabled attrs =
+            case input.disabled of
+                Disabled ->
+                    Attr.class "disabled-input" :: disabledAttr True :: attrs
+
+                Enabled ->
+                    attrs
+
+        withError attrs =
+            case input.errors of
+                NoError ->
+                    attrs
+
+                _ ->
+                    Attr.attribute "aria-invalid" "true" :: attrs
+
+        inputElem =
+            [ Internal.Element
+                { node = "input"
+                , style = Nothing
+                , attrs =
+                    (withError << withDisabled)
+                        [ type_ "checkbox"
+                        , checked input.checked
+                        , pointer
+                        , Events.onCheck input.onChange
+                        , hidden
+                        , Attr.toAttr (Html.Attributes.class "focus-override")
+                        ]
+                , child = Internal.Empty
+                , absolutelyPositioned = Nothing
+                }
+            , input.icon input.checked
+                |> Modify.addAttr (Attr.toAttr <| Html.Attributes.class "alt-icon")
+            ]
+    in
+        applyLabel Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attrs) (LabelOnRight input.label) input.errors input.disabled inputElem
+
+
+
+{- Text Inputs -}
 
 
 type TextKind
@@ -160,7 +310,7 @@ textHelper kind style attrs input =
                         , attrs =
                             (Attr.inlineStyle [ ( "resize", "none" ) ] :: Events.onInput input.onChange :: attrs)
                                 |> (withPlaceholder >> withDisabled >> withError)
-                        , child = Element.text input.value
+                        , child = Internal.Text Internal.RawText input.value
                         , absolutelyPositioned = Nothing
                         }
 
@@ -356,3 +506,215 @@ applyLabel style attrs label errors isDisabled input =
 
                     ErrorAbove err ->
                         labelContainer Style.Down [ err, orient Style.GoRight (lab :: input) ]
+
+
+
+{- Radio Options -}
+
+
+type Option value style variation msg
+    = Option value (Element style variation msg)
+    | OptionWith
+        { style : style
+        , attrs : List (Attribute variation msg)
+        , value : value
+        , icon : Bool -> Element style variation msg
+        , label : Label style variation msg
+        }
+
+
+type alias OptionDetails value style variation msg =
+    { value : value
+    , icon : Bool -> Element style variation msg
+    , label : Label style variation msg
+    }
+
+
+{-| -}
+option : value -> Element style variation msg -> Option value style variation msg
+option =
+    Option
+
+
+{-| -}
+optionWith : style -> List (Attribute variation msg) -> OptionDetails value style variation msg -> Option value style variation msg
+optionWith style attrs details =
+    OptionWith
+        { style = style
+        , attrs = attrs
+        , value = details.value
+        , icon = details.icon
+        , label = details.label
+        }
+
+
+getOptionValue : Option a style variation msg -> a
+getOptionValue opt =
+    case opt of
+        Option value _ ->
+            value
+
+        OptionWith { value } ->
+            value
+
+
+optionToString : a -> String
+optionToString =
+    Style.Internal.Selector.formatName
+
+
+{-| -}
+type alias Radio option style variation msg =
+    { onChange : option -> msg
+    , options : List (Option option style variation msg)
+    , selected : Maybe option
+    , label : Label style variation msg
+    , disabled : Disabled
+    , errors : Error style variation msg
+    }
+
+
+{-|
+
+    radio MyStyle [  ]
+        { onChange = ChooseLunch
+        , selected = Just currentlySelected -- : Maybe Lunch
+        , options =
+            [ optionWith Burrito <|
+                \selected ->
+                    let
+                        icon =
+                            if selected then
+                                ":)"
+                            else
+                                ":("
+                    in
+                        text (icon ++ " A Burrito!"")
+
+            , option Taco (text "A Taco!")
+
+            ]
+        }
+-}
+radio : style -> List (Attribute variation msg) -> Radio option style variation msg -> Element style variation msg
+radio style attrs config =
+    let
+        input =
+            radioHelper False style attrs config
+    in
+        applyLabel Nothing attrs config.label config.errors config.disabled [ input ]
+
+
+{-| Same as `radio`, but arranges the options in a row instead of a column
+-}
+radioRow : style -> List (Attribute variation msg) -> Radio option style variation msg -> Element style variation msg
+radioRow style attrs config =
+    let
+        input =
+            radioHelper True style attrs config
+    in
+        applyLabel Nothing attrs config.label config.errors config.disabled [ input ]
+
+
+radioHelper : Bool -> style -> List (Attribute variation msg) -> Radio option style variation msg -> Element style variation msg
+radioHelper horizontal style attrs { onChange, options, selected } =
+    let
+        group =
+            options
+                |> List.map (optionToString << getOptionValue)
+                |> String.join "-"
+
+        renderOption option =
+            case option of
+                Option val el ->
+                    let
+                        style =
+                            Modify.getStyle el
+
+                        attrs =
+                            Modify.getAttrs el
+
+                        ( inputEvents, nonInputEventAttrs ) =
+                            List.partition forInputEvents
+                                (if Just val /= selected then
+                                    attrs ++ [ Events.onCheck (\_ -> onChange val) ]
+                                 else
+                                    attrs
+                                )
+
+                        forInputEvents attr =
+                            case attr of
+                                Internal.InputEvent ev ->
+                                    True
+
+                                _ ->
+                                    False
+
+                        rune =
+                            el
+                                |> Modify.setNode "input"
+                                |> Modify.addAttrList
+                                    ([ type_ "radio"
+                                     , name group
+                                     , pointer
+                                     , value (optionToString val)
+                                     , checked (Just val == selected)
+                                     , Internal.VAlign Internal.VerticalCenter
+                                     , Internal.Position Nothing (Just -2) Nothing
+                                     ]
+                                        ++ inputEvents
+                                    )
+                                |> Modify.removeContent
+                                |> Modify.removeStyle
+
+                        literalLabel =
+                            el
+                                |> Modify.getChild
+                                |> Modify.removeAllAttrs
+                                |> Modify.removeStyle
+                    in
+                        Internal.Layout
+                            { node = "label"
+                            , style = style
+                            , layout = Style.FlexLayout Style.GoRight []
+                            , attrs = pointer :: Attr.spacing 5 :: nonInputEventAttrs
+                            , children = Internal.Normal [ rune, literalLabel ]
+                            , absolutelyPositioned = Nothing
+                            }
+
+                OptionWith config ->
+                    let
+                        hiddenInput =
+                            Internal.Element
+                                { node = "input"
+                                , style = Nothing
+                                , attrs =
+                                    ([ type_ "radio"
+                                     , hidden
+                                     , tabindex 0
+                                     , name group
+                                     , value (optionToString config.value)
+                                     , checked (Just config.value == selected)
+                                     , Attr.toAttr <| Html.Attributes.class "focus-override"
+                                     ]
+                                        ++ if Just config.value /= selected then
+                                            [ Events.onCheck (\_ -> onChange config.value) ]
+                                           else
+                                            []
+                                    )
+                                , child = Internal.Empty
+                                , absolutelyPositioned = Nothing
+                                }
+
+                        inputElems =
+                            [ hiddenInput
+                            , config.icon (Just config.value == selected)
+                                |> Modify.addAttr (Attr.toAttr <| Html.Attributes.class "alt-icon")
+                            ]
+                    in
+                        applyLabel (Just config.style) config.attrs config.label valid Enabled inputElems
+    in
+        if horizontal then
+            row style attrs (List.map renderOption options)
+        else
+            column style attrs (List.map renderOption options)
