@@ -25,6 +25,10 @@ module Element.Input
         , withPlaceholder
         , enabled
         , disabled
+        , grid
+        , Grid
+        , cell
+        , cellWith
         )
 
 {-| -}
@@ -633,38 +637,26 @@ radioHelper horizontal style attrs { onChange, options, selected } =
                         attrs =
                             Modify.getAttrs el
 
-                        ( inputEvents, nonInputEventAttrs ) =
-                            List.partition forInputEvents
-                                (if Just val /= selected then
-                                    attrs ++ [ Events.onCheck (\_ -> onChange val) ]
-                                 else
-                                    attrs
-                                )
-
-                        forInputEvents attr =
-                            case attr of
-                                Internal.InputEvent ev ->
-                                    True
-
-                                _ ->
-                                    False
-
-                        rune =
-                            el
-                                |> Modify.setNode "input"
-                                |> Modify.addAttrList
+                        input =
+                            Internal.Element
+                                { node = "input"
+                                , style = Nothing
+                                , attrs =
                                     ([ type_ "radio"
-                                     , name group
+                                     , hidden
                                      , pointer
+                                     , name group
                                      , value (optionToString val)
                                      , checked (Just val == selected)
-                                     , Internal.VAlign Internal.VerticalCenter
-                                     , Internal.Position Nothing (Just -2) Nothing
                                      ]
-                                        ++ inputEvents
+                                        ++ if Just val /= selected then
+                                            [ Events.onCheck (\_ -> onChange val) ]
+                                           else
+                                            []
                                     )
-                                |> Modify.removeContent
-                                |> Modify.removeStyle
+                                , child = Internal.Empty
+                                , absolutelyPositioned = Nothing
+                                }
 
                         literalLabel =
                             el
@@ -676,8 +668,8 @@ radioHelper horizontal style attrs { onChange, options, selected } =
                             { node = "label"
                             , style = style
                             , layout = Style.FlexLayout Style.GoRight []
-                            , attrs = pointer :: Attr.spacing 5 :: nonInputEventAttrs
-                            , children = Internal.Normal [ rune, literalLabel ]
+                            , attrs = pointer :: Attr.spacing 5 :: attrs
+                            , children = Internal.Normal [ input, literalLabel ]
                             , absolutelyPositioned = Nothing
                             }
 
@@ -775,3 +767,229 @@ select { onChange, options, selected } =
                         (List.map renderOption options)
             , absolutelyPositioned = Nothing
             }
+
+
+{-| -}
+type GridOption value style variation msg
+    = GridOption
+        { position : Element.GridPosition
+        , value : value
+        , el : Element style variation msg
+        }
+    | GridOptionWith
+        { position : Element.GridPosition
+        , value : value
+        , view : Bool -> Element style variation msg
+        }
+
+
+{-| -}
+cell : { el : Element style variation msg, height : Int, start : ( Int, Int ), value : a, width : Int } -> GridOption a style variation msg
+cell { start, width, height, value, el } =
+    GridOption
+        { position =
+            { start = start
+            , width = width
+            , height = height
+            }
+        , value = value
+        , el = el
+        }
+
+
+{-| -}
+cellWith : { view : Bool -> Element style variation msg, height : Int, start : ( Int, Int ), value : a, width : Int } -> GridOption a style variation msg
+cellWith { start, width, height, value, view } =
+    GridOptionWith
+        { position =
+            { start = start
+            , width = width
+            , height = height
+            }
+        , value = value
+        , view = view
+        }
+
+
+{-| -}
+type alias Grid value style variation msg =
+    { onChange : value -> msg
+    , selected : Maybe value
+    , label : Label style variation msg
+    , disabled : Disabled
+    , errors : Error style variation msg
+    , columns : List Length
+    , rows : List Length
+    , cells : List (GridOption value style variation msg)
+    }
+
+
+{-| A grid radiobutton layout
+
+    import Element.Input as Input
+
+    Input.grid MyGridStyle []
+        { label = Input.labelAbove (text "Choose Lunch!")
+        , onChange = ChooseLunch
+        , selected = Just currentlySelected -- : Maybe Lunch
+        , errors = Input.valid
+        , disabled = Input.enabled
+        , columns = [ px 100, px 100, px 100, px 100 ]
+        , rows =
+            [ px 100
+            , px 100
+            , px 100
+            , px 100
+            ]
+        , cells =
+             [ Input.cell
+                { start = ( 0, 0 )
+                , width = 1
+                , height = 1
+                , value = Burrito
+                , el =
+                    el Box [] (text "box")
+                }
+            , Input.cell
+                { start = ( 1, 1 )
+                , width = 1
+                , height = 2
+                , value = Taco
+                , el =
+                    (el Box [] (text "box"))
+                }
+
+            , Input.cellWith
+                { start = ( 1, 1 )
+                , width = 1
+                , height = 2
+                , value = Taco
+                , selected =
+                    \selected ->
+                        if selected then
+                            text "Burrito!"
+                        else
+                            text "Unselected burrito :("
+                }
+            ]
+        }
+
+-}
+grid : style -> List (Attribute variation msg) -> Grid value style variation msg -> Element style variation msg
+grid style attrs input =
+    let
+        getGridOptionValue opt =
+            case opt of
+                GridOption { value } ->
+                    value
+
+                GridOptionWith { value } ->
+                    value
+
+        group =
+            input.cells
+                |> List.map (optionToString << getGridOptionValue)
+                |> String.join "-"
+
+        renderOption option =
+            case option of
+                GridOption grid ->
+                    let
+                        style =
+                            Modify.getStyle grid.el
+
+                        attrs =
+                            Modify.getAttrs grid.el
+
+                        ( inputEvents, nonInputEventAttrs ) =
+                            List.partition forInputEvents
+                                (if Just grid.value /= input.selected then
+                                    attrs ++ [ Events.onCheck (\_ -> input.onChange grid.value) ]
+                                 else
+                                    attrs
+                                )
+
+                        forInputEvents attr =
+                            case attr of
+                                Internal.InputEvent ev ->
+                                    True
+
+                                _ ->
+                                    False
+
+                        rune =
+                            grid.el
+                                |> Modify.setNode "input"
+                                |> Modify.addAttrList
+                                    ([ type_ "radio"
+                                     , name group
+                                     , value (optionToString grid.value)
+                                     , checked (Just grid.value == input.selected)
+                                     , Internal.Position Nothing (Just -2) Nothing
+                                     ]
+                                        ++ inputEvents
+                                    )
+                                |> Modify.removeContent
+                                |> Modify.removeStyle
+
+                        literalLabel =
+                            grid.el
+                                |> Modify.getChild
+                                |> Modify.removeAllAttrs
+                                |> Modify.removeStyle
+                    in
+                        Element.cell grid.position <|
+                            Internal.Layout
+                                { node = "label"
+                                , style = style
+                                , layout = Style.FlexLayout Style.GoRight []
+                                , attrs =
+                                    Attr.spacing 5
+                                        :: Attr.center
+                                        :: Attr.verticalCenter
+                                        :: pointer
+                                        :: nonInputEventAttrs
+                                , children = Internal.Normal [ rune, literalLabel ]
+                                , absolutelyPositioned = Nothing
+                                }
+
+                GridOptionWith grid ->
+                    let
+                        hiddenInput =
+                            Internal.Element
+                                { node = "input"
+                                , style = Nothing
+                                , attrs =
+                                    ([ type_ "radio"
+                                     , hidden
+                                     , tabindex 0
+                                     , name group
+                                     , value (optionToString grid.value)
+                                     , checked (Just grid.value == input.selected)
+                                     , Attr.toAttr <| Html.Attributes.class "focus-override"
+                                     ]
+                                        ++ if Just grid.value /= input.selected then
+                                            [ Events.onCheck (\_ -> input.onChange grid.value) ]
+                                           else
+                                            []
+                                    )
+                                , child = Internal.Empty
+                                , absolutelyPositioned = Nothing
+                                }
+                    in
+                        Element.cell grid.position <|
+                            Internal.Layout
+                                { node = "label"
+                                , style = Nothing
+                                , layout = Style.FlexLayout Style.GoRight []
+                                , attrs = [ pointer ]
+                                , children =
+                                    Internal.Normal
+                                        [ hiddenInput
+                                        , grid.view (Just grid.value == input.selected)
+                                            |> Modify.addAttr (Attr.toAttr <| Html.Attributes.class "alt-icon")
+                                        ]
+                                , absolutelyPositioned = Nothing
+                                }
+    in
+        Element.grid style { rows = input.rows, columns = input.columns } attrs (List.map renderOption input.cells)
