@@ -48,7 +48,7 @@ input[type='radio']:focus {
 }
 
 
-textarea.focus-override:focus, input.focus-override:focus {
+select.focus-override:focus, input.focus-override:focus {
     outline: none;
     box-shadow: none;
     border-color:transparent;
@@ -56,6 +56,43 @@ textarea.focus-override:focus, input.focus-override:focus {
 input.focus-override:focus ~ .alt-icon {
     box-shadow: 0 0 3px 3px rgba(155,203,255,1.0);
     border-color: rgba(155,203,255,1.0);
+}
+select.focus-override:focus ~ .alt-icon {
+    box-shadow: 0 0 3px 3px rgba(155,203,255,1.0);
+    border-color: rgba(155,203,255,1.0);
+}
+.double-arrows {
+    display:block;
+    position: relative;
+    height: 10px;
+    width: 10px;
+}
+/*
+.double-arrows::after {
+    content: " ";
+    position:absolute;
+    top:-2px;
+    left:0;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+
+    border-bottom: 5px solid black;
+}
+*/
+
+.double-arrows::before {
+    content: " ";
+    position:absolute;
+    top:2px;
+    left:0;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+
+    border-top: 5px solid black;
 }
 
 
