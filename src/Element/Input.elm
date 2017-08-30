@@ -23,6 +23,8 @@ module Element.Input
         , noErrors
         , placeholder
         , dropSelect
+        , menu
+        , menuAbove
           -- , verifiedToWorkWithFocus
           -- , manualSpecifiedMenu
         , DropDown
@@ -77,8 +79,8 @@ name =
     Attr.toAttr << Html.Attributes.name
 
 
-value : String -> Internal.Attribute variation msg
-value =
+valueAttr : String -> Internal.Attribute variation msg
+valueAttr =
     Attr.toAttr << Html.Attributes.value
 
 
@@ -258,32 +260,26 @@ multiline =
     textHelper TextArea
 
 
-
--- {-| -}
--- type alias Autocomplete style variation msg =
---     { onChange : String -> msg
---     , value : String
---     , label : Label style variation msg
---     , disabled : Disabled
---     , errors : Error style variation msg
---     , autocomplete : AutocompleteConfig style variation msg
---     }
--- {-| -}
--- type AutocompleteConfig style variation msg
---     = AutocompleteConfig
---         { max : Int
---         , options : String -> Bool -> Element style variation msg
---         }
--- {-| -}
--- autocomplete : style -> List (Attribute variation msg) -> Autocomplete style variation msg -> Element style variation msg
--- autocomplete style attrs auto =
---     Element.empty
-
-
 {-| -}
 textHelper : TextKind -> style -> List (Attribute variation msg) -> TextInput style variation msg -> Element style variation msg
 textHelper kind style attrs input =
     let
+        forSpacing attr =
+            case attr of
+                Internal.Spacing x y ->
+                    Just attr
+
+                _ ->
+                    Nothing
+
+        spacing =
+            attrs
+                |> List.filterMap forSpacing
+                |> List.reverse
+                |> List.head
+                |> Maybe.withDefault
+                    (Internal.Spacing 7 7)
+
         withPlaceholder attrs =
             case input.label of
                 PlaceHolder placeholder label ->
@@ -341,13 +337,13 @@ textHelper kind style attrs input =
                         { node = "input"
                         , style = Just style
                         , attrs =
-                            (type_ kindAsText :: Events.onInput input.onChange :: value input.value :: attrs)
+                            (type_ kindAsText :: Events.onInput input.onChange :: valueAttr input.value :: attrs)
                                 |> (withPlaceholder >> withDisabled >> withError)
                         , child = Internal.Empty
                         , absolutelyPositioned = Nothing
                         }
     in
-        applyLabel Nothing attrs input.label input.errors input.disabled [ inputElem ]
+        applyLabel Nothing [ spacing ] input.label input.errors input.disabled [ inputElem ]
 
 
 type alias TextInput style variation msg =
@@ -522,20 +518,7 @@ applyLabel style attrs label errors isDisabled input =
 
 type Option value style variation msg
     = Option value (Element style variation msg)
-    | OptionWith
-        { style : style
-        , attrs : List (Attribute variation msg)
-        , value : value
-        , icon : Bool -> Element style variation msg
-        , label : Label style variation msg
-        }
-
-
-type alias OptionDetails value style variation msg =
-    { value : value
-    , icon : Bool -> Element style variation msg
-    , label : Label style variation msg
-    }
+    | OptionWith value (Bool -> Element style variation msg)
 
 
 {-| -}
@@ -545,15 +528,9 @@ option =
 
 
 {-| -}
-optionWith : style -> List (Attribute variation msg) -> OptionDetails value style variation msg -> Option value style variation msg
-optionWith style attrs details =
+optionWith : value -> (Bool -> Element style variation msg) -> Option value style variation msg
+optionWith =
     OptionWith
-        { style = style
-        , attrs = attrs
-        , value = details.value
-        , icon = details.icon
-        , label = details.label
-        }
 
 
 getOptionValue : Option a style variation msg -> a
@@ -562,7 +539,7 @@ getOptionValue opt =
         Option value _ ->
             value
 
-        OptionWith { value } ->
+        OptionWith value _ ->
             value
 
 
@@ -629,7 +606,7 @@ radio style attrs config =
                 , errors = config.errors
                 }
     in
-        applyLabel Nothing attrs config.label config.errors config.disabled [ input ]
+        applyLabel Nothing [] config.label config.errors config.disabled [ input ]
 
 
 {-| Same as `radio`, but arranges the options in a row instead of a column
@@ -652,7 +629,7 @@ radioRow style attrs config =
                 , errors = config.errors
                 }
     in
-        applyLabel Nothing attrs config.label config.errors config.disabled [ input ]
+        applyLabel Nothing [] config.label config.errors config.disabled [ input ]
 
 
 
@@ -733,7 +710,6 @@ type RadioSelection value msg
 type Orientation msg
     = Horizontal
     | Vertical
-    | DropMenu (Bool -> msg) String Bool
 
 
 radioHelper : Orientation msg -> style -> List (Attribute variation msg) -> MasterRadio option style variation msg -> Element style variation msg
@@ -786,12 +762,6 @@ radioHelper orientation style attrs config =
             case option of
                 Option val el ->
                     let
-                        style =
-                            Modify.getStyle el
-
-                        attrs =
-                            Modify.getAttrs el
-
                         input =
                             Internal.Element
                                 { node = "input"
@@ -801,7 +771,7 @@ radioHelper orientation style attrs config =
                                         [ type_ "radio"
                                         , pointer
                                         , name group
-                                        , value (optionToString val)
+                                        , valueAttr (optionToString val)
                                         ]
                                 , child = Internal.Empty
                                 , absolutelyPositioned = Nothing
@@ -815,95 +785,60 @@ radioHelper orientation style attrs config =
                     in
                         Internal.Layout
                             { node = "label"
-                            , style = style
+                            , style = Modify.getStyle el
                             , layout = Style.FlexLayout Style.GoRight []
-                            , attrs = pointer :: Attr.spacing 5 :: attrs
+                            , attrs = pointer :: Attr.spacing 5 :: Modify.getAttrs el
                             , children = Internal.Normal [ input, literalLabel ]
                             , absolutelyPositioned = Nothing
                             }
 
-                OptionWith config ->
+                OptionWith val view ->
                     let
+                        viewed =
+                            view (valueIsSelected val)
+
                         hiddenInput =
                             Internal.Element
                                 { node = "input"
                                 , style = Nothing
                                 , attrs =
-                                    addSelection config.value
+                                    addSelection val
                                         [ type_ "radio"
                                         , hidden
                                         , tabindex 0
                                         , name group
-                                        , value (optionToString config.value)
+                                        , valueAttr (optionToString val)
                                         , Attr.toAttr <| Html.Attributes.class "focus-override"
                                         ]
                                 , child = Internal.Empty
                                 , absolutelyPositioned = Nothing
                                 }
-
-                        inputElems =
-                            [ hiddenInput
-                            , config.icon (valueIsSelected config.value)
-                                |> Modify.addAttr (Attr.toAttr <| Html.Attributes.class "alt-icon")
-                            ]
                     in
-                        applyLabel (Just config.style) config.attrs config.label noErrors False inputElems
+                        Internal.Layout
+                            { node = "label"
+                            , style = Modify.getStyle viewed
+                            , layout = Style.FlexLayout Style.GoRight []
+                            , attrs = pointer :: Attr.spacing 5 :: Modify.getAttrs viewed
+                            , children =
+                                Internal.Normal
+                                    [ hiddenInput
+                                    , viewed
+                                        |> Modify.removeAllAttrs
+                                        |> Modify.addAttr (Attr.toAttr <| Html.Attributes.class "alt-icon")
+                                        |> Modify.removeStyle
+                                    ]
+                            , absolutelyPositioned = Nothing
+                            }
     in
         case orientation of
             Horizontal ->
-                row style attrs (List.map renderOption config.options)
+                row style (Attr.spacing 10 :: attrs) (List.map renderOption config.options)
 
             Vertical ->
-                column style attrs (List.map renderOption config.options)
-
-            DropMenu changeOpen emptyPlaceholder dropped ->
-                let
-                    show attrs =
-                        if dropped then
-                            Attr.inlineStyle [ ( "opacity", "1" ) ] :: attrs
-                        else
-                            Attr.inlineStyle [ ( "opacity", "0" ) ] :: attrs
-
-                    -- Attr.inlineStyle [ ( "overflow", "hidden" ) ] ::
-                    --  Attr.toAttr (onFocusIn (config.show True))
-                    -- :: Attr.toAttr (onFocusOut (config.show False))
-                in
-                    Internal.Layout
-                        { node = "div"
-                        , style = Just style
-                        , layout = Style.FlexLayout Style.GoRight []
-                        , attrs =
-                            Events.onClick (changeOpen (not dropped))
-                                :: Attr.verticalCenter
-                                :: Attr.spacing 7
-                                :: Attr.spread
-                                :: pointer
-                                :: attrs
-                        , children =
-                            Internal.Normal
-                                [ Element.text emptyPlaceholder
-                                , arrows
-                                ]
-                        , absolutelyPositioned = Nothing
-                        }
-                        |> Element.below
-                            [ column style (show (Attr.inlineStyle [ ( "z-index", "20" ), ( "background-color", "white" ) ] :: Attr.width Attr.fill :: attrs)) (List.map renderOption config.options)
-                            ]
+                column style (Attr.spacing 10 :: attrs) (List.map renderOption config.options)
 
 
-
--- Html.div
---                 [ Html.Attributes.style [ ( "overflow", "hidden" ) ]
---                 , Html.Events.onClick (config.show (not config.isOpen))
---                 ]
---                 [ Html.text "Here is the selection, closed" ]
---             , Html.label
---                 (if config.isOpen then
---                     []
---                  else
---                     [ Html.Attributes.style [ ( "position", "absolute" ), ( "top", "-20px" ) ] ]
-
-
+arrows : Element a variation msg
 arrows =
     Internal.Element
         { node = "div"
@@ -1016,7 +951,7 @@ arrows =
 
 type alias DropDown option style variation msg =
     { onChange : option -> msg
-    , options : List (Option option style variation msg)
+    , menu : Menu option style variation msg
     , selected : Maybe option
     , label : Label style variation msg
     , disabled : Bool
@@ -1024,6 +959,21 @@ type alias DropDown option style variation msg =
     , isOpen : Bool
     , show : Bool -> msg
     }
+
+
+type Menu option style variation msg
+    = MenuUp style (List (Attribute variation msg)) (List (Option option style variation msg))
+    | MenuDown style (List (Attribute variation msg)) (List (Option option style variation msg))
+
+
+menu : style -> List (Attribute variation msg) -> List (Option option style variation msg) -> Menu option style variation msg
+menu =
+    MenuDown
+
+
+menuAbove : style -> List (Attribute variation msg) -> List (Option option style variation msg) -> Menu option style variation msg
+menuAbove =
+    MenuUp
 
 
 {-| A dropdown input.
@@ -1060,6 +1010,14 @@ type alias DropDown option style variation msg =
 dropSelect : style -> List (Attribute variation msg) -> DropDown option style variation msg -> Element style variation msg
 dropSelect style attrs input =
     let
+        ( menuAbove, menuStyle, menuAttrs, options ) =
+            case input.menu of
+                MenuUp menuStyle menuAttrs menuOptions ->
+                    ( True, menuStyle, menuAttrs, menuOptions )
+
+                MenuDown menuStyle menuAttrs menuOptions ->
+                    ( False, menuStyle, menuAttrs, menuOptions )
+
         placeholderText =
             case input.label of
                 PlaceHolder text _ ->
@@ -1074,22 +1032,8 @@ dropSelect style attrs input =
                     Option _ el ->
                         Just el
 
-                    OptionWith opt ->
-                        case opt.label of
-                            LabelAbove lab ->
-                                Just lab
-
-                            LabelBelow lab ->
-                                Just lab
-
-                            LabelOnRight lab ->
-                                Just lab
-
-                            LabelOnLeft lab ->
-                                Just lab
-
-                            PlaceHolder text _ ->
-                                Just <| Element.text text
+                    OptionWith _ view ->
+                        Just <| view True
             else
                 Nothing
 
@@ -1099,7 +1043,7 @@ dropSelect style attrs input =
                     placeholderText
 
                 Just selected ->
-                    input.options
+                    options
                         |> List.filterMap (getSelectedLabel selected)
                         |> List.head
                         |> Maybe.withDefault placeholderText
@@ -1192,7 +1136,7 @@ dropSelect style attrs input =
                 , first = Nothing
                 , last = Nothing
                 }
-                input.options
+                options
 
         { next, prev } =
             if cursor.found == False then
@@ -1216,7 +1160,10 @@ dropSelect style attrs input =
                     let
                         isSelected =
                             if Just val == input.selected then
-                                [ Attr.attribute "aria-selected" "true", Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.03)" ) ] ] ++ parentPadding
+                                [ Attr.attribute "aria-selected" "true"
+                                , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.03)" ) ]
+                                ]
+                                    ++ parentPadding
                             else
                                 [ Attr.attribute "aria-selected" "false" ] ++ parentPadding
 
@@ -1229,66 +1176,76 @@ dropSelect style attrs input =
                         el
                             |> Modify.addAttrList additional
 
-                OptionWith config ->
+                OptionWith val view ->
                     let
                         isSelected =
-                            if Just config.value == input.selected then
-                                [ Attr.attribute "aria-selected" "true", Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.03)" ) ] ] ++ parentPadding
+                            if Just val == input.selected then
+                                [ Attr.attribute "aria-selected" "true"
+                                , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.03)" ) ]
+                                ]
+                                    ++ parentPadding
                             else
                                 [ Attr.attribute "aria-selected" "false" ] ++ parentPadding
 
                         additional =
-                            Events.onClick (input.onChange config.value)
+                            Events.onClick (input.onChange val)
                                 :: Internal.Expand
                                 :: Attr.attribute "role" "menuitemradio"
                                 :: isSelected
                     in
-                        config.icon (Just config.value == input.selected)
+                        view (Just val == input.selected)
                             |> Modify.addAttrList additional
+
+        fullElement =
+            Internal.Element
+                { node = "div"
+                , style = Nothing
+                , attrs =
+                    List.filterMap identity
+                        [ Just (Attr.width Attr.fill)
+                        , Just (Attr.attribute "role" "menu")
+                        , Just (tabindex 0)
+                        , Just (Attr.inlineStyle [ ( "z-index", "20" ) ])
+                        , Just (Attr.toAttr <| onFocusOut (input.show False))
+                        , Just <|
+                            onKeyLookup <|
+                                \key ->
+                                    if key == enter then
+                                        Just <| input.show (not input.isOpen)
+                                    else if key == downArrow && not input.isOpen then
+                                        Just <| input.show True
+                                    else if key == downArrow && input.isOpen then
+                                        Maybe.map (input.onChange) next
+                                    else if key == upArrow && not input.isOpen then
+                                        Just <| input.show True
+                                    else if key == upArrow && input.isOpen then
+                                        Maybe.map (input.onChange) prev
+                                    else
+                                        Nothing
+                        ]
+                , child = bar
+                , absolutelyPositioned = Nothing
+                }
+                |> (if menuAbove then
+                        Element.above
+                    else
+                        Element.below
+                   )
+                    (if input.isOpen then
+                        [ column menuStyle
+                            (Attr.inlineStyle [ ( "z-index", "20" ), ( "background-color", "white" ) ]
+                                :: pointer
+                                :: Events.onClick (input.show False)
+                                :: Attr.width Attr.fill
+                                :: menuAttrs
+                            )
+                            (List.map renderOption options)
+                        ]
+                     else
+                        []
+                    )
     in
-        Internal.Element
-            { node = "div"
-            , style = Nothing
-            , attrs =
-                List.filterMap identity
-                    [ Just (Attr.width Attr.fill)
-                    , Just (Attr.attribute "role" "menu")
-                    , Just (tabindex 0)
-                    , Just (Attr.inlineStyle [ ( "z-index", "20" ) ])
-                    , Just (Attr.toAttr <| onFocusOut (input.show False))
-                    , Just <|
-                        onKeyLookup <|
-                            \key ->
-                                if key == enter then
-                                    Just <| input.show (not input.isOpen)
-                                else if key == downArrow && not input.isOpen then
-                                    Just <| input.show True
-                                else if key == downArrow && input.isOpen then
-                                    Maybe.map (input.onChange) next
-                                else if key == upArrow && not input.isOpen then
-                                    Just <| input.show True
-                                else if key == upArrow && input.isOpen then
-                                    Maybe.map (input.onChange) prev
-                                else
-                                    Nothing
-                    ]
-            , child = bar
-            , absolutelyPositioned = Nothing
-            }
-            |> Element.below
-                (if input.isOpen then
-                    [ column style
-                        (Attr.inlineStyle [ ( "z-index", "20" ), ( "background-color", "white" ) ]
-                            :: pointer
-                            :: Events.onClick (input.show False)
-                            :: Attr.width Attr.fill
-                            :: attrs
-                        )
-                        (List.map renderOption input.options)
-                    ]
-                 else
-                    []
-                )
+        applyLabel Nothing [] input.label input.errors input.disabled [ fullElement ]
 
 
 
@@ -1515,24 +1472,6 @@ onFocusIn msg =
 
 
 
--- let
---     input =
---         radioHelper (DropMenu config.isOpen)
---             style
---             (Events.onClick (config.show (not config.isOpen)) :: attrs)
---             { selection =
---                 Single
---                     { selected = config.selected
---                     , onChange = config.onChange
---                     }
---             , options = config.options
---             , label = config.label
---             , disabled = config.disabled
---             , errors = config.errors
---             }
--- in
---     applyLabel Nothing attrs config.label config.errors config.disabled [ input ]
--- [ ( "position", "absolute" ), ( "opacity", "0" ) ]
 -- {-| -}
 -- type GridOption value style variation msg
 --     = GridOption
