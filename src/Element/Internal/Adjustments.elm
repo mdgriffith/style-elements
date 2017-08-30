@@ -213,6 +213,7 @@ positionNearby parent elm =
                                             )
                                         , Position Nothing (Just 0) Nothing
                                         , VAlign Bottom
+                                        , Width (Internal.Percent 100)
                                         ]
                                     , child =
                                         el
