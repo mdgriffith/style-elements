@@ -61,14 +61,14 @@ select.focus-override:focus ~ .alt-icon {
     box-shadow: 0 0 3px 3px rgba(155,203,255,1.0);
     border-color: rgba(155,203,255,1.0);
 }
-.double-arrows {
+.arrows {
     display:block;
     position: relative;
     height: 10px;
     width: 10px;
 }
 /*
-.double-arrows::after {
+.arrows::after {
     content: " ";
     position:absolute;
     top:-2px;
@@ -82,7 +82,7 @@ select.focus-override:focus ~ .alt-icon {
 }
 */
 
-.double-arrows::before {
+.arrows::before {
     content: " ";
     position:absolute;
     top:2px;

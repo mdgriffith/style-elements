@@ -22,8 +22,12 @@ module Element.Input
         , errorAbove
         , noErrors
         , placeholder
-        , select
-        , Select
+        , dropSelect
+          -- , verifiedToWorkWithFocus
+          -- , manualSpecifiedMenu
+        , DropDown
+          -- , select
+          -- , Select
           -- , grid
           -- , Grid
           -- , cell
@@ -611,7 +615,7 @@ radio : style -> List (Attribute variation msg) -> Radio option style variation 
 radio style attrs config =
     let
         input =
-            radioHelper False
+            radioHelper Vertical
                 style
                 attrs
                 { selection =
@@ -634,7 +638,7 @@ radioRow : style -> List (Attribute variation msg) -> Radio option style variati
 radioRow style attrs config =
     let
         input =
-            radioHelper True
+            radioHelper Horizontal
                 style
                 attrs
                 { selection =
@@ -726,8 +730,14 @@ type RadioSelection value msg
         }
 
 
-radioHelper : Bool -> style -> List (Attribute variation msg) -> MasterRadio option style variation msg -> Element style variation msg
-radioHelper horizontal style attrs config =
+type Orientation msg
+    = Horizontal
+    | Vertical
+    | DropMenu (Bool -> msg) String Bool
+
+
+radioHelper : Orientation msg -> style -> List (Attribute variation msg) -> MasterRadio option style variation msg -> Element style variation msg
+radioHelper orientation style attrs config =
     let
         group =
             config.options
@@ -839,10 +849,70 @@ radioHelper horizontal style attrs config =
                     in
                         applyLabel (Just config.style) config.attrs config.label noErrors False inputElems
     in
-        if horizontal then
-            row style attrs (List.map renderOption config.options)
-        else
-            column style attrs (List.map renderOption config.options)
+        case orientation of
+            Horizontal ->
+                row style attrs (List.map renderOption config.options)
+
+            Vertical ->
+                column style attrs (List.map renderOption config.options)
+
+            DropMenu changeOpen emptyPlaceholder dropped ->
+                let
+                    show attrs =
+                        if dropped then
+                            Attr.inlineStyle [ ( "opacity", "1" ) ] :: attrs
+                        else
+                            Attr.inlineStyle [ ( "opacity", "0" ) ] :: attrs
+
+                    -- Attr.inlineStyle [ ( "overflow", "hidden" ) ] ::
+                    --  Attr.toAttr (onFocusIn (config.show True))
+                    -- :: Attr.toAttr (onFocusOut (config.show False))
+                in
+                    Internal.Layout
+                        { node = "div"
+                        , style = Just style
+                        , layout = Style.FlexLayout Style.GoRight []
+                        , attrs =
+                            Events.onClick (changeOpen (not dropped))
+                                :: Attr.verticalCenter
+                                :: Attr.spacing 7
+                                :: Attr.spread
+                                :: pointer
+                                :: attrs
+                        , children =
+                            Internal.Normal
+                                [ Element.text emptyPlaceholder
+                                , arrows
+                                ]
+                        , absolutelyPositioned = Nothing
+                        }
+                        |> Element.below
+                            [ column style (show (Attr.inlineStyle [ ( "z-index", "20" ), ( "background-color", "white" ) ] :: Attr.width Attr.fill :: attrs)) (List.map renderOption config.options)
+                            ]
+
+
+
+-- Html.div
+--                 [ Html.Attributes.style [ ( "overflow", "hidden" ) ]
+--                 , Html.Events.onClick (config.show (not config.isOpen))
+--                 ]
+--                 [ Html.text "Here is the selection, closed" ]
+--             , Html.label
+--                 (if config.isOpen then
+--                     []
+--                  else
+--                     [ Html.Attributes.style [ ( "position", "absolute" ), ( "top", "-20px" ) ] ]
+
+
+arrows =
+    Internal.Element
+        { node = "div"
+        , style = Nothing
+        , attrs = [ Attr.class "arrows" ]
+        , child =
+            Element.empty
+        , absolutelyPositioned = Nothing
+        }
 
 
 
@@ -856,100 +926,612 @@ radioHelper horizontal style attrs config =
 
 
 {-| -}
-type alias Select option style variation msg =
+
+
+
+-- type alias Select option style variation msg =
+--     { onChange : option -> msg
+--     , options : List ( String, option )
+--     , selected : Maybe option
+--     , label : Label style variation msg
+--     , disabled : Bool
+--     , errors : Error style variation msg
+--     }
+-- {-| A Select Menu
+-- -}
+-- select : style -> List (Attribute variation msg) -> Select option style variation msg -> Element style variation msg
+-- select style attrs { onChange, options, selected } =
+--     let
+--         renderOption ( label, option ) =
+--             Html.option [ Html.Attributes.value label, Html.Attributes.selected (Just option == selected) ]
+--                 [ Html.text label
+--                 ]
+--         event newSelection =
+--             options
+--                 |> List.filterMap
+--                     (\( label, option ) ->
+--                         if newSelection == label then
+--                             Just option
+--                         else
+--                             Nothing
+--                     )
+--                 |> List.head
+--                 |> \maybeOption ->
+--                     case maybeOption of
+--                         Nothing ->
+--                             Json.fail "No Option present in Select box"
+--                         Just opt ->
+--                             Json.succeed opt
+--         onSelect =
+--             Json.map onChange
+--                 (Json.andThen event Html.Events.targetValue)
+--         selectElement =
+--             Internal.Raw <|
+--                 Html.select
+--                     [ Html.Attributes.name "lunch"
+--                     , Html.Events.on "change" onSelect
+--                     , Html.Attributes.class "focus-override"
+--                     , Html.Attributes.style [ ( "position", "absolute" ), ( "z-index", "-1" ), ( "border", "none" ) ]
+--                     ]
+--                     (List.map renderOption options)
+--         arrows =
+--             Internal.Element
+--                 { node = "div"
+--                 , style = Nothing
+--                 , attrs = [ Attr.class "arrows" ]
+--                 , child =
+--                     Element.empty
+--                 , absolutelyPositioned = Nothing
+--                 }
+--         replacement =
+--             Internal.Layout
+--                 { node = "div"
+--                 , style = Just style
+--                 , layout = Style.FlexLayout Style.GoRight []
+--                 , attrs =
+--                     Attr.verticalCenter :: Attr.spacing 7 :: pointer :: (Attr.toAttr <| Html.Attributes.class "alt-icon") :: attrs
+--                 , children =
+--                     Internal.Normal
+--                         [ case selected of
+--                             Nothing ->
+--                                 Element.text "-"
+--                             Just sel ->
+--                                 Element.text (toString sel)
+--                         , arrows
+--                         ]
+--                 , absolutelyPositioned = Nothing
+--                 }
+--     in
+--         Internal.Layout
+--             { node = "label"
+--             , style = Nothing
+--             , layout = Style.FlexLayout Style.GoRight []
+--             , attrs =
+--                 [ pointer ]
+--             , children = Internal.Normal [ selectElement, replacement ]
+--             , absolutelyPositioned = Nothing
+--             }
+-- {-| -}
+
+
+type alias DropDown option style variation msg =
     { onChange : option -> msg
-    , options : List ( String, option )
+    , options : List (Option option style variation msg)
     , selected : Maybe option
     , label : Label style variation msg
     , disabled : Bool
     , errors : Error style variation msg
+    , isOpen : Bool
+    , show : Bool -> msg
     }
 
 
-{-| A Select Menu
--}
-select : style -> List (Attribute variation msg) -> Select option style variation msg -> Element style variation msg
-select style attrs { onChange, options, selected } =
-    let
-        renderOption ( label, option ) =
-            Html.option [ Html.Attributes.value label, Html.Attributes.selected (Just option == selected) ]
-                [ Html.text label
-                ]
+{-| A dropdown input.
 
-        event newSelection =
-            options
-                |> List.filterMap
-                    (\( label, option ) ->
-                        if newSelection == label then
-                            Just option
+    Input.dropSelect Field
+        [ padding 10
+        , spacing 5
+        ]
+        { isOpen = True
+        , onChange = ChooseLunch
+        , selected = Just model.lunch
+        , label = Input.labelAbove (text "Lunch")
+        , errors = Input.noErrors
+        , disabled = False
+        , options =
+            [ Input.optionWith None
+                []
+                { value = Burrito
+                , icon =
+                    (\selected ->
+                        if selected then
+                            text ":D"
                         else
-                            Nothing
+                            text ":("
                     )
-                |> List.head
-                |> \maybeOption ->
-                    case maybeOption of
-                        Nothing ->
-                            Json.fail "No Option present in Select box"
-
-                        Just opt ->
-                            Json.succeed opt
-
-        onSelect =
-            Json.map onChange
-                (Json.andThen event Html.Events.targetValue)
-
-        selectElement =
-            Internal.Raw <|
-                Html.select
-                    [ Html.Attributes.name "lunch"
-                    , Html.Events.on "change" onSelect
-                    , Html.Attributes.class "focus-override"
-                    , Html.Attributes.style [ ( "position", "absolute" ), ( "z-index", "-1" ), ( "border", "none" ) ]
-                    ]
-                    (List.map renderOption options)
-
-        arrows =
-            Internal.Element
-                { node = "div"
-                , style = Nothing
-                , attrs = [ Attr.class "double-arrows" ]
-                , child =
-                    Element.empty
-                , absolutelyPositioned = Nothing
+                , label = Input.labelRight (text "burrito")
                 }
+            , Input.option Taco (text "Taco!")
+            , Input.option Gyro (text "Gyro")
+            ]
+        }
 
-        replacement =
+-}
+dropSelect : style -> List (Attribute variation msg) -> DropDown option style variation msg -> Element style variation msg
+dropSelect style attrs input =
+    let
+        placeholderText =
+            case input.label of
+                PlaceHolder text _ ->
+                    Element.text text
+
+                _ ->
+                    Element.text " - "
+
+        getSelectedLabel selected option =
+            if getOptionValue option == selected then
+                case option of
+                    Option _ el ->
+                        Just el
+
+                    OptionWith opt ->
+                        case opt.label of
+                            LabelAbove lab ->
+                                Just lab
+
+                            LabelBelow lab ->
+                                Just lab
+
+                            LabelOnRight lab ->
+                                Just lab
+
+                            LabelOnLeft lab ->
+                                Just lab
+
+                            PlaceHolder text _ ->
+                                Just <| Element.text text
+            else
+                Nothing
+
+        selectedText =
+            case input.selected of
+                Nothing ->
+                    placeholderText
+
+                Just selected ->
+                    input.options
+                        |> List.filterMap (getSelectedLabel selected)
+                        |> List.head
+                        |> Maybe.withDefault placeholderText
+
+        forPadding attr =
+            case attr of
+                Internal.Padding _ _ _ _ ->
+                    True
+
+                _ ->
+                    False
+
+        parentPadding =
+            List.filter forPadding attrs
+
+        bar =
             Internal.Layout
                 { node = "div"
                 , style = Just style
                 , layout = Style.FlexLayout Style.GoRight []
                 , attrs =
-                    Attr.verticalCenter :: Attr.spacing 7 :: pointer :: (Attr.toAttr <| Html.Attributes.class "alt-icon") :: attrs
+                    Events.onClick (input.show (not input.isOpen))
+                        :: Attr.verticalCenter
+                        :: Attr.spacing 7
+                        :: Attr.spread
+                        :: Attr.width Attr.fill
+                        :: pointer
+                        :: attrs
                 , children =
                     Internal.Normal
-                        [ case selected of
-                            Nothing ->
-                                Element.text "-"
-
-                            Just sel ->
-                                Element.text (toString sel)
+                        [ selectedText
                         , arrows
                         ]
                 , absolutelyPositioned = Nothing
                 }
+
+        cursor =
+            List.foldl
+                (\option cache ->
+                    let
+                        next =
+                            if cache.found && cache.next == Nothing then
+                                Just <| getOptionValue option
+                            else
+                                cache.next
+
+                        prev =
+                            if currentIsSelected && cache.prev == Nothing then
+                                cache.last
+                            else
+                                cache.prev
+
+                        currentIsSelected =
+                            case cache.selected of
+                                Nothing ->
+                                    False
+
+                                Just sel ->
+                                    getOptionValue option == sel
+
+                        found =
+                            if not cache.found then
+                                currentIsSelected
+                            else
+                                cache.found
+
+                        first =
+                            case cache.first of
+                                Nothing ->
+                                    Just <| getOptionValue option
+
+                                _ ->
+                                    cache.first
+
+                        last =
+                            Just <| getOptionValue option
+                    in
+                        { cache
+                            | next = next
+                            , found = found
+                            , prev = prev
+                            , first = first
+                            , last = last
+                        }
+                )
+                { selected = input.selected
+                , found = False
+                , prev = Nothing
+                , next = Nothing
+                , first = Nothing
+                , last = Nothing
+                }
+                input.options
+
+        { next, prev } =
+            if cursor.found == False then
+                { next = cursor.first, prev = cursor.first }
+            else if cursor.next == Nothing && cursor.prev /= Nothing then
+                { next = cursor.first
+                , prev = cursor.prev
+                }
+            else if cursor.prev == Nothing && cursor.next /= Nothing then
+                { next = cursor.next
+                , prev = cursor.last
+                }
+            else
+                { next = cursor.next
+                , prev = cursor.prev
+                }
+
+        renderOption option =
+            case option of
+                Option val el ->
+                    let
+                        isSelected =
+                            if Just val == input.selected then
+                                [ Attr.attribute "aria-selected" "true", Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.03)" ) ] ] ++ parentPadding
+                            else
+                                [ Attr.attribute "aria-selected" "false" ] ++ parentPadding
+
+                        additional =
+                            Events.onClick (input.onChange val)
+                                :: Internal.Expand
+                                :: Attr.attribute "role" "menuitemradio"
+                                :: isSelected
+                    in
+                        el
+                            |> Modify.addAttrList additional
+
+                OptionWith config ->
+                    let
+                        isSelected =
+                            if Just config.value == input.selected then
+                                [ Attr.attribute "aria-selected" "true", Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.03)" ) ] ] ++ parentPadding
+                            else
+                                [ Attr.attribute "aria-selected" "false" ] ++ parentPadding
+
+                        additional =
+                            Events.onClick (input.onChange config.value)
+                                :: Internal.Expand
+                                :: Attr.attribute "role" "menuitemradio"
+                                :: isSelected
+                    in
+                        config.icon (Just config.value == input.selected)
+                            |> Modify.addAttrList additional
     in
-        Internal.Layout
+        Internal.Element
             { node = "div"
             , style = Nothing
-            , layout = Style.FlexLayout Style.GoRight []
             , attrs =
-                [ pointer ]
-            , children = Internal.Normal [ selectElement, replacement ]
+                List.filterMap identity
+                    [ Just (Attr.width Attr.fill)
+                    , Just (Attr.attribute "role" "menu")
+                    , Just (tabindex 0)
+                    , Just (Attr.inlineStyle [ ( "z-index", "20" ) ])
+                    , Just (Attr.toAttr <| onFocusOut (input.show False))
+                    , Just <|
+                        onKeyLookup <|
+                            \key ->
+                                if key == enter then
+                                    Just <| input.show (not input.isOpen)
+                                else if key == downArrow && not input.isOpen then
+                                    Just <| input.show True
+                                else if key == downArrow && input.isOpen then
+                                    Maybe.map (input.onChange) next
+                                else if key == upArrow && not input.isOpen then
+                                    Just <| input.show True
+                                else if key == upArrow && input.isOpen then
+                                    Maybe.map (input.onChange) prev
+                                else
+                                    Nothing
+                    ]
+            , child = bar
             , absolutelyPositioned = Nothing
             }
+            |> Element.below
+                (if input.isOpen then
+                    [ column style
+                        (Attr.inlineStyle [ ( "z-index", "20" ), ( "background-color", "white" ) ]
+                            :: pointer
+                            :: Events.onClick (input.show False)
+                            :: Attr.width Attr.fill
+                            :: attrs
+                        )
+                        (List.map renderOption input.options)
+                    ]
+                 else
+                    []
+                )
 
 
 
+-- Internal.Layout
+-- { node = "div"
+-- , style = Just style
+-- , layout = Style.FlexLayout Style.GoRight []
+-- , attrs =
+--     Events.onClick (config.show (not config.isOpen))
+--         :: Attr.verticalCenter
+--         :: Attr.spacing 7
+--         :: Attr.spread
+--         :: pointer
+--         :: attrs
+-- , children =
+--     Internal.Normal
+--         [ Element.text emptyPlaceholder
+--         , arrows
+--         ]
+-- , absolutelyPositioned = Nothing
+-- }
+-- |> Element.below
+--     [ column style (Attr.inlineStyle [ ( "z-index", "20" ), ( "background-color", "white" ) ] :: Attr.width Attr.fill :: attrs) (List.map renderOption config.options)
+--     ]
+-- input =
+--     radioHelper (DropMenu config.show emptyPlaceholder config.isOpen)
+--         style
+--         attrs
+--         { selection =
+--             Single
+--                 { selected = config.selected
+--                 , onChange = config.onChange
+--                 }
+--         , options = config.options
+--         , label = config.label
+--         , disabled = config.disabled
+--         , errors = config.errors
+--         }
+-- attributes =
+--     -- Attr.toAttr (onFocusIn (config.show True))
+--     --     :: Attr.toAttr (onFocusOut (config.show False))
+--         :: attrs
+-- in
+-- applyLabel Nothing attrs config.label config.errors config.disabled [ input ]
+-- verifiedToWorkWithFocus style attrs config =
+--     Element.html <|
+--         Html.div
+--             [ Html.Attributes.style [ ( "background-color", "#FAFAFA" ), ( "pointer-events", "auto" ) ]
+--             , onFocusIn (config.show True)
+--             , onFocusOut (config.show False)
+--             ]
+--             [ Html.input
+--                 [ Html.Attributes.type_ "hidden"
+--                 , Html.Attributes.name "test"
+--                 ]
+--                 []
+--             , Html.div
+--                 [ Html.Attributes.style [ ( "overflow", "hidden" ) ]
+--                 , Html.Events.onClick (config.show (not config.isOpen))
+--                 ]
+--                 [ Html.text "Here is the selection, closed" ]
+--             , Html.label
+--                 (if config.isOpen then
+--                     []
+--                  else
+--                     [ Html.Attributes.style [ ( "position", "absolute" ), ( "top", "-20px" ) ] ]
+--                 )
+--                 [ Html.input
+--                     [ Html.Attributes.type_ "radio"
+--                     , Html.Attributes.name "test"
+--                     ]
+--                     []
+--                 , Html.text "Taco"
+--                 ]
+--             , Html.label
+--                 (if config.isOpen then
+--                     []
+--                  else
+--                     [ Html.Attributes.style [ ( "position", "absolute" ), ( "top", "-20px" ) ] ]
+--                 )
+--                 [ Html.input
+--                     [ Html.Attributes.type_ "radio"
+--                     , Html.Attributes.name "test"
+--                     ]
+--                     []
+--                 , Html.text "Burrito"
+--                 ]
+--             ]
+-- manualSpecifiedMenu style attrs config =
+--     Element.html <|
+--         Html.div
+--             [ Html.Attributes.style [ ( "background-color", "white" ), ( "pointer-events", "auto" ), ( "overflow", "hidden" ) ]
+--             , if config.isOpen then
+--                 onFocusOut (config.show False)
+--               else
+--                 Html.Attributes.style []
+--             , Html.Attributes.tabindex 0
+--             , onEnter (config.show (not config.isOpen))
+--             , onDown (config.show (not config.isOpen))
+--             -- , onUp (config.show (not config.isOpen))
+--             , Html.Attributes.attribute "role" "menu"
+--             ]
+--             [ Html.div
+--                 [ Html.Events.onClick (config.show (not config.isOpen))
+--                 -- , Html.Attributes.tabindex 0
+--                 -- , onEnter (config.show (not config.isOpen))
+--                 ]
+--                 [ Html.text "Here is the selection, closed" ]
+--             , Html.div
+--                 [ Html.Attributes.attribute "role" "menuitemradio"
+--                 , Html.Attributes.attribute "aria-selected" "true"
+--                 , Html.Events.onClick (config.show (not config.isOpen))
+--                 , if config.isOpen then
+--                     Html.Attributes.style []
+--                   else
+--                     Html.Attributes.style [ ( "position", "absolute" ), ( "top", "-20px" ) ]
+--                 ]
+--                 [ Html.text "Taco"
+--                 ]
+--             , Html.div
+--                 [ Html.Attributes.attribute "role" "menuitemradio"
+--                 , Html.Attributes.attribute "aria-selected" "false"
+--                 , Html.Events.onClick (config.show (not config.isOpen))
+--                 , if config.isOpen then
+--                     Html.Attributes.style []
+--                   else
+--                     Html.Attributes.style [ ( "position", "absolute" ), ( "top", "-20px" ) ]
+--                 ]
+--                 [ Html.text "Burrito"
+--                 ]
+--             ]
+
+
+{-| -}
+onEnter : msg -> Element.Attribute variation msg
+onEnter msg =
+    onKey 13 msg
+
+
+{-| -}
+onSpace : msg -> Element.Attribute variation msg
+onSpace msg =
+    onKey 32 msg
+
+
+{-| -}
+onUp : msg -> Element.Attribute variation msg
+onUp msg =
+    onKey 38 msg
+
+
+{-| -}
+onDown : msg -> Element.Attribute variation msg
+onDown msg =
+    onKey 40 msg
+
+
+enter : Int
+enter =
+    13
+
+
+upArrow : Int
+upArrow =
+    38
+
+
+downArrow : Int
+downArrow =
+    40
+
+
+space : Int
+space =
+    32
+
+
+{-| -}
+onKey : Int -> msg -> Element.Attribute variation msg
+onKey desiredCode msg =
+    let
+        decode code =
+            if code == desiredCode then
+                Json.succeed msg
+            else
+                Json.fail "Not the enter key"
+
+        isKey =
+            Json.field "which" Json.int
+                |> Json.andThen decode
+    in
+        Events.on "keydown" (isKey)
+
+
+{-| -}
+onKeyLookup : (Int -> Maybe msg) -> Element.Attribute variation msg
+onKeyLookup lookup =
+    let
+        decode code =
+            case lookup code of
+                Nothing ->
+                    Json.fail "No key matched"
+
+                Just msg ->
+                    Json.succeed msg
+
+        isKey =
+            Json.field "which" Json.int
+                |> Json.andThen decode
+    in
+        Events.on "keydown" (isKey)
+
+
+{-| -}
+onFocusOut : msg -> Html.Attribute msg
+onFocusOut msg =
+    Html.Events.on "focusout" (Json.succeed msg)
+
+
+{-| -}
+onFocusIn : msg -> Html.Attribute msg
+onFocusIn msg =
+    Html.Events.on "focusin" (Json.succeed msg)
+
+
+
+-- let
+--     input =
+--         radioHelper (DropMenu config.isOpen)
+--             style
+--             (Events.onClick (config.show (not config.isOpen)) :: attrs)
+--             { selection =
+--                 Single
+--                     { selected = config.selected
+--                     , onChange = config.onChange
+--                     }
+--             , options = config.options
+--             , label = config.label
+--             , disabled = config.disabled
+--             , errors = config.errors
+--             }
+-- in
+--     applyLabel Nothing attrs config.label config.errors config.disabled [ input ]
 -- [ ( "position", "absolute" ), ( "opacity", "0" ) ]
 -- {-| -}
 -- type GridOption value style variation msg
