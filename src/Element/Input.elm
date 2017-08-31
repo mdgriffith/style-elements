@@ -5,6 +5,7 @@ module Element.Input
         , checkboxWith
         , CheckboxWith
         , text
+        , TextInput
         , multiline
         , search
         , email
@@ -14,6 +15,7 @@ module Element.Input
         , option
         , optionWith
         , Option
+        , hiddenLabel
         , labelLeft
         , labelRight
         , labelAbove
@@ -25,8 +27,6 @@ module Element.Input
         , dropSelect
         , menu
         , menuAbove
-          -- , verifiedToWorkWithFocus
-          -- , manualSpecifiedMenu
         , DropDown
           -- , select
           -- , Select
@@ -36,7 +36,33 @@ module Element.Input
           -- , cellWith
         )
 
-{-| -}
+{-| Input Elements
+
+@docs checkbox, Checkbox, checkboxWith, CheckboxWith
+
+
+## Labels
+
+@docs labelAbove, labelBelow, labelLeft, labelRight, placeholder, hiddenLabel
+
+
+## Errors
+
+@docs noErrors, errorAbove, errorBelow
+
+
+## Text Input
+
+@docs TextInput, text, multiline, search, email, password
+
+
+## 'Choose One' Inputs
+
+@docs Radio, radio, radioRow, Option, option, optionWith
+
+@docs DropDown, dropSelect, menu, menuAbove
+
+-}
 
 import Element.Internal.Model as Internal
 import Element exposing (Element, Attribute, column, row)
@@ -366,6 +392,7 @@ type Label style variation msg
     | LabelAbove (Element style variation msg)
     | LabelOnRight (Element style variation msg)
     | LabelOnLeft (Element style variation msg)
+    | HiddenLabel String
     | PlaceHolder String (Label style variation msg)
 
 
@@ -382,6 +409,11 @@ placeholder { text, label } =
 
         x ->
             PlaceHolder text x
+
+
+hiddenLabel : String -> Label style variation msg
+hiddenLabel =
+    HiddenLabel
 
 
 labelLeft : Element style variation msg -> Label style variation msg
@@ -466,6 +498,20 @@ applyLabel style attrs label errors isDisabled input =
             PlaceHolder placeholder newLabel ->
                 -- placeholder is set in a previous function
                 applyLabel style attrs newLabel errors isDisabled input
+
+            HiddenLabel title ->
+                Internal.Layout
+                    { node = "label"
+                    , style = style
+                    , layout = Style.FlexLayout Style.Down []
+                    , attrs =
+                        pointer :: attrs
+                    , children =
+                        input
+                            |> List.map (Modify.addAttr (Attr.attribute "title" title))
+                            |> Internal.Normal
+                    , absolutelyPositioned = Nothing
+                    }
 
             LabelAbove lab ->
                 case errors of
@@ -1513,7 +1559,7 @@ onFocusIn msg =
 --     { onChange : value -> msg
 --     , selected : Maybe value
 --     , label : Label style variation msg
---     , disabled : Disabled
+--     , disabled : Bool
 --     , errors : Error style variation msg
 --     , columns : List Length
 --     , rows : List Length
@@ -1535,13 +1581,13 @@ onFocusIn msg =
 --             , px 100
 --             ]
 --         , cells =
---              [ Input.cell
+--             [ Input.cell
 --                 { start = ( 0, 0 )
 --                 , width = 1
 --                 , height = 1
 --                 , value = Burrito
 --                 , el =
---                     el Box [] (text "box")
+--                 el Box [] (text "box")
 --                 }
 --             , Input.cell
 --                 { start = ( 1, 1 )
@@ -1558,14 +1604,13 @@ onFocusIn msg =
 --                 , value = Taco
 --                 , selected =
 --                     \selected ->
---                         if selected then
---                             text "Burrito!"
---                         else
---                             text "Unselected burrito :("
+--                     if selected then
+--                     text "Burrito!"
+--                     else
+--                     text "Unselected burrito :("
 --                 }
 --             ]
 --         }
---
 -- -}
 -- grid : style -> List (Attribute variation msg) -> Grid value style variation msg -> Element style variation msg
 -- grid style attrs input =
