@@ -194,7 +194,7 @@ checkbox style attrs input =
                 }
             ]
     in
-        applyLabel Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attrs) (LabelOnRight input.label) input.errors input.disabled inputElem
+        applyLabel Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attrs) (LabelOnRight input.label) input.errors input.disabled True inputElem
 
 
 {-| -}
@@ -246,7 +246,7 @@ checkboxWith style attrs input =
                 |> Modify.addAttr (Attr.toAttr <| Html.Attributes.class "alt-icon")
             ]
     in
-        applyLabel Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attrs) (LabelOnRight input.label) input.errors input.disabled inputElem
+        applyLabel Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attrs) (LabelOnRight input.label) input.errors input.disabled True inputElem
 
 
 
@@ -374,7 +374,7 @@ textHelper kind style attrs input =
                         , absolutelyPositioned = Nothing
                         }
     in
-        applyLabel Nothing [ spacing ] input.label input.errors input.disabled [ inputElem ]
+        applyLabel Nothing [ spacing ] input.label input.errors input.disabled False [ inputElem ]
 
 
 type alias TextInput style variation msg =
@@ -456,10 +456,20 @@ errorAbove el =
     ErrorAbove <| Modify.addAttr (Attr.attribute "aria-live" "assertive") el
 
 
+type alias LabelIntermediate style variation msg =
+    { style : Maybe style
+    , attrs : List (Attribute variation msg)
+    , label : Label style variation msg
+    , error : Error style variation msg
+    , isDisabled : Bool
+    , input : List (Element style variation msg)
+    }
+
+
 {-| Builds an input element with a label, errors, and a disabled
 -}
-applyLabel : Maybe style -> List (Attribute variation msg) -> Label style variation msg -> Error style variation msg -> Bool -> List (Element style variation msg) -> Element style variation msg
-applyLabel style attrs label errors isDisabled input =
+applyLabel : Maybe style -> List (Attribute variation msg) -> Label style variation msg -> Error style variation msg -> Bool -> Bool -> List (Element style variation msg) -> Element style variation msg
+applyLabel style attrs label errors isDisabled hasPointer input =
     let
         forSpacing attr =
             case attr of
@@ -483,7 +493,10 @@ applyLabel style attrs label errors isDisabled input =
                 , style = style
                 , layout = Style.FlexLayout direction []
                 , attrs =
-                    pointer :: attrs
+                    if hasPointer then
+                        pointer :: attrs
+                    else
+                        attrs
                 , children = Internal.Normal children
                 , absolutelyPositioned = Nothing
                 }
@@ -494,7 +507,10 @@ applyLabel style attrs label errors isDisabled input =
                 , style = Nothing
                 , layout = Style.FlexLayout direction []
                 , attrs =
-                    [ pointer, spacing ]
+                    if hasPointer then
+                        [ pointer, spacing ]
+                    else
+                        [ spacing ]
                 , children = Internal.Normal children
                 , absolutelyPositioned = Nothing
                 }
@@ -502,7 +518,7 @@ applyLabel style attrs label errors isDisabled input =
         case label of
             PlaceHolder placeholder newLabel ->
                 -- placeholder is set in a previous function
-                applyLabel style attrs newLabel errors isDisabled input
+                applyLabel style attrs newLabel errors isDisabled hasPointer input
 
             HiddenLabel title ->
                 Internal.Layout
@@ -510,7 +526,10 @@ applyLabel style attrs label errors isDisabled input =
                     , style = style
                     , layout = Style.FlexLayout Style.Down []
                     , attrs =
-                        pointer :: attrs
+                        if hasPointer then
+                            pointer :: attrs
+                        else
+                            attrs
                     , children =
                         input
                             |> List.map (Modify.addAttr (Attr.attribute "title" title))
@@ -657,7 +676,7 @@ radio style attrs config =
                 , errors = config.errors
                 }
     in
-        applyLabel Nothing [] config.label config.errors config.disabled [ input ]
+        applyLabel Nothing [] config.label config.errors config.disabled True [ input ]
 
 
 {-| Same as `radio`, but arranges the options in a row instead of a column
@@ -680,7 +699,7 @@ radioRow style attrs config =
                 , errors = config.errors
                 }
     in
-        applyLabel Nothing [] config.label config.errors config.disabled [ input ]
+        applyLabel Nothing [] config.label config.errors config.disabled True [ input ]
 
 
 
@@ -899,105 +918,6 @@ arrows =
             Element.empty
         , absolutelyPositioned = Nothing
         }
-
-
-
-{-
-   I'm currently under the impressiong that <select> isn't the best form element, and that usually you'd want a radio or an autocomplete instead.
-   Problems:
-        You can't style it and it looks terrible
-        It leads to bad UX (think: a dropdown of 1,000 countrys)
-
--}
-
-
-{-| -}
-
-
-
--- type alias Select option style variation msg =
---     { onChange : option -> msg
---     , options : List ( String, option )
---     , selected : Maybe option
---     , label : Label style variation msg
---     , disabled : Bool
---     , errors : Error style variation msg
---     }
--- {-| A Select Menu
--- -}
--- select : style -> List (Attribute variation msg) -> Select option style variation msg -> Element style variation msg
--- select style attrs { onChange, options, selected } =
---     let
---         renderOption ( label, option ) =
---             Html.option [ Html.Attributes.value label, Html.Attributes.selected (Just option == selected) ]
---                 [ Html.text label
---                 ]
---         event newSelection =
---             options
---                 |> List.filterMap
---                     (\( label, option ) ->
---                         if newSelection == label then
---                             Just option
---                         else
---                             Nothing
---                     )
---                 |> List.head
---                 |> \maybeOption ->
---                     case maybeOption of
---                         Nothing ->
---                             Json.fail "No Option present in Select box"
---                         Just opt ->
---                             Json.succeed opt
---         onSelect =
---             Json.map onChange
---                 (Json.andThen event Html.Events.targetValue)
---         selectElement =
---             Internal.Raw <|
---                 Html.select
---                     [ Html.Attributes.name "lunch"
---                     , Html.Events.on "change" onSelect
---                     , Html.Attributes.class "focus-override"
---                     , Html.Attributes.style [ ( "position", "absolute" ), ( "z-index", "-1" ), ( "border", "none" ) ]
---                     ]
---                     (List.map renderOption options)
---         arrows =
---             Internal.Element
---                 { node = "div"
---                 , style = Nothing
---                 , attrs = [ Attr.class "arrows" ]
---                 , child =
---                     Element.empty
---                 , absolutelyPositioned = Nothing
---                 }
---         replacement =
---             Internal.Layout
---                 { node = "div"
---                 , style = Just style
---                 , layout = Style.FlexLayout Style.GoRight []
---                 , attrs =
---                     Attr.verticalCenter :: Attr.spacing 7 :: pointer :: (Attr.toAttr <| Html.Attributes.class "alt-icon") :: attrs
---                 , children =
---                     Internal.Normal
---                         [ case selected of
---                             Nothing ->
---                                 Element.text "-"
---                             Just sel ->
---                                 Element.text (toString sel)
---                         , arrows
---                         ]
---                 , absolutelyPositioned = Nothing
---                 }
---     in
---         Internal.Layout
---             { node = "label"
---             , style = Nothing
---             , layout = Style.FlexLayout Style.GoRight []
---             , attrs =
---                 [ pointer ]
---             , children = Internal.Normal [ selectElement, replacement ]
---             , absolutelyPositioned = Nothing
---             }
--- {-| -}
 
 
 type alias DropDown option style variation msg =
@@ -1296,7 +1216,7 @@ dropSelect style attrs input =
                         []
                     )
     in
-        applyLabel Nothing [] input.label input.errors input.disabled [ fullElement ]
+        applyLabel Nothing [] input.label input.errors input.disabled True [ fullElement ]
 
 
 type alias SearchOther option style variation msg =
@@ -1328,6 +1248,11 @@ autocomplete selected onUpdate =
         , onUpdate = onUpdate
         , isOpen = False
         }
+
+
+value : Autocomplete option msg -> Maybe option
+value (Autocomplete auto) =
+    auto.selected
 
 
 type AutocompleteMsg opt
@@ -1560,47 +1485,6 @@ searchSelect style attrs input =
                     |> String.toLower
                     |> String.startsWith ((String.toLower << String.trimLeft) query)
 
-        -- select (Autocomplete auto) =
-        --     Autocomplete
-        --         { auto
-        --             | selected = autocomplete.focus
-        --             , query = ""
-        --         }
-        -- focus val (Autocomplete auto) =
-        --     Autocomplete
-        --         { auto
-        --             | focus = Just val
-        --             , query = ""
-        --         }
-        -- updateQuery query (Autocomplete auto) =
-        --     Autocomplete
-        --         { auto
-        --             | query = query
-        --             , isOpen = True
-        --             , selected =
-        --                 if query == "" then
-        --                     auto.selected
-        --                 else
-        --                     Nothing
-        --             , focus =
-        --                 options
-        --                     |> List.map getOptionValue
-        --                     |> List.filter (matchesQuery query)
-        --                     |> List.head
-        --         }
-        -- clearSelection (Autocomplete auto) =
-        --     Autocomplete
-        --         { auto
-        --             | query = ""
-        --             , isOpen = True
-        --             , selected = Nothing
-        --             , focus = Nothing
-        --         }
-        -- openMenu bool (Autocomplete auto) =
-        --     Autocomplete
-        --         { auto
-        --             | isOpen = bool
-        --         }
         getFocus query =
             options
                 |> List.map getOptionValue
@@ -1614,6 +1498,11 @@ searchSelect style attrs input =
                         isSelected =
                             if Just val == autocomplete.selected then
                                 [ Attr.attribute "aria-selected" "true"
+                                , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.05)" ) ]
+                                , parentPadding
+                                ]
+                            else if Just val == autocomplete.focus then
+                                [ Attr.attribute "aria-selected" "false"
                                 , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.03)" ) ]
                                 , parentPadding
                                 ]
@@ -1634,6 +1523,11 @@ searchSelect style attrs input =
                         isSelected =
                             if Just val == autocomplete.selected then
                                 [ Attr.attribute "aria-selected" "true"
+                                , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.05)" ) ]
+                                , parentPadding
+                                ]
+                            else if Just val == autocomplete.focus then
+                                [ Attr.attribute "aria-selected" "false"
                                 , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.03)" ) ]
                                 , parentPadding
                                 ]
@@ -1697,6 +1591,7 @@ searchSelect style attrs input =
                         , layout = Style.FlexLayout Style.GoRight []
                         , attrs =
                             Events.onClick (autocomplete.onUpdate OpenMenu)
+                                :: Attr.inlineStyle [ ( "cursor", "text" ) ]
                                 :: attrs
                         , children =
                             Internal.Normal
@@ -1789,117 +1684,7 @@ searchSelect style attrs input =
                         []
                     )
     in
-        applyLabel Nothing [ Attr.inlineStyle [ ( "cursor", "auto" ) ] ] input.label input.errors input.disabled [ fullElement ]
-
-
-
--- input =
---     radioHelper (DropMenu config.show emptyPlaceholder config.isOpen)
---         style
---         attrs
---         { selection =
---             Single
---                 { selected = config.selected
---                 , onChange = config.onChange
---                 }
---         , options = config.options
---         , label = config.label
---         , disabled = config.disabled
---         , errors = config.errors
---         }
--- attributes =
---     -- Attr.toAttr (onFocusIn (config.show True))
---     --     :: Attr.toAttr (onFocusOut (config.show False))
---         :: attrs
--- in
--- applyLabel Nothing attrs config.label config.errors config.disabled [ input ]
--- verifiedToWorkWithFocus style attrs config =
---     Element.html <|
---         Html.div
---             [ Html.Attributes.style [ ( "background-color", "#FAFAFA" ), ( "pointer-events", "auto" ) ]
---             , onFocusIn (config.show True)
---             , onFocusOut (config.show False)
---             ]
---             [ Html.input
---                 [ Html.Attributes.type_ "hidden"
---                 , Html.Attributes.name "test"
---                 ]
---                 []
---             , Html.div
---                 [ Html.Attributes.style [ ( "overflow", "hidden" ) ]
---                 , Html.Events.onClick (config.show (not config.isOpen))
---                 ]
---                 [ Html.text "Here is the selection, closed" ]
---             , Html.label
---                 (if config.isOpen then
---                     []
---                  else
---                     [ Html.Attributes.style [ ( "position", "absolute" ), ( "top", "-20px" ) ] ]
---                 )
---                 [ Html.input
---                     [ Html.Attributes.type_ "radio"
---                     , Html.Attributes.name "test"
---                     ]
---                     []
---                 , Html.text "Taco"
---                 ]
---             , Html.label
---                 (if config.isOpen then
---                     []
---                  else
---                     [ Html.Attributes.style [ ( "position", "absolute" ), ( "top", "-20px" ) ] ]
---                 )
---                 [ Html.input
---                     [ Html.Attributes.type_ "radio"
---                     , Html.Attributes.name "test"
---                     ]
---                     []
---                 , Html.text "Burrito"
---                 ]
---             ]
--- manualSpecifiedMenu style attrs config =
---     Element.html <|
---         Html.div
---             [ Html.Attributes.style [ ( "background-color", "white" ), ( "pointer-events", "auto" ), ( "overflow", "hidden" ) ]
---             , if config.isOpen then
---                 onFocusOut (config.show False)
---               else
---                 Html.Attributes.style []
---             , Html.Attributes.tabindex 0
---             , onEnter (config.show (not config.isOpen))
---             , onDown (config.show (not config.isOpen))
---             -- , onUp (config.show (not config.isOpen))
---             , Html.Attributes.attribute "role" "menu"
---             ]
---             [ Html.div
---                 [ Html.Events.onClick (config.show (not config.isOpen))
---                 -- , Html.Attributes.tabindex 0
---                 -- , onEnter (config.show (not config.isOpen))
---                 ]
---                 [ Html.text "Here is the selection, closed" ]
---             , Html.div
---                 [ Html.Attributes.attribute "role" "menuitemradio"
---                 , Html.Attributes.attribute "aria-selected" "true"
---                 , Html.Events.onClick (config.show (not config.isOpen))
---                 , if config.isOpen then
---                     Html.Attributes.style []
---                   else
---                     Html.Attributes.style [ ( "position", "absolute" ), ( "top", "-20px" ) ]
---                 ]
---                 [ Html.text "Taco"
---                 ]
---             , Html.div
---                 [ Html.Attributes.attribute "role" "menuitemradio"
---                 , Html.Attributes.attribute "aria-selected" "false"
---                 , Html.Events.onClick (config.show (not config.isOpen))
---                 , if config.isOpen then
---                     Html.Attributes.style []
---                   else
---                     Html.Attributes.style [ ( "position", "absolute" ), ( "top", "-20px" ) ]
---                 ]
---                 [ Html.text "Burrito"
---                 ]
---             ]
+        applyLabel Nothing [ Attr.inlineStyle [ ( "cursor", "auto" ) ] ] input.label input.errors input.disabled False [ fullElement ]
 
 
 {-| -}
