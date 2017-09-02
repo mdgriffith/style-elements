@@ -28,6 +28,11 @@ module Element.Input
         , menu
         , menuAbove
         , DropDown
+        , searchSelect
+        , Autocomplete
+        , autocomplete
+        , updateAutocomplete
+        , AutocompleteMsg
           -- , select
           -- , Select
           -- , grid
@@ -1294,28 +1299,500 @@ dropSelect style attrs input =
         applyLabel Nothing [] input.label input.errors input.disabled [ fullElement ]
 
 
+type alias SearchOther option style variation msg =
+    { autocomplete : Autocomplete option msg
+    , max : Int
+    , menu : Menu option style variation msg
+    , label : Label style variation msg
+    , disabled : Bool
+    , errors : Error style variation msg
+    }
 
--- Internal.Layout
--- { node = "div"
--- , style = Just style
--- , layout = Style.FlexLayout Style.GoRight []
--- , attrs =
---     Events.onClick (config.show (not config.isOpen))
---         :: Attr.verticalCenter
---         :: Attr.spacing 7
---         :: Attr.spread
---         :: pointer
---         :: attrs
--- , children =
---     Internal.Normal
---         [ Element.text emptyPlaceholder
---         , arrows
---         ]
--- , absolutelyPositioned = Nothing
--- }
--- |> Element.below
---     [ column style (Attr.inlineStyle [ ( "z-index", "20" ), ( "background-color", "white" ) ] :: Attr.width Attr.fill :: attrs) (List.map renderOption config.options)
---     ]
+
+type Autocomplete option msg
+    = Autocomplete
+        { query : String
+        , selected : Maybe option
+        , focus : Maybe option
+        , onUpdate : AutocompleteMsg option -> msg
+        , isOpen : Bool
+        }
+
+
+autocomplete : Maybe option -> (AutocompleteMsg option -> msg) -> Autocomplete option msg
+autocomplete selected onUpdate =
+    Autocomplete
+        { query = ""
+        , selected = selected
+        , focus = selected
+        , onUpdate = onUpdate
+        , isOpen = False
+        }
+
+
+type AutocompleteMsg opt
+    = OpenMenu
+    | CloseMenu
+    | SetQuery String
+    | SetFocus (Maybe opt)
+    | Select
+    | Clear
+    | Batch (List (AutocompleteMsg opt))
+
+
+updateAutocomplete : AutocompleteMsg option -> Autocomplete option msg -> Autocomplete option msg
+updateAutocomplete msg (Autocomplete auto) =
+    case msg of
+        OpenMenu ->
+            Autocomplete
+                { auto | isOpen = True }
+
+        CloseMenu ->
+            Autocomplete
+                { auto | isOpen = False }
+
+        SetQuery query ->
+            Autocomplete
+                { auto
+                    | query = query
+                    , isOpen = True
+                    , selected =
+                        if query == "" then
+                            auto.selected
+                        else
+                            Nothing
+                }
+
+        SetFocus val ->
+            Autocomplete
+                { auto
+                    | focus = val
+                }
+
+        Select ->
+            Autocomplete
+                { auto
+                    | selected = auto.focus
+                    , query = ""
+                }
+
+        Clear ->
+            Autocomplete
+                { auto
+                    | query = ""
+                    , isOpen = True
+                    , selected = Nothing
+                    , focus = Nothing
+                }
+
+        Batch msgs ->
+            List.foldl (\m current -> updateAutocomplete m current) (Autocomplete auto) msgs
+
+
+defaultPadding : ( Maybe Float, Maybe Float, Maybe Float, Maybe Float ) -> ( Float, Float, Float, Float ) -> ( Float, Float, Float, Float )
+defaultPadding ( mW, mX, mY, mZ ) ( w, x, y, z ) =
+    ( Maybe.withDefault w mW
+    , Maybe.withDefault x mX
+    , Maybe.withDefault y mY
+    , Maybe.withDefault z mZ
+    )
+
+
+{-|
+
+    selection is empty, query is empty, is focused
+        -> show placeholder or subtitution text
+        -> Open menu, show all results
+
+
+    selection is empty, query is growing
+        -> Show all matching results
+        -> Highlight the first one
+        -> Arrow Navigation
+        -> Enter
+            -> Select currently highlighted
+            -> Clear query
+            -> Close menu
+
+    selection is made
+        -> clear query
+        -> Overlay selection on search area
+-}
+searchSelect : style -> List (Attribute variation msg) -> SearchOther option style variation msg -> Element style variation msg
+searchSelect style attrs input =
+    let
+        autocomplete =
+            case input.autocomplete of
+                Autocomplete auto ->
+                    auto
+
+        ( menuAbove, menuStyle, menuAttrs, options ) =
+            case input.menu of
+                MenuUp menuStyle menuAttrs menuOptions ->
+                    ( True, menuStyle, menuAttrs, menuOptions )
+
+                MenuDown menuStyle menuAttrs menuOptions ->
+                    ( False, menuStyle, menuAttrs, menuOptions )
+
+        placeholderText =
+            case autocomplete.selected of
+                Nothing ->
+                    case input.label of
+                        PlaceHolder text _ ->
+                            text
+
+                        _ ->
+                            "Search..."
+
+                _ ->
+                    ""
+
+        getSelectedLabel selected option =
+            if getOptionValue option == selected then
+                case option of
+                    Option _ el ->
+                        Just el
+
+                    OptionWith _ view ->
+                        Just <| view True
+            else
+                Nothing
+
+        forPadding attr =
+            case attr of
+                Internal.Padding t r b l ->
+                    Just ( t, r, b, l )
+
+                _ ->
+                    Nothing
+
+        ( ppTop, ppRight, ppBottom, ppLeft ) =
+            attrs
+                |> List.filterMap forPadding
+                |> List.head
+                |> Maybe.map (flip defaultPadding ( 0, 0, 0, 0 ))
+                |> Maybe.withDefault ( 0, 0, 0, 0 )
+
+        parentPadding =
+            Internal.Padding (Just ppTop) (Just ppRight) (Just ppBottom) (Just ppLeft)
+
+        cursor =
+            List.foldl
+                (\option cache ->
+                    let
+                        next =
+                            if cache.found && cache.next == Nothing then
+                                Just <| getOptionValue option
+                            else
+                                cache.next
+
+                        prev =
+                            if currentIsSelected && cache.prev == Nothing then
+                                cache.last
+                            else
+                                cache.prev
+
+                        currentIsSelected =
+                            case cache.selected of
+                                Nothing ->
+                                    False
+
+                                Just sel ->
+                                    getOptionValue option == sel
+
+                        found =
+                            if not cache.found then
+                                currentIsSelected
+                            else
+                                cache.found
+
+                        first =
+                            case cache.first of
+                                Nothing ->
+                                    Just <| getOptionValue option
+
+                                _ ->
+                                    cache.first
+
+                        last =
+                            Just <| getOptionValue option
+                    in
+                        { cache
+                            | next = next
+                            , found = found
+                            , prev = prev
+                            , first = first
+                            , last = last
+                        }
+                )
+                { selected = autocomplete.focus
+                , found = False
+                , prev = Nothing
+                , next = Nothing
+                , first = Nothing
+                , last = Nothing
+                }
+                (List.filter (matchesQuery autocomplete.query) options)
+
+        { next, prev } =
+            if cursor.found == False then
+                { next = cursor.first, prev = cursor.first }
+            else if cursor.next == Nothing && cursor.prev /= Nothing then
+                { next = cursor.first
+                , prev = cursor.prev
+                }
+            else if cursor.prev == Nothing && cursor.next /= Nothing then
+                { next = cursor.next
+                , prev = cursor.last
+                }
+            else
+                { next = cursor.next
+                , prev = cursor.prev
+                }
+
+        matchesQuery query opt =
+            if query == "" then
+                True
+            else
+                opt
+                    |> toString
+                    |> String.trimLeft
+                    |> String.toLower
+                    |> String.startsWith ((String.toLower << String.trimLeft) query)
+
+        -- select (Autocomplete auto) =
+        --     Autocomplete
+        --         { auto
+        --             | selected = autocomplete.focus
+        --             , query = ""
+        --         }
+        -- focus val (Autocomplete auto) =
+        --     Autocomplete
+        --         { auto
+        --             | focus = Just val
+        --             , query = ""
+        --         }
+        -- updateQuery query (Autocomplete auto) =
+        --     Autocomplete
+        --         { auto
+        --             | query = query
+        --             , isOpen = True
+        --             , selected =
+        --                 if query == "" then
+        --                     auto.selected
+        --                 else
+        --                     Nothing
+        --             , focus =
+        --                 options
+        --                     |> List.map getOptionValue
+        --                     |> List.filter (matchesQuery query)
+        --                     |> List.head
+        --         }
+        -- clearSelection (Autocomplete auto) =
+        --     Autocomplete
+        --         { auto
+        --             | query = ""
+        --             , isOpen = True
+        --             , selected = Nothing
+        --             , focus = Nothing
+        --         }
+        -- openMenu bool (Autocomplete auto) =
+        --     Autocomplete
+        --         { auto
+        --             | isOpen = bool
+        --         }
+        getFocus query =
+            options
+                |> List.map getOptionValue
+                |> List.filter (matchesQuery query)
+                |> List.head
+
+        renderOption option =
+            case option of
+                Option val el ->
+                    let
+                        isSelected =
+                            if Just val == autocomplete.selected then
+                                [ Attr.attribute "aria-selected" "true"
+                                , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.03)" ) ]
+                                , parentPadding
+                                ]
+                            else
+                                [ Attr.attribute "aria-selected" "false", parentPadding ]
+
+                        additional =
+                            Events.onClick (autocomplete.onUpdate (Batch [ SetFocus (Just val), Select ]))
+                                :: Internal.Expand
+                                :: Attr.attribute "role" "menuitemradio"
+                                :: isSelected
+                    in
+                        el
+                            |> Modify.addAttrList additional
+
+                OptionWith val view ->
+                    let
+                        isSelected =
+                            if Just val == autocomplete.selected then
+                                [ Attr.attribute "aria-selected" "true"
+                                , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.03)" ) ]
+                                , parentPadding
+                                ]
+                            else
+                                [ Attr.attribute "aria-selected" "false", parentPadding ]
+
+                        additional =
+                            Events.onClick (autocomplete.onUpdate (Batch [ SetFocus (Just val), Select ]))
+                                :: Internal.Expand
+                                :: Attr.attribute "role" "menuitemradio"
+                                :: isSelected
+                    in
+                        view (Just val == autocomplete.selected)
+                            |> Modify.addAttrList additional
+
+        matches =
+            options
+                |> List.filter (matchesQuery autocomplete.query << getOptionValue)
+                |> List.take input.max
+                |> List.map renderOption
+
+        fullElement =
+            Internal.Element
+                { node = "div"
+                , style = Nothing
+                , attrs =
+                    List.filterMap identity
+                        [ Just (Attr.width Attr.fill)
+                        , Just (Attr.inlineStyle [ ( "z-index", "20" ) ])
+                        , Just <|
+                            onKeyLookup <|
+                                \key ->
+                                    if (key == delete || key == backspace) && autocomplete.selected /= Nothing then
+                                        Just <| autocomplete.onUpdate Clear
+                                    else if key == tab then
+                                        Just <| autocomplete.onUpdate (Select)
+                                    else if key == enter then
+                                        if autocomplete.isOpen then
+                                            Just <| autocomplete.onUpdate (Batch [ CloseMenu, Select ])
+                                        else
+                                            Just <| autocomplete.onUpdate (OpenMenu)
+                                    else if key == downArrow && not autocomplete.isOpen then
+                                        Just <| autocomplete.onUpdate (OpenMenu)
+                                    else if key == downArrow && autocomplete.isOpen then
+                                        Maybe.map
+                                            (autocomplete.onUpdate << SetFocus << Just)
+                                            next
+                                    else if key == upArrow && not autocomplete.isOpen then
+                                        Just <| autocomplete.onUpdate (OpenMenu)
+                                    else if key == upArrow && autocomplete.isOpen then
+                                        Maybe.map
+                                            (autocomplete.onUpdate << SetFocus << Just)
+                                            prev
+                                    else
+                                        Nothing
+                        ]
+                , child =
+                    Internal.Layout
+                        { node = "div"
+                        , style = Nothing
+                        , layout = Style.FlexLayout Style.GoRight []
+                        , attrs =
+                            Events.onClick (autocomplete.onUpdate OpenMenu)
+                                :: attrs
+                        , children =
+                            Internal.Normal
+                                [ case autocomplete.selected of
+                                    Nothing ->
+                                        Element.text ""
+
+                                    Just sel ->
+                                        options
+                                            |> List.filter (\opt -> sel == (getOptionValue opt))
+                                            |> List.map
+                                                (\opt ->
+                                                    case opt of
+                                                        Option _ el ->
+                                                            el
+
+                                                        OptionWith _ view ->
+                                                            view True
+                                                )
+                                            |> List.head
+                                            |> Maybe.withDefault (Element.text "")
+                                , Internal.Element
+                                    { node = "input"
+                                    , style = Nothing
+                                    , attrs =
+                                        Attr.toAttr (Html.Attributes.placeholder placeholderText)
+                                            :: Attr.width Attr.fill
+                                            :: Attr.toAttr
+                                                (onFocusOut
+                                                    (autocomplete.onUpdate CloseMenu)
+                                                )
+                                            :: Attr.toAttr
+                                                (onFocusIn
+                                                    (autocomplete.onUpdate OpenMenu)
+                                                )
+                                            :: (Attr.attribute "role" "menu")
+                                            :: type_ "text"
+                                            :: Attr.toAttr (Html.Attributes.class "focus-override")
+                                            :: Events.onInput
+                                                (\q ->
+                                                    autocomplete.onUpdate
+                                                        (Batch
+                                                            [ SetQuery q
+                                                            , SetFocus (getFocus q)
+                                                            ]
+                                                        )
+                                                )
+                                            :: valueAttr autocomplete.query
+                                            -- :: attrs
+                                            :: []
+                                    , child = Internal.Empty
+                                    , absolutelyPositioned = Nothing
+                                    }
+                                , Internal.Element
+                                    { node = "div"
+                                    , style = Just style
+                                    , attrs =
+                                        Internal.Expand
+                                            :: Attr.width (Style.Calc 100 (ppLeft + (ppRight / 2)))
+                                            :: Attr.toAttr (Html.Attributes.class "alt-icon")
+                                            :: Attr.inlineStyle
+                                                [ ( "position", "absolute" )
+                                                , ( "top", "0" )
+                                                , ( "left", "-" ++ toString ppLeft ++ "px" )
+                                                ]
+                                            :: []
+                                    , child = Internal.Empty
+                                    , absolutelyPositioned = Nothing
+                                    }
+                                ]
+                        , absolutelyPositioned = Nothing
+                        }
+                , absolutelyPositioned = Nothing
+                }
+                |> (if menuAbove then
+                        Element.above
+                    else
+                        Element.below
+                   )
+                    (if autocomplete.isOpen && not (List.isEmpty matches) then
+                        [ column menuStyle
+                            (Attr.inlineStyle [ ( "z-index", "20" ), ( "background-color", "white" ) ]
+                                :: pointer
+                                :: Attr.width Attr.fill
+                                :: menuAttrs
+                            )
+                            matches
+                        ]
+                     else
+                        []
+                    )
+    in
+        applyLabel Nothing [ Attr.inlineStyle [ ( "cursor", "auto" ) ] ] input.label input.errors input.disabled [ fullElement ]
+
+
+
 -- input =
 --     radioHelper (DropMenu config.show emptyPlaceholder config.isOpen)
 --         style
@@ -1452,6 +1929,21 @@ onDown msg =
 enter : Int
 enter =
     13
+
+
+tab : Int
+tab =
+    9
+
+
+delete : Int
+delete =
+    8
+
+
+backspace : Int
+backspace =
+    46
 
 
 upArrow : Int
