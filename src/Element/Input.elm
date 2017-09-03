@@ -24,7 +24,7 @@ module Element.Input
         , errorAbove
         , noErrors
         , placeholder
-        , dropSelect
+        , select
         , menu
         , menuAbove
         , DropDown
@@ -33,8 +33,6 @@ module Element.Input
         , autocomplete
         , updateAutocomplete
         , AutocompleteMsg
-          -- , select
-          -- , Select
           -- , grid
           -- , Grid
           -- , cell
@@ -65,7 +63,7 @@ module Element.Input
 
 @docs Radio, radio, radioRow, Option, option, optionWith
 
-@docs DropDown, dropSelect, menu, menuAbove
+@docs DropDown, select, menu, menuAbove
 
 -}
 
@@ -949,7 +947,7 @@ menuAbove =
 
 {-| A dropdown input.
 
-    Input.dropSelect Field
+    Input.select Field
         [ padding 10
         , spacing 5
         ]
@@ -978,8 +976,8 @@ menuAbove =
         }
 
 -}
-dropSelect : style -> List (Attribute variation msg) -> DropDown option style variation msg -> Element style variation msg
-dropSelect style attrs input =
+select : style -> List (Attribute variation msg) -> DropDown option style variation msg -> Element style variation msg
+select style attrs input =
     let
         ( menuAbove, menuStyle, menuAttrs, options ) =
             case input.menu of
@@ -1027,6 +1025,17 @@ dropSelect style attrs input =
                 _ ->
                     False
 
+        forSpacing attr =
+            case attr of
+                Internal.Spacing _ _ ->
+                    True
+
+                _ ->
+                    False
+
+        ( attrsWithSpacing, attrsWithoutSpacing ) =
+            List.partition forSpacing attrs
+
         parentPadding =
             List.filter forPadding attrs
 
@@ -1038,11 +1047,10 @@ dropSelect style attrs input =
                 , attrs =
                     Events.onClick (input.show (not input.isOpen))
                         :: Attr.verticalCenter
-                        :: Attr.spacing 7
                         :: Attr.spread
                         :: Attr.width Attr.fill
                         :: pointer
-                        :: attrs
+                        :: attrsWithoutSpacing
                 , children =
                     Internal.Normal
                         [ selectedText
@@ -1216,7 +1224,7 @@ dropSelect style attrs input =
                         []
                     )
     in
-        applyLabel Nothing [] input.label input.errors input.disabled True [ fullElement ]
+        applyLabel Nothing attrsWithSpacing input.label input.errors input.disabled True [ fullElement ]
 
 
 type alias SearchOther option style variation msg =
@@ -1383,6 +1391,17 @@ searchSelect style attrs input =
             else
                 Nothing
 
+        onlySpacing attr =
+            case attr of
+                Internal.Spacing x y ->
+                    True
+
+                _ ->
+                    False
+
+        ( attrsWithSpacing, attrsWithoutSpacing ) =
+            List.partition onlySpacing attrs
+
         forPadding attr =
             case attr of
                 Internal.Padding t r b l ->
@@ -1390,6 +1409,20 @@ searchSelect style attrs input =
 
                 _ ->
                     Nothing
+
+        forSpacing attr =
+            case attr of
+                Internal.Spacing x y ->
+                    Just ( x, y )
+
+                _ ->
+                    Nothing
+
+        ( xSpacing, ySpacing ) =
+            attrs
+                |> List.filterMap forSpacing
+                |> List.head
+                |> Maybe.withDefault ( 0, 0 )
 
         ( ppTop, ppRight, ppBottom, ppLeft ) =
             attrs
@@ -1590,9 +1623,8 @@ searchSelect style attrs input =
                         , style = Nothing
                         , layout = Style.FlexLayout Style.GoRight []
                         , attrs =
-                            Events.onClick (autocomplete.onUpdate OpenMenu)
-                                :: Attr.inlineStyle [ ( "cursor", "text" ) ]
-                                :: attrs
+                            Attr.inlineStyle [ ( "cursor", "text" ) ]
+                                :: attrsWithoutSpacing
                         , children =
                             Internal.Normal
                                 [ case autocomplete.selected of
@@ -1640,7 +1672,6 @@ searchSelect style attrs input =
                                                         )
                                                 )
                                             :: valueAttr autocomplete.query
-                                            -- :: attrs
                                             :: []
                                     , child = Internal.Empty
                                     , absolutelyPositioned = Nothing
@@ -1649,13 +1680,15 @@ searchSelect style attrs input =
                                     { node = "div"
                                     , style = Just style
                                     , attrs =
-                                        Internal.Expand
-                                            :: Attr.width (Style.Calc 100 (ppLeft + (ppRight / 2)))
+                                        Attr.width (Style.Calc 100 0)
                                             :: Attr.toAttr (Html.Attributes.class "alt-icon")
                                             :: Attr.inlineStyle
-                                                [ ( "position", "absolute" )
+                                                [ ( "height", "100%" )
+                                                , ( "position", "absolute" )
                                                 , ( "top", "0" )
-                                                , ( "left", "-" ++ toString ppLeft ++ "px" )
+                                                , ( "left", "0" )
+
+                                                -- , ( "left", "-" ++ toString (xSpacing / 2) ++ "px" )
                                                 ]
                                             :: []
                                     , child = Internal.Empty
@@ -1684,7 +1717,7 @@ searchSelect style attrs input =
                         []
                     )
     in
-        applyLabel Nothing [ Attr.inlineStyle [ ( "cursor", "auto" ) ] ] input.label input.errors input.disabled False [ fullElement ]
+        applyLabel Nothing ([ Attr.inlineStyle [ ( "cursor", "auto" ) ] ] ++ attrsWithSpacing) input.label input.errors input.disabled False [ fullElement ]
 
 
 {-| -}
