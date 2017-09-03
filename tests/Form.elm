@@ -183,6 +183,9 @@ update msg model =
             )
 
         ChangeText str ->
+            -- ( { model | text = str }
+            -- , Cmd.none
+            -- )
             ( { model | text = str }
             , Cmd.none
             )
@@ -215,7 +218,7 @@ view model =
             column Page
                 [ spacing 20 ]
                 [ Input.text Field
-                    [ padding 10, width ]
+                    [ padding 10 ]
                     { onChange = ChangeText
                     , value = model.text
                     , label =
@@ -260,7 +263,7 @@ view model =
                     , label = el None [] (text "hello!")
                     , options = []
                     }
-                , Input.checkboxWith Checkbox
+                , Input.styledCheckbox Checkbox
                     []
                     { onChange = Check
                     , checked = model.checkbox
@@ -286,7 +289,7 @@ view model =
                     , label = Input.labelAbove (text "Lunch")
                     , options = []
                     , choices =
-                        [ Input.optionWith Burrito <|
+                        [ Input.styledChoice Burrito <|
                             \selected ->
                                 Element.row None
                                     [ spacing 5 ]
@@ -297,8 +300,8 @@ view model =
                                             text ":("
                                     , text "burrito"
                                     ]
-                        , Input.option Taco (text "Taco!")
-                        , Input.option Gyro (text "Gyro")
+                        , Input.choice Taco (text "Taco!")
+                        , Input.choice Gyro (text "Gyro")
                         ]
                     }
                 , Input.radioRow Field
@@ -308,9 +311,9 @@ view model =
                     , label = Input.labelAbove <| text "Lunch"
                     , options = []
                     , choices =
-                        [ Input.option Taco (text "Taco!")
-                        , Input.option Gyro (text "Gyro")
-                        , Input.optionWith Burrito <|
+                        [ Input.choice Taco (text "Taco!")
+                        , Input.choice Gyro (text "Gyro")
+                        , Input.styledChoice Burrito <|
                             \selected ->
                                 Element.row None
                                     [ spacing 5 ]
@@ -334,9 +337,9 @@ view model =
                     , menu =
                         Input.menuAbove SubMenu
                             []
-                            [ Input.option Taco (text "Taco!")
-                            , Input.option Gyro (text "Gyro")
-                            , Input.optionWith Burrito <|
+                            [ Input.choice Taco (text "Taco!")
+                            , Input.choice Gyro (text "Gyro")
+                            , Input.styledChoice Burrito <|
                                 \selected ->
                                     Element.row None
                                         [ spacing 5 ]
@@ -360,9 +363,9 @@ view model =
                     , menu =
                         Input.menu SubMenu
                             []
-                            [ Input.option Taco (text "Taco!")
-                            , Input.option Gyro (text "Gyro")
-                            , Input.optionWith Burrito <|
+                            [ Input.choice Taco (text "Taco!")
+                            , Input.choice Gyro (text "Gyro")
+                            , Input.styledChoice Burrito <|
                                 \selected ->
                                     Element.row None
                                         [ spacing 5 ]
@@ -397,19 +400,6 @@ view model =
                     , options = []
                     }
 
-                -- , Input.select Field
-                --     [ padding 10 ]
-                --     { onChange = ChooseLunch
-                --     , options =
-                --         [ ( "Burrito", Burrito )
-                --         , ( "Gyro", Gyro )
-                --         , ( "Taco", Taco )
-                --         ]
-                --     , selected = Just model.lunch
-                --     , label = Input.labelAbove (text "Choose Lunch")
-                --     , disabled = False
-                --     , errors = Input.noErrors
-                --     }
                 -- , Input.grid Field
                 --     []
                 --     { onChange = ChooseLunch
@@ -489,7 +479,7 @@ view model =
                 --         { onChange = ChooseLunch
                 --         , selected = Just model.lunch
                 --         , options =
-                --             [ Input.optionWith Burrito
+                --             [ Input.styledChoice Burrito
                 --                 (\selected ->
                 --                     let
                 --                         icon =
@@ -502,8 +492,8 @@ view model =
                 --                             [ spacing 5 ]
                 --                             [ icon, text "burrito" ]
                 --                 )
-                --             , Input.option Taco (text "Taco!")
-                --             , Input.option Gyro (text "Gyro")
+                --             , Input.choice Taco (text "Taco!")
+                --             , Input.choice Gyro (text "Gyro")
                 --             ]
                 --         }
                 -- , Input.label None [] (text "Lunch") <|
@@ -512,9 +502,9 @@ view model =
                 --         { onChange = ChooseLunch
                 --         , selected = Just model.lunch
                 --         , options =
-                --             [ Input.option Taco (text "Taco!")
-                --             , Input.option Gyro (text "Gyro")
-                --             , Input.optionWith Burrito
+                --             [ Input.choice Taco (text "Taco!")
+                --             , Input.choice Gyro (text "Gyro")
+                --             , Input.styledChoice Burrito
                 --                 (\selected ->
                 --                     let
                 --                         icon =

@@ -2,8 +2,8 @@ module Element.Input
     exposing
         ( checkbox
         , Checkbox
-        , checkboxWith
-        , CheckboxWith
+        , styledCheckbox
+        , StyledCheckbox
         , text
         , Text
         , multiline
@@ -12,8 +12,8 @@ module Element.Input
         , password
         , radio
         , radioRow
-        , option
-        , optionWith
+        , choice
+        , styledChoice
         , Option
         , hiddenLabel
         , labelLeft
@@ -25,6 +25,7 @@ module Element.Input
         , disabled
         , placeholder
         , select
+        , Select
         , menu
         , menuAbove
         , SelectWith
@@ -32,6 +33,7 @@ module Element.Input
         , dropMenu
         , updateSelection
         , SelectMsg
+        , selected
           -- , grid
           -- , Grid
           -- , cell
@@ -40,17 +42,7 @@ module Element.Input
 
 {-| Input Elements
 
-@docs checkbox, Checkbox, checkboxWith, CheckboxWith
-
-
-## Labels
-
-@docs labelAbove, labelBelow, labelLeft, labelRight, placeholder, hiddenLabel
-
-
-## Errors
-
-@docs noErrors, errorAbove, errorBelow
+@docs checkbox, Checkbox, styledCheckbox, StyledCheckbox
 
 
 ## Text Input
@@ -60,9 +52,19 @@ module Element.Input
 
 ## 'Choose One' Inputs
 
-@docs Radio, radio, radioRow, Option, option, optionWith
+@docs Radio, radio, radioRow, Choice, choice, styledChoice
 
-@docs DropDown, select, menu, menuAbove
+@docs select, menu, menuAbove
+
+
+## Labels
+
+@docs labelAbove, labelBelow, labelLeft, labelRight, placeholder, hiddenLabel
+
+
+## Errors
+
+@docs errorAbove, errorBelow, disabled
 
 -}
 
@@ -132,7 +134,7 @@ type alias Checkbox style variation msg =
     { onChange : Bool -> msg
     , label : Element style variation msg
     , checked : Bool
-    , options : List (Opt style variation msg)
+    , options : List (Option style variation msg)
     }
 
 
@@ -217,18 +219,18 @@ checkbox style attrs input =
 
 
 {-| -}
-type alias CheckboxWith style variation msg =
+type alias StyledCheckbox style variation msg =
     { onChange : Bool -> msg
     , label : Element style variation msg
     , checked : Bool
-    , options : List (Opt style variation msg)
+    , options : List (Option style variation msg)
     , icon : Bool -> Element style variation msg
     }
 
 
 {-| -}
-checkboxWith : style -> List (Attribute variation msg) -> CheckboxWith style variation msg -> Element style variation msg
-checkboxWith style attrs input =
+styledCheckbox : style -> List (Attribute variation msg) -> StyledCheckbox style variation msg -> Element style variation msg
+styledCheckbox style attrs input =
     let
         withDisabled attrs =
             if isDisabled then
@@ -423,11 +425,11 @@ type alias Text style variation msg =
     { onChange : String -> msg
     , value : String
     , label : Label style variation msg
-    , options : List (Opt style variation msg)
+    , options : List (Option style variation msg)
     }
 
 
-type Opt style variation msg
+type Option style variation msg
     = ErrorOpt (Error style variation msg)
     | Disabled
 
@@ -490,12 +492,12 @@ labelBelow =
     LabelAbove
 
 
-errorBelow : Element style variation msg -> Opt style variation msg
+errorBelow : Element style variation msg -> Option style variation msg
 errorBelow el =
     ErrorOpt <| ErrorBelow <| Modify.addAttr (Attr.attribute "aria-live" "assertive") el
 
 
-errorAbove : Element style variation msg -> Opt style variation msg
+errorAbove : Element style variation msg -> Option style variation msg
 errorAbove el =
     ErrorOpt <| ErrorAbove <| Modify.addAttr (Attr.attribute "aria-live" "assertive") el
 
@@ -691,30 +693,30 @@ applyLabel style attrs label errors isDisabled hasPointer input =
 {- Radio Options -}
 
 
-type Option value style variation msg
-    = Option value (Element style variation msg)
-    | OptionWith value (Bool -> Element style variation msg)
+type Choice value style variation msg
+    = Choice value (Element style variation msg)
+    | ChoiceWith value (Bool -> Element style variation msg)
 
 
 {-| -}
-option : value -> Element style variation msg -> Option value style variation msg
-option =
-    Option
+choice : value -> Element style variation msg -> Choice value style variation msg
+choice =
+    Choice
 
 
 {-| -}
-optionWith : value -> (Bool -> Element style variation msg) -> Option value style variation msg
-optionWith =
-    OptionWith
+styledChoice : value -> (Bool -> Element style variation msg) -> Choice value style variation msg
+styledChoice =
+    ChoiceWith
 
 
-getOptionValue : Option a style variation msg -> a
+getOptionValue : Choice a style variation msg -> a
 getOptionValue opt =
     case opt of
-        Option value _ ->
+        Choice value _ ->
             value
 
-        OptionWith value _ ->
+        ChoiceWith value _ ->
             value
 
 
@@ -726,10 +728,10 @@ optionToString =
 {-| -}
 type alias Radio option style variation msg =
     { onChange : option -> msg
-    , choices : List (Option option style variation msg)
+    , choices : List (Choice option style variation msg)
     , selected : Maybe option
     , label : Label style variation msg
-    , options : List (Opt style variation msg)
+    , options : List (Option style variation msg)
     }
 
 
@@ -788,7 +790,7 @@ radio style attrs input =
                         { selected = input.selected
                         , onChange = input.onChange
                         }
-                , options = input.choices
+                , choices = input.choices
                 , label = input.label
                 , disabled = isDisabled
                 , errors = errs
@@ -825,7 +827,7 @@ radioRow style attrs config =
                         { selected = config.selected
                         , onChange = config.onChange
                         }
-                , options = config.choices
+                , choices = config.choices
                 , label = config.label
                 , disabled = isDisabled
                 , errors = errs
@@ -891,7 +893,7 @@ radioRow style attrs config =
 {-| -}
 type alias MasterRadio option style variation msg =
     { selection : RadioSelection option msg
-    , options : List (Option option style variation msg)
+    , choices : List (Choice option style variation msg)
     , label : Label style variation msg
     , disabled : Bool
     , errors : List (Error style variation msg)
@@ -918,7 +920,7 @@ radioHelper : Orientation msg -> style -> List (Attribute variation msg) -> Mast
 radioHelper orientation style attrs config =
     let
         group =
-            config.options
+            config.choices
                 |> List.map (optionToString << getOptionValue)
                 |> String.join "-"
 
@@ -962,7 +964,7 @@ radioHelper orientation style attrs config =
 
         renderOption option =
             case option of
-                Option val el ->
+                Choice val el ->
                     let
                         input =
                             Internal.Element
@@ -994,7 +996,7 @@ radioHelper orientation style attrs config =
                             , absolutelyPositioned = Nothing
                             }
 
-                OptionWith val view ->
+                ChoiceWith val view ->
                     let
                         viewed =
                             view (valueIsSelected val)
@@ -1034,10 +1036,10 @@ radioHelper orientation style attrs config =
     in
         case orientation of
             Horizontal ->
-                row style (Attr.spacing 10 :: attrs) (List.map renderOption config.options)
+                row style (Attr.spacing 10 :: attrs) (List.map renderOption config.choices)
 
             Vertical ->
-                column style (Attr.spacing 10 :: attrs) (List.map renderOption config.options)
+                column style (Attr.spacing 10 :: attrs) (List.map renderOption config.choices)
 
 
 arrows : Element a variation msg
@@ -1053,16 +1055,16 @@ arrows =
 
 
 type Menu option style variation msg
-    = MenuUp style (List (Attribute variation msg)) (List (Option option style variation msg))
-    | MenuDown style (List (Attribute variation msg)) (List (Option option style variation msg))
+    = MenuUp style (List (Attribute variation msg)) (List (Choice option style variation msg))
+    | MenuDown style (List (Attribute variation msg)) (List (Choice option style variation msg))
 
 
-menu : style -> List (Attribute variation msg) -> List (Option option style variation msg) -> Menu option style variation msg
+menu : style -> List (Attribute variation msg) -> List (Choice option style variation msg) -> Menu option style variation msg
 menu =
     MenuDown
 
 
-menuAbove : style -> List (Attribute variation msg) -> List (Option option style variation msg) -> Menu option style variation msg
+menuAbove : style -> List (Attribute variation msg) -> List (Choice option style variation msg) -> Menu option style variation msg
 menuAbove =
     MenuUp
 
@@ -1102,7 +1104,7 @@ type alias SelectMenuValues option style variation msg =
     { max : Int
     , menu : Menu option style variation msg
     , label : Label style variation msg
-    , options : List (Opt style variation msg)
+    , options : List (Option style variation msg)
     , onUpdate : SelectMsg option -> msg
     , isOpen : Bool
     , selected : Maybe option
@@ -1113,7 +1115,7 @@ type alias SearchMenu option style variation msg =
     { max : Int
     , menu : Menu option style variation msg
     , label : Label style variation msg
-    , options : List (Opt style variation msg)
+    , options : List (Option style variation msg)
     , query : String
     , selected : Maybe option
     , focus : Maybe option
@@ -1175,10 +1177,10 @@ selectMenu style attrs input =
         getSelectedLabel selected option =
             if getOptionValue option == selected then
                 case option of
-                    Option _ el ->
+                    Choice _ el ->
                         Just el
 
-                    OptionWith _ view ->
+                    ChoiceWith _ view ->
                         Just <| view True
             else
                 Nothing
@@ -1333,7 +1335,7 @@ selectMenu style attrs input =
 
         renderOption option =
             case option of
-                Option val el ->
+                Choice val el ->
                     let
                         isSelected =
                             if Just val == input.selected then
@@ -1353,7 +1355,7 @@ selectMenu style attrs input =
                         el
                             |> Modify.addAttrList additional
 
-                OptionWith val view ->
+                ChoiceWith val view ->
                     let
                         isSelected =
                             if Just val == input.selected then
@@ -1450,7 +1452,7 @@ type alias Select option style variation msg =
     , max : Int
     , menu : Menu option style variation msg
     , label : Label style variation msg
-    , options : List (Opt style variation msg)
+    , options : List (Option style variation msg)
     }
 
 
@@ -1489,8 +1491,8 @@ dropMenu selected onUpdate =
         }
 
 
-value : SelectWith option msg -> Maybe option
-value select =
+selected : SelectWith option msg -> Maybe option
+selected select =
     case select of
         Autocomplete auto ->
             auto.selected
@@ -1680,10 +1682,10 @@ searchSelect style attrs input =
         getSelectedLabel selected option =
             if getOptionValue option == selected then
                 case option of
-                    Option _ el ->
+                    Choice _ el ->
                         Just el
 
-                    OptionWith _ view ->
+                    ChoiceWith _ view ->
                         Just <| view True
             else
                 Nothing
@@ -1823,7 +1825,7 @@ searchSelect style attrs input =
 
         renderOption option =
             case option of
-                Option val el ->
+                Choice val el ->
                     let
                         isSelected =
                             if Just val == input.selected then
@@ -1848,7 +1850,7 @@ searchSelect style attrs input =
                         el
                             |> Modify.addAttrList additional
 
-                OptionWith val view ->
+                ChoiceWith val view ->
                     let
                         isSelected =
                             if Just val == input.selected then
@@ -1934,10 +1936,10 @@ searchSelect style attrs input =
                                             |> List.map
                                                 (\opt ->
                                                     case opt of
-                                                        Option _ el ->
+                                                        Choice _ el ->
                                                             el
 
-                                                        OptionWith _ view ->
+                                                        ChoiceWith _ view ->
                                                             view True
                                                 )
                                             |> List.head
