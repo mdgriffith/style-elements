@@ -5,7 +5,7 @@ module Element.Input
         , checkboxWith
         , CheckboxWith
         , text
-        , TextInput
+        , Text
         , multiline
         , search
         , email
@@ -22,17 +22,16 @@ module Element.Input
         , labelBelow
         , errorBelow
         , errorAbove
-        , noErrors
+        , disabled
         , placeholder
         , select
         , menu
         , menuAbove
-        , DropDown
-        , searchSelect
-        , Autocomplete
+        , SelectWith
         , autocomplete
-        , updateAutocomplete
-        , AutocompleteMsg
+        , dropMenu
+        , updateSelection
+        , SelectMsg
           -- , grid
           -- , Grid
           -- , cell
@@ -56,7 +55,7 @@ module Element.Input
 
 ## Text Input
 
-@docs TextInput, text, multiline, search, email, password
+@docs Text, text, multiline, search, email, password
 
 
 ## 'Choose One' Inputs
@@ -133,8 +132,7 @@ type alias Checkbox style variation msg =
     { onChange : Bool -> msg
     , label : Element style variation msg
     , checked : Bool
-    , errors : Error style variation msg
-    , disabled : Bool
+    , options : List (Opt style variation msg)
     }
 
 
@@ -143,38 +141,61 @@ type alias Checkbox style variation msg =
     Input.checkbox CheckBoxStyle [ ]
         { checked = True
         , onChange = ChangeMsg
+        , label = Input.labelAbove (text "hello!")
+        , options =
+            -- Options are where we can add error messages
+            -- or disable input for this element
+            []
         }
-        |> Input.label (text "hello!")
 
 -- For more involved checkbox styling
 
     Input.checkboxWith CheckBoxStyle [ ]
-        { value = True
-        , onChange = ChangeMsg
-        , elem =
-            \checked ->
-                el CheckedStyle [] (text if checked then "✓" else "x")
-
+        { onChange = Check
+        , checked = model.checkbox
+        , label = text "hello!"
+        , options = []
+        , icon =
+            \on ->
+                el
+                    (if on then
+                        CheckboxChecked
+                     else
+                        Checkbox
+                    )
+                    []
+                    empty
         }
-        |> Input.label (text "hello!")
 
 -}
 checkbox : style -> List (Attribute variation msg) -> Checkbox style variation msg -> Element style variation msg
 checkbox style attrs input =
     let
         withDisabled attrs =
-            if input.disabled then
+            if isDisabled then
                 Attr.class "disabled-input" :: disabledAttr True :: attrs
             else
                 attrs
 
         withError attrs =
-            case input.errors of
-                NoError ->
-                    attrs
+            if not <| List.isEmpty errs then
+                Attr.attribute "aria-invalid" "true" :: attrs
+            else
+                attrs
+
+        forErrors opt =
+            case opt of
+                ErrorOpt err ->
+                    Just err
 
                 _ ->
-                    Attr.attribute "aria-invalid" "true" :: attrs
+                    Nothing
+
+        errs =
+            List.filterMap forErrors input.options
+
+        isDisabled =
+            List.any ((==) Disabled) input.options
 
         inputElem =
             [ Internal.Element
@@ -192,7 +213,7 @@ checkbox style attrs input =
                 }
             ]
     in
-        applyLabel Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attrs) (LabelOnRight input.label) input.errors input.disabled True inputElem
+        applyLabel Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attrs) (LabelOnRight input.label) errs isDisabled True inputElem
 
 
 {-| -}
@@ -200,8 +221,7 @@ type alias CheckboxWith style variation msg =
     { onChange : Bool -> msg
     , label : Element style variation msg
     , checked : Bool
-    , errors : Error style variation msg
-    , disabled : Bool
+    , options : List (Opt style variation msg)
     , icon : Bool -> Element style variation msg
     }
 
@@ -211,18 +231,30 @@ checkboxWith : style -> List (Attribute variation msg) -> CheckboxWith style var
 checkboxWith style attrs input =
     let
         withDisabled attrs =
-            if input.disabled then
+            if isDisabled then
                 Attr.class "disabled-input" :: disabledAttr True :: attrs
             else
                 attrs
 
         withError attrs =
-            case input.errors of
-                NoError ->
-                    attrs
+            if not <| List.isEmpty errs then
+                Attr.attribute "aria-invalid" "true" :: attrs
+            else
+                attrs
+
+        forErrors opt =
+            case opt of
+                ErrorOpt err ->
+                    Just err
 
                 _ ->
-                    Attr.attribute "aria-invalid" "true" :: attrs
+                    Nothing
+
+        errs =
+            List.filterMap forErrors input.options
+
+        isDisabled =
+            List.any ((==) Disabled) input.options
 
         inputElem =
             [ Internal.Element
@@ -244,7 +276,7 @@ checkboxWith style attrs input =
                 |> Modify.addAttr (Attr.toAttr <| Html.Attributes.class "alt-icon")
             ]
     in
-        applyLabel Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attrs) (LabelOnRight input.label) input.errors input.disabled True inputElem
+        applyLabel Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attrs) (LabelOnRight input.label) errs isDisabled True inputElem
 
 
 
@@ -252,7 +284,7 @@ checkboxWith style attrs input =
 
 
 type TextKind
-    = Text
+    = Plain
     | Search
     | Password
     | Email
@@ -260,37 +292,37 @@ type TextKind
 
 
 {-| -}
-text : style -> List (Attribute variation msg) -> TextInput style variation msg -> Element style variation msg
+text : style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
 text =
-    textHelper Text
+    textHelper Plain
 
 
 {-| -}
-search : style -> List (Attribute variation msg) -> TextInput style variation msg -> Element style variation msg
+search : style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
 search =
     textHelper Search
 
 
 {-| -}
-password : style -> List (Attribute variation msg) -> TextInput style variation msg -> Element style variation msg
+password : style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
 password =
     textHelper Password
 
 
 {-| -}
-email : style -> List (Attribute variation msg) -> TextInput style variation msg -> Element style variation msg
+email : style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
 email =
     textHelper Email
 
 
 {-| -}
-multiline : style -> List (Attribute variation msg) -> TextInput style variation msg -> Element style variation msg
+multiline : style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
 multiline =
     textHelper TextArea
 
 
 {-| -}
-textHelper : TextKind -> style -> List (Attribute variation msg) -> TextInput style variation msg -> Element style variation msg
+textHelper : TextKind -> style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
 textHelper kind style attrs input =
     let
         forSpacing attr =
@@ -318,22 +350,34 @@ textHelper kind style attrs input =
                     attrs
 
         withDisabled attrs =
-            if input.disabled then
+            if List.any ((==) Disabled) input.options then
                 Attr.class "disabled-input" :: disabledAttr True :: attrs
             else
                 attrs
 
-        withError attrs =
-            case input.errors of
-                NoError ->
-                    attrs
+        forErrors opt =
+            case opt of
+                ErrorOpt err ->
+                    Just err
 
                 _ ->
-                    Attr.attribute "aria-invalid" "true" :: attrs
+                    Nothing
+
+        withError attrs =
+            if not <| List.isEmpty errors then
+                Attr.attribute "aria-invalid" "true" :: attrs
+            else
+                attrs
+
+        errors =
+            List.filterMap forErrors input.options
+
+        isDisabled =
+            List.any ((==) Disabled) input.options
 
         kindAsText =
             case kind of
-                Text ->
+                Plain ->
                     "text"
 
                 Search ->
@@ -372,21 +416,28 @@ textHelper kind style attrs input =
                         , absolutelyPositioned = Nothing
                         }
     in
-        applyLabel Nothing [ spacing ] input.label input.errors input.disabled False [ inputElem ]
+        applyLabel Nothing [ spacing ] input.label errors isDisabled False [ inputElem ]
 
 
-type alias TextInput style variation msg =
+type alias Text style variation msg =
     { onChange : String -> msg
     , value : String
     , label : Label style variation msg
-    , disabled : Bool
-    , errors : Error style variation msg
+    , options : List (Opt style variation msg)
     }
 
 
+type Opt style variation msg
+    = ErrorOpt (Error style variation msg)
+    | Disabled
+
+
+disabled =
+    Disabled
+
+
 type Error style variation msg
-    = NoError
-    | ErrorBelow (Element style variation msg)
+    = ErrorBelow (Element style variation msg)
     | ErrorAbove (Element style variation msg)
 
 
@@ -439,19 +490,14 @@ labelBelow =
     LabelAbove
 
 
-noErrors : Error style variation msg
-noErrors =
-    NoError
-
-
-errorBelow : Element style variation msg -> Error style variation msg
+errorBelow : Element style variation msg -> Opt style variation msg
 errorBelow el =
-    ErrorBelow <| Modify.addAttr (Attr.attribute "aria-live" "assertive") el
+    ErrorOpt <| ErrorBelow <| Modify.addAttr (Attr.attribute "aria-live" "assertive") el
 
 
-errorAbove : Element style variation msg -> Error style variation msg
+errorAbove : Element style variation msg -> Opt style variation msg
 errorAbove el =
-    ErrorAbove <| Modify.addAttr (Attr.attribute "aria-live" "assertive") el
+    ErrorOpt <| ErrorAbove <| Modify.addAttr (Attr.attribute "aria-live" "assertive") el
 
 
 type alias LabelIntermediate style variation msg =
@@ -464,9 +510,15 @@ type alias LabelIntermediate style variation msg =
     }
 
 
+type ErrorOrientation style variation msg
+    = ErrorAllBelow (List (Element style variation msg))
+    | ErrorAllAbove (List (Element style variation msg))
+    | ErrorAboveBelow (List (Element style variation msg)) (List (Element style variation msg))
+
+
 {-| Builds an input element with a label, errors, and a disabled
 -}
-applyLabel : Maybe style -> List (Attribute variation msg) -> Label style variation msg -> Error style variation msg -> Bool -> Bool -> List (Element style variation msg) -> Element style variation msg
+applyLabel : Maybe style -> List (Attribute variation msg) -> Label style variation msg -> List (Error style variation msg) -> Bool -> Bool -> List (Element style variation msg) -> Element style variation msg
 applyLabel style attrs label errors isDisabled hasPointer input =
     let
         forSpacing attr =
@@ -498,6 +550,49 @@ applyLabel style attrs label errors isDisabled hasPointer input =
                 , children = Internal.Normal children
                 , absolutelyPositioned = Nothing
                 }
+
+        orientedErrors =
+            List.foldl
+                (\currentError oriented ->
+                    case oriented of
+                        Nothing ->
+                            Just <|
+                                case currentError of
+                                    ErrorAbove err ->
+                                        ErrorAllAbove [ err ]
+
+                                    ErrorBelow err ->
+                                        ErrorAllBelow [ err ]
+
+                        Just orientation ->
+                            Just <|
+                                case orientation of
+                                    ErrorAllAbove above ->
+                                        case currentError of
+                                            ErrorAbove err ->
+                                                ErrorAllAbove (err :: above)
+
+                                            ErrorBelow err ->
+                                                ErrorAboveBelow [ err ] above
+
+                                    ErrorAllBelow below ->
+                                        case currentError of
+                                            ErrorAbove err ->
+                                                ErrorAboveBelow [ err ] below
+
+                                            ErrorBelow err ->
+                                                ErrorAllBelow (err :: below)
+
+                                    ErrorAboveBelow above below ->
+                                        case currentError of
+                                            ErrorAbove err ->
+                                                ErrorAboveBelow (err :: above) below
+
+                                            ErrorBelow err ->
+                                                ErrorAboveBelow above (err :: below)
+                )
+                Nothing
+                errors
 
         orient direction children =
             Internal.Layout
@@ -536,48 +631,60 @@ applyLabel style attrs label errors isDisabled hasPointer input =
                     }
 
             LabelAbove lab ->
-                case errors of
-                    NoError ->
+                case orientedErrors of
+                    Nothing ->
                         labelContainer Style.Down (lab :: input)
 
-                    ErrorAbove err ->
-                        labelContainer Style.Down (orient Style.GoRight [ lab, err ] :: input)
+                    Just (ErrorAllAbove above) ->
+                        labelContainer Style.Down (orient Style.GoRight (lab :: above) :: input)
 
-                    ErrorBelow err ->
-                        labelContainer Style.Down (lab :: input ++ [ err ])
+                    Just (ErrorAllBelow below) ->
+                        labelContainer Style.Down (lab :: input ++ [ orient Style.GoRight below ])
+
+                    Just (ErrorAboveBelow above below) ->
+                        labelContainer Style.Down (orient Style.GoRight (lab :: above) :: input ++ [ orient Style.GoRight below ])
 
             LabelBelow lab ->
-                case errors of
-                    NoError ->
+                case orientedErrors of
+                    Nothing ->
                         labelContainer Style.Down (input ++ [ lab ])
 
-                    ErrorBelow err ->
-                        labelContainer Style.Down (input ++ [ orient Style.GoRight [ lab, err ] ])
+                    Just (ErrorAllAbove above) ->
+                        labelContainer Style.Down (orient Style.GoRight above :: input ++ [ lab ])
 
-                    ErrorAbove err ->
-                        labelContainer Style.Down (err :: input ++ [ lab ])
+                    Just (ErrorAllBelow below) ->
+                        labelContainer Style.Down (input ++ [ orient Style.GoRight (lab :: below) ])
+
+                    Just (ErrorAboveBelow above below) ->
+                        labelContainer Style.Down (orient Style.GoRight above :: input ++ [ orient Style.GoRight (lab :: below) ])
 
             LabelOnRight lab ->
-                case errors of
-                    NoError ->
+                case orientedErrors of
+                    Nothing ->
                         labelContainer Style.GoRight (input ++ [ lab ])
 
-                    ErrorBelow err ->
-                        labelContainer Style.Down [ orient Style.GoRight (input ++ [ lab ]), err ]
+                    Just (ErrorAllAbove above) ->
+                        labelContainer Style.Down (above ++ [ orient Style.GoRight (input ++ [ lab ]) ])
 
-                    ErrorAbove err ->
-                        labelContainer Style.Down [ err, orient Style.GoRight (input ++ [ lab ]) ]
+                    Just (ErrorAllBelow below) ->
+                        labelContainer Style.Down (orient Style.GoRight (input ++ [ lab ]) :: below)
+
+                    Just (ErrorAboveBelow above below) ->
+                        labelContainer Style.Down (above ++ [ orient Style.GoRight (input ++ [ lab ]) ] ++ below)
 
             LabelOnLeft lab ->
-                case errors of
-                    NoError ->
+                case orientedErrors of
+                    Nothing ->
                         labelContainer Style.GoRight (lab :: input)
 
-                    ErrorBelow err ->
-                        labelContainer Style.Down [ orient Style.GoRight (lab :: input), err ]
+                    Just (ErrorAllAbove above) ->
+                        labelContainer Style.Down (above ++ [ orient Style.GoRight (lab :: input) ])
 
-                    ErrorAbove err ->
-                        labelContainer Style.Down [ err, orient Style.GoRight (lab :: input) ]
+                    Just (ErrorAllBelow below) ->
+                        labelContainer Style.Down (orient Style.GoRight (lab :: input) :: below)
+
+                    Just (ErrorAboveBelow above below) ->
+                        labelContainer Style.Down (above ++ [ orient Style.GoRight (lab :: input) ] ++ below)
 
 
 
@@ -619,11 +726,10 @@ optionToString =
 {-| -}
 type alias Radio option style variation msg =
     { onChange : option -> msg
-    , options : List (Option option style variation msg)
+    , choices : List (Option option style variation msg)
     , selected : Maybe option
     , label : Label style variation msg
-    , disabled : Bool
-    , errors : Error style variation msg
+    , options : List (Opt style variation msg)
     }
 
 
@@ -657,24 +763,38 @@ type alias Radio option style variation msg =
         }
 -}
 radio : style -> List (Attribute variation msg) -> Radio option style variation msg -> Element style variation msg
-radio style attrs config =
+radio style attrs input =
     let
-        input =
+        forErrors opt =
+            case opt of
+                ErrorOpt err ->
+                    Just err
+
+                _ ->
+                    Nothing
+
+        errs =
+            List.filterMap forErrors input.options
+
+        isDisabled =
+            List.any ((==) Disabled) input.options
+
+        inputElem =
             radioHelper Vertical
                 style
                 attrs
                 { selection =
                     Single
-                        { selected = config.selected
-                        , onChange = config.onChange
+                        { selected = input.selected
+                        , onChange = input.onChange
                         }
-                , options = config.options
-                , label = config.label
-                , disabled = config.disabled
-                , errors = config.errors
+                , options = input.choices
+                , label = input.label
+                , disabled = isDisabled
+                , errors = errs
                 }
     in
-        applyLabel Nothing [] config.label config.errors config.disabled True [ input ]
+        applyLabel Nothing [] input.label errs isDisabled True [ inputElem ]
 
 
 {-| Same as `radio`, but arranges the options in a row instead of a column
@@ -682,6 +802,20 @@ radio style attrs config =
 radioRow : style -> List (Attribute variation msg) -> Radio option style variation msg -> Element style variation msg
 radioRow style attrs config =
     let
+        forErrors opt =
+            case opt of
+                ErrorOpt err ->
+                    Just err
+
+                _ ->
+                    Nothing
+
+        errs =
+            List.filterMap forErrors config.options
+
+        isDisabled =
+            List.any ((==) Disabled) config.options
+
         input =
             radioHelper Horizontal
                 style
@@ -691,13 +825,13 @@ radioRow style attrs config =
                         { selected = config.selected
                         , onChange = config.onChange
                         }
-                , options = config.options
+                , options = config.choices
                 , label = config.label
-                , disabled = config.disabled
-                , errors = config.errors
+                , disabled = isDisabled
+                , errors = errs
                 }
     in
-        applyLabel Nothing [] config.label config.errors config.disabled True [ input ]
+        applyLabel Nothing [] config.label errs isDisabled True [ input ]
 
 
 
@@ -760,7 +894,7 @@ type alias MasterRadio option style variation msg =
     , options : List (Option option style variation msg)
     , label : Label style variation msg
     , disabled : Bool
-    , errors : Error style variation msg
+    , errors : List (Error style variation msg)
     }
 
 
@@ -918,18 +1052,6 @@ arrows =
         }
 
 
-type alias DropDown option style variation msg =
-    { onChange : option -> msg
-    , menu : Menu option style variation msg
-    , selected : Maybe option
-    , label : Label style variation msg
-    , disabled : Bool
-    , errors : Error style variation msg
-    , isOpen : Bool
-    , show : Bool -> msg
-    }
-
-
 type Menu option style variation msg
     = MenuUp style (List (Attribute variation msg)) (List (Option option style variation msg))
     | MenuDown style (List (Attribute variation msg)) (List (Option option style variation msg))
@@ -943,6 +1065,61 @@ menu =
 menuAbove : style -> List (Attribute variation msg) -> List (Option option style variation msg) -> Menu option style variation msg
 menuAbove =
     MenuUp
+
+
+{-| -}
+select : style -> List (Attribute variation msg) -> Select option style variation msg -> Element style variation msg
+select style attrs input =
+    case input.with of
+        Autocomplete auto ->
+            searchSelect style
+                attrs
+                { max = input.max
+                , menu = input.menu
+                , label = input.label
+                , options = input.options
+                , onUpdate = auto.onUpdate
+                , isOpen = auto.isOpen
+                , selected = auto.selected
+                , query = auto.query
+                , focus = auto.focus
+                }
+
+        SelectMenu menu ->
+            selectMenu style
+                attrs
+                { max = input.max
+                , menu = input.menu
+                , label = input.label
+                , options = input.options
+                , onUpdate = menu.onUpdate
+                , isOpen = menu.isOpen
+                , selected = menu.selected
+                }
+
+
+type alias SelectMenuValues option style variation msg =
+    { max : Int
+    , menu : Menu option style variation msg
+    , label : Label style variation msg
+    , options : List (Opt style variation msg)
+    , onUpdate : SelectMsg option -> msg
+    , isOpen : Bool
+    , selected : Maybe option
+    }
+
+
+type alias SearchMenu option style variation msg =
+    { max : Int
+    , menu : Menu option style variation msg
+    , label : Label style variation msg
+    , options : List (Opt style variation msg)
+    , query : String
+    , selected : Maybe option
+    , focus : Maybe option
+    , onUpdate : SelectMsg option -> msg
+    , isOpen : Bool
+    }
 
 
 {-| A dropdown input.
@@ -976,8 +1153,8 @@ menuAbove =
         }
 
 -}
-select : style -> List (Attribute variation msg) -> DropDown option style variation msg -> Element style variation msg
-select style attrs input =
+selectMenu : style -> List (Attribute variation msg) -> SelectMenuValues option style variation msg -> Element style variation msg
+selectMenu style attrs input =
     let
         ( menuAbove, menuStyle, menuAttrs, options ) =
             case input.menu of
@@ -1039,13 +1216,34 @@ select style attrs input =
         parentPadding =
             List.filter forPadding attrs
 
+        forErrors opt =
+            case opt of
+                ErrorOpt err ->
+                    Just err
+
+                _ ->
+                    Nothing
+
+        errors =
+            List.filterMap forErrors input.options
+
+        isDisabled =
+            List.any ((==) Disabled) input.options
+
         bar =
             Internal.Layout
                 { node = "div"
                 , style = Just style
                 , layout = Style.FlexLayout Style.GoRight []
                 , attrs =
-                    Events.onClick (input.show (not input.isOpen))
+                    Events.onClick
+                        (input.onUpdate
+                            (if input.isOpen then
+                                CloseMenu
+                             else
+                                OpenMenu
+                            )
+                        )
                         :: Attr.verticalCenter
                         :: Attr.spread
                         :: Attr.width Attr.fill
@@ -1147,7 +1345,7 @@ select style attrs input =
                                 [ Attr.attribute "aria-selected" "false" ] ++ parentPadding
 
                         additional =
-                            Events.onClick (input.onChange val)
+                            Events.onClick (input.onUpdate (SelectValue (Just val)))
                                 :: Internal.Expand
                                 :: Attr.attribute "role" "menuitemradio"
                                 :: isSelected
@@ -1167,7 +1365,7 @@ select style attrs input =
                                 [ Attr.attribute "aria-selected" "false" ] ++ parentPadding
 
                         additional =
-                            Events.onClick (input.onChange val)
+                            Events.onClick (input.onUpdate (SelectValue (Just val)))
                                 :: Internal.Expand
                                 :: Attr.attribute "role" "menuitemradio"
                                 :: isSelected
@@ -1185,20 +1383,40 @@ select style attrs input =
                         , Just (Attr.attribute "role" "menu")
                         , Just (tabindex 0)
                         , Just (Attr.inlineStyle [ ( "z-index", "20" ) ])
-                        , Just (Attr.toAttr <| onFocusOut (input.show False))
+                        , Just
+                            (Attr.toAttr <|
+                                (onFocusOut
+                                    (input.onUpdate CloseMenu)
+                                )
+                            )
                         , Just <|
                             onKeyLookup <|
                                 \key ->
                                     if key == enter then
-                                        Just <| input.show (not input.isOpen)
+                                        Just <|
+                                            (input.onUpdate
+                                                (if input.isOpen then
+                                                    CloseMenu
+                                                 else
+                                                    OpenMenu
+                                                )
+                                            )
                                     else if key == downArrow && not input.isOpen then
-                                        Just <| input.show True
+                                        Just <| input.onUpdate OpenMenu
                                     else if key == downArrow && input.isOpen then
-                                        Maybe.map (input.onChange) next
+                                        Maybe.map
+                                            (\x ->
+                                                input.onUpdate (SelectValue (Just x))
+                                            )
+                                            next
                                     else if key == upArrow && not input.isOpen then
-                                        Just <| input.show True
+                                        Just <| input.onUpdate OpenMenu
                                     else if key == upArrow && input.isOpen then
-                                        Maybe.map (input.onChange) prev
+                                        Maybe.map
+                                            (\x ->
+                                                input.onUpdate (SelectValue (Just x))
+                                            )
+                                            prev
                                     else
                                         Nothing
                         ]
@@ -1214,7 +1432,7 @@ select style attrs input =
                         [ column menuStyle
                             (Attr.inlineStyle [ ( "z-index", "20" ), ( "background-color", "white" ) ]
                                 :: pointer
-                                :: Events.onClick (input.show False)
+                                :: Events.onClick (input.onUpdate CloseMenu)
                                 :: Attr.width Attr.fill
                                 :: menuAttrs
                             )
@@ -1224,30 +1442,34 @@ select style attrs input =
                         []
                     )
     in
-        applyLabel Nothing attrsWithSpacing input.label input.errors input.disabled True [ fullElement ]
+        applyLabel Nothing attrsWithSpacing input.label errors isDisabled True [ fullElement ]
 
 
-type alias SearchOther option style variation msg =
-    { autocomplete : Autocomplete option msg
+type alias Select option style variation msg =
+    { with : SelectWith option msg
     , max : Int
     , menu : Menu option style variation msg
     , label : Label style variation msg
-    , disabled : Bool
-    , errors : Error style variation msg
+    , options : List (Opt style variation msg)
     }
 
 
-type Autocomplete option msg
+type SelectWith option msg
     = Autocomplete
         { query : String
         , selected : Maybe option
         , focus : Maybe option
-        , onUpdate : AutocompleteMsg option -> msg
+        , onUpdate : SelectMsg option -> msg
         , isOpen : Bool
+        }
+    | SelectMenu
+        { onUpdate : SelectMsg option -> msg
+        , isOpen : Bool
+        , selected : Maybe option
         }
 
 
-autocomplete : Maybe option -> (AutocompleteMsg option -> msg) -> Autocomplete option msg
+autocomplete : Maybe option -> (SelectMsg option -> msg) -> SelectWith option msg
 autocomplete selected onUpdate =
     Autocomplete
         { query = ""
@@ -1258,68 +1480,134 @@ autocomplete selected onUpdate =
         }
 
 
-value : Autocomplete option msg -> Maybe option
-value (Autocomplete auto) =
-    auto.selected
+dropMenu : Maybe option -> (SelectMsg option -> msg) -> SelectWith option msg
+dropMenu selected onUpdate =
+    SelectMenu
+        { selected = selected
+        , onUpdate = onUpdate
+        , isOpen = False
+        }
 
 
-type AutocompleteMsg opt
+value : SelectWith option msg -> Maybe option
+value select =
+    case select of
+        Autocomplete auto ->
+            auto.selected
+
+        SelectMenu menu ->
+            menu.selected
+
+
+type SelectMsg opt
     = OpenMenu
     | CloseMenu
     | SetQuery String
     | SetFocus (Maybe opt)
-    | Select
+    | SelectValue (Maybe opt)
+    | SelectFocused
     | Clear
-    | Batch (List (AutocompleteMsg opt))
+    | Batch (List (SelectMsg opt))
 
 
-updateAutocomplete : AutocompleteMsg option -> Autocomplete option msg -> Autocomplete option msg
-updateAutocomplete msg (Autocomplete auto) =
+updateSelection : SelectMsg option -> SelectWith option msg -> SelectWith option msg
+updateSelection msg select =
     case msg of
         OpenMenu ->
-            Autocomplete
-                { auto | isOpen = True }
+            case select of
+                Autocomplete auto ->
+                    Autocomplete
+                        { auto | isOpen = True }
+
+                SelectMenu auto ->
+                    SelectMenu
+                        { auto | isOpen = True }
 
         CloseMenu ->
-            Autocomplete
-                { auto | isOpen = False }
+            case select of
+                Autocomplete auto ->
+                    Autocomplete
+                        { auto | isOpen = False }
+
+                SelectMenu auto ->
+                    SelectMenu
+                        { auto | isOpen = False }
 
         SetQuery query ->
-            Autocomplete
-                { auto
-                    | query = query
-                    , isOpen = True
-                    , selected =
-                        if query == "" then
-                            auto.selected
-                        else
-                            Nothing
-                }
+            case select of
+                Autocomplete auto ->
+                    Autocomplete
+                        { auto
+                            | query = query
+                            , isOpen = True
+                            , selected =
+                                if query == "" then
+                                    auto.selected
+                                else
+                                    Nothing
+                        }
+
+                SelectMenu auto ->
+                    SelectMenu
+                        auto
 
         SetFocus val ->
-            Autocomplete
-                { auto
-                    | focus = val
-                }
+            case select of
+                Autocomplete auto ->
+                    Autocomplete
+                        { auto
+                            | focus = val
+                        }
 
-        Select ->
-            Autocomplete
-                { auto
-                    | selected = auto.focus
-                    , query = ""
-                }
+                SelectMenu auto ->
+                    SelectMenu
+                        auto
+
+        SelectValue val ->
+            case select of
+                Autocomplete auto ->
+                    Autocomplete
+                        { auto
+                            | selected = val
+                            , query = ""
+                        }
+
+                SelectMenu auto ->
+                    SelectMenu
+                        { auto
+                            | selected = val
+                        }
+
+        SelectFocused ->
+            case select of
+                Autocomplete auto ->
+                    Autocomplete
+                        { auto
+                            | selected = auto.focus
+                            , query = ""
+                        }
+
+                SelectMenu auto ->
+                    SelectMenu
+                        auto
 
         Clear ->
-            Autocomplete
-                { auto
-                    | query = ""
-                    , isOpen = True
-                    , selected = Nothing
-                    , focus = Nothing
-                }
+            case select of
+                Autocomplete auto ->
+                    Autocomplete
+                        { auto
+                            | query = ""
+                            , isOpen = True
+                            , selected = Nothing
+                            , focus = Nothing
+                        }
+
+                SelectMenu auto ->
+                    SelectMenu
+                        { auto | selected = Nothing }
 
         Batch msgs ->
-            List.foldl (\m current -> updateAutocomplete m current) (Autocomplete auto) msgs
+            List.foldl updateSelection select msgs
 
 
 defaultPadding : ( Maybe Float, Maybe Float, Maybe Float, Maybe Float ) -> ( Float, Float, Float, Float ) -> ( Float, Float, Float, Float )
@@ -1351,13 +1639,22 @@ defaultPadding ( mW, mX, mY, mZ ) ( w, x, y, z ) =
         -> clear query
         -> Overlay selection on search area
 -}
-searchSelect : style -> List (Attribute variation msg) -> SearchOther option style variation msg -> Element style variation msg
+searchSelect : style -> List (Attribute variation msg) -> SearchMenu option style variation msg -> Element style variation msg
 searchSelect style attrs input =
     let
-        autocomplete =
-            case input.autocomplete of
-                Autocomplete auto ->
-                    auto
+        forErrors opt =
+            case opt of
+                ErrorOpt err ->
+                    Just err
+
+                _ ->
+                    Nothing
+
+        errors =
+            List.filterMap forErrors input.options
+
+        isDisabled =
+            List.any ((==) Disabled) input.options
 
         ( menuAbove, menuStyle, menuAttrs, options ) =
             case input.menu of
@@ -1368,7 +1665,7 @@ searchSelect style attrs input =
                     ( False, menuStyle, menuAttrs, menuOptions )
 
         placeholderText =
-            case autocomplete.selected of
+            case input.selected of
                 Nothing ->
                     case input.label of
                         PlaceHolder text _ ->
@@ -1483,14 +1780,14 @@ searchSelect style attrs input =
                             , last = last
                         }
                 )
-                { selected = autocomplete.focus
+                { selected = input.focus
                 , found = False
                 , prev = Nothing
                 , next = Nothing
                 , first = Nothing
                 , last = Nothing
                 }
-                (List.filter (matchesQuery autocomplete.query) options)
+                (List.filter (matchesQuery input.query) options)
 
         { next, prev } =
             if cursor.found == False then
@@ -1529,12 +1826,12 @@ searchSelect style attrs input =
                 Option val el ->
                     let
                         isSelected =
-                            if Just val == autocomplete.selected then
+                            if Just val == input.selected then
                                 [ Attr.attribute "aria-selected" "true"
                                 , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.05)" ) ]
                                 , parentPadding
                                 ]
-                            else if Just val == autocomplete.focus then
+                            else if Just val == input.focus then
                                 [ Attr.attribute "aria-selected" "false"
                                 , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.03)" ) ]
                                 , parentPadding
@@ -1543,7 +1840,7 @@ searchSelect style attrs input =
                                 [ Attr.attribute "aria-selected" "false", parentPadding ]
 
                         additional =
-                            Events.onClick (autocomplete.onUpdate (Batch [ SetFocus (Just val), Select ]))
+                            Events.onClick (input.onUpdate (Batch [ SetFocus (Just val), SelectFocused ]))
                                 :: Internal.Expand
                                 :: Attr.attribute "role" "menuitemradio"
                                 :: isSelected
@@ -1554,12 +1851,12 @@ searchSelect style attrs input =
                 OptionWith val view ->
                     let
                         isSelected =
-                            if Just val == autocomplete.selected then
+                            if Just val == input.selected then
                                 [ Attr.attribute "aria-selected" "true"
                                 , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.05)" ) ]
                                 , parentPadding
                                 ]
-                            else if Just val == autocomplete.focus then
+                            else if Just val == input.focus then
                                 [ Attr.attribute "aria-selected" "false"
                                 , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.03)" ) ]
                                 , parentPadding
@@ -1568,17 +1865,17 @@ searchSelect style attrs input =
                                 [ Attr.attribute "aria-selected" "false", parentPadding ]
 
                         additional =
-                            Events.onClick (autocomplete.onUpdate (Batch [ SetFocus (Just val), Select ]))
+                            Events.onClick (input.onUpdate (Batch [ SetFocus (Just val), SelectFocused ]))
                                 :: Internal.Expand
                                 :: Attr.attribute "role" "menuitemradio"
                                 :: isSelected
                     in
-                        view (Just val == autocomplete.selected)
+                        view (Just val == input.selected)
                             |> Modify.addAttrList additional
 
         matches =
             options
-                |> List.filter (matchesQuery autocomplete.query << getOptionValue)
+                |> List.filter (matchesQuery input.query << getOptionValue)
                 |> List.take input.max
                 |> List.map renderOption
 
@@ -1593,26 +1890,26 @@ searchSelect style attrs input =
                         , Just <|
                             onKeyLookup <|
                                 \key ->
-                                    if (key == delete || key == backspace) && autocomplete.selected /= Nothing then
-                                        Just <| autocomplete.onUpdate Clear
+                                    if (key == delete || key == backspace) && input.selected /= Nothing then
+                                        Just <| input.onUpdate Clear
                                     else if key == tab then
-                                        Just <| autocomplete.onUpdate (Select)
+                                        Just <| input.onUpdate (SelectFocused)
                                     else if key == enter then
-                                        if autocomplete.isOpen then
-                                            Just <| autocomplete.onUpdate (Batch [ CloseMenu, Select ])
+                                        if input.isOpen then
+                                            Just <| input.onUpdate (Batch [ CloseMenu, SelectFocused ])
                                         else
-                                            Just <| autocomplete.onUpdate (OpenMenu)
-                                    else if key == downArrow && not autocomplete.isOpen then
-                                        Just <| autocomplete.onUpdate (OpenMenu)
-                                    else if key == downArrow && autocomplete.isOpen then
+                                            Just <| input.onUpdate (OpenMenu)
+                                    else if key == downArrow && not input.isOpen then
+                                        Just <| input.onUpdate (OpenMenu)
+                                    else if key == downArrow && input.isOpen then
                                         Maybe.map
-                                            (autocomplete.onUpdate << SetFocus << Just)
+                                            (input.onUpdate << SetFocus << Just)
                                             next
-                                    else if key == upArrow && not autocomplete.isOpen then
-                                        Just <| autocomplete.onUpdate (OpenMenu)
-                                    else if key == upArrow && autocomplete.isOpen then
+                                    else if key == upArrow && not input.isOpen then
+                                        Just <| input.onUpdate (OpenMenu)
+                                    else if key == upArrow && input.isOpen then
                                         Maybe.map
-                                            (autocomplete.onUpdate << SetFocus << Just)
+                                            (input.onUpdate << SetFocus << Just)
                                             prev
                                     else
                                         Nothing
@@ -1627,7 +1924,7 @@ searchSelect style attrs input =
                                 :: attrsWithoutSpacing
                         , children =
                             Internal.Normal
-                                [ case autocomplete.selected of
+                                [ case input.selected of
                                     Nothing ->
                                         Element.text ""
 
@@ -1653,25 +1950,25 @@ searchSelect style attrs input =
                                             :: Attr.width Attr.fill
                                             :: Attr.toAttr
                                                 (onFocusOut
-                                                    (autocomplete.onUpdate CloseMenu)
+                                                    (input.onUpdate CloseMenu)
                                                 )
                                             :: Attr.toAttr
                                                 (onFocusIn
-                                                    (autocomplete.onUpdate OpenMenu)
+                                                    (input.onUpdate OpenMenu)
                                                 )
                                             :: (Attr.attribute "role" "menu")
                                             :: type_ "text"
                                             :: Attr.toAttr (Html.Attributes.class "focus-override")
                                             :: Events.onInput
                                                 (\q ->
-                                                    autocomplete.onUpdate
+                                                    input.onUpdate
                                                         (Batch
                                                             [ SetQuery q
                                                             , SetFocus (getFocus q)
                                                             ]
                                                         )
                                                 )
-                                            :: valueAttr autocomplete.query
+                                            :: valueAttr input.query
                                             :: []
                                     , child = Internal.Empty
                                     , absolutelyPositioned = Nothing
@@ -1704,7 +2001,7 @@ searchSelect style attrs input =
                     else
                         Element.below
                    )
-                    (if autocomplete.isOpen && not (List.isEmpty matches) then
+                    (if input.isOpen && not (List.isEmpty matches) then
                         [ column menuStyle
                             (Attr.inlineStyle [ ( "z-index", "20" ), ( "background-color", "white" ) ]
                                 :: pointer
@@ -1717,7 +2014,7 @@ searchSelect style attrs input =
                         []
                     )
     in
-        applyLabel Nothing ([ Attr.inlineStyle [ ( "cursor", "auto" ) ] ] ++ attrsWithSpacing) input.label input.errors input.disabled False [ fullElement ]
+        applyLabel Nothing ([ Attr.inlineStyle [ ( "cursor", "auto" ) ] ] ++ attrsWithSpacing) input.label errors isDisabled False [ fullElement ]
 
 
 {-| -}

@@ -137,6 +137,7 @@ main =
               , manyLunches = [ Taco, Burrito ]
               , openMenu = False
               , search = Input.autocomplete Nothing Search
+              , selectMenu = Input.dropMenu Nothing SelectOne
               }
             , Cmd.none
             )
@@ -153,7 +154,8 @@ type Msg
     | ChangeText String
     | UpdateLunches (List Lunch)
     | ShowMenu Bool
-    | Search (Input.AutocompleteMsg Lunch)
+    | Search (Input.SelectMsg Lunch)
+    | SelectOne (Input.SelectMsg Lunch)
 
 
 update msg model =
@@ -191,7 +193,12 @@ update msg model =
             )
 
         Search searchMsg ->
-            ( { model | search = Input.updateAutocomplete searchMsg model.search }
+            ( { model | search = Input.updateSelection searchMsg model.search }
+            , Cmd.none
+            )
+
+        SelectOne searchMsg ->
+            ( { model | selectMenu = Input.updateSelection searchMsg model.selectMenu }
             , Cmd.none
             )
 
@@ -208,7 +215,7 @@ view model =
             column Page
                 [ spacing 20 ]
                 [ Input.text Field
-                    [ padding 10 ]
+                    [ padding 10, width ]
                     { onChange = ChangeText
                     , value = model.text
                     , label =
@@ -216,11 +223,9 @@ view model =
                             { label = Input.labelLeft (el None [ verticalCenter ] (text "Yup"))
                             , text = "Placeholder!"
                             }
-                    , disabled = False
-                    , errors =
-                        Input.errorAbove (el Error [] (text "DO this one"))
-
-                    -- Input.error (el Error [] (text "DO this one") | Input.noErrors | Input.errorBelow
+                    , options =
+                        [ Input.errorAbove (el Error [] (text "DO this one"))
+                        ]
                     }
                 , Input.search Field
                     [ spacing 5, padding 5 ]
@@ -231,11 +236,7 @@ view model =
                             { label = Input.labelLeft (text "Yup")
                             , text = "Placeholder!"
                             }
-                    , disabled = False
-                    , errors =
-                        Input.noErrors
-
-                    -- Input.error (el Error [] (text "DO this one") | Input.noErrors | Input.errorBelow
+                    , options = []
                     }
                 , Input.multiline Field
                     [ spacing 5, padding 10 ]
@@ -246,9 +247,9 @@ view model =
                             { label = Input.labelLeft (text "Yup")
                             , text = "Placeholder!"
                             }
-                    , disabled = False
-                    , errors =
-                        Input.errorAbove (el Error [] (text "DO this one"))
+                    , options =
+                        [ Input.errorAbove (el Error [] (text "DO this one"))
+                        ]
 
                     -- Input.error (el Error [] (text "DO this one") | Input.noErrors | Input.errorBelow
                     }
@@ -257,16 +258,14 @@ view model =
                     { onChange = Check
                     , checked = model.checkbox
                     , label = el None [] (text "hello!")
-                    , errors = Input.noErrors
-                    , disabled = False
+                    , options = []
                     }
                 , Input.checkboxWith Checkbox
                     []
                     { onChange = Check
                     , checked = model.checkbox
                     , label = el None [] (text "hello!")
-                    , errors = Input.noErrors
-                    , disabled = False
+                    , options = []
                     , icon =
                         \on ->
                             circle 7
@@ -285,9 +284,8 @@ view model =
                     { onChange = ChooseLunch
                     , selected = Just model.lunch
                     , label = Input.labelAbove (text "Lunch")
-                    , errors = Input.noErrors
-                    , disabled = False
-                    , options =
+                    , options = []
+                    , choices =
                         [ Input.optionWith Burrito <|
                             \selected ->
                                 Element.row None
@@ -308,9 +306,8 @@ view model =
                     { onChange = ChooseLunch
                     , selected = Just model.lunch
                     , label = Input.labelAbove <| text "Lunch"
-                    , errors = Input.noErrors
-                    , disabled = False
-                    , options =
+                    , options = []
+                    , choices =
                         [ Input.option Taco (text "Taco!")
                         , Input.option Gyro (text "Gyro")
                         , Input.optionWith Burrito <|
@@ -330,13 +327,10 @@ view model =
                     [ padding 10
                     , spacing 20
                     ]
-                    { onChange = ChooseLunch
-                    , isOpen = model.openMenu
-                    , show = ShowMenu
-                    , selected = Just model.lunch
-                    , label = Input.labelAbove <| text "Lunch"
-                    , errors = Input.noErrors
-                    , disabled = False
+                    { label = Input.labelAbove <| text "Lunch"
+                    , with = model.selectMenu
+                    , max = 5
+                    , options = []
                     , menu =
                         Input.menuAbove SubMenu
                             []
@@ -355,15 +349,14 @@ view model =
                                         ]
                             ]
                     }
-                , Input.searchSelect Field
+                , Input.select Field
                     [ padding 10
                     , spacing 0
                     ]
-                    { max = 5
-                    , label = Input.hiddenLabel "Lunch" -- (el None [ paddingRight 20 ] (text "Lunch"))
-                    , errors = Input.errorAbove (text "wut")
-                    , disabled = False
-                    , autocomplete = model.search
+                    { label = Input.hiddenLabel "Lunch"
+                    , with = model.search
+                    , options = [ Input.errorAbove (text "wut") ]
+                    , max = 5
                     , menu =
                         Input.menu SubMenu
                             []
@@ -387,24 +380,21 @@ view model =
                     { onChange = Check
                     , checked = model.checkbox
                     , label = el None [] (text "hello!")
-                    , errors = Input.noErrors
-                    , disabled = False
+                    , options = []
                     }
                 , Input.checkbox Checkbox
                     []
                     { onChange = Check
                     , checked = model.checkbox
                     , label = el None [] (text "hello!")
-                    , errors = Input.noErrors
-                    , disabled = False
+                    , options = []
                     }
                 , Input.checkbox Checkbox
                     []
                     { onChange = Check
                     , checked = model.checkbox
                     , label = el None [] (text "hello!")
-                    , errors = Input.noErrors
-                    , disabled = False
+                    , options = []
                     }
 
                 -- , Input.select Field
