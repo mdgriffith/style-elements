@@ -103,14 +103,21 @@ importUrl { url, name } =
     Internal.ImportFont name url
 
 
-{-| Font size specified in `px`
+{-| Font size as `px`
 -}
 size : Float -> Property class variation
 size size =
     Internal.Font "font-size" (toString size ++ "px")
 
 
-{-| Given as a ratio of the `Font.size`.
+{-| This is the only unitless value in the library that isn't `px`.
+
+Given as a *proportion* of the `Font.size`.
+
+This means the final lineHeight in px is:
+
+      Font.size * Font.lineHeight == lineHeightInPx
+
 -}
 lineHeight : Float -> Property class variation
 lineHeight height =

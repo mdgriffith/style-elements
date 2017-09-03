@@ -859,29 +859,11 @@ type alias NamedOnGrid thing =
     Internal.NamedOnGrid thing
 
 
-{-| Specify a specific position on a normal `grid`.
+{-| A specific position on a `grid`.
 -}
 cell : GridPosition -> Element style variation msg -> OnGrid (Element style variation msg)
 cell box el =
     OnGrid <| Modify.addAttr (GridCoords <| Style.GridPosition box) el
-
-
-
-{-
-   Could make a dynamic positioner based on list index.
-
-        at
-           (\i ->
-               { start :
-                   ( i % 3
-                   , i / 3
-                   )
-               , width = 1
-               , height = 1
-               }
-           )
-           (text "Hi!")
--}
 
 
 {-| Specify a named postion on a `namedGrid`.
