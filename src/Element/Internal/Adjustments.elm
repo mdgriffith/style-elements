@@ -201,20 +201,27 @@ positionNearby parent elm =
                                     { node = "div"
                                     , style = Nothing
                                     , attrs =
-                                        [ tag "above-below-intermediate"
-                                        , PointerEvents False
-                                        , PositionFrame
-                                            (Absolute
-                                                (if nearbyPosition == (Just (Nearby Above)) then
-                                                    BottomLeft
-                                                 else
-                                                    TopLeft
-                                                )
-                                            )
-                                        , Position Nothing (Just 0) Nothing
-                                        , VAlign Bottom
-                                        , Width (Internal.Percent 100)
-                                        ]
+                                        let
+                                            addWidth attrs =
+                                                if isLayout then
+                                                    Width (Internal.Percent 100) :: attrs
+                                                else
+                                                    attrs
+                                        in
+                                            addWidth
+                                                [ tag "above-below-intermediate"
+                                                , PointerEvents False
+                                                , PositionFrame
+                                                    (Absolute
+                                                        (if nearbyPosition == (Just (Nearby Above)) then
+                                                            BottomLeft
+                                                         else
+                                                            TopLeft
+                                                        )
+                                                    )
+                                                , Position Nothing (Just 0) Nothing
+                                                , VAlign Bottom
+                                                ]
                                     , child =
                                         el
                                             |> Modify.setAttrs
