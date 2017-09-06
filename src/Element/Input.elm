@@ -9,7 +9,8 @@ module Element.Input
         , multiline
         , search
         , email
-        , password
+        , newPassword
+        , currentPassword
         , radio
         , radioRow
         , choice
@@ -24,6 +25,9 @@ module Element.Input
         , errorAbove
         , disabled
         , placeholder
+        , allowSpellcheck
+        , autofill
+        , autofillSection
         , select
         , Select
         , menu
@@ -47,7 +51,9 @@ module Element.Input
 
 ## Text Input
 
-@docs Text, text, multiline, search, email, password
+@docs Text, text, multiline, search, email
+
+@docs username, newPassword, currentPassword
 
 
 ## 'Choose One' Inputs
@@ -64,7 +70,7 @@ module Element.Input
 
 ## Options
 
-@docs errorAbove, errorBelow, disabled, focusOnLoad
+@docs errorAbove, errorBelow, disabled, focusOnLoad, autofill, autofillSection
 
 -}
 
@@ -124,9 +130,19 @@ disabledAttr =
     Attr.toAttr << Html.Attributes.disabled
 
 
+spellcheckAttr : Bool -> Internal.Attribute variation msg
+spellcheckAttr =
+    Attr.toAttr << Html.Attributes.spellcheck
+
+
 readonlyAttr : Bool -> Internal.Attribute variation msg
 readonlyAttr =
     Attr.toAttr << Html.Attributes.readonly
+
+
+autofillAttr : String -> Internal.Attribute variation msg
+autofillAttr =
+    Attr.attribute "autocomplete"
 
 
 autofocusAttr : Bool -> Internal.Attribute variation msg
@@ -137,6 +153,29 @@ autofocusAttr =
 hidden : Attribute variation msg
 hidden =
     Attr.inlineStyle [ ( "position", "absolute" ), ( "opacity", "0" ) ]
+
+
+addOptionsAsAttrs : List (Option style variation msg) -> List (Attribute variation1 msg1) -> List (Attribute variation1 msg1)
+addOptionsAsAttrs options attrs =
+    let
+        renderOption option attrs =
+            case option of
+                FocusOnLoad ->
+                    autofocusAttr True :: attrs
+
+                SpellCheck ->
+                    spellcheckAttr True :: attrs
+
+                AutoFill fill ->
+                    autofillAttr fill :: attrs
+
+                Disabled ->
+                    attrs
+
+                ErrorOpt _ ->
+                    attrs
+    in
+        List.foldr renderOption attrs options
 
 
 {-| -}
@@ -195,12 +234,6 @@ checkbox style attrs input =
             else
                 attrs
 
-        withAutofocus attrs =
-            if List.any ((==) FocusOnLoad) input.options then
-                autofocusAttr True :: attrs
-            else
-                attrs
-
         forErrors opt =
             case opt of
                 ErrorOpt err ->
@@ -220,7 +253,7 @@ checkbox style attrs input =
                 { node = "input"
                 , style = Nothing
                 , attrs =
-                    (withAutofocus << withError << withDisabled)
+                    (addOptionsAsAttrs input.options << withError << withDisabled)
                         [ type_ "checkbox"
                         , checked input.checked
                         , Events.onCheck input.onChange
@@ -259,12 +292,6 @@ styledCheckbox style attrs input =
             else
                 attrs
 
-        withAutofocus attrs =
-            if List.any ((==) FocusOnLoad) input.options then
-                autofocusAttr True :: attrs
-            else
-                attrs
-
         forErrors opt =
             case opt of
                 ErrorOpt err ->
@@ -284,7 +311,7 @@ styledCheckbox style attrs input =
                 { node = "input"
                 , style = Nothing
                 , attrs =
-                    (withAutofocus << withError << withDisabled)
+                    (addOptionsAsAttrs input.options << withError << withDisabled)
                         [ type_ "checkbox"
                         , checked input.checked
                         , Events.onCheck input.onChange
@@ -316,37 +343,76 @@ type TextKind
 {-| -}
 text : style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
 text =
-    textHelper Plain
+    textHelper Plain []
 
 
 {-| -}
 search : style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
 search =
-    textHelper Search
+    textHelper Search []
+
+
+{-| A password input that allows the browser to autofill.
+
+It's `newPassword` instead of just `password` because it gives the browser a hint on what type of password input it is.
+
+-}
+newPassword : style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
+newPassword =
+    textHelper Password [ AutoFill "new-password" ]
 
 
 {-| -}
-password : style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
-password =
-    textHelper Password
+currentPassword : style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
+currentPassword =
+    textHelper Password [ AutoFill "current-password" ]
+
+
+{-| -}
+username : style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
+username =
+    textHelper Plain [ AutoFill "username" ]
 
 
 {-| -}
 email : style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
 email =
-    textHelper Email
+    textHelper Email [ AutoFill "email" ]
 
 
 {-| -}
 multiline : style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
 multiline =
-    textHelper TextArea
+    textHelper TextArea []
 
 
 {-| -}
-textHelper : TextKind -> style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
-textHelper kind style attrs input =
+textHelper : TextKind -> List (Option style variation msg) -> style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
+textHelper kind addedOptions style attrs input =
     let
+        options =
+            List.foldr combineFill ( [], Nothing ) (addedOptions ++ input.options)
+                |> \( opts, fill ) ->
+                    case fill of
+                        Nothing ->
+                            opts
+
+                        Just allFills ->
+                            AutoFill (String.join " " allFills) :: opts
+
+        combineFill opt ( newOpts, existingFill ) =
+            case opt of
+                AutoFill fill ->
+                    case existingFill of
+                        Nothing ->
+                            ( newOpts, Just [ fill ] )
+
+                        Just exist ->
+                            ( newOpts, Just (fill :: exist) )
+
+                _ ->
+                    ( opt :: newOpts, existingFill )
+
         forSpacing attr =
             case attr of
                 Internal.Spacing x y ->
@@ -372,13 +438,13 @@ textHelper kind style attrs input =
                     attrs
 
         withDisabled attrs =
-            if List.any ((==) Disabled) input.options then
+            if List.any ((==) Disabled) options then
                 Attr.class "disabled-input" :: disabledAttr True :: attrs
             else
                 attrs
 
         withReadonly attrs =
-            if List.any ((==) Disabled) input.options then
+            if List.any ((==) Disabled) options then
                 Attr.class "disabled-input" :: readonlyAttr True :: attrs
             else
                 attrs
@@ -398,10 +464,10 @@ textHelper kind style attrs input =
                 attrs
 
         errors =
-            List.filterMap forErrors input.options
+            List.filterMap forErrors options
 
         isDisabled =
-            List.any ((==) Disabled) input.options
+            List.any ((==) Disabled) options
 
         kindAsText =
             case kind of
@@ -421,7 +487,7 @@ textHelper kind style attrs input =
                     "text"
 
         withAutofocus attrs =
-            if List.any ((==) FocusOnLoad) input.options then
+            if List.any ((==) FocusOnLoad) options then
                 autofocusAttr True :: attrs
             else
                 attrs
@@ -434,8 +500,13 @@ textHelper kind style attrs input =
                         , style = Just style
                         , attrs =
                             (Attr.inlineStyle [ ( "resize", "none" ) ] :: Events.onInput input.onChange :: attrs)
-                                |> (withPlaceholder >> withReadonly >> withError >> withAutofocus)
-                        , child = Internal.Text Internal.RawText input.value
+                                |> (withPlaceholder >> withReadonly >> withError >> addOptionsAsAttrs options)
+                        , child =
+                            Internal.Text
+                                { decoration = Internal.RawText
+                                , inline = False
+                                }
+                                input.value
                         , absolutelyPositioned = Nothing
                         }
 
@@ -445,7 +516,7 @@ textHelper kind style attrs input =
                         , style = Just style
                         , attrs =
                             (type_ kindAsText :: Events.onInput input.onChange :: valueAttr input.value :: attrs)
-                                |> (withPlaceholder >> withDisabled >> withError >> withAutofocus)
+                                |> (withPlaceholder >> withDisabled >> withError >> addOptionsAsAttrs options)
                         , child = Internal.Empty
                         , absolutelyPositioned = Nothing
                         }
@@ -465,8 +536,47 @@ type Option style variation msg
     = ErrorOpt (Error style variation msg)
     | Disabled
     | FocusOnLoad
+    | AutoFill String
+    | SpellCheck
 
 
+type FillType
+    = Username
+    | NewPassword
+    | CurrentPassword
+
+
+{-| Allow spellcheck for this input. Only works on text based inputs.
+-}
+allowSpellcheck : Option style variation msg
+allowSpellcheck =
+    SpellCheck
+
+
+{-| Give a hint to the browser on what data can be used to autofill this input.
+
+This can be very useful to allow the browser to autofill address and credit card forms.
+
+For more general information check out the [`autocomplete` attribute of `input` elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input)
+
+-}
+autofill : String -> Option style variation msg
+autofill =
+    AutoFill
+
+
+{-| -}
+autofillSection : String -> Option style variation msg
+autofillSection section =
+    AutoFill ("section-" ++ section)
+
+
+{-| Disable an input. This means that the input will not receive focus and can't be changed by the user.
+
+Does not change the styling of the inputs unless they're controlled by the browser like a basic checkbox or standard radio button.
+
+-}
+disabled : Option style variation msg
 disabled =
     Disabled
 
@@ -1464,15 +1574,16 @@ selectMenu style attrs input =
                                         (input.onUpdate CloseMenu)
                                     )
                                 )
-                        , if isDisabled then
-                            Nothing
-                          else
-                            Just
-                                (Attr.toAttr <|
-                                    (onFocusIn
-                                        (input.onUpdate OpenMenu)
-                                    )
-                                )
+
+                        -- , if isDisabled then
+                        --     Nothing
+                        --   else
+                        --     Just
+                        --         (Attr.toAttr <|
+                        --             (onFocusIn
+                        --                 (input.onUpdate OpenMenu)
+                        --             )
+                        --         )
                         , if isDisabled then
                             Nothing
                           else
