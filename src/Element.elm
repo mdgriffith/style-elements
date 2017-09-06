@@ -54,8 +54,8 @@ module Element
         , onRight
         , onLeft
         , screen
-        , numbered
-        , bulleted
+          -- , numbered
+          -- , bulleted
         , layout
         , viewport
         , toHtml
@@ -109,7 +109,7 @@ Make sure to check out the Style Element specific attributes in `Element.Attribu
 
 ## Text Layout
 
-@docs textLayout, paragraph, numbered, bulleted
+@docs textLayout, paragraph
 
 
 ## Grid Layout
@@ -220,43 +220,43 @@ empty =
 {-| -}
 text : String -> Element style variation msg
 text =
-    Text NoDecoration
+    Text { decoration = NoDecoration, inline = False }
 
 
 {-| -}
 bold : String -> Element style variation msg
 bold =
-    Text Bold
+    Text { decoration = Bold, inline = False }
 
 
 {-| -}
 italic : String -> Element style variation msg
 italic =
-    Text Italic
+    Text { decoration = Italic, inline = False }
 
 
 {-| -}
 strike : String -> Element style variation msg
 strike =
-    Text Strike
+    Text { decoration = Strike, inline = False }
 
 
 {-| -}
 underline : String -> Element style variation msg
 underline =
-    Text Underline
+    Text { decoration = Underline, inline = False }
 
 
 {-| -}
 sub : String -> Element style variation msg
 sub =
-    Text Sub
+    Text { decoration = Sub, inline = False }
 
 
 {-| -}
 super : String -> Element style variation msg
 super =
-    Text Super
+    Text { decoration = Super, inline = False }
 
 
 {-| A numbered list of items, rendered as a column.
@@ -591,35 +591,9 @@ paragraph style attrs children =
         , style = Just style
         , layout = Style.TextLayout False
         , attrs = attrs
-        , children = Normal <| List.map (Modify.addAttrToNonText Inline) children
+        , children = Normal <| List.map Modify.makeInline children
         , absolutelyPositioned = Nothing
         }
-
-
-{-| -}
-inlineChildren :
-    String
-    -> Maybe style
-    -> List (Attribute variation msg)
-    -> List (Element style variation msg)
-    -> Element style variation msg
-inlineChildren node style attrs children =
-    let
-        ( child, others ) =
-            case children of
-                [] ->
-                    ( empty, Nothing )
-
-                child :: others ->
-                    ( Modify.addAttrToNonText Inline child, Just <| List.map (Modify.addAttrToNonText Inline) others )
-    in
-        Element
-            { node = node
-            , style = style
-            , attrs = attrs
-            , child = child
-            , absolutelyPositioned = others
-            }
 
 
 {-| -}

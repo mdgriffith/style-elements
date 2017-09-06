@@ -15,6 +15,7 @@ module Element.Internal.Modify
         , removeStyle
         , getChild
         , setAttrs
+        , makeInline
         )
 
 {-| -}
@@ -66,6 +67,32 @@ setNode node el =
                 , child = (Text dec content)
                 , absolutelyPositioned = Nothing
                 }
+
+
+makeInline : Element style variation msg -> Element style variation msg
+makeInline el =
+    case el of
+        Empty ->
+            Empty
+
+        Raw h ->
+            Raw h
+
+        Spacer x ->
+            Spacer x
+
+        Layout elm ->
+            Layout { elm | attrs = (Internal.Inline :: elm.attrs) }
+
+        Element elm ->
+            Element
+                { elm
+                    | attrs = (Internal.Inline :: elm.attrs)
+                    , child = makeInline elm.child
+                }
+
+        Text decoration content ->
+            Text { decoration | inline = True } content
 
 
 addAttrToNonText : Attribute variation msg -> Element style variation msg -> Element style variation msg

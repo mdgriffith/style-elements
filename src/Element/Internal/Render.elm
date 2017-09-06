@@ -325,31 +325,44 @@ renderElement parent stylesheet order elm =
             in
                 Html.div [ Html.Attributes.style inline ] []
 
-        Text dec str ->
-            case dec of
-                NoDecoration ->
-                    Html.span [] [ Html.text str ]
+        Text { decoration, inline } str ->
+            let
+                attrs =
+                    if inline then
+                        Html.Attributes.style
+                            [ ( "display", "inline" ) ]
+                    else
+                        Html.Attributes.style
+                            [ ( "white-space", "pre" )
+                            , ( "text-overflow", "ellipsis" )
+                            , ( "overflow", "hidden" )
+                            , ( "display", "block" )
+                            ]
+            in
+                case decoration of
+                    NoDecoration ->
+                        Html.span [ attrs ] [ Html.text str ]
 
-                RawText ->
-                    Html.text str
+                    RawText ->
+                        Html.text str
 
-                Bold ->
-                    Html.strong [] [ Html.text str ]
+                    Bold ->
+                        Html.strong [ attrs ] [ Html.text str ]
 
-                Italic ->
-                    Html.em [] [ Html.text str ]
+                    Italic ->
+                        Html.em [ attrs ] [ Html.text str ]
 
-                Underline ->
-                    Html.u [] [ Html.text str ]
+                    Underline ->
+                        Html.u [ attrs ] [ Html.text str ]
 
-                Strike ->
-                    Html.s [] [ Html.text str ]
+                    Strike ->
+                        Html.s [ attrs ] [ Html.text str ]
 
-                Super ->
-                    Html.sup [] [ Html.text str ]
+                    Super ->
+                        Html.sup [ attrs ] [ Html.text str ]
 
-                Sub ->
-                    Html.sub [] [ Html.text str ]
+                    Sub ->
+                        Html.sub [ attrs ] [ Html.text str ]
 
         Element { node, style, attrs, child, absolutelyPositioned } ->
             let

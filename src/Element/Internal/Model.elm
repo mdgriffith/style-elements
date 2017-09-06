@@ -177,7 +177,11 @@ adjust fn parent el =
 type Element style variation msg
     = Empty
     | Spacer Float
-    | Text Decoration String
+    | Text
+        { decoration : Decoration
+        , inline : Bool
+        }
+        String
     | Element
         { node : String
         , style : Maybe style
