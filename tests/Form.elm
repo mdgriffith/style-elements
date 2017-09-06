@@ -227,7 +227,7 @@ view model =
                             , text = "Placeholder!"
                             }
                     , options =
-                        [ Input.errorAbove (el Error [] (text "DO this one"))
+                        [ Input.errorBelow (el Error [] (text "This is an Error!  You've somehow filled this checkbox incorrectly!"))
                         ]
                     }
                 , Input.search Field
@@ -236,7 +236,7 @@ view model =
                     , value = model.text
                     , label =
                         Input.placeholder
-                            { label = Input.labelLeft (text "Yup")
+                            { label = Input.labelLeft (text "Search")
                             , text = "Placeholder!"
                             }
                     , options = []
@@ -247,14 +247,12 @@ view model =
                     , value = model.text
                     , label =
                         Input.placeholder
-                            { label = Input.labelLeft (text "Yup")
+                            { label = Input.labelLeft (text "Multiline")
                             , text = "Placeholder!"
                             }
                     , options =
-                        [ Input.errorAbove (el Error [] (text "DO this one"))
+                        [ Input.errorBelow (el Error [] (text "This one is wrong too!"))
                         ]
-
-                    -- Input.error (el Error [] (text "DO this one") | Input.noErrors | Input.errorBelow
                     }
                 , Input.checkbox Checkbox
                     []
@@ -378,214 +376,4 @@ view model =
                                         ]
                             ]
                     }
-                , Input.checkbox Checkbox
-                    []
-                    { onChange = Check
-                    , checked = model.checkbox
-                    , label = el None [] (text "hello!")
-                    , options = []
-                    }
-                , Input.checkbox Checkbox
-                    []
-                    { onChange = Check
-                    , checked = model.checkbox
-                    , label = el None [] (text "hello!")
-                    , options = []
-                    }
-                , Input.checkbox Checkbox
-                    []
-                    { onChange = Check
-                    , checked = model.checkbox
-                    , label = el None [] (text "hello!")
-                    , options = []
-                    }
-
-                -- , Input.grid Field
-                --     []
-                --     { onChange = ChooseLunch
-                --     , selected = Just model.lunch
-                --     , errors = Input.noErrors
-                --     , label = Input.labelAbove (text "Choose Lunch!")
-                --     , disabled = False
-                --     , columns = [ px 100, px 100, px 100, px 100 ]
-                --     , rows =
-                --         [ px 100
-                --         , px 100
-                --         , px 100
-                --         , px 100
-                --         ]
-                --     , cells =
-                --         [ Input.cell
-                --             { start = ( 0, 0 )
-                --             , width = 1
-                --             , height = 1
-                --             , value = Gyro
-                --             , el =
-                --                 el CustomRadio [] (text "Gyro")
-                --             }
-                --         , Input.cell
-                --             { start = ( 1, 1 )
-                --             , width = 1
-                --             , height = 2
-                --             , value = Taco
-                --             , el =
-                --                 (el CustomRadio [] (text "Taco"))
-                --             }
-                --         , Input.cellWith
-                --             { start = ( 2, 1 )
-                --             , width = 1
-                --             , height = 2
-                --             , value = Burrito
-                --             , view =
-                --                 \selected ->
-                --                     if selected then
-                --                         text ":D Burrito!"
-                --                     else
-                --                         text ":( Burrito"
-                --             }
-                --         ]
-                --     }
-                -- , Input.checkbox LabelBox
-                --     { onChange = Check
-                --     , checked = model.checkbox
-                --     , errors = Nothing
-                --     , label = el None [] (text "hello!")
-                --     }
-                -- -- |> Input.error True (el Error [] <| text "you must check!")
-                -- -- |> Input.label None [] (text "hello!")
-                -- , Input.label <|
-                --     Input.checkboxWith LabelBox
-                --         []
-                --         { onChange = Check
-                --         , checked = model.checkbox
-                --         , label = el LabelBox [] (text "hello!")
-                --         , errors = Nothing
-                --         , icon =
-                --             \on ->
-                --                 circle 7
-                --                     (if on then
-                --                         CheckboxChecked
-                --                      else
-                --                         Checkbox
-                --                     )
-                --                     []
-                --                     empty
-                --         }
-                -- , Input.label None [] (text "Lunch!") <|
-                --     Input.radio Field
-                --         [ padding 10
-                --         , spacing 5
-                --         ]
-                --         { onChange = ChooseLunch
-                --         , selected = Just model.lunch
-                --         , options =
-                --             [ Input.styledChoice Burrito
-                --                 (\selected ->
-                --                     let
-                --                         icon =
-                --                             if selected then
-                --                                 text ":D"
-                --                             else
-                --                                 text ":("
-                --                     in
-                --                         row CustomRadio
-                --                             [ spacing 5 ]
-                --                             [ icon, text "burrito" ]
-                --                 )
-                --             , Input.choice Taco (text "Taco!")
-                --             , Input.choice Gyro (text "Gyro")
-                --             ]
-                --         }
-                -- , Input.label None [] (text "Lunch") <|
-                --     Input.radioRow Field
-                --         [ padding 10, spacing 20 ]
-                --         { onChange = ChooseLunch
-                --         , selected = Just model.lunch
-                --         , options =
-                --             [ Input.choice Taco (text "Taco!")
-                --             , Input.choice Gyro (text "Gyro")
-                --             , Input.styledChoice Burrito
-                --                 (\selected ->
-                --                     let
-                --                         icon =
-                --                             if selected then
-                --                                 text ":D"
-                --                             else
-                --                                 text ":("
-                --                     in
-                --                         row None
-                --                             [ spacing 5 ]
-                --                             [ icon, text "burrito" ]
-                --                 )
-                --             ]
-                --         }
-                -- , Input.label None [] (text "A Greeting") <|
-                --     Input.error True (el Error [] (text "DO this one")) <|
-                --         Input.text Field
-                --             [ paddingXY 10 5 ]
-                --             { onChange = ChangeText
-                --             , value = model.text
-                --             }
-                -- , Input.label None [] (text "A Greeting") <|
-                --     Input.multiline Field
-                --         [ paddingXY 10 5 ]
-                --         { onChange = ChangeText
-                --         , value = model.text
-                --         }
-                -- , Input.search Field
-                --     [ paddingXY 10 5 ]
-                --     { onChange = ChangeText
-                --     , value = model.text
-                --     }
-                --     |> Input.label None [] (text "A Greeting")
-                -- , Input.label None [] (text "My super password") <|
-                --     Input.password Field
-                --         [ paddingXY 10 5 ]
-                --         { onChange = ChangeText
-                --         , value = model.text
-                --         }
-                -- , Input.grid Field
-                --     { onChange = ChooseLunch
-                --     , selected = Just model.lunch
-                --     , columns = [ px 100, px 100, px 100, px 100 ]
-                --     , rows =
-                --         [ px 100
-                --         , px 100
-                --         , px 100
-                --         , px 100
-                --         ]
-                --     }
-                --     []
-                --     [ Input.cell
-                --         { start = ( 0, 0 )
-                --         , width = 1
-                --         , height = 1
-                --         , value = Gyro
-                --         , el =
-                --             el CustomRadio [] (text "Gyro")
-                --         }
-                --     , Input.cell
-                --         { start = ( 1, 1 )
-                --         , width = 1
-                --         , height = 2
-                --         , value = Taco
-                --         , el =
-                --             (el CustomRadio [] (text "Taco"))
-                --         }
-                --     , Input.cellWith
-                --         { start = ( 2, 1 )
-                --         , width = 1
-                --         , height = 2
-                --         , value = Burrito
-                --         , view =
-                --             \selected ->
-                --                 if selected then
-                --                     text ":D Burrito!"
-                --                 else
-                --                     text ":( Burrito"
-                --         }
-                --     ]
-                -- , button Button
-                --     []
-                --     (text "Push me!")
                 ]
