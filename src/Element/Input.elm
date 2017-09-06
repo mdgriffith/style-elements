@@ -4,6 +4,7 @@ module Element.Input
         , Checkbox
         , styledCheckbox
         , StyledCheckbox
+        , username
         , text
         , Text
         , multiline
@@ -11,8 +12,10 @@ module Element.Input
         , email
         , newPassword
         , currentPassword
+        , Radio
         , radio
         , radioRow
+        , Choice
         , choice
         , styledChoice
         , Option
@@ -24,6 +27,7 @@ module Element.Input
         , errorBelow
         , errorAbove
         , disabled
+        , focusOnLoad
         , placeholder
         , allowSpellcheck
         , autofill
@@ -34,7 +38,7 @@ module Element.Input
         , menuAbove
         , SelectWith
         , autocomplete
-        , dropMenu
+        , drop
         , updateSelection
         , SelectMsg
         , selected
@@ -53,6 +57,8 @@ module Element.Input
 
 @docs Text, text, multiline, search, email
 
+The following text inputs give hints to the browser so they can be autofilled.
+
 @docs username, newPassword, currentPassword
 
 
@@ -60,7 +66,7 @@ module Element.Input
 
 @docs Radio, radio, radioRow, Choice, choice, styledChoice
 
-@docs select, menu, menuAbove
+@docs select, Select, SelectWith, autocomplete, drop, menu, menuAbove, selected, SelectMsg, updateSelection
 
 
 ## Labels
@@ -70,7 +76,7 @@ module Element.Input
 
 ## Options
 
-@docs errorAbove, errorBelow, disabled, focusOnLoad, autofill, autofillSection
+@docs Option, errorAbove, errorBelow, disabled, focusOnLoad, autofill, autofillSection, allowSpellcheck
 
 -}
 
@@ -524,6 +530,7 @@ textHelper kind addedOptions style attrs input =
         applyLabel Nothing [ spacing ] input.label errors isDisabled False [ inputElem ]
 
 
+{-| -}
 type alias Text style variation msg =
     { onChange : String -> msg
     , value : String
@@ -532,18 +539,13 @@ type alias Text style variation msg =
     }
 
 
+{-| -}
 type Option style variation msg
     = ErrorOpt (Error style variation msg)
     | Disabled
     | FocusOnLoad
     | AutoFill String
     | SpellCheck
-
-
-type FillType
-    = Username
-    | NewPassword
-    | CurrentPassword
 
 
 {-| Allow spellcheck for this input. Only works on text based inputs.
@@ -610,41 +612,53 @@ placeholder { text, label } =
             PlaceHolder text x
 
 
+{-| -}
 hiddenLabel : String -> Label style variation msg
 hiddenLabel =
     HiddenLabel
 
 
+{-| -}
 labelLeft : Element style variation msg -> Label style variation msg
 labelLeft =
     LabelOnLeft
 
 
+{-| -}
 labelRight : Element style variation msg -> Label style variation msg
 labelRight =
     LabelOnRight
 
 
+{-| -}
 labelAbove : Element style variation msg -> Label style variation msg
 labelAbove =
     LabelAbove
 
 
+{-| -}
 labelBelow : Element style variation msg -> Label style variation msg
 labelBelow =
     LabelAbove
 
 
+{-| Put the focus on this input when the page loads.
+
+Only one input should ahve this option turned on.
+
+-}
 focusOnLoad : Option style variation msg
 focusOnLoad =
     FocusOnLoad
 
 
+{-| -}
 errorBelow : Element style variation msg -> Option style variation msg
 errorBelow el =
     ErrorOpt <| ErrorBelow <| Modify.addAttr (Attr.attribute "aria-live" "assertive") el
 
 
+{-| -}
 errorAbove : Element style variation msg -> Option style variation msg
 errorAbove el =
     ErrorOpt <| ErrorAbove <| Modify.addAttr (Attr.attribute "aria-live" "assertive") el
@@ -841,6 +855,8 @@ applyLabel style attrs label errors isDisabled hasPointer input =
 {- Radio Options -}
 
 
+{-| Add choices to your radio and select menus.
+-}
 type Choice value style variation msg
     = Choice value (Element style variation msg)
     | ChoiceWith value (Bool -> Element style variation msg)
@@ -1219,11 +1235,18 @@ type Menu option style variation msg
     | MenuDown style (List (Attribute variation msg)) (List (Choice option style variation msg))
 
 
+{-| Create a dropdown menu.
+
+This is used with `Input.select`
+
+-}
 menu : style -> List (Attribute variation msg) -> List (Choice option style variation msg) -> Menu option style variation msg
 menu =
     MenuDown
 
 
+{-| A dropdown menu that goes up! A dropup!
+-}
 menuAbove : style -> List (Attribute variation msg) -> List (Choice option style variation msg) -> Menu option style variation msg
 menuAbove =
     MenuUp
@@ -1643,6 +1666,7 @@ selectMenu style attrs input =
         applyLabel Nothing attrsWithSpacing input.label errors isDisabled (not isDisabled) [ fullElement ]
 
 
+{-| -}
 type alias Select option style variation msg =
     { with : SelectWith option msg
     , max : Int
@@ -1652,6 +1676,7 @@ type alias Select option style variation msg =
     }
 
 
+{-| -}
 type SelectWith option msg
     = Autocomplete
         { query : String
@@ -1667,6 +1692,8 @@ type SelectWith option msg
         }
 
 
+{-| Create a `select` menu which shows options that are filtered by the text entered.
+-}
 autocomplete : Maybe option -> (SelectMsg option -> msg) -> SelectWith option msg
 autocomplete selected onUpdate =
     Autocomplete
@@ -1678,8 +1705,13 @@ autocomplete selected onUpdate =
         }
 
 
-dropMenu : Maybe option -> (SelectMsg option -> msg) -> SelectWith option msg
-dropMenu selected onUpdate =
+{-| Create a `select` menu which shows all options and allows the user to select one.
+
+Use this if you only have 3-5 options. If you have a ton of options, use `Input.autocomplete` instead!
+
+-}
+drop : Maybe option -> (SelectMsg option -> msg) -> SelectWith option msg
+drop selected onUpdate =
     SelectMenu
         { selected = selected
         , onUpdate = onUpdate
@@ -1687,6 +1719,8 @@ dropMenu selected onUpdate =
         }
 
 
+{-| Get the selected value from an `autocomplete` or a `drop` type that is used for your `Input.select` element.
+-}
 selected : SelectWith option msg -> Maybe option
 selected select =
     case select of
@@ -1697,6 +1731,7 @@ selected select =
             menu.selected
 
 
+{-| -}
 type SelectMsg opt
     = OpenMenu
     | CloseMenu
@@ -1708,6 +1743,7 @@ type SelectMsg opt
     | Batch (List (SelectMsg opt))
 
 
+{-| -}
 updateSelection : SelectMsg option -> SelectWith option msg -> SelectWith option msg
 updateSelection msg select =
     case msg of

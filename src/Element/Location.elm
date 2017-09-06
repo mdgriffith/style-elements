@@ -1,10 +1,10 @@
-module Element.Location exposing (..)
+module Element.Location exposing (nav, navColumn, header, content, footer, sidebar, search, modal)
 
 {-| This module is meant to capture the high-level, semantic areas of your page.
 
 @docs nav, navColumn
 
-@docs header, content, footer, sidebar
+@docs header, content, footer, sidebar, search
 
 @docs modal
 
