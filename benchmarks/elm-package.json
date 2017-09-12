@@ -8,6 +8,7 @@
         ".",
         "../elm-style-animation/src"
     ],
+    "native-modules": true,
     "exposed-modules": [
        
     ],
