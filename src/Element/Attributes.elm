@@ -310,13 +310,12 @@ Attributes that can be attached to any HTML tag but are less commonly used.
 -}
 
 import Element.Internal.Model as Internal exposing (..)
+import Html
+import Html.Attributes
+import Json.Decode as Json
 import Style.Internal.Model as Style exposing (Length)
 import Style.Internal.Render.Value as StyleValue
-import Html.Attributes
-import Html
 import VirtualDom
-import Json.Decode as Json
-import Style exposing (Style)
 
 
 {-| -}

@@ -42,8 +42,8 @@ These are for when you want to specify shadows manually. They're meant to be spe
 -}
 
 import Color exposing (Color)
-import Style.Internal.Model as Internal
 import Style exposing (Shadow, Property)
+import Style.Internal.Model as Internal
 
 
 {-| A simple glow by specifying the color and size.

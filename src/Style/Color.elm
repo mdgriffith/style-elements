@@ -10,9 +10,9 @@ Meant to be imported as
 
 -}
 
-import Style.Internal.Model as Internal
 import Color exposing (Color)
 import Style exposing (Property)
+import Style.Internal.Model as Internal
 import Style.Internal.Render.Value as Value
 
 

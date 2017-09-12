@@ -7,8 +7,7 @@ module Element.Keyed exposing (row, column, wrappedRow, wrappedColumn, grid, nam
 -}
 
 import Element exposing (Attribute, Element, OnGrid, Grid, NamedOnGrid, NamedGrid)
-import Element.Internal.Model exposing (Children(..))
-import Element.Internal.Model as Internal
+import Element.Internal.Model as Internal exposing (Children(..))
 import Style.Internal.Model as Style exposing (Length)
 
 

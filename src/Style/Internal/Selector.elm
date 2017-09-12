@@ -6,8 +6,8 @@ module Style.Internal.Selector exposing (Selector, child, formatName, free, getF
 
 -}
 
-import Style.Internal.Find as Findable
 import Regex
+import Style.Internal.Find as Findable
 
 
 {-| -}

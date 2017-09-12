@@ -40,9 +40,9 @@ Meant to be imported as:
 
 -}
 
+import Style exposing (Property)
 import Style.Internal.Model as Internal
 import Style.Internal.Render.Value as Value
-import Style exposing (Property)
 
 
 {-| -}

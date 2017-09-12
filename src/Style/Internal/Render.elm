@@ -2,13 +2,13 @@ module Style.Internal.Render exposing (stylesheet, unbatchedStylesheet, spacing,
 
 {-| -}
 
+import Style.Internal.Batchable as Batchable exposing (Batchable)
+import Style.Internal.Intermediate as Intermediate
 import Style.Internal.Model as Internal exposing (..)
+import Style.Internal.Render.Css as Css
 import Style.Internal.Render.Property as Render
 import Style.Internal.Render.Value as Value
 import Style.Internal.Selector as Selector exposing (Selector)
-import Style.Internal.Batchable as Batchable exposing (Batchable)
-import Style.Internal.Intermediate as Intermediate
-import Style.Internal.Render.Css as Css
 
 
 single : Bool -> Internal.Style class variation -> ( String, String )

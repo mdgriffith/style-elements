@@ -1,13 +1,13 @@
 module Main exposing (..)
 
+import Animation
+import Color
 import Element exposing (..)
 import Element.Attributes exposing (..)
 import Element.Events exposing (..)
-import Style
 import Html exposing (Html)
-import Color
+import Style
 import Style.Color as Color
-import Animation
 
 
 main : Program Never Model Msg
