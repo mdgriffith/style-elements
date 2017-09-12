@@ -45,15 +45,25 @@ root stylesheet elm =
         (embed False stylesheet :: render stylesheet elm)
 
 
+viewportCss : Internal.StyleSheet elem variation -> String
+viewportCss stylesheet =
+    normalizeFull () ++ stylesheet.css
+
+
+layoutCss : Internal.StyleSheet elem variation -> String
+layoutCss stylesheet =
+    normalize ++ stylesheet.css
+
+
 embed : Bool -> Internal.StyleSheet elem variation -> Html msg
 embed full stylesheet =
     Html.node "style"
         []
         [ Html.text <|
             if full then
-                normalizeFull () ++ stylesheet.css
+                viewportCss stylesheet
             else
-                normalize ++ stylesheet.css
+                layoutCss stylesheet
         ]
 
 
