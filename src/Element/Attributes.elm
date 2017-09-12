@@ -136,6 +136,7 @@ module Element.Attributes
         , datetime
         , pubdate
         , manifest
+        , Length
         )
 
 {-|
@@ -170,7 +171,7 @@ When applied to singular elements like `el`, alignment will affect the alignment
 
 ## Sizing
 
-@docs width, minWidth, maxWidth, height, minHeight, maxHeight, px, fill, percent
+@docs width, minWidth, maxWidth, height, minHeight, maxHeight, Length, px, fill, percent
 
 
 ## Spacing ++ Padding
@@ -310,13 +311,18 @@ Attributes that can be attached to any HTML tag but are less commonly used.
 -}
 
 import Element.Internal.Model as Internal exposing (..)
-import Style.Internal.Model as Style exposing (Length)
+import Style.Internal.Model as Style
 import Style.Internal.Render.Value as StyleValue
 import Html.Attributes
 import Html
 import VirtualDom
 import Json.Decode as Json
 import Style exposing (Style)
+
+
+{-| -}
+type alias Length =
+    Style.Length
 
 
 {-| -}
@@ -422,55 +428,55 @@ moveXY x y =
 
 
 {-| -}
-width : Length -> Attribute variation msg
+width : Style.Length -> Attribute variation msg
 width =
     Width
 
 
 {-| -}
-minWidth : Length -> Attribute variation msg
+minWidth : Style.Length -> Attribute variation msg
 minWidth len =
     Attr (Html.Attributes.style [ ( "min-width", StyleValue.length len ) ])
 
 
 {-| -}
-maxWidth : Length -> Attribute variation msg
+maxWidth : Style.Length -> Attribute variation msg
 maxWidth len =
     Attr (Html.Attributes.style [ ( "max-width", StyleValue.length len ) ])
 
 
 {-| -}
-minHeight : Length -> Attribute variation msg
+minHeight : Style.Length -> Attribute variation msg
 minHeight len =
     Attr (Html.Attributes.style [ ( "min-height", StyleValue.length len ) ])
 
 
 {-| -}
-maxHeight : Length -> Attribute variation msg
+maxHeight : Style.Length -> Attribute variation msg
 maxHeight len =
     Attr (Html.Attributes.style [ ( "max-height", StyleValue.length len ) ])
 
 
 {-| -}
-height : Length -> Attribute variation msg
+height : Style.Length -> Attribute variation msg
 height =
     Height
 
 
 {-| -}
-px : Float -> Length
+px : Float -> Style.Length
 px =
     Style.Px
 
 
 {-| -}
-fill : Float -> Length
+fill : Float -> Style.Length
 fill =
     Style.Fill
 
 
 {-| -}
-percent : Float -> Length
+percent : Float -> Style.Length
 percent =
     Style.Percent
 
@@ -611,7 +617,7 @@ classList =
 
     myStyle : Attribute msg
     myStyle =
-        style
+        inlineStyle
             [ ( "backgroundColor", "red" )
             , ( "height", "90px" )
             , ( "width", "100%" )
