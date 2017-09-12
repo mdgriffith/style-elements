@@ -424,7 +424,7 @@ hairline style =
 
 If you're using this library, I'd encourage you to try to solve your problem without using this escape hatch.
 
-Usage of this function makes the most sense when you're dealing with `Html` from another module or package.
+Usage of this function makes the most sense when you're dealing with `Html` from another module or package or if you need to craft something "manually" yourself.
 
 -}
 html : Html msg -> Element style variation msg
@@ -438,7 +438,11 @@ node str =
     Modify.setNode str
 
 
-{-| -}
+{-| Renders as a `<button>`
+
+Also is able to receive keyboard focus.
+
+-}
 button : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
 button style attrs child =
     Element
@@ -758,7 +762,7 @@ type alias NamedGrid style variation msg =
 
 Here's an example:
 
-    namedGrid MyGridStyle
+    namedGrid MyGridStyle []
         { columns = [ px 200, px 200, px 200, fill 1 ]
         , rows =
             [ px 200 => [ spanAll "header" ]
@@ -766,13 +770,13 @@ Here's an example:
             , px 200 => [ span 3 "content", span 1 "sidebar" ]
             , px 200 => [ spanAll "footer" ]
             ]
+        , cells =
+            [ named "header"
+                (el Box [] (text "box"))
+            , named "sidebar"
+                (el Box [] (text "box"))
+            ]
         }
-        []
-        [ named "header"
-            (el Box [] (text "box"))
-        , named "sidebar"
-            (el Box [] (text "box"))
-        ]
 
 **note:** this example uses rocket(`=>`) as a synonym for creating a tuple. For more, check out the [rocket update](https://github.com/NoRedInk/rocket-update) package!
 
@@ -892,7 +896,7 @@ link src el =
 
 Depending on the browsers configiration, it may open in a new window.
 
-    newTab "<http://zombo.com">
+    newTab "http://zombo.com"
         <| el MyStyle (text "Welcome to Zombocom")
 
 -}
@@ -935,7 +939,7 @@ download src el =
 {-| Make a link that will download a file and give it a specific filename.
 
     downloadAs
-        { src = "<http://zombo.com/schedule.pdf">
+        { src = "http://zombo.com/schedule.pdf">
         , filename = "zombocomSchedule.pdf"
         }
         <| el MyStyle (text "Welcome to Zombocom")
@@ -1071,7 +1075,9 @@ onLeft nearbys parent =
 
 {-| Position an element relative to the window.
 
-Essentially the same as `display: fixed`
+Essentially the same as `display: fixed`.
+
+If you're trying to make a modal, check out `Element.Location.modal`
 
 -}
 screen : Element style variation msg -> Element style variation msg
