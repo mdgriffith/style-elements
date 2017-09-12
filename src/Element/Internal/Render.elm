@@ -31,50 +31,49 @@ withFocus : String
 withFocus =
     """
 
-button.button-focus:focus {
+.style-elements button.button-focus:focus {
    outline: none;
    box-shadow: 0 0 3px 3px rgba(155,203,255,1.0);
    border-color: rgba(155,203,255,1.0);
 }
 
-textarea:focus, input:focus {
+.style-elements textarea:focus, .style-elements input:focus {
    outline: none;
    box-shadow: 0 0 2px 2px rgba(155,203,255,1.0);
    border-color: rgba(155,203,255,1.0);
 }
-input[type='checkbox'] {
+.style-elements input[type='checkbox'] {
     border-radius: 3px;
 }
-input[type='radio'] {
+.style-elements input[type='radio'] {
     border-radius: 7px;
 }
-input[type='radio']:focus {
+.style-elements input[type='radio']:focus {
     border-radius: 7px;
     box-shadow: 0 0 4px 4px rgba(155,203,255,1.0);
 }
 
-
-select.focus-override:focus, input.focus-override:focus {
+.style-elements select.focus-override:focus, .style-elements input.focus-override:focus {
     outline: none;
     box-shadow: none;
     border-color:transparent;
 }
-input.focus-override:focus ~ .alt-icon {
+.style-elements input.focus-override:focus ~ .alt-icon {
     box-shadow: 0 0 3px 3px rgba(155,203,255,1.0);
     border-color: rgba(155,203,255,1.0);
 }
-select.focus-override:focus ~ .alt-icon {
+.style-elements select.focus-override:focus ~ .alt-icon {
     box-shadow: 0 0 3px 3px rgba(155,203,255,1.0);
     border-color: rgba(155,203,255,1.0);
 }
-.arrows {
+.style-elements .arrows {
     display:block;
     position: relative;
     height: 10px;
     width: 10px;
 }
 /*
-.arrows::after {
+.style-elements .arrows::after {
     content: " ";
     position:absolute;
     top:-2px;
@@ -83,12 +82,11 @@ select.focus-override:focus ~ .alt-icon {
     height: 0;
     border-left: 5px solid transparent;
     border-right: 5px solid transparent;
-
     border-bottom: 5px solid black;
 }
 */
 
-.arrows::before {
+.style-elements .arrows::before {
     content: " ";
     position:absolute;
     top:2px;
@@ -97,7 +95,6 @@ select.focus-override:focus ~ .alt-icon {
     height: 0;
     border-left: 5px solid transparent;
     border-right: 5px solid transparent;
-
     border-top: 5px solid black;
 }
 
