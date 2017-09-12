@@ -38,7 +38,7 @@ module Element.Input
         , menuAbove
         , SelectWith
         , autocomplete
-        , drop
+        , dropMenu
         , updateSelection
         , SelectMsg
         , selected
@@ -66,7 +66,7 @@ The following text inputs give hints to the browser so they can be autofilled.
 
 @docs Radio, radio, radioRow, Choice, choice, styledChoice
 
-@docs select, Select, SelectWith, autocomplete, drop, menu, menuAbove, selected, SelectMsg, updateSelection
+@docs select, Select, SelectWith, autocomplete, dropMenu, menu, menuAbove, selected, SelectMsg, updateSelection
 
 
 ## Labels
@@ -1426,16 +1426,22 @@ selectMenu style attrs input =
                             :: Attr.spread
                             :: Attr.width Attr.fill
                             :: attrsWithoutSpacing
-                    else
-                        Events.onClick
-                            (input.onUpdate
-                                (if input.isOpen then
-                                    CloseMenu
-                                 else
-                                    OpenMenu
-                                )
-                            )
+                    else if input.isOpen && input.selected /= Nothing then
+                        Events.onClick (input.onUpdate CloseMenu)
                             :: pointer
+                            :: Attr.verticalCenter
+                            :: Attr.spread
+                            :: Attr.width Attr.fill
+                            :: attrsWithoutSpacing
+                    else if not input.isOpen && input.selected /= Nothing then
+                        Events.onClick (input.onUpdate OpenMenu)
+                            :: pointer
+                            :: Attr.verticalCenter
+                            :: Attr.spread
+                            :: Attr.width Attr.fill
+                            :: attrsWithoutSpacing
+                    else
+                        pointer
                             :: Attr.verticalCenter
                             :: Attr.spread
                             :: Attr.width Attr.fill
@@ -1541,7 +1547,7 @@ selectMenu style attrs input =
                                     :: Attr.attribute "role" "menuitemradio"
                                     :: isSelected
                             else
-                                Events.onClick (input.onUpdate (SelectValue (Just val)))
+                                Events.onClick (input.onUpdate (Batch [ CloseMenu, SelectValue (Just val) ]))
                                     :: Internal.Expand
                                     :: Attr.attribute "role" "menuitemradio"
                                     :: isSelected
@@ -1566,7 +1572,7 @@ selectMenu style attrs input =
                                     :: Attr.attribute "role" "menuitemradio"
                                     :: isSelected
                             else
-                                Events.onClick (input.onUpdate (SelectValue (Just val)))
+                                Events.onClick (input.onUpdate (Batch [ CloseMenu, SelectValue (Just val) ]))
                                     :: Internal.Expand
                                     :: Attr.attribute "role" "menuitemradio"
                                     :: isSelected
@@ -1597,16 +1603,15 @@ selectMenu style attrs input =
                                         (input.onUpdate CloseMenu)
                                     )
                                 )
-
-                        -- , if isDisabled then
-                        --     Nothing
-                        --   else
-                        --     Just
-                        --         (Attr.toAttr <|
-                        --             (onFocusIn
-                        --                 (input.onUpdate OpenMenu)
-                        --             )
-                        --         )
+                        , if isDisabled then
+                            Nothing
+                          else
+                            Just
+                                (Attr.toAttr <|
+                                    (onFocusIn
+                                        (input.onUpdate OpenMenu)
+                                    )
+                                )
                         , if isDisabled then
                             Nothing
                           else
@@ -1653,7 +1658,7 @@ selectMenu style attrs input =
                         [ column menuStyle
                             (Attr.inlineStyle [ ( "z-index", "20" ), ( "background-color", "white" ) ]
                                 :: pointer
-                                :: Events.onClick (input.onUpdate CloseMenu)
+                                -- :: Events.onClick (input.onUpdate CloseMenu)
                                 :: Attr.width Attr.fill
                                 :: menuAttrs
                             )
@@ -1693,6 +1698,11 @@ type SelectWith option msg
 
 
 {-| Create a `select` menu which shows options that are filtered by the text entered.
+
+This is the part which goes in your model.
+
+You'll need to update it using `Input.updateSelection`.
+
 -}
 autocomplete : Maybe option -> (SelectMsg option -> msg) -> SelectWith option msg
 autocomplete selected onUpdate =
@@ -1710,8 +1720,8 @@ autocomplete selected onUpdate =
 Use this if you only have 3-5 options. If you have a ton of options, use `Input.autocomplete` instead!
 
 -}
-drop : Maybe option -> (SelectMsg option -> msg) -> SelectWith option msg
-drop selected onUpdate =
+dropMenu : Maybe option -> (SelectMsg option -> msg) -> SelectWith option msg
+dropMenu selected onUpdate =
     SelectMenu
         { selected = selected
         , onUpdate = onUpdate
@@ -1719,7 +1729,7 @@ drop selected onUpdate =
         }
 
 
-{-| Get the selected value from an `autocomplete` or a `drop` type that is used for your `Input.select` element.
+{-| Get the selected value from an `autocomplete` or a `dropMenu` type that is used for your `Input.select` element.
 -}
 selected : SelectWith option msg -> Maybe option
 selected select =
@@ -2079,7 +2089,8 @@ searchSelect style attrs input =
                                     :: Attr.attribute "role" "menuitemradio"
                                     :: isSelected
                             else
-                                Events.onClick (input.onUpdate (Batch [ SetFocus (Just val), SelectFocused ]))
+                                Events.onMouseEnter (input.onUpdate <| SetFocus (Just val))
+                                    :: Events.onClick (input.onUpdate (Batch [ SetFocus (Just val), SelectFocused, CloseMenu ]))
                                     :: Internal.Expand
                                     :: Attr.attribute "role" "menuitemradio"
                                     :: isSelected
@@ -2109,7 +2120,8 @@ searchSelect style attrs input =
                                     :: Attr.attribute "role" "menuitemradio"
                                     :: isSelected
                             else
-                                Events.onClick (input.onUpdate (Batch [ SetFocus (Just val), SelectFocused ]))
+                                Events.onMouseEnter (input.onUpdate <| SetFocus (Just val))
+                                    :: Events.onClick (input.onUpdate (Batch [ SetFocus (Just val), SelectFocused, CloseMenu ]))
                                     :: Internal.Expand
                                     :: Attr.attribute "role" "menuitemradio"
                                     :: isSelected
@@ -2206,7 +2218,7 @@ searchSelect style attrs input =
                                                 Just <|
                                                     Attr.toAttr
                                                         (onFocusOut
-                                                            (input.onUpdate CloseMenu)
+                                                            (input.onUpdate (Batch [ SelectFocused, CloseMenu ]))
                                                         )
                                             , if isDisabled then
                                                 Nothing
@@ -2263,7 +2275,7 @@ searchSelect style attrs input =
                     else
                         Element.below
                    )
-                    (if input.isOpen && not (List.isEmpty matches) && not isDisabled then
+                    (if input.isOpen && not (List.isEmpty matches) && not isDisabled && (input.selected == Nothing) then
                         [ column menuStyle
                             (Attr.inlineStyle [ ( "z-index", "20" ), ( "background-color", "white" ) ]
                                 :: pointer
