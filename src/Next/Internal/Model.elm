@@ -187,6 +187,35 @@ layout el =
             ]
 
 
+{-| Classes Needed
+
+.el ->
+On every element. When is it needed?
+paragraph -> sets children as .inline
+
+.expanded-width/expanded-height ->
+class added instead of rendering
+
+.styled-01 ->
+This is the actual styling class that is generated.
+
+.alignLeft, .alignRight, .center, .spread, .verticalCenter, .alignTop, .alignBottom ->
+These definitions change depending on what type of parent is present.
+- Row, Column -> flexbox
+- TextLayout, Paragraph -> Float
+- container, el -> flexbox
+- grid -> unaffected?
+
+.first, .middle, .firstAndLast, .last ->
+- Used to set Spacing Margins
+- Could it be replaced by nth-child? (<https://developer.mozilla.org/en-US/docs/Web/CSS/:nth-child>)
+
+-- Elements Positioned Nearby
+
+  - Spacing doesn't directly apply to them (meaning nth-child selectors might not work)
+  - Parent Row/Column alignment should naturally not apply because nearby elements use `position:absolute`
+
+-}
 render : List Int -> Element msg -> Styled (Html msg)
 render index el =
     case el of
