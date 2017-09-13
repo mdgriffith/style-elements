@@ -26,10 +26,12 @@ Modifications have been annotated, but only a minified version is kept in the co
 *    IE on Windows Phone and in iOS.
 */
 
-.style-elements html {
-    
+html {
     -ms-text-size-adjust: 100%; /* 2 */
     -webkit-text-size-adjust: 100%; /* 2 */
+    margin: 0;
+    padding: 0;
+    border: 0;
 }
 
 /* Sections
@@ -38,8 +40,7 @@ Modifications have been annotated, but only a minified version is kept in the co
 /**
 * Remove the margin in all browsers (opinionated).
 */
-
-.style-elements body {
+body {
     margin: 0;
 }
 
@@ -489,6 +490,7 @@ outline: 1px dotted ButtonText;
     display: table;
     clear: both;
 }
+
 
 
 /**
