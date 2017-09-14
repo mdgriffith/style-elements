@@ -5,9 +5,9 @@ import Benchmark.Runner exposing (BenchmarkProgram, program)
 import Style exposing (..)
 import Style.Font as Font
 import Style.Border as Border
-import Style.Media
 import Style.Sheet
 import Color
+import Style.Color as Color
 
 
 main : BenchmarkProgram
@@ -28,9 +28,8 @@ suite =
 
 
 type Styles
-    = NavBar
-    | Button
-    | OtherButton
+    = None
+    | Test
 
 
 type Variation
@@ -46,57 +45,13 @@ manyStyles =
 
 
 styles =
-    [ style NavBar
-        [ block
-        , font
-            [ Font.stack [ "Open Sans" ]
-            , Font.size 18
-            , Font.letterSpacing 20
-            , Font.light
-            , Font.center
-            , Font.uppercase
-            ]
-        , box
-            [ width (px 10)
-            , height (px 200)
-            ]
-        , border
-            [ Border.width (all 5)
-            , Border.radius (all 5)
-            , Border.solid
-            ]
-        , Style.variation Error
-            [ font
-                [ Font.color Color.red
-                ]
-            ]
-        , Style.child Button
-            [ blockSpaced (all 10)
-            , variation Error
-                [ font
-                    [ Font.color Color.red
-                    ]
-                ]
-            ]
-        , Style.Media.phoneOnly
-            [ block
-            , font
-                [ Font.stack [ "Open Sans" ]
-                , Font.size 18
-                , Font.letterSpacing 20
-                , Font.light
-                , Font.center
-                , Font.uppercase
-                ]
-            , box
-                [ width (px 10)
-                , height (px 200)
-                ]
-            , border
-                [ Border.width (all 5)
-                , Border.radius (all 5)
-                , Border.solid
-                ]
+    Style.styleSheet
+        [ Style.style None []
+        , Style.style Test
+            [ Color.background Color.red
+            , Color.text Color.blue
+            , Font.size 16
+            , Border.all 1
+            , Color.border Color.yellow
             ]
         ]
-    ]

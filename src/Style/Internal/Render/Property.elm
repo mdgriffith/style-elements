@@ -2,7 +2,7 @@ module Style.Internal.Render.Property exposing (..)
 
 {-| -}
 
-import Style.Internal.Model as Internal exposing (..)
+import Style.Internal.Model exposing (..)
 import Style.Internal.Render.Value as Value
 import Time
 
@@ -20,42 +20,42 @@ visibility vis =
             [ ( "opacity", toString x ) ]
 
 
-flexWidth : Length -> Float -> ( String, String )
+flexWidth : Length -> Float -> List ( String, String )
 flexWidth len adjustment =
     case len of
         Px x ->
-            ( "width", toString x ++ "px" )
+            [ ( "width", toString x ++ "px" ) ]
 
         Percent x ->
-            ( "width", "calc(" ++ toString x ++ "% - " ++ toString adjustment ++ "px)" )
+            [ ( "width", "calc(" ++ toString x ++ "% - " ++ toString adjustment ++ "px)" ) ]
 
         Auto ->
-            ( "width", "auto" )
+            [ ( "width", "auto" ) ]
 
         Fill i ->
-            ( "flex-grow", toString i )
+            [ ( "flex-grow", toString i ), ( "flex-basis", "0" ) ]
 
         Calc perc px ->
-            ( "width", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" )
+            [ ( "width", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" ) ]
 
 
-flexHeight : Length -> ( String, String )
+flexHeight : Length -> List ( String, String )
 flexHeight l =
     case l of
         Px x ->
-            ( "height", toString x ++ "px" )
+            [ ( "height", toString x ++ "px" ) ]
 
         Percent x ->
-            ( "height", toString x ++ "%" )
+            [ ( "height", toString x ++ "%" ) ]
 
         Auto ->
-            ( "height", "auto" )
+            [ ( "height", "auto" ) ]
 
         Fill i ->
-            ( "flex-grow", toString i )
+            [ ( "flex-grow", toString i ), ( "flex-basis", "0" ) ]
 
         Calc perc px ->
-            ( "height", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" )
+            [ ( "height", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" ) ]
 
 
 filters : List Filter -> List ( String, String )
@@ -270,8 +270,9 @@ background prop =
             BackgroundElement name val ->
                 [ ( name, val ) ]
 
-            BackgroundImage { src, position, repeat } ->
-                [ ( "background-image", src )
+            BackgroundImage { src, position, repeat, size } ->
+                [ ( "background-image", "url(" ++ src ++ ")" )
+                , ( "background-position", (toString (Tuple.first position) ++ "px " ++ toString (Tuple.second position) ++ "px") )
                 , ( "background-repeat"
                   , case repeat of
                         RepeatX ->
@@ -292,7 +293,23 @@ background prop =
                         NoRepeat ->
                             "no-repeat"
                   )
-                , ( "background-position", (toString (Tuple.first position) ++ "px " ++ toString (Tuple.second position) ++ "px") )
+                , ( "background-size"
+                  , case size of
+                        Contain ->
+                            "container"
+
+                        Cover ->
+                            "cover"
+
+                        BackgroundWidth width ->
+                            Value.length width ++ " auto"
+
+                        BackgroundHeight height ->
+                            "auto " ++ Value.length height
+
+                        BackgroundSize { width, height } ->
+                            Value.length width ++ " " ++ Value.length height
+                  )
                 ]
 
             BackgroundLinearGradient dir steps ->
@@ -303,7 +320,7 @@ background prop =
 layout : Bool -> LayoutModel -> List ( String, String )
 layout inline lay =
     case lay of
-        Internal.TextLayout _ ->
+        TextLayout _ ->
             [ ( "display"
               , if inline then
                     "inline-block"
@@ -312,7 +329,7 @@ layout inline lay =
               )
             ]
 
-        Internal.FlexLayout dir flexProps ->
+        FlexLayout dir flexProps ->
             (( "display"
              , if inline then
                 "inline-flex"
@@ -323,7 +340,7 @@ layout inline lay =
                 :: direction dir
                 :: List.map (flexbox dir) flexProps
 
-        Internal.Grid (NamedGridTemplate { rows, columns }) options ->
+        Grid (NamedGridTemplate { rows, columns }) options ->
             let
                 grid =
                     if inline then
@@ -409,7 +426,7 @@ layout inline lay =
                        )
                     :: alignment
 
-        Internal.Grid (GridTemplate { rows, columns }) options ->
+        Grid (GridTemplate { rows, columns }) options ->
             let
                 grid =
                     if inline then

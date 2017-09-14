@@ -1,0 +1,54 @@
+{
+    "files": {
+        "ViewSnippets.elm": [
+            {
+                "output": "rendered/emptyElement.html", 
+                "viewFunction": "emptyElement"
+            }, 
+            {
+                "output": "rendered/textElement.html", 
+                "viewFunction": "textElement"
+            }, 
+            {
+                "output": "rendered/singleElement.html", 
+                "viewFunction": "singleElement"
+            }, 
+            {
+                "output": "rendered/singleElementText.html", 
+                "viewFunction": "singleElementText"
+            }, 
+            {
+                "output": "rendered/singleElementPercentWidthText.html", 
+                "viewFunction": "singleElementPercentWidthText"
+            }, 
+            {
+                "output": "rendered/centeredSingleElementPercentWidthText.html", 
+                "viewFunction": "centeredSingleElementPercentWidthText"
+            }, 
+            {
+                "output": "rendered/centeredSingleElementText.html", 
+                "viewFunction": "centeredSingleElementText"
+            }, 
+            {
+                "output": "rendered/viewBox.html", 
+                "viewFunction": "viewBox"
+            }, 
+            {
+                "output": "rendered/viewWithinOrder.html", 
+                "viewFunction": "viewWithinOrder"
+            }, 
+            {
+                "output": "rendered/viewRow.html", 
+                "viewFunction": "viewRow"
+            }, 
+            {
+                "output": "rendered/viewRowWithSpacing.html", 
+                "viewFunction": "viewRowWithSpacing"
+            }, 
+            {
+                "output": "rendered/viewRowWithSpacingPadding.html", 
+                "viewFunction": "viewRowWithSpacingPadding"
+            }
+        ]
+    }
+}

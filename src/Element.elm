@@ -14,25 +14,20 @@ module Element
         , circle
         , spacer
         , image
+        , decorativeImage
         , hairline
         , node
-        , header
+        , subheading
+        , h1
+        , h2
+        , h3
+        , h4
+        , h5
+        , h6
         , section
-        , nav
         , article
         , aside
-        , canvas
         , button
-        , iframe
-        , audio
-        , video
-        , form
-        , radio
-        , checkbox
-        , label
-        , labelBelow
-        , textArea
-        , inputText
         , full
         , textLayout
         , paragraph
@@ -43,11 +38,14 @@ module Element
         , grid
         , table
         , namedGrid
-        , area
+        , cell
         , named
         , span
         , spanAll
         , link
+        , newTab
+        , download
+        , downloadAs
         , when
         , whenJust
         , within
@@ -56,9 +54,16 @@ module Element
         , onRight
         , onLeft
         , screen
-        , render
-        , root
-        , embed
+          -- , numbered
+          -- , bulleted
+        , nav
+        , navColumn
+        , header
+        , mainContent
+        , footer
+        , sidebar
+        , search
+        , modal
         , layout
         , viewport
         , toHtml
@@ -70,11 +75,9 @@ module Element
         , NamedOnGrid
         , Grid
         , NamedGrid
-        , select
-        , option
-        , Option
+        , GridPosition
+        , NamedGridPosition
         , html
-        , break
         , map
         )
 
@@ -97,7 +100,7 @@ By building your view with `Elements`, you have a single place to go to adjust o
 
 @docs Element, Attribute
 
-@docs empty, text, el, html, map, when, whenJust
+@docs empty, text, el, when, whenJust, html, map, full
 
 
 # Layout
@@ -119,12 +122,7 @@ Make sure to check out the Style Element specific attributes in `Element.Attribu
 
 ## Grid Layout
 
-@docs table, Grid, NamedGrid, grid, namedGrid, OnGrid, NamedOnGrid, area, named, span, spanAll
-
-
-## Convenience Elements
-
-@docs full, spacer, hairline, link, image, circle, break
+@docs table, Grid, NamedGrid, grid, namedGrid, GridPosition, NamedGridPosition, OnGrid, NamedOnGrid, cell, named, span, spanAll
 
 
 ## Positioning
@@ -145,6 +143,42 @@ In CSS terms, this positions children using 'position:absolute'. So, to position
 @docs below, above, onRight, onLeft, within, screen
 
 
+## Linking
+
+@docs link, newTab, download, downloadAs
+
+
+## Markup
+
+@docs node, button, hairline, article, section, aside, spacer, circle
+
+
+## Significant Locations
+
+@docs nav, navColumn
+
+@docs header, mainContent, footer, sidebar, search
+
+@docs modal
+
+
+## Headings
+
+@docs h1, h2, h3, h4, h5, h6, subheading
+
+
+## Images
+
+@docs image, decorativeImage
+
+
+## Text Markup
+
+These elements are useful for quick text markup.
+
+@docs bold, italic, strike, underline, sub, super
+
+
 ## Responsive
 
 Since this library moves all layout and positioning logic to the view instead of the stylesheet, it doesn't make a ton of sense to support media queries in the stylesheet.
@@ -158,50 +192,12 @@ Here's how it's done:
 3.  Use the `Device` record in your view to specify how your page changes with window size.
 4.  If things get crazy, use the `responsive` function to map one range to another.
 
-Check out the [elm.style website source](https://github.com/mdgriffith/elm.style) for a real example.
-
 @docs Device, classifyDevice, responsive
-
-
-## Text Markup
-
-These elements are useful for quick text markup.
-
-@docs bold, italic, strike, underline, sub, super
-
-
-## Semantic Markup
-
-This library made the opinionated choice to make layout a first class concern of your `view` function.
-
-However it's still very useful to have semantic markup in places. The following nodes can be used to annotate your layouts.
-
-So, if we wanted to make a standard element be rendered as a `section` node, we could do the following
-
-    -- Regular element
-    el MyStyle [] (text "Hello World!")
-
-    -- Same element annotated as a `section`
-    section <| el MyStyle [] (text "Hello World!")
-
-@docs node, button, header, section, nav, article, aside, canvas, iframe, audio, video
-
-
-## Form Elements
-
-Some convient elements for working with forms.
-
-@docs form, checkbox, label, labelBelow, inputText, textArea, radio, select, option, Option
 
 
 ## Advanced Rendering
 
 @docs toHtml, embedStylesheet
-
-
-### Deprecated
-
-@docs root, embed, render
 
 -}
 
@@ -210,8 +206,8 @@ import Html.Attributes
 import Element.Internal.Model as Internal exposing (..)
 import Element.Internal.Modify as Modify
 import Style exposing (Style, StyleSheet)
-import Style.Internal.Model as Style exposing (Length)
-import Element.Attributes as Attr
+import Style.Internal.Model as Style
+import Element.Attributes as Attr exposing (Length)
 import Element.Internal.Render as Render
 import Window
 
@@ -241,43 +237,71 @@ empty =
 {-| -}
 text : String -> Element style variation msg
 text =
-    Text NoDecoration
+    Text { decoration = NoDecoration, inline = False }
 
 
 {-| -}
 bold : String -> Element style variation msg
 bold =
-    Text Bold
+    Text { decoration = Bold, inline = False }
 
 
 {-| -}
 italic : String -> Element style variation msg
 italic =
-    Text Italic
+    Text { decoration = Italic, inline = False }
 
 
 {-| -}
 strike : String -> Element style variation msg
 strike =
-    Text Strike
+    Text { decoration = Strike, inline = False }
 
 
 {-| -}
 underline : String -> Element style variation msg
 underline =
-    Text Underline
+    Text { decoration = Underline, inline = False }
 
 
 {-| -}
 sub : String -> Element style variation msg
 sub =
-    Text Sub
+    Text { decoration = Sub, inline = False }
 
 
 {-| -}
 super : String -> Element style variation msg
 super =
-    Text Super
+    Text { decoration = Super, inline = False }
+
+
+{-| A numbered list of items, rendered as a column.
+-}
+numbered : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
+numbered style attrs children =
+    Layout
+        { node = "ol"
+        , style = Just style
+        , layout = Style.FlexLayout Style.Down []
+        , attrs = attrs
+        , children = Normal (List.map (Modify.setNode "li" << Modify.addAttr (Attr.inlineStyle [ ( "display", "list-item" ) ])) children)
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| A bulleted list.
+-}
+bulleted : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
+bulleted style attrs children =
+    Layout
+        { node = "ul"
+        , style = Just style
+        , layout = Style.FlexLayout Style.Down []
+        , attrs = attrs
+        , children = Normal (List.map (Modify.setNode "li" << Modify.addAttr (Attr.inlineStyle [ ( "display", "list-item" ) ])) children)
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| The most basic element.
@@ -294,6 +318,42 @@ el : style -> List (Attribute variation msg) -> Element style variation msg -> E
 el style attrs child =
     Element
         { node = "div"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| -}
+section : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+section style attrs child =
+    Internal.Element
+        { node = "section"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| -}
+article : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+article style attrs child =
+    Internal.Element
+        { node = "article"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| -}
+aside : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+aside style attrs child =
+    Internal.Element
+        { node = "aside"
         , style = Just style
         , attrs = attrs
         , child = child
@@ -335,15 +395,28 @@ spacer =
     Spacer
 
 
-{-| A convenience node for images. Accepts an image src as the first argument.
+{-| For images, both a source and a caption are required. The caption will serve as the alt-text.
 -}
-image : String -> style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
-image src style attrs child =
+image : style -> List (Attribute variation msg) -> { src : String, caption : String } -> Element style variation msg
+image style attrs { src, caption } =
+    Element
+        { node = "img"
+        , style = Just style
+        , attrs = (Attr (Html.Attributes.src src) :: Attr (Html.Attributes.alt caption) :: attrs)
+        , child = empty
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| If an image is purely decorative, you can skip the caption.
+-}
+decorativeImage : style -> List (Attribute variation msg) -> { src : String } -> Element style variation msg
+decorativeImage style attrs { src } =
     Element
         { node = "img"
         , style = Just style
         , attrs = (Attr (Html.Attributes.src src) :: attrs)
-        , child = child
+        , child = empty
         , absolutelyPositioned = Nothing
         }
 
@@ -364,38 +437,16 @@ hairline style =
         }
 
 
-{-| Make a line-break.
-
-You probably want to use `paragraph` instead. This is only for adjusting where a sentance should break, not for formating paragraphs.
-
--}
-break : Element style variation msg
-break =
-    Element
-        { node = "br"
-        , style = Nothing
-        , attrs = []
-        , child = empty
-        , absolutelyPositioned = Nothing
-        }
-
-
 {-| For when you want to embed `Html`.
 
 If you're using this library, I'd encourage you to try to solve your problem without using this escape hatch.
 
-Usage of this function makes the most sense when you're dealing with `Html` from another module or package.
+Usage of this function makes the most sense when you're dealing with `Html` from another module or package or if you need to craft something "manually" yourself.
 
 -}
 html : Html msg -> Element style variation msg
 html =
     Raw
-
-
-
----------------------
---- Semantic Markup
----------------------
 
 
 {-| -}
@@ -404,317 +455,111 @@ node str =
     Modify.setNode str
 
 
-{-| -}
-header : Element style variation msg -> Element style variation msg
-header =
-    Modify.setNode "header"
+{-| Renders as a `<button>`
+
+Also is able to receive keyboard focus.
+
+-}
+button : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+button style attrs child =
+    Element
+        { node = "button"
+        , style = Just style
+        , attrs = Attr.class "button-focus" :: Attr.inlineStyle [ ( "cursor", "pointer" ) ] :: Attr.toAttr (Html.Attributes.tabindex 0) :: attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| Don't use a heading like `h2` if you want a subheading/subtitle, instead use this element!
+-}
+subheading : style -> List (Attribute variation msg) -> String -> Element style variation msg
+subheading style attrs str =
+    Element
+        { node = "p"
+        , style = Just style
+        , attrs = attrs
+        , child = text str
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
-section : Element style variation msg -> Element style variation msg
-section =
-    Modify.setNode "section"
+h1 : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+h1 style attrs child =
+    Element
+        { node = "h1"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
-nav : Element style variation msg -> Element style variation msg
-nav =
-    Modify.setNode "nav"
+h2 : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+h2 style attrs child =
+    Element
+        { node = "h2"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
-article : Element style variation msg -> Element style variation msg
-article =
-    Modify.setNode "article"
+h3 : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+h3 style attrs child =
+    Element
+        { node = "h3"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
-aside : Element style variation msg -> Element style variation msg
-aside =
-    Modify.setNode "aside"
+h4 : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+h4 style attrs child =
+    Element
+        { node = "h4"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
-button : Element style variation msg -> Element style variation msg
-button =
-    Modify.setNode "button"
-
-
-
----------------------
---- Specialized Elements
----------------------
-
-
-{-| -}
-canvas : Element style variation msg -> Element style variation msg
-canvas =
-    Modify.setNode "canvas"
+h5 : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+h5 style attrs child =
+    Element
+        { node = "h5"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
-iframe : Element style variation msg -> Element style variation msg
-iframe =
-    Modify.setNode "iframe"
-
-
-{-| -}
-audio : Element style variation msg -> Element style variation msg
-audio =
-    Modify.setNode "audio"
-
-
-{-| -}
-video : Element style variation msg -> Element style variation msg
-video =
-    Modify.setNode "video"
+h6 : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+h6 style attrs child =
+    Element
+        { node = "h5"
+        , style = Just style
+        , attrs = attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
 
 
 
 ---------------------
 --- Form and Input
 ---------------------
-
-
-{-| -}
-form : Element style variation msg -> Element style variation msg
-form =
-    Modify.setNode "form"
-
-
-{-| Create a list of labeled radio button.
-
-This implies a column layout.
-
-    radio "lunch" None []
-        [ option "burrito" True (text "A Burrito!")
-        , option "taco" False (text "A Taco!")
-        ]
-
--}
-radio : String -> style -> List (Attribute variation msg) -> List (Option style variation msg) -> Element style variation msg
-radio group style attributes buttons =
-    let
-        toChild (Option value on child) =
-            let
-                style =
-                    Modify.getStyle child
-
-                attrs =
-                    Modify.getAttrs child
-
-                ( inputEvents, nonInputEventAttrs ) =
-                    List.partition forInputEvents attrs
-
-                forInputEvents attr =
-                    case attr of
-                        InputEvent ev ->
-                            True
-
-                        _ ->
-                            False
-
-                rune =
-                    child
-                        |> Modify.setNode "input"
-                        |> Modify.addAttrList
-                            ([ Attr.type_ "radio"
-                             , Attr.name group
-                             , Attr.value value
-                             , Attr.checked on
-                             ]
-                                ++ inputEvents
-                            )
-                        |> Modify.removeContent
-                        |> Modify.removeStyle
-
-                literalLabel =
-                    child
-                        |> Modify.getChild
-                        |> Modify.removeAllAttrs
-                        |> Modify.removeStyle
-            in
-                Layout
-                    { node = "layout"
-                    , style = style
-                    , layout = Style.FlexLayout Style.GoRight []
-                    , attrs = nonInputEventAttrs
-                    , children = Normal [ rune, literalLabel ]
-                    , absolutelyPositioned = Nothing
-                    }
-    in
-        column style attributes (List.map toChild buttons)
-
-
-{-| Create an Option. Can only be used with `radio` and `select`.
--}
-option : String -> Bool -> Element style variation msg -> Option style variation msg
-option =
-    Option
-
-
-{-| -}
-type Option style variation msg
-    = Option String Bool (Element style variation msg)
-
-
-{-| A standard html dropdown set of options.
-
-    select "favorite-animal" MySelectionStyle []
-        [ option "manatee" False (text "Manatees are pretty cool")
-        , option "pangolin" False (text "But so are pangolins")
-        , option "bee" True (text "Bees")
-        ]
-
--}
-select : String -> style -> List (Attribute variation msg) -> List (Option style variation msg) -> Element style variation msg
-select group style attributes buttons =
-    let
-        toChild (Option value on child) =
-            child
-                |> Modify.setNode "option"
-                |> Modify.addAttrList
-                    [ Attr.value value
-                    , Attr.selected on
-                    ]
-    in
-        Modify.setNode "select" <|
-            column style (Attr.name group :: attributes) (List.map toChild buttons)
-
-
-{-| An automatically labeled checkbox.
--}
-checkbox : Bool -> style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
-checkbox on style attrs label =
-    let
-        ( events, notInputEvents ) =
-            List.partition forInputEvents attrs
-
-        forInputEvents attr =
-            case attr of
-                InputEvent ev ->
-                    True
-
-                _ ->
-                    False
-    in
-        Element
-            { node = "label"
-            , style = (Just style)
-            , attrs = notInputEvents
-            , child =
-                (inlineChildren "div"
-                    Nothing
-                    []
-                    [ Element
-                        { node = "input"
-                        , style = Nothing
-                        , attrs =
-                            (Attr.type_ "checkbox"
-                                :: Attr.checked on
-                                :: events
-                            )
-                        , child = empty
-                        , absolutelyPositioned = Nothing
-                        }
-                    , label
-                    ]
-                )
-            , absolutelyPositioned = Nothing
-            }
-
-
-{-| For input elements that are not automatically labeled (checkbox, radio), this will attach a label above the element.
-
-    label Label [] (text "check this out") <|
-        inputText Style [] "The Value!"
-
--}
-label : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg -> Element style variation msg
-label elem attrs label input =
-    let
-        -- If naked text is provided, then flexbox won't work.
-        -- In that case we wrap it in a div.
-        containedLabel =
-            case label of
-                Text dec content ->
-                    Element
-                        { node = "div"
-                        , style = Nothing
-                        , attrs = []
-                        , child = (Text dec content)
-                        , absolutelyPositioned = Nothing
-                        }
-
-                l ->
-                    l
-    in
-        node "label" <|
-            column
-                elem
-                attrs
-                [ label
-                , input
-                ]
-
-
-{-| Same as `label`, but places the label below the input field.
--}
-labelBelow : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg -> Element style variation msg
-labelBelow elem attrs label input =
-    let
-        -- If naked text is provided, then flexbox won't work.
-        -- In that case we wrap it in a div.
-        containedLabel =
-            case label of
-                Text dec content ->
-                    Element
-                        { node = "div"
-                        , style = Nothing
-                        , attrs = []
-                        , child = (Text dec content)
-                        , absolutelyPositioned = Nothing
-                        }
-
-                l ->
-                    l
-    in
-        node "label" <|
-            column
-                elem
-                attrs
-                [ input
-                , label
-                ]
-
-
-{-| -}
-textArea : style -> List (Attribute variation msg) -> String -> Element style variation msg
-textArea elem attrs content =
-    Element
-        { node = "textarea"
-        , style = Just elem
-        , attrs = attrs
-        , child = text content
-        , absolutelyPositioned = Nothing
-        }
-
-
-{-| Text input
-
-    label LabelStyle [] (text "check this out") <|
-        inputText Style [] "The Value!"
-
--}
-inputText : style -> List (Attribute variation msg) -> String -> Element style variation msg
-inputText elem attrs content =
-    Element
-        { node = "input"
-        , style = Just elem
-        , attrs = (Attr.type_ "text" :: Attr.value content :: attrs)
-        , child = Empty
-        , absolutelyPositioned = Nothing
-        }
 
 
 {-| A `full` element will ignore the spacing set for it by the parent, and also grow to cover the parent's padding.
@@ -743,6 +588,8 @@ textLayout style attrs children =
     Layout
         { node = "div"
         , style = Just style
+
+        -- True means it's clearfixed
         , layout = Style.TextLayout True
         , attrs = attrs
         , children = Normal children
@@ -765,35 +612,9 @@ paragraph style attrs children =
         , style = Just style
         , layout = Style.TextLayout False
         , attrs = attrs
-        , children = Normal <| List.map (Modify.addAttrToNonText Inline) children
+        , children = Normal <| List.map Modify.makeInline children
         , absolutelyPositioned = Nothing
         }
-
-
-{-| -}
-inlineChildren :
-    String
-    -> Maybe style
-    -> List (Attribute variation msg)
-    -> List (Element style variation msg)
-    -> Element style variation msg
-inlineChildren node style attrs children =
-    let
-        ( child, others ) =
-            case children of
-                [] ->
-                    ( empty, Nothing )
-
-                child :: others ->
-                    ( Modify.addAttrToNonText Inline child, Just <| List.map (Modify.addAttrToNonText Inline) others )
-    in
-        Element
-            { node = node
-            , style = style
-            , attrs = attrs
-            , child = child
-            , absolutelyPositioned = others
-            }
 
 
 {-| -}
@@ -848,13 +669,6 @@ wrappedColumn style attrs children =
         }
 
 
-{-| -}
-type alias Grid =
-    { rows : List Length
-    , columns : List Length
-    }
-
-
 {-| A table is a special grid
 -}
 table : style -> List (Attribute variation msg) -> List (List (Element style variation msg)) -> Element style variation msg
@@ -866,7 +680,7 @@ table style attrs rows =
                     (\row columns ->
                         List.indexedMap
                             (\col content ->
-                                area
+                                cell
                                     { start = ( row, col )
                                     , width = 1
                                     , height = 1
@@ -877,12 +691,20 @@ table style attrs rows =
                     )
                     rows
     in
-        grid style { columns = [], rows = [] } attrs children
+        grid style attrs { columns = [], rows = [], cells = children }
+
+
+{-| -}
+type alias Grid style variation msg =
+    { rows : List Length
+    , columns : List Length
+    , cells : List (OnGrid (Element style variation msg))
+    }
 
 
 {-| An interface to css grid. Here's a basic example:
 
-    grid MyGridStyle
+    grid MyGridStyle []
         { columns = [ px 100, px 100, px 100, px 100 ]
         , rows =
             [ px 100
@@ -890,25 +712,25 @@ table style attrs rows =
             , px 100
             , px 100
             ]
+        , cells =
+             [ cell
+                { start = ( 0, 0 )
+                , width = 1
+                , height = 1
+                }
+                (el Box [] (text "box"))
+            , cell
+                { start = ( 1, 1 )
+                , width = 1
+                , height = 2
+                }
+                (el Box [] (text "box"))
+            ]
         }
-        []
-        [ area
-            { start = ( 0, 0 )
-            , width = 1
-            , height = 1
-            }
-            (el Box [] (text "box"))
-        , area
-            { start = ( 1, 1 )
-            , width = 1
-            , height = 2
-            }
-            (el Box [] (text "box"))
-        ]
 
 -}
-grid : style -> Grid -> List (Attribute variation msg) -> List (OnGrid (Element style variation msg)) -> Element style variation msg
-grid style template attrs children =
+grid : style -> List (Attribute variation msg) -> Grid style variation msg -> Element style variation msg
+grid style attrs config =
     let
         prepare el =
             Normal <| List.map (\(OnGrid x) -> x) el
@@ -938,17 +760,18 @@ grid style template attrs children =
         Layout
             { node = "div"
             , style = Just style
-            , layout = Style.Grid (Style.GridTemplate template) gridAttributes
+            , layout = Style.Grid (Style.GridTemplate { rows = config.rows, columns = config.columns }) gridAttributes
             , attrs = notSpacingAttrs
-            , children = prepare children
+            , children = prepare config.cells
             , absolutelyPositioned = Nothing
             }
 
 
 {-| -}
-type alias NamedGrid =
+type alias NamedGrid style variation msg =
     { rows : List ( Length, List Style.NamedGridPosition )
     , columns : List Length
+    , cells : List (NamedOnGrid (Element style variation msg))
     }
 
 
@@ -956,7 +779,7 @@ type alias NamedGrid =
 
 Here's an example:
 
-    namedGrid MyGridStyle
+    namedGrid MyGridStyle []
         { columns = [ px 200, px 200, px 200, fill 1 ]
         , rows =
             [ px 200 => [ spanAll "header" ]
@@ -964,19 +787,19 @@ Here's an example:
             , px 200 => [ span 3 "content", span 1 "sidebar" ]
             , px 200 => [ spanAll "footer" ]
             ]
+        , cells =
+            [ named "header"
+                (el Box [] (text "box"))
+            , named "sidebar"
+                (el Box [] (text "box"))
+            ]
         }
-        []
-        [ named "header"
-            (el Box [] (text "box"))
-        , named "sidebar"
-            (el Box [] (text "box"))
-        ]
 
 **note:** this example uses rocket(`=>`) as a synonym for creating a tuple. For more, check out the [rocket update](https://github.com/NoRedInk/rocket-update) package!
 
 -}
-namedGrid : style -> NamedGrid -> List (Attribute variation msg) -> List (NamedOnGrid (Element style variation msg)) -> Element style variation msg
-namedGrid style template attrs children =
+namedGrid : style -> List (Attribute variation msg) -> NamedGrid style variation msg -> Element style variation msg
+namedGrid style attrs config =
     let
         prepare el =
             Normal <| List.map (\(NamedOnGrid x) -> x) el
@@ -1006,9 +829,9 @@ namedGrid style template attrs children =
         Layout
             { node = "div"
             , style = Just style
-            , layout = Style.Grid (Style.NamedGridTemplate template) gridAttributes
+            , layout = Style.Grid (Style.NamedGridTemplate { rows = config.rows, columns = config.columns }) gridAttributes
             , attrs = notSpacingAttrs
-            , children = (prepare children)
+            , children = (prepare config.cells)
             , absolutelyPositioned = Nothing
             }
 
@@ -1031,29 +854,11 @@ type alias NamedOnGrid thing =
     Internal.NamedOnGrid thing
 
 
-{-| Specify a specific position on a normal `grid`.
+{-| A specific position on a `grid`.
 -}
-area : GridPosition -> Element style variation msg -> OnGrid (Element style variation msg)
-area box el =
+cell : GridPosition -> Element style variation msg -> OnGrid (Element style variation msg)
+cell box el =
     OnGrid <| Modify.addAttr (GridCoords <| Style.GridPosition box) el
-
-
-
-{-
-   Could make a dynamic positioner based on list index.
-
-        at
-           (\i ->
-               { start :
-                   ( i % 3
-                   , i / 3
-                   )
-               , width = 1
-               , height = 1
-               }
-           )
-           (text "Hi!")
--}
 
 
 {-| Specify a named postion on a `namedGrid`.
@@ -1063,6 +868,7 @@ named name el =
     NamedOnGrid <| Modify.addAttr (GridArea name) el
 
 
+{-| -}
 type alias NamedGridPosition =
     Style.NamedGridPosition
 
@@ -1086,17 +892,92 @@ spanAll name =
     link "http://zombo.com"
         <| el MyStyle (text "Welcome to Zombocom")
 
-Changes an element's node to `<a>` and sets the href. `rel` properties are set to `noopener` and `noreferrer`.
+Wraps an element in an `<a>` and sets the href. `rel` properties are set to `noopener` and `noreferrer`.
 
 -}
 link : String -> Element style variation msg -> Element style variation msg
 link src el =
-    el
-        |> Modify.setNode "a"
-        |> Modify.addAttrList
+    Element
+        { node = "a"
+        , style = Nothing
+        , attrs =
             [ Attr (Html.Attributes.href src)
             , Attr (Html.Attributes.rel "noopener noreferrer")
             ]
+        , child = el
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| Make a link that opens in a new tab.
+
+Depending on the browsers configiration, it may open in a new window.
+
+    newTab "http://zombo.com"
+        <| el MyStyle (text "Welcome to Zombocom")
+
+Same as `target "_blank"`
+
+-}
+newTab : String -> Element style variation msg -> Element style variation msg
+newTab src el =
+    Element
+        { node = "a"
+        , style = Nothing
+        , attrs =
+            [ Attr (Html.Attributes.href src)
+            , Attr (Html.Attributes.rel "noopener noreferrer")
+            , Attr (Html.Attributes.target "_blank")
+            ]
+        , child = el
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| Make a link that will download a file
+
+    download "http://zombo.com/schedule.pdf"
+        <| el MyStyle (text "Welcome to Zombocom")
+
+-}
+download : String -> Element style variation msg -> Element style variation msg
+download src el =
+    Element
+        { node = "a"
+        , style = Nothing
+        , attrs =
+            [ Attr (Html.Attributes.href src)
+            , Attr (Html.Attributes.rel "noopener noreferrer")
+            , Attr (Html.Attributes.download True)
+            ]
+        , child = el
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| Make a link that will download a file and give it a specific filename.
+
+    downloadAs
+        { src = "http://zombo.com/schedule.pdf"
+        , filename = "zombocomSchedule.pdf"
+        }
+        <| el MyStyle (text "Welcome to Zombocom")
+
+-}
+downloadAs : { src : String, filename : String } -> Element style variation msg -> Element style variation msg
+downloadAs { src, filename } el =
+    Element
+        { node = "a"
+        , style = Nothing
+        , attrs =
+            [ Attr (Html.Attributes.href src)
+            , Attr (Html.Attributes.rel "noopener noreferrer")
+            , Attr (Html.Attributes.download True)
+            , Attr (Html.Attributes.downloadAs filename)
+            ]
+        , child = el
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| A helper function. This:
@@ -1148,10 +1029,11 @@ within nearbys parent =
     let
         position el p =
             el
+                |> Modify.wrapHtml
                 |> Modify.addAttr (PositionFrame (Nearby Within))
                 |> Modify.addChild p
     in
-        List.foldl position parent nearbys
+        List.foldr position parent nearbys
 
 
 {-| -}
@@ -1160,11 +1042,12 @@ above nearbys parent =
     let
         position el p =
             el
+                |> Modify.wrapHtml
                 |> Modify.addAttr (PositionFrame (Nearby Above))
                 |> Modify.removeAttrs [ VAlign Top, VAlign Bottom ]
                 |> Modify.addChild p
     in
-        List.foldl position parent nearbys
+        List.foldr position parent nearbys
 
 
 {-| -}
@@ -1173,11 +1056,12 @@ below nearbys parent =
     let
         position el p =
             el
+                |> Modify.wrapHtml
                 |> Modify.addAttr (PositionFrame (Nearby Below))
                 |> Modify.removeAttrs [ VAlign Top, VAlign Bottom ]
                 |> Modify.addChild p
     in
-        List.foldl position parent nearbys
+        List.foldr position parent nearbys
 
 
 {-| -}
@@ -1186,11 +1070,12 @@ onRight nearbys parent =
     let
         position el p =
             el
+                |> Modify.wrapHtml
                 |> Modify.addAttr (PositionFrame (Nearby OnRight))
                 |> Modify.removeAttrs [ HAlign Right, HAlign Left ]
                 |> Modify.addChild p
     in
-        List.foldl position parent nearbys
+        List.foldr position parent nearbys
 
 
 {-| -}
@@ -1199,16 +1084,19 @@ onLeft nearbys parent =
     let
         position el p =
             el
+                |> Modify.wrapHtml
                 |> Modify.addAttr (PositionFrame (Nearby OnLeft))
                 |> Modify.removeAttrs [ HAlign Right, HAlign Left ]
                 |> Modify.addChild p
     in
-        List.foldl position parent nearbys
+        List.foldr position parent nearbys
 
 
 {-| Position an element relative to the window.
 
-Essentially the same as `display: fixed`
+Essentially the same as `display: fixed`.
+
+If you're trying to make a modal, check out `Element.Location.modal`
 
 -}
 screen : Element style variation msg -> Element style variation msg
@@ -1260,29 +1148,6 @@ embedStylesheet sheet =
     Render.embed False sheet
 
 
-{-| DEPRECATED, will be removed in the next major version. Use `toHtml` instead.
--}
-render : StyleSheet style variation -> Element style variation msg -> Html msg
-render stylesheet el =
-    Html.div []
-        (Render.render stylesheet el)
-
-
-{-| DEPRECATED, will be removed in the next major version. Use `layout` instead.
--}
-root : StyleSheet style variation -> Element style variation msg -> Html msg
-root =
-    Render.root
-
-
-{-| DEPRECATED, will be removed in the next major version. Use `embedStylesheet` instead.
--}
-embed : StyleSheet style variation -> Html msg
-embed sheet =
-    -- We embed it not as a fullscreen
-    Render.embed False sheet
-
-
 {-| -}
 type alias Device =
     { width : Int
@@ -1305,7 +1170,7 @@ classifyDevice { width, height } =
     , tablet = width > 600 && width <= 1200
     , desktop = width > 1200 && width <= 1800
     , bigDesktop = width > 1800
-    , portrait = width > height
+    , portrait = width < height
     }
 
 
@@ -1341,3 +1206,146 @@ An analog of `Html.map`.
 map : (a -> msg) -> Element style variation a -> Element style variation msg
 map =
     Internal.mapMsg
+
+
+{-| An area that houses the controls for running a search.
+
+While `Element.Input.search` will create a literal search input,
+this element is meant to group all the controls that are involved with searching,
+such as filters and the search button.
+
+-}
+search : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+search style attrs child =
+    Internal.Element
+        { node = "div"
+        , style = Just style
+        , attrs = Attr.width Attr.fill :: Attr.attribute "role" "search" :: attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| The main navigation of the site, rendered as a row.
+
+The required `name` is used by accessibility software to describe to non-sighted users what this navigation element pertains to.
+
+Don't leave `name` blank, even if you just put *"Main Navigation"* in it.
+
+-}
+nav : style -> List (Attribute variation msg) -> { options : List (Element style variation msg), name : String } -> Element style variation msg
+nav style attrs { options, name } =
+    Internal.Element
+        { node = "nav"
+        , style = Nothing
+        , attrs = [ Attr.attribute "role" "navigation", Attr.attribute "aria-label" name ]
+        , child =
+            Internal.Layout
+                { node = "ul"
+                , style = Just style
+                , layout = Style.FlexLayout Style.GoRight []
+                , attrs = attrs
+                , children =
+                    options
+                        |> List.map (Modify.setNode "li")
+                        |> Internal.Normal
+                , absolutelyPositioned = Nothing
+                }
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| -}
+navColumn : style -> List (Attribute variation msg) -> { options : List (Element style variation msg), name : String } -> Element style variation msg
+navColumn style attrs { options, name } =
+    Internal.Element
+        { node = "nav"
+        , style = Nothing
+        , attrs = [ Attr.attribute "role" "navigation", Attr.attribute "aria-label" name ]
+        , child =
+            Internal.Layout
+                { node = "ul"
+                , style = Just style
+                , layout = Style.FlexLayout Style.Down []
+                , attrs = attrs
+                , children =
+                    options
+                        |> List.map (Modify.setNode "li")
+                        |> Internal.Normal
+                , absolutelyPositioned = Nothing
+                }
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| This is the main page header area.
+-}
+header : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+header style attrs child =
+    Internal.Element
+        { node = "header"
+        , style = Just style
+        , attrs = Attr.width Attr.fill :: Attr.attribute "role" "banner" :: attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| This is the main page footer where your copyright and other infomation should live!
+
+<footer, role=contentinfo>
+
+-}
+footer : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+footer style attrs child =
+    Internal.Element
+        { node = "footer"
+        , style = Just style
+        , attrs = Attr.width Attr.fill :: Attr.attribute "role" "contentinfo" :: attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| This is a sidebar which contains complementary information to your main content.
+
+It's rendered as a column.
+
+-}
+sidebar : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
+sidebar style attrs children =
+    Internal.Layout
+        { node = "aside"
+        , style = Just style
+        , layout = Style.FlexLayout Style.Down []
+        , attrs = Attr.attribute "role" "complementary" :: attrs
+        , children = Internal.Normal children
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| This is the main content of your page.
+-}
+mainContent : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+mainContent style attrs child =
+    Internal.Element
+        { node = "main"
+        , style = Just style
+        , attrs = Attr.width Attr.fill :: Attr.height Attr.fill :: Attr.attribute "role" "main" :: attrs
+        , child = child
+        , absolutelyPositioned = Nothing
+        }
+
+
+{-| This is a modal
+-}
+modal : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
+modal style attrs child =
+    screen <|
+        Internal.Element
+            { node = "div"
+            , style = Just style
+            , attrs = Attr.attribute "role" "alertdialog" :: Attr.attribute "aria-modal" "true" :: attrs
+            , child = child
+            , absolutelyPositioned = Nothing
+            }

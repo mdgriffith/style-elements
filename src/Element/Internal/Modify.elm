@@ -1,8 +1,10 @@
 module Element.Internal.Modify
     exposing
         ( setNode
+        , wrapHtml
         , addAttrToNonText
         , addAttr
+        , addAttrPriority
         , removeAttrs
         , addChild
         , addAttrList
@@ -13,11 +15,30 @@ module Element.Internal.Modify
         , removeStyle
         , getChild
         , setAttrs
+        , makeInline
         )
 
 {-| -}
 
 import Element.Internal.Model as Internal exposing (..)
+
+
+{-| Wraps Html in an element.
+-}
+wrapHtml : Element style variation msg -> Element style variation msg
+wrapHtml el =
+    case el of
+        Raw h ->
+            Element
+                { node = "div"
+                , style = Nothing
+                , attrs = []
+                , child = Raw h
+                , absolutelyPositioned = Nothing
+                }
+
+        x ->
+            x
 
 
 setNode : String -> Element style variation msg -> Element style variation msg
@@ -46,6 +67,32 @@ setNode node el =
                 , child = (Text dec content)
                 , absolutelyPositioned = Nothing
                 }
+
+
+makeInline : Element style variation msg -> Element style variation msg
+makeInline el =
+    case el of
+        Empty ->
+            Empty
+
+        Raw h ->
+            Raw h
+
+        Spacer x ->
+            Spacer x
+
+        Layout elm ->
+            Layout { elm | attrs = (Internal.Inline :: elm.attrs) }
+
+        Element elm ->
+            Element
+                { elm
+                    | attrs = (Internal.Inline :: elm.attrs)
+                    , child = makeInline elm.child
+                }
+
+        Text decoration content ->
+            Text { decoration | inline = True } content
 
 
 addAttrToNonText : Attribute variation msg -> Element style variation msg -> Element style variation msg
@@ -87,6 +134,34 @@ addAttr prop el =
 
         Element elm ->
             Element { elm | attrs = (prop :: elm.attrs) }
+
+        Text dec content ->
+            Element
+                { node = "div"
+                , style = Nothing
+                , attrs = [ prop ]
+                , child = (Text dec content)
+                , absolutelyPositioned = Nothing
+                }
+
+
+addAttrPriority : Attribute variation msg -> Element style variation msg -> Element style variation msg
+addAttrPriority prop el =
+    case el of
+        Empty ->
+            Empty
+
+        Raw h ->
+            Raw h
+
+        Spacer x ->
+            Spacer x
+
+        Layout elm ->
+            Layout { elm | attrs = (elm.attrs ++ [ prop ]) }
+
+        Element elm ->
+            Element { elm | attrs = (elm.attrs ++ [ prop ]) }
 
         Text dec content ->
             Element

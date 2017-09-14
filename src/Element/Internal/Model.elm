@@ -177,7 +177,11 @@ adjust fn parent el =
 type Element style variation msg
     = Empty
     | Spacer Float
-    | Text Decoration String
+    | Text
+        { decoration : Decoration
+        , inline : Bool
+        }
+        String
     | Element
         { node : String
         , style : Maybe style
@@ -362,6 +366,7 @@ type Axis
 
 type Decoration
     = NoDecoration
+    | RawText
     | Bold
     | Italic
     | Underline
@@ -401,3 +406,4 @@ type VerticalAlignment
     = Top
     | Bottom
     | VerticalCenter
+    | VerticalJustify

@@ -5,3 +5,6 @@ repl-temp-*
 .DS_Store
 */index.html
 index.html
+.elm-static-html
+
+test/html-generation/rendered/*.html

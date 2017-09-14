@@ -1,28 +1,19 @@
 module Style
     exposing
-        ( stylesheet
-        , stylesheetWith
-        , styleSheet
+        ( styleSheet
         , styleSheetWith
         , unguarded
         , Style
         , Property
-        , Shadow
-        , Filter
         , StyleSheet
         , Option
+        , Font
+        , Transform
         , style
         , variation
         , prop
         , cursor
-        , shadows
-        , paddingHint
-        , paddingLeftHint
-        , paddingRightHint
-        , paddingTopHint
-        , paddingBottomHint
         , opacity
-        , filters
         , origin
         , translate
         , rotate
@@ -139,26 +130,12 @@ The main difference between these two is that `variations` can combine with othe
 
 ## Properties
 
-@docs Property, prop, opacity, cursor, paddingHint, paddingLeftHint, paddingRightHint, paddingTopHint, paddingBottomHint
-
-
-## Shadows
-
-Check out the `Style.Shadow` module for more about shadows.
-
-@docs Shadow, shadows
-
-
-## Filters
-
-Check out the `Style.Filter` module for more about filters.
-
-@docs Filter, filters
+@docs Property, prop, opacity, cursor, Font
 
 
 ## Transformations
 
-@docs origin, translate, rotate, rotateAround, scale
+@docs Transform, origin, translate, rotate, rotateAround, scale
 
 
 ## Pseudo Classes
@@ -171,11 +148,6 @@ Psuedo classes can be nested.
 ## Render into a Style Sheet
 
 @docs StyleSheet, styleSheet, styleSheetWith, Option, unguarded, importUrl, importCss
-
-
-## Deprecated
-
-@docs stylesheet, stylesheetWith
 
 -}
 
@@ -202,13 +174,13 @@ type alias Property class variation =
 
 
 {-| -}
-type alias Length =
-    Internal.Length
+type alias Transform =
+    Internal.Transformation
 
 
 {-| -}
-type alias Transform =
-    Internal.Transformation
+type alias Font =
+    Internal.Font
 
 
 {-| -}
@@ -282,41 +254,6 @@ paddingTopHint x =
 paddingBottomHint : Float -> Property class variation
 paddingBottomHint x =
     Internal.Exact "padding-bottom" (toString x ++ "px")
-
-
-{-| -}
-type alias Shadow =
-    Internal.ShadowModel
-
-
-{-| -}
-shadows : List Shadow -> Property class variation
-shadows shades =
-    Internal.Shadows shades
-
-
-{-| -}
-type alias Filter =
-    Internal.Filter
-
-
-{-| Apply a stack of filters. The actual filters are in `Style.Filter`.
-
-    import Style.Filter as Filter
-    import Style exposing (..)
-
-    style MyFitleredStyle
-        [ filters
-            [ Filter.blur 0.5
-            , Filter.invert 0.5
-            ]
-
-        ]
-
--}
-filters : List Filter -> Property class variation
-filters fs =
-    Internal.Filters fs
 
 
 {-| Set the transform origin.
@@ -425,24 +362,6 @@ styleSheet styles =
 {-| -}
 styleSheetWith : List Option -> List (Style elem variation) -> StyleSheet elem variation
 styleSheetWith options styles =
-    let
-        unguarded =
-            List.any ((==) Unguarded) options
-    in
-        prepareSheet (Render.stylesheet "" (not <| unguarded) styles)
-
-
-{-| DEPRECATED, use styleSheet. This will be removed in the next major version
--}
-stylesheet : List (Style elem variation) -> StyleSheet elem variation
-stylesheet styles =
-    styleSheetWith [] styles
-
-
-{-| DEPRECATED, use styleSheetWith. This will be removed in the next major version
--}
-stylesheetWith : List Option -> List (Style elem variation) -> StyleSheet elem variation
-stylesheetWith options styles =
     let
         unguarded =
             List.any ((==) Unguarded) options

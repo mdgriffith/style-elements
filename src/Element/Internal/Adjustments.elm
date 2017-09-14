@@ -5,8 +5,6 @@ module Element.Internal.Adjustments exposing (..)
 
 import Element.Internal.Model exposing (..)
 import Style.Internal.Model as Internal exposing (Length)
-import Style.Internal.Render.Value as Value
-import Style.Internal.Render.Property as Property
 import Html.Attributes
 import Element.Internal.Modify as Modify
 
@@ -61,6 +59,84 @@ positionNearby parent elm =
 
         setPosition nearbyPosition ( aligned, unaligned ) el =
             let
+                forWidth prop =
+                    case prop of
+                        Width _ ->
+                            True
+
+                        _ ->
+                            False
+
+                width =
+                    unaligned
+                        |> List.filter forWidth
+                        |> List.reverse
+                        |> List.head
+
+                forHeight prop =
+                    case prop of
+                        Height _ ->
+                            True
+
+                        _ ->
+                            False
+
+                height =
+                    unaligned
+                        |> List.filter forHeight
+                        |> List.reverse
+                        |> List.head
+
+                addWidthHeight attrs =
+                    case ( width, height ) of
+                        ( Nothing, Nothing ) ->
+                            attrs
+
+                        ( Just w, Just h ) ->
+                            w :: h :: attrs
+
+                        ( Nothing, Just h ) ->
+                            h :: attrs
+
+                        ( Just w, Nothing ) ->
+                            w :: attrs
+
+                adjustWidthHeight elem =
+                    let
+                        adjustWidth element =
+                            case width of
+                                Nothing ->
+                                    element
+
+                                Just (Width (Internal.Percent percent)) ->
+                                    Modify.addAttrPriority
+                                        (Width (Internal.Percent 100))
+                                        element
+
+                                Just x ->
+                                    -- This property should already exist on the element,
+                                    -- so no need to add it.
+                                    element
+
+                        adjustHeight element =
+                            case height of
+                                Nothing ->
+                                    element
+
+                                Just (Height (Internal.Percent percent)) ->
+                                    Modify.addAttrPriority
+                                        (Width (Internal.Percent 100))
+                                        element
+
+                                Just x ->
+                                    -- This property should already exist on the element,
+                                    -- so no need to add it.
+                                    element
+                    in
+                        elem
+                            |> adjustWidth
+                            |> adjustHeight
+
                 framed =
                     case nearbyPosition of
                         Nothing ->
@@ -68,6 +144,14 @@ positionNearby parent elm =
 
                         _ ->
                             True
+
+                isLayout =
+                    case elm of
+                        Layout _ ->
+                            True
+
+                        _ ->
+                            False
 
                 nearbyAlignment =
                     case nearbyPosition of
@@ -105,7 +189,11 @@ positionNearby parent elm =
                                         )
                                     )
                                 :: Position (Just 0) (Just 0) Nothing
-                                :: (nearbyAlignment ++ aligned)
+                                :: (if isLayout then
+                                        nearbyAlignment
+                                    else
+                                        nearbyAlignment ++ aligned
+                                   )
                             )
                         , children =
                             Normal
@@ -113,30 +201,36 @@ positionNearby parent elm =
                                     { node = "div"
                                     , style = Nothing
                                     , attrs =
-                                        [ tag "above-below-intermediate"
-                                        , PointerEvents False
-                                        , PositionFrame
-                                            (Absolute
-                                                (if nearbyPosition == (Just (Nearby Above)) then
-                                                    BottomLeft
-                                                 else
-                                                    TopLeft
-                                                )
-                                            )
-                                        , Position Nothing (Just 0) Nothing
-                                        , VAlign Bottom
-                                        ]
+                                        let
+                                            addWidth attrs =
+                                                if isLayout then
+                                                    Width (Internal.Percent 100) :: attrs
+                                                else
+                                                    attrs
+                                        in
+                                            addWidth
+                                                [ tag "above-below-intermediate"
+                                                , PointerEvents False
+                                                , PositionFrame
+                                                    (Absolute
+                                                        (if nearbyPosition == (Just (Nearby Above)) then
+                                                            BottomLeft
+                                                         else
+                                                            TopLeft
+                                                        )
+                                                    )
+                                                , Position Nothing (Just 0) Nothing
+                                                , VAlign Bottom
+                                                ]
                                     , child =
-                                        (counterSpacing
-                                            (Modify.setAttrs
+                                        el
+                                            |> Modify.setAttrs
                                                 (PointerEvents True
                                                     :: PositionFrame (Absolute TopLeft)
                                                     :: Position (Just 0) (Just 0) Nothing
                                                     :: unaligned
                                                 )
-                                                el
-                                            )
-                                        )
+                                            |> counterSpacing
                                     , absolutelyPositioned = Nothing
                                     }
                                 ]
@@ -154,7 +248,11 @@ positionNearby parent elm =
                                 :: Width (Internal.Percent 100)
                                 :: PositionFrame (Absolute TopLeft)
                                 :: Position (Just 0) (Just 0) Nothing
-                                :: (nearbyAlignment ++ aligned)
+                                :: (if isLayout then
+                                        nearbyAlignment
+                                    else
+                                        nearbyAlignment ++ aligned
+                                   )
                             )
                         , children =
                             Normal
@@ -162,21 +260,23 @@ positionNearby parent elm =
                                     { node = "div"
                                     , style = Nothing
                                     , attrs =
-                                        (unaligned
-                                            ++ [ PointerEvents False
-                                               , PositionFrame Relative
-                                               , Position (Just 0) (Just 0) Nothing
-                                               , Padding (Just 0) (Just 0) (Just 0) (Just 0)
-                                               , tag "nearby-intermediate"
-                                               ]
-                                        )
+                                        addWidthHeight
+                                            [ PointerEvents False
+                                            , PositionFrame Relative
+                                            , Position (Just 0) (Just 0) Nothing
+                                            , Padding (Just 0) (Just 0) (Just 0) (Just 0)
+                                            , tag "nearby-intermediate"
+                                            ]
                                     , child =
-                                        (counterSpacing
-                                            (Modify.addAttrList
-                                                (PointerEvents True :: PositionFrame (Absolute TopLeft) :: Position (Just 0) (Just 0) Nothing :: [])
-                                                el
-                                            )
-                                        )
+                                        el
+                                            |> Modify.addAttrList
+                                                (PointerEvents True
+                                                    :: PositionFrame (Absolute TopLeft)
+                                                    :: Position (Just 0) (Just 0) Nothing
+                                                    :: []
+                                                )
+                                            |> adjustWidthHeight
+                                            |> counterSpacing
                                     , absolutelyPositioned = Nothing
                                     }
                                 ]
@@ -193,14 +293,17 @@ positionNearby parent elm =
                         , style = Nothing
                         , layout = Internal.FlexLayout Internal.GoRight []
                         , attrs =
-                            (tag "nearby-intermediate-parent"
+                            (tag "nearby-aligned-intermediate-parent"
                                 :: PointerEvents False
                                 :: Height (Internal.Percent 100)
                                 :: Width (Internal.Percent 100)
-                                -- :: PositionFrame (Absolute TopLeft)
                                 :: PositionFrame Relative
                                 :: Position (Just 0) (Just 0) Nothing
-                                :: (nearbyAlignment ++ aligned)
+                                :: (if isLayout then
+                                        nearbyAlignment
+                                    else
+                                        nearbyAlignment ++ aligned
+                                   )
                             )
                         , children =
                             Normal
@@ -208,21 +311,23 @@ positionNearby parent elm =
                                     { node = "div"
                                     , style = Nothing
                                     , attrs =
-                                        (unaligned
-                                            ++ [ PointerEvents False
-                                               , PositionFrame Relative
-                                               , Position (Just 0) (Just 0) Nothing
-                                               , Padding (Just 0) (Just 0) (Just 0) (Just 0)
-                                               , tag "nearby-intermediate"
-                                               ]
-                                        )
+                                        addWidthHeight
+                                            [ PointerEvents False
+                                            , PositionFrame Relative
+                                            , Position (Just 0) (Just 0) Nothing
+                                            , Padding (Just 0) (Just 0) (Just 0) (Just 0)
+                                            , tag "nearby-aligned-intermediate"
+                                            ]
                                     , child =
-                                        (counterSpacing
-                                            (Modify.addAttrList
-                                                (PointerEvents True :: PositionFrame Relative :: Position (Just 0) (Just 0) Nothing :: [])
-                                                el
-                                            )
-                                        )
+                                        el
+                                            |> Modify.addAttrList
+                                                (PointerEvents True
+                                                    :: PositionFrame Relative
+                                                    :: Position (Just 0) (Just 0) Nothing
+                                                    :: []
+                                                )
+                                            |> adjustWidthHeight
+                                            |> counterSpacing
                                     , absolutelyPositioned = Nothing
                                     }
                                 ]

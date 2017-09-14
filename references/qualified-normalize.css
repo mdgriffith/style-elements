@@ -189,26 +189,6 @@ color: #000;
     font-size: 80%;
 }
 
-/**
-* Prevent `sub` and `sup` elements from affecting the line height in
-* all browsers.
-*/
-
-.style-elements sub,
-.style-elements sup {
-    font-size: 75%;
-    line-height: 0;
-    position: relative;
-    vertical-align: baseline;
-}
-
-.style-elements sub {
-bottom: -0.25em;
-}
-
-.style-elements sup {
-top: -0.5em;
-}
 
 /* Embedded content
     ========================================================================== */
@@ -469,14 +449,6 @@ outline: 1px dotted ButtonText;
 
 
 
-.style-elements em {
-    font-style: italic;
-}
-
-.style-elements strong {
-    font-weight: bold;
-}
-
 .style-elements a {
     text-decoration: none;
 }
@@ -490,7 +462,6 @@ outline: 1px dotted ButtonText;
     display: table;
     clear: both;
 }
-
 
 
 /**
@@ -511,4 +482,36 @@ outline: 1px dotted ButtonText;
     font-size: 100%;
     font: inherit;
     line-height: 1; /* 1 :NOTE: ADDED BY style-elements LIBRARY */
+}
+.style-elements em.el {
+    font-style: italic;
+}
+.style-elements strong.el {
+    font-weight: bold;
+}
+.style-elements strike.el {
+    text-decoration: line-through;
+}
+.style-elements u.el {
+    text-decoration: underline;
+}
+/**
+* Prevent `sub` and `sup` elements from affecting the line height in
+* all browsers.
+*/
+
+.style-elements sub.el,
+.style-elements sup.el {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+}
+
+.style-elements sub.el {
+bottom: -0.25em;
+}
+
+.style-elements sup.el {
+top: -0.5em;
 }
