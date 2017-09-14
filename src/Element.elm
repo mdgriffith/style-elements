@@ -916,6 +916,8 @@ Depending on the browsers configiration, it may open in a new window.
     newTab "http://zombo.com"
         <| el MyStyle (text "Welcome to Zombocom")
 
+Same as `target "_blank"`
+
 -}
 newTab : String -> Element style variation msg -> Element style variation msg
 newTab src el =
@@ -956,7 +958,7 @@ download src el =
 {-| Make a link that will download a file and give it a specific filename.
 
     downloadAs
-        { src = "http://zombo.com/schedule.pdf">
+        { src = "http://zombo.com/schedule.pdf"
         , filename = "zombocomSchedule.pdf"
         }
         <| el MyStyle (text "Welcome to Zombocom")
