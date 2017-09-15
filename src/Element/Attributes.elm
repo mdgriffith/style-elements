@@ -2,7 +2,6 @@ module Element.Attributes
     exposing
         ( property
         , attribute
-        , toAttr
         , center
         , verticalCenter
         , verticalSpread
@@ -489,16 +488,6 @@ attribute name val =
     Attr <| Html.Attributes.attribute name val
 
 
-{-| Convert an existing `Html.Attribute` to an `Element.Attribute`.
-
-This is useful for working with any library that returns a `Html.Attribute`.
-
--}
-toAttr : Html.Attribute msg -> Attribute variation msg
-toAttr =
-    Attr
-
-
 {-| Transform the messages produced by an `Attribute`.
 -}
 map : (a -> msg) -> Attribute variation a -> Attribute variation msg
@@ -631,7 +620,9 @@ language str =
 
 
 {-| Convert an existing `Html.Attribute` to an `Element.Attribute`.
+
 This is useful for working with any library that returns a `Html.Attribute`.
+
 -}
 toAttr : Html.Attribute msg -> Attribute variation msg
 toAttr =

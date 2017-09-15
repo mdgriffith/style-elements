@@ -56,8 +56,8 @@ module Element
         , screen
           -- , numbered
           -- , bulleted
-        , nav
-        , navColumn
+        , navigation
+        , navigationColumn
         , header
         , mainContent
         , footer
@@ -548,7 +548,7 @@ h5 style attrs child =
 h6 : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
 h6 style attrs child =
     Element
-        { node = "h5"
+        { node = "h6"
         , style = Just style
         , attrs = attrs
         , child = child
@@ -580,7 +580,7 @@ full elem attrs child =
 
 {-| A text layout.
 
-Children that are aligned left or right will be floated left or right. Everything else if arranged in the standard 'block' layout of css, meaning a column flowing down.
+Children that are aligned left or right will be floated left or right. Everything else is arranged in the standard 'block' layout of css, meaning a column flowing down.
 
 -}
 textLayout : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
@@ -601,7 +601,7 @@ textLayout style attrs children =
 
 This is the same as a textLayout, except all of the children are set to `display:inline`.
 
-Because all the children are inline, they will not respect and width or height set on them.
+Because all the children are inline, they will not respect a width or height set on them.
 
 -}
 paragraph : style -> List (Attribute variation msg) -> List (Element style variation msg) -> Element style variation msg
@@ -684,8 +684,8 @@ table style attrs rows =
                                     { start = ( row, col )
                                     , width = 1
                                     , height = 1
+                                    , content = content
                                     }
-                                    content
                             )
                             columns
                     )
@@ -717,14 +717,16 @@ type alias Grid style variation msg =
                 { start = ( 0, 0 )
                 , width = 1
                 , height = 1
+                , content =
+                    el Box [] (text "box")
                 }
-                (el Box [] (text "box"))
             , cell
                 { start = ( 1, 1 )
                 , width = 1
                 , height = 2
+                , content =
+                    el Box [] (text "box")
                 }
-                (el Box [] (text "box"))
             ]
         }
 
@@ -837,10 +839,11 @@ namedGrid style attrs config =
 
 
 {-| -}
-type alias GridPosition =
+type alias GridPosition style variation msg =
     { start : ( Int, Int )
     , width : Int
     , height : Int
+    , content : Element style variation msg
     }
 
 
@@ -856,9 +859,16 @@ type alias NamedOnGrid thing =
 
 {-| A specific position on a `grid`.
 -}
-cell : GridPosition -> Element style variation msg -> OnGrid (Element style variation msg)
-cell box el =
-    OnGrid <| Modify.addAttr (GridCoords <| Style.GridPosition box) el
+cell : GridPosition style variation msg -> OnGrid (Element style variation msg)
+cell box =
+    let
+        coords =
+            { start = box.start
+            , width = box.width
+            , height = box.height
+            }
+    in
+        OnGrid <| Modify.addAttr (GridCoords <| Style.GridPosition coords) box.content
 
 
 {-| Specify a named postion on a `namedGrid`.
@@ -1232,9 +1242,18 @@ The required `name` is used by accessibility software to describe to non-sighted
 
 Don't leave `name` blank, even if you just put *"Main Navigation"* in it.
 
+     navigation NavMenuStyle
+        []
+        { name = "Main Navigation"
+        , options =
+            [ link "/profile" (el NavLink [] (text "profile"))
+            , link "/logout" (el NavLink [] (text "logout"))
+            ]
+        }
+
 -}
-nav : style -> List (Attribute variation msg) -> { options : List (Element style variation msg), name : String } -> Element style variation msg
-nav style attrs { options, name } =
+navigation : style -> List (Attribute variation msg) -> { options : List (Element style variation msg), name : String } -> Element style variation msg
+navigation style attrs { options, name } =
     Internal.Element
         { node = "nav"
         , style = Nothing
@@ -1256,8 +1275,8 @@ nav style attrs { options, name } =
 
 
 {-| -}
-navColumn : style -> List (Attribute variation msg) -> { options : List (Element style variation msg), name : String } -> Element style variation msg
-navColumn style attrs { options, name } =
+navigationColumn : style -> List (Attribute variation msg) -> { options : List (Element style variation msg), name : String } -> Element style variation msg
+navigationColumn style attrs { options, name } =
     Internal.Element
         { node = "nav"
         , style = Nothing
@@ -1291,10 +1310,7 @@ header style attrs child =
         }
 
 
-{-| This is the main page footer where your copyright and other infomation should live!
-
-<footer, role=contentinfo>
-
+{-| This is the main page footer where your copyright and other infomation should live.
 -}
 footer : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
 footer style attrs child =
@@ -1324,7 +1340,7 @@ sidebar style attrs children =
         }
 
 
-{-| This is the main content of your page.
+{-| The main content of your page.
 -}
 mainContent : style -> List (Attribute variation msg) -> Element style variation msg -> Element style variation msg
 mainContent style attrs child =

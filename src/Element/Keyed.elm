@@ -23,7 +23,7 @@ module Element.Keyed
 
 -}
 
-import Element exposing (Attribute, Element, OnGrid, Grid, NamedOnGrid, NamedGrid, GridPosition)
+import Element exposing (Attribute, Element, OnGrid, Grid, NamedOnGrid, NamedGrid)
 import Element.Internal.Model exposing (Children(..))
 import Element.Internal.Model as Internal
 import Style.Internal.Model as Style exposing (Length)
@@ -82,11 +82,28 @@ wrappedColumn style attrs children =
         }
 
 
+{-| -}
+type alias GridPosition style variation msg =
+    { start : ( Int, Int )
+    , width : Int
+    , height : Int
+    , key : String
+    , content : Element style variation msg
+    }
+
+
 {-| A specific position on a `grid`.
 -}
-cell : GridPosition -> ( String, Element style variation msg ) -> OnGrid ( String, Element style variation msg )
-cell box ( key, el ) =
-    Internal.OnGrid ( key, Modify.addAttr (Internal.GridCoords <| Style.GridPosition box) el )
+cell : GridPosition style variation msg -> OnGrid ( String, Element style variation msg )
+cell box =
+    let
+        pos =
+            { start = box.start
+            , width = box.width
+            , height = box.height
+            }
+    in
+        Internal.OnGrid ( box.key, Modify.addAttr (Internal.GridCoords <| Style.GridPosition pos) box.content )
 
 
 {-| Specify a named postion on a `namedGrid`.
