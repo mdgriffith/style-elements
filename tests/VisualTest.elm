@@ -187,9 +187,9 @@ view model =
                     , viewNamedGridLayout
 
                     -- -- , testForm
-                    -- , [ screenExample
-                    --   , screenExample2
-                    --   ]
+                    , [ screenExample
+                      , screenExample2
+                      ]
                     ]
                 )
 
@@ -813,26 +813,26 @@ viewGridLayout =
                 { start = ( 0, 0 )
                 , width = 1
                 , height = 1
+                , content = (el Box [] (text "box"))
                 }
-                (el Box [] (text "box"))
             , cell
                 { start = ( 1, 1 )
                 , width = 1
                 , height = 2
+                , content = (el Box [ spacing 100 ] (text "box"))
                 }
-                (el Box [ spacing 100 ] (text "box"))
             , cell
                 { start = ( 2, 1 )
                 , width = 2
                 , height = 2
+                , content = (el Box [] (text "box"))
                 }
-                (el Box [] (text "box"))
             , cell
                 { start = ( 1, 0 )
                 , width = 1
                 , height = 1
+                , content = (el Box [] (text "box"))
                 }
-                (el Box [] (text "box"))
             ]
         }
     ]
