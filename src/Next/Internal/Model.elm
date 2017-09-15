@@ -32,7 +32,8 @@ type Decoration
 
 
 type Attribute msg
-    = Height Length
+    = StyleProps (List Property)
+    | Height Length
     | Width Length
     | HAlign HorizontalAlignment
     | VAlign VerticalAlignment
@@ -60,15 +61,15 @@ type Length
 
 
 type HorizontalAlignment
-    = Left
-    | Right
+    = AlignLeft
+    | AlignRight
     | Center
-    | Justify
+    | Spread
 
 
 type VerticalAlignment
-    = Top
-    | Bottom
+    = AlignTop
+    | AlignBottom
     | VerticalCenter
     | VerticalJustify
 
@@ -128,6 +129,11 @@ type Location
     .children.row -> -- Don't override anything (already a block element)
 
 
+
+
+
+
+
 -}
 
 
@@ -151,10 +157,10 @@ toStyleSheet : List Style -> String
 toStyleSheet styles =
     let
         renderProps (Property key val) existing =
-            key ++ ": " ++ val ++ ";"
+            existing ++ "\n" ++ key ++ ": " ++ val ++ ";"
 
         combine (Style str props) rendered =
-            str ++ "{" ++ (List.foldl renderProps "" props) ++ "}\n"
+            rendered ++ "\n" ++ str ++ "{" ++ (List.foldl renderProps "" props) ++ "}"
     in
         List.foldl combine "" styles
 
@@ -175,14 +181,115 @@ unstyled =
     Styled []
 
 
+static =
+    """
+
+.paragraph > .el {
+    display: inline;
+}
+
+.paragraph > .row {
+    display: inline-flex;
+}
+.paragraph > .column {
+    display: inline-flex;
+}
+.paragraph >
+
+.row {
+    display: flex;
+    flex-direction: row;
+}
+
+.row > .el {
+    flex-basis: 0;
+}
+.row > .align-top {
+    align-self: flex-start;
+}
+.row > .align-bottom {
+    align-self: flex-end;
+}
+.row > .vertical-center {
+    align-self: center;
+}
+
+.row.align-left {
+    justify-content: flex-start;
+}
+.row.align-right {
+    justify-content: flex-end;
+}
+.row.center {
+    justify-content: center;
+}
+.row.spread {
+    justify-content: space-between;
+}
+.row.align-top {
+    align-items: flex-start;
+}
+.row.align-bottom {
+    align-items: flex-end;
+}
+.row.vertical-center {
+    align-items: center;
+}
+
+
+.column {
+    display: flex;
+    flex-direction: column;
+}
+
+.column > .el {
+    flex-basis: 0;
+}
+.column > .align-left {
+    align-self: flex-start;
+}
+.column > .align-right {
+    align-self: flex-end;
+}
+.column > .center {
+    align-self: center;
+}
+
+.column.align-left {
+    align-items: flex-start;
+}
+.column.align-right {
+    align-items: flex-end;
+}
+.column.center {
+    align-items: center;
+}
+.column.spread {
+    align-items: space-between;
+}
+.column.align-top {
+    justify-content: flex-start;
+}
+.column.align-bottom {
+    justify-content: flex-end;
+}
+.column.vertical-center {
+    justify-content: center;
+}
+
+
+
+"""
+
+
 layout : Element msg -> Html msg
 layout el =
     let
         (Styled styles html) =
-            render [ 0 ] el
+            render FirstAndLast [ 0 ] el
     in
         Html.div []
-            [ Html.node "style" [] [ Html.text <| toStyleSheet styles ]
+            [ Html.node "style" [] [ Html.text <| static ++ toStyleSheet styles ]
             , html
             ]
 
@@ -201,14 +308,16 @@ This is the actual styling class that is generated.
 
 .alignLeft, .alignRight, .center, .spread, .verticalCenter, .alignTop, .alignBottom ->
 These definitions change depending on what type of parent is present.
-- Row, Column -> flexbox
-- TextLayout, Paragraph -> Float
-- container, el -> flexbox
-- grid -> unaffected?
+
+  - Row, Column -> flexbox
+  - TextLayout, Paragraph -> Float
+  - container, el -> flexbox
+  - grid -> unaffected?
 
 .first, .middle, .firstAndLast, .last ->
-- Used to set Spacing Margins
-- Could it be replaced by nth-child? (<https://developer.mozilla.org/en-US/docs/Web/CSS/:nth-child>)
+
+  - Used to set Spacing Margins
+  - Could it be replaced by nth-child? (<https://developer.mozilla.org/en-US/docs/Web/CSS/:nth-child>)
 
 -- Elements Positioned Nearby
 
@@ -216,163 +325,485 @@ These definitions change depending on what type of parent is present.
   - Parent Row/Column alignment should naturally not apply because nearby elements use `position:absolute`
 
 -}
-render : List Int -> Element msg -> Styled (Html msg)
-render index el =
-    case el of
-        Empty ->
-            Styled [] (Html.text "")
+render : Position -> List Int -> Element msg -> Styled (Html msg)
+render position index el =
+    let
+        positionClass =
+            case position of
+                FirstAndLast ->
+                    "el first-and-last"
 
-        Text decoration content ->
-            case decoration of
-                NoDecoration ->
-                    unstyled <| Html.div [] [ Html.text content ]
+                Last ->
+                    "el last"
 
-                RawText ->
-                    unstyled <| Html.text content
+                First ->
+                    "el first"
 
-                Bold ->
-                    unstyled <| Html.strong [] [ Html.text content ]
+                Middle ->
+                    "el middle"
+    in
+        case el of
+            Empty ->
+                Styled [] (Html.text "")
 
-                Italic ->
-                    unstyled <| Html.em [] [ Html.text content ]
+            Text decoration content ->
+                case decoration of
+                    NoDecoration ->
+                        unstyled <| Html.div [ Html.Attributes.class positionClass ] [ Html.text content ]
 
-                Underline ->
-                    unstyled <| Html.u [] [ Html.text content ]
+                    RawText ->
+                        unstyled <| Html.text content
 
-                Strike ->
-                    unstyled <| Html.u [] [ Html.text content ]
+                    Bold ->
+                        unstyled <| Html.strong [ Html.Attributes.class positionClass ] [ Html.text content ]
 
-                Super ->
-                    unstyled <| Html.sup [] [ Html.text content ]
+                    Italic ->
+                        unstyled <| Html.em [ Html.Attributes.class positionClass ] [ Html.text content ]
 
-                Sub ->
-                    unstyled <| Html.sub [] [ Html.text content ]
+                    Underline ->
+                        unstyled <| Html.u [ Html.Attributes.class positionClass ] [ Html.text content ]
 
-        Spacer pixels ->
-            todo
+                    Strike ->
+                        unstyled <| Html.u [ Html.Attributes.class positionClass ] [ Html.text content ]
 
-        El name attributes child ->
-            let
-                (Styled styles renderedChild) =
-                    render (0 :: index) child
+                    Super ->
+                        unstyled <| Html.sup [ Html.Attributes.class positionClass ] [ Html.text content ]
 
-                self =
-                    "styled-" ++ String.join "" (List.map toString index)
+                    Sub ->
+                        unstyled <| Html.sub [ Html.Attributes.class positionClass ] [ Html.text content ]
 
-                myStyle =
-                    Style ("." ++ self)
-                        [ Property "color" "blue"
+            Spacer pixels ->
+                let
+                    self =
+                        "styled-" ++ String.join "" (List.map toString index)
+
+                    spacings =
+                        [ renderDependent ("." ++ self) <|
+                            FollowingSibling ".el" [ Property "margin-left" "0", Property "margin-top" "0" ]
+                        , Style (".row > ." ++ self)
+                            [ Property "width" (toString pixels ++ "px")
+                            , Property "height" "0px"
+                            ]
+                        , Style (".column > ." ++ self)
+                            [ Property "height" (toString pixels ++ "px")
+                            , Property "width" "0px"
+                            ]
                         ]
+                in
+                    Styled spacings
+                        (Html.node "span"
+                            [ Html.Attributes.class (self) ]
+                            []
+                        )
+
+            El name attributes child ->
+                let
+                    (Styled styles renderedChild) =
+                        render FirstAndLast (0 :: index) child
+
+                    -- { attributes, styleProperties, otherStyles }
+                    rendered =
+                        renderAttributes SingleLayout attributes
+
+                    self =
+                        "styled-" ++ String.join "" (List.map toString index)
+
+                    myStyle =
+                        Style ("." ++ self) rendered.styleProperties
+
+                    others =
+                        List.map (renderDependent ("." ++ self)) rendered.otherStyles
+                in
+                    Styled (myStyle :: others ++ styles)
+                        (Html.node name
+                            (Html.Attributes.class (self ++ " el " ++ positionClass) :: rendered.attributes)
+                            [ renderedChild ]
+                        )
+
+            Container name attributes child ->
+                todo
+
+            Row name attributes children ->
+                let
+                    ( childrenStyles, renderedChildren ) =
+                        renderChildren index children
+
+                    -- { attributes, styleProperties, otherStyles }
+                    rendered =
+                        renderAttributes RowLayout attributes
+
+                    self =
+                        "styled-" ++ String.join "" (List.map toString index)
+
+                    additionalProperties =
+                        [ Property "display" "flex"
+                        , Property "flex-direction" "row"
+                        ]
+
+                    myStyle =
+                        Style ("." ++ self)
+                            (additionalProperties ++ rendered.styleProperties)
+
+                    others =
+                        List.map (renderDependent ("." ++ self)) rendered.otherStyles
+                in
+                    Styled (myStyle :: others ++ childrenStyles)
+                        (Html.node name (Html.Attributes.class (self ++ " el row " ++ positionClass) :: rendered.attributes) renderedChildren)
+
+            Column name attributes children ->
+                let
+                    ( childrenStyles, renderedChildren ) =
+                        renderChildren index children
+
+                    -- { attributes, styleProperties, otherStyles }
+                    rendered =
+                        renderAttributes ColumnLayout attributes
+
+                    self =
+                        "styled-" ++ String.join "" (List.map toString index)
+
+                    myStyle =
+                        Style ("." ++ self)
+                            rendered.styleProperties
+
+                    others =
+                        List.map (renderDependent ("." ++ self)) rendered.otherStyles
+                in
+                    Styled (myStyle :: others ++ childrenStyles)
+                        (Html.node name (Html.Attributes.class (self ++ " el column " ++ positionClass) :: rendered.attributes) renderedChildren)
+
+            Grid attributes children ->
+                todo
+
+            TextLayout attributes children ->
+                let
+                    ( childrenStyles, renderedChildren ) =
+                        renderChildren index children
+
+                    -- { attributes, styleProperties, otherStyles }
+                    rendered =
+                        renderAttributes ColumnLayout attributes
+
+                    self =
+                        "styled-" ++ String.join "" (List.map toString index)
+
+                    myStyle =
+                        Style ("." ++ self)
+                            (rendered.styleProperties)
+
+                    others =
+                        List.map (renderDependent ("." ++ self)) rendered.otherStyles
+                in
+                    Styled (myStyle :: others ++ childrenStyles)
+                        (Html.node "div" (Html.Attributes.class (self ++ " el text " ++ positionClass) :: rendered.attributes) renderedChildren)
+
+            Paragraph attributes children ->
+                let
+                    ( childrenStyles, renderedChildren ) =
+                        renderChildren index children
+
+                    -- { attributes, styleProperties, otherStyles }
+                    rendered =
+                        renderAttributes RowLayout attributes
+
+                    self =
+                        "styled-" ++ String.join "" (List.map toString index)
+
+                    myStyle =
+                        Style ("." ++ self)
+                            (rendered.styleProperties)
+
+                    others =
+                        List.map (renderDependent ("." ++ self)) rendered.otherStyles
+                in
+                    Styled (myStyle :: others ++ childrenStyles)
+                        (Html.node "p" (Html.Attributes.class (self ++ " el paragraph " ++ positionClass) :: rendered.attributes) renderedChildren)
+
+            Raw html ->
+                Styled [] html
+
+            Nearby location child ->
+                case location of
+                    Above ->
+                        todo
+
+                    Below ->
+                        todo
+
+                    OnRight ->
+                        todo
+
+                    OnLeft ->
+                        todo
+
+                    Within ->
+                        todo
+
+            Screen child ->
+                todo
+
+
+renderChildren : List Int -> List (Element msg) -> ( List Style, List (Html msg) )
+renderChildren index children =
+    let
+        place =
+            getReversePosition (List.length children)
+
+        ( _, childrenStyles, renderedChildren ) =
+            List.foldr renderStyleList ( 0, [], [] ) children
+
+        renderStyleList child ( i, renderedStyles, renderedEls ) =
+            let
+                (Styled styles el) =
+                    render (place i) (i :: index) child
             in
-                Styled (myStyle :: styles)
-                    (Html.node name [ Html.Attributes.class self ] [ renderedChild ])
-
-        Container name attributes child ->
-            todo
-
-        Row name attributes children ->
-            todo
-
-        Column name attributes children ->
-            todo
-
-        Grid attributes children ->
-            todo
-
-        TextLayout attributes children ->
-            todo
-
-        Paragraph attributes children ->
-            todo
-
-        Raw html ->
-            todo
-
-        Nearby location child ->
-            case location of
-                Above ->
-                    todo
-
-                Below ->
-                    todo
-
-                OnRight ->
-                    todo
-
-                OnLeft ->
-                    todo
-
-                Within ->
-                    todo
-
-        Screen child ->
-            todo
+                ( i + 1
+                , styles ++ renderedStyles
+                , el :: renderedEls
+                )
+    in
+        ( childrenStyles, renderedChildren )
 
 
-renderAttributes : Attribute msg -> Html.Attribute msg
-renderAttributes attr =
+type alias Gathered msg =
+    { attributes : List (Html.Attribute msg)
+    , styleProperties : List Property
+    , otherStyles : List DependentStyle
+    }
+
+
+{-| This is a style definition that is relative to the current element.
+
+    DependentStyle selector props ->
+        ".current-element"
+
+-}
+type DependentStyle
+    = Child String (List Property)
+    | Pseudo String (List Property)
+    | FollowingSibling String (List Property)
+
+
+renderDependent : String -> DependentStyle -> Style
+renderDependent selector dep =
+    case dep of
+        Child name props ->
+            Style (selector ++ " > " ++ name) props
+
+        Pseudo name props ->
+            Style (selector ++ ":" ++ name) props
+
+        FollowingSibling name props ->
+            Style (selector ++ " + " ++ name) props
+
+
+renderAttributes : LayoutHint -> List (Attribute msg) -> Gathered msg
+renderAttributes hint attrs =
+    let
+        init =
+            { attributes = []
+            , styleProperties = []
+            , otherStyles = []
+            }
+    in
+        List.foldr (gatherAttributes hint) init attrs
+
+
+type LayoutHint
+    = RowLayout
+    | ColumnLayout
+    | GridLayout
+    | SingleLayout
+
+
+gatherAttributes : LayoutHint -> Attribute msg -> Gathered msg -> Gathered msg
+gatherAttributes hint attr gathered =
     case attr of
+        StyleProps props ->
+            { gathered | styleProperties = props ++ gathered.styleProperties }
+
         Height len ->
-            Html.Attributes.class ""
+            case len of
+                Px px ->
+                    -- add width: Xpx to current style
+                    { gathered | styleProperties = Property "height" (toString px ++ "px") :: gathered.styleProperties }
+
+                Content ->
+                    -- need to default to alignLeft
+                    { gathered | styleProperties = Property "height" "auto" :: gathered.styleProperties }
+
+                Expand ->
+                    -- add class "expand-height"
+                    { gathered | attributes = Html.Attributes.class "expand-height" :: gathered.attributes }
+
+                Fill portion ->
+                    -- renders as flex-grow: portion
+                    { gathered | styleProperties = Property "height" "100%" :: gathered.styleProperties }
 
         Width len ->
             case len of
                 Px px ->
                     -- add width: Xpx to current style
-                    Html.Attributes.class ""
+                    { gathered | styleProperties = Property "width" (toString px ++ "px") :: gathered.styleProperties }
 
                 Content ->
                     -- need to default to alignLeft
-                    Html.Attributes.class ""
+                    { gathered | styleProperties = Property "width" "auto" :: gathered.styleProperties }
 
                 Expand ->
                     -- add class "expand-width"
-                    Html.Attributes.class ""
+                    { gathered | attributes = Html.Attributes.class "expand-width" :: gathered.attributes }
 
                 Fill portion ->
                     -- renders as flex-grow: portion
-                    Html.Attributes.class ""
+                    { gathered | styleProperties = Property "width" "100%" :: gathered.styleProperties }
 
         HAlign alignment ->
-            Html.Attributes.class ""
+            case alignment of
+                AlignLeft ->
+                    { gathered | attributes = Html.Attributes.class "align-left" :: gathered.attributes }
+
+                AlignRight ->
+                    { gathered | attributes = Html.Attributes.class "align-right" :: gathered.attributes }
+
+                Center ->
+                    { gathered | attributes = Html.Attributes.class "center" :: gathered.attributes }
+
+                Spread ->
+                    { gathered | attributes = Html.Attributes.class "spread" :: gathered.attributes }
 
         VAlign alignment ->
-            Html.Attributes.class ""
+            case alignment of
+                AlignTop ->
+                    { gathered | attributes = Html.Attributes.class "align-top" :: gathered.attributes }
+
+                AlignBottom ->
+                    { gathered | attributes = Html.Attributes.class "align-bottom" :: gathered.attributes }
+
+                VerticalCenter ->
+                    { gathered | attributes = Html.Attributes.class "vertical-center" :: gathered.attributes }
+
+                VerticalJustify ->
+                    { gathered | attributes = Html.Attributes.class "vertical-justify" :: gathered.attributes }
 
         Position mx my mz ->
             -- add translate to the transform stack
-            Html.Attributes.class ""
+            gathered
 
         Opacity o ->
             -- add opacity to style
-            Html.Attributes.class ""
+            { gathered
+                | styleProperties = Property "opacity" (toString o) :: gathered.styleProperties
+            }
 
         Spacing spacing ->
             -- Add a new style > .children
-            Html.Attributes.class ""
+            case hint of
+                RowLayout ->
+                    { gathered
+                        | otherStyles =
+                            Child ".middle" [ Property "margin-left" (toString spacing ++ "px") ]
+                                :: Child ".last" [ Property "margin-left" (toString spacing ++ "px") ]
+                                :: gathered.otherStyles
+                    }
+
+                ColumnLayout ->
+                    { gathered
+                        | otherStyles =
+                            Child ".middle" [ Property "margin-top" (toString spacing ++ "px") ]
+                                :: Child ".last" [ Property "margin-top" (toString spacing ++ "px") ]
+                                :: gathered.otherStyles
+                    }
+
+                GridLayout ->
+                    { gathered
+                        | styleProperties =
+                            Property "grid-column-gap" (toString spacing ++ "px")
+                                :: Property "grid-row-gap" (toString spacing ++ "px")
+                                :: gathered.styleProperties
+                    }
+
+                SingleLayout ->
+                    gathered
 
         SpacingXY x y ->
-            Html.Attributes.class ""
+            case hint of
+                RowLayout ->
+                    { gathered
+                        | otherStyles =
+                            Child ".middle" [ Property "margin-left" (toString x ++ "px") ]
+                                :: Child ".last" [ Property "margin-left" (toString x ++ "px") ]
+                                :: gathered.otherStyles
+                    }
 
-        Padding (Maybe Float) (Maybe Float) (Maybe Float) (Maybe Float) ->
+                ColumnLayout ->
+                    { gathered
+                        | otherStyles =
+                            Child ".middle" [ Property "margin-top" (toString y ++ "px") ]
+                                :: Child ".last" [ Property "margin-top" (toString y ++ "px") ]
+                                :: gathered.otherStyles
+                    }
+
+                GridLayout ->
+                    { gathered
+                        | styleProperties =
+                            Property "grid-column-gap" (toString x ++ "px")
+                                :: Property "grid-row-gap" (toString y ++ "px")
+                                :: gathered.styleProperties
+                    }
+
+                SingleLayout ->
+                    gathered
+
+        Padding { top, right, bottom, left } ->
             -- render to current style
-            Html.Attributes.class ""
+            { gathered
+                | styleProperties =
+                    gathered.styleProperties
+                        |> addMaybe (Maybe.map (\x -> Property "padding-top" (toString x ++ "px")) top)
+                        |> addMaybe (Maybe.map (\x -> Property "padding-bottom" (toString x ++ "px")) bottom)
+                        |> addMaybe (Maybe.map (\x -> Property "padding-left" (toString x ++ "px")) left)
+                        |> addMaybe (Maybe.map (\x -> Property "padding-right" (toString x ++ "px")) right)
+            }
+
+        Overflow overflow ->
+            case overflow of
+                XAxis ->
+                    { gathered
+                        | styleProperties = Property "overflow-x" "auto" :: gathered.styleProperties
+                    }
+
+                YAxis ->
+                    { gathered
+                        | styleProperties = Property "overflow-y" "auto" :: gathered.styleProperties
+                    }
+
+                AllAxis ->
+                    { gathered
+                        | styleProperties = Property "overflow" "auto" :: gathered.styleProperties
+                    }
 
         Event attr ->
             -- add to current attributes
-            attr
+            { gathered | attributes = attr :: gathered.attributes }
 
         InputEvent attr ->
             -- add to current attributes
-            attr
+            { gathered | attributes = attr :: gathered.attributes }
 
         Attr attr ->
             -- add to current attributes
-            attr
+            { gathered | attributes = attr :: gathered.attributes }
 
-        Overflow overflow ->
-            -- render to current style
-            Html.Attributes.class ""
+
+addMaybe : Maybe thing -> List thing -> List thing
+addMaybe maybeThing list =
+    case maybeThing of
+        Nothing ->
+            list
+
+        Just x ->
+            x :: list
 
 
 type Position
@@ -380,6 +811,30 @@ type Position
     | Middle
     | Last
     | FirstAndLast
+
+
+getPosition : Int -> Int -> Position
+getPosition total i =
+    if total <= 1 then
+        FirstAndLast
+    else if i == 0 then
+        First
+    else if i == total - 1 then
+        Last
+    else
+        Middle
+
+
+getReversePosition : Int -> Int -> Position
+getReversePosition total i =
+    if total <= 1 then
+        FirstAndLast
+    else if i == 0 then
+        Last
+    else if i == total - 1 then
+        First
+    else
+        Middle
 
 
 positionMap : (Position -> Int -> a -> b) -> List a -> List b
@@ -416,3 +871,136 @@ positionMap fn list =
 --     Styled
 --         (VirtualCss.lazy (renderStyles << fn) a)
 --         (Html.lazy (renderHtml << fn) a)
+{- API Interface -}
+
+
+text : String -> Element msg
+text =
+    Text NoDecoration
+
+
+paragraph : List (Attribute msg) -> List (Element msg) -> Element msg
+paragraph =
+    Paragraph
+
+
+textLayout : List (Attribute msg) -> List (Element msg) -> Element msg
+textLayout =
+    TextLayout
+
+
+el : List (Attribute msg) -> Element msg -> Element msg
+el =
+    El "div"
+
+
+row : List (Attribute msg) -> List (Element msg) -> Element msg
+row =
+    Row "div"
+
+
+column : List (Attribute msg) -> List (Element msg) -> Element msg
+column =
+    Column "div"
+
+
+style : List Property -> Attribute msg
+style =
+    StyleProps
+
+
+prop : String -> String -> Property
+prop =
+    Property
+
+
+{-| -}
+center : Attribute msg
+center =
+    HAlign Center
+
+
+{-| -}
+verticalCenter : Attribute msg
+verticalCenter =
+    VAlign VerticalCenter
+
+
+{-| -}
+verticalSpread : Attribute msg
+verticalSpread =
+    VAlign VerticalJustify
+
+
+{-| -}
+spread : Attribute msg
+spread =
+    HAlign Spread
+
+
+{-| -}
+alignTop : Attribute msg
+alignTop =
+    VAlign AlignTop
+
+
+{-| -}
+alignBottom : Attribute msg
+alignBottom =
+    VAlign AlignBottom
+
+
+{-| -}
+alignLeft : Attribute msg
+alignLeft =
+    HAlign AlignLeft
+
+
+{-| -}
+alignRight : Attribute msg
+alignRight =
+    HAlign AlignRight
+
+
+{-| -}
+width : Length -> Attribute msg
+width =
+    Width
+
+
+{-| -}
+height : Length -> Attribute msg
+height =
+    Height
+
+
+{-| -}
+px : Float -> Length
+px =
+    Px
+
+
+{-| -}
+content : Length
+content =
+    Content
+
+
+{-| -}
+fill : Length
+fill =
+    Fill 1
+
+
+spacing : Float -> Attribute msg
+spacing =
+    Spacing
+
+
+spacingXY : Float -> Float -> Attribute msg
+spacingXY =
+    SpacingXY
+
+
+spacer =
+    Spacer
