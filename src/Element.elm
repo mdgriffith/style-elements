@@ -155,7 +155,7 @@ In CSS terms, this positions children using 'position:absolute'. So, to position
 
 ## Significant Locations
 
-@docs nav, navColumn
+@docs navigation, navigationColumn
 
 @docs header, mainContent, footer, sidebar, search
 

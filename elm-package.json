@@ -21,7 +21,6 @@
         "Element.Attributes",
         "Element.Events",
         "Element.Keyed",
-        "Element.Location",
         "Element.Input"
     ],
     "dependencies": {
