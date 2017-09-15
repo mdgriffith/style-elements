@@ -11,10 +11,7 @@ import Style.Font as Font
 import Style.Transition as Transition
 
 
-{-| A synonym for creating tuples. This will be included in the standard library soon.
-
-1 => 2 == (1, 2)
-
+{-| 1 => 2 == (1, 2)
 -}
 (=>) =
     (,)
@@ -33,6 +30,13 @@ type Styles
     | Label
 
 
+sansSerif =
+    [ Font.font "helvetica"
+    , Font.font "arial"
+    , Font.font "sans-serif"
+    ]
+
+
 {-| First, we create a stylesheet.
 
 Styles only deal with properties that are not related to layout, position, or size.
@@ -44,14 +48,14 @@ If you want to use something like em
 -}
 stylesheet : StyleSheet Styles variation
 stylesheet =
-    Style.stylesheet
+    Style.styleSheet
         [ style None [] -- It's handy to have a blank style
         , style Main
             [ Border.all 1 -- set all border widths to 1 px.
             , Color.text Color.darkCharcoal
             , Color.background Color.white
             , Color.border Color.lightGrey
-            , Font.typeface [ "helvetica", "arial", "sans-serif" ]
+            , Font.typeface sansSerif
             , Font.size 16
             , Font.lineHeight 1.3 -- line height, given as a ratio of current font size.
             ]
@@ -68,11 +72,11 @@ stylesheet =
             ]
         , style Logo
             [ Font.size 25
-            , Font.typeface [ "helvetica", "arial", "sans-serif" ]
+            , Font.typeface sansSerif
             ]
         , style NavOption
             [ Font.size 16
-            , Font.typeface [ "helvetica", "arial", "sans-serif" ]
+            , Font.typeface sansSerif
             ]
         , style Box
             [ Transition.all
@@ -80,7 +84,6 @@ stylesheet =
             , Color.background Color.blue
             , Color.border Color.blue
             , Border.rounded 3 -- round all borders to 3px
-            , paddingHint 20
             , hover
                 [ Color.text Color.white
                 , Color.background Color.red
@@ -110,7 +113,7 @@ which you can think of as Html with layout, positioning, and spacing built in.
 
 -}
 view _ =
-    Element.root stylesheet <|
+    Element.layout stylesheet <|
         column None
             []
             [ navigation
@@ -129,13 +132,13 @@ view _ =
 
 navigation =
     row None
-        [ justify, paddingXY 80 20 ]
+        [ spread, paddingXY 80 20 ]
         [ el Logo [] (text "Style Elements")
         , row None
-            [ spacing 20 ]
-            [ el NavOption [ alignBottom ] (text "share")
-            , el NavOption [ alignBottom ] (text "about")
-            , el NavOption [ alignBottom ] (text "user profile")
+            [ spacing 20, alignBottom ]
+            [ el NavOption [] (text "share")
+            , el NavOption [] (text "about")
+            , el NavOption [] (text "user profile")
             ]
         ]
 
@@ -224,6 +227,7 @@ viewRowLayouts =
 viewGridLayout =
     [ el Label [] (text "Grid Layout")
     , grid Container
+        [ spacing 20 ]
         { columns = [ px 100, px 100, px 100, px 100 ]
         , rows =
             [ px 100
@@ -231,51 +235,52 @@ viewGridLayout =
             , px 100
             , px 100
             ]
+        , cells =
+            [ cell
+                { start = ( 0, 0 )
+                , width = 1
+                , height = 1
+                , content = (el Box [] (text "box"))
+                }
+            , cell
+                { start = ( 1, 1 )
+                , width = 1
+                , height = 2
+                , content = (el Box [ spacing 100 ] (text "box"))
+                }
+            , cell
+                { start = ( 2, 1 )
+                , width = 2
+                , height = 2
+                , content = (el Box [] (text "box"))
+                }
+            , cell
+                { start = ( 1, 0 )
+                , width = 1
+                , height = 1
+                , content = (el Box [] (text "box"))
+                }
+            ]
         }
-        [ spacing 20 ]
-        [ area
-            { start = ( 0, 0 )
-            , width = 1
-            , height = 1
-            }
-            (el Box [] (text "box"))
-        , area
-            { start = ( 1, 1 )
-            , width = 1
-            , height = 2
-            }
-            (el Box [ spacing 100 ] (text "box"))
-        , area
-            { start = ( 2, 1 )
-            , width = 2
-            , height = 2
-            }
-            (el Box [] (text "box"))
-        , area
-            { start = ( 1, 0 )
-            , width = 1
-            , height = 1
-            }
-            (el Box [] (text "box"))
-        ]
     ]
 
 
 viewNamedGridLayout =
     [ el Label [] (text "Named Grid Layout")
     , namedGrid Container
-        { columns = [ px 200, px 200, px 200, fill 1 ]
+        []
+        { columns = [ px 200, px 200, px 200, fill ]
         , rows =
             [ px 200 => [ spanAll "header" ]
             , px 200 => [ span 3 "content", span 1 "sidebar" ]
             , px 200 => [ span 3 "content", span 1 "sidebar" ]
             , px 200 => [ spanAll "footer" ]
             ]
+        , cells =
+            [ named "header"
+                (el Box [] (text "box"))
+            , named "sidebar"
+                (el Box [] (text "box"))
+            ]
         }
-        []
-        [ named "header"
-            (el Box [] (text "box"))
-        , named "sidebar"
-            (el Box [] (text "box"))
-        ]
     ]

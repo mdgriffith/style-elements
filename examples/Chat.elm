@@ -4,12 +4,8 @@ import Color exposing (rgba)
 import Element exposing (..)
 import Element.Attributes exposing (..)
 import Style exposing (..)
-import Style.Border as Border
 import Style.Color as Color
 import Style.Font as Font
-import Style.Transition as Transition
-import Html
-import Html.Attributes as Html
 
 
 type Styles
@@ -36,7 +32,7 @@ colors =
 
 stylesheet : StyleSheet Styles variation
 stylesheet =
-    Style.stylesheet
+    Style.styleSheet
         [ style None []
         , style Container
             [ Color.text Color.black
@@ -58,7 +54,7 @@ stylesheet =
         , style MessageBox
             [ Color.background colors.blue2 ]
         , style Main
-            [ Font.typeface [ "helvetica" ] ]
+            [ Font.typeface [ Font.font "helvetica" ] ]
         , style H3
             [ Font.size 20, Font.weight 400 ]
         ]
@@ -67,11 +63,11 @@ stylesheet =
 main =
     Element.viewport stylesheet <|
         column Main
-            [ height <| fill 1 ]
+            [ height fill ]
             [ navbar
             , row None
-                [ height <| fill 1
-                , width <| fill 1
+                [ height fill
+                , width fill
                 ]
                 [ sidebar, body, inspector ]
             ]
@@ -95,7 +91,7 @@ inspector =
         [ padding 20
         , alignLeft
         , width <| px 200
-        , height <| fill 1
+        , height fill
         ]
         [ text "Inspector" ]
 
@@ -103,7 +99,7 @@ inspector =
 body =
     column None
         [ alignLeft
-        , width <| fill 1
+        , width fill
         ]
         [ messages, messageBox ]
 
@@ -111,7 +107,7 @@ body =
 messages =
     column
         Chat
-        [ width <| fill 1
+        [ width fill
         , alignLeft
         , yScrollbar
         ]
@@ -127,7 +123,7 @@ message n =
 messageBox =
     el MessageBox
         [ height <| px 300
-        , width <| fill 1
+        , width fill
         , verticalCenter
         ]
         (text "Message box")

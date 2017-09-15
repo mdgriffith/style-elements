@@ -78,7 +78,7 @@ type Styles
 
 stylesheet : Style.StyleSheet Styles variation
 stylesheet =
-    Style.stylesheet
+    Style.styleSheet
         [ Style.style Box
             [ Color.background Color.green
             , Color.text Color.white
