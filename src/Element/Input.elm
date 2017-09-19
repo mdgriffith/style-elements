@@ -27,6 +27,7 @@ module Element.Input
         , errorBelow
         , errorAbove
         , disabled
+        , radioKey
         , focusOnLoad
         , placeholder
         , allowSpellcheck
@@ -64,7 +65,7 @@ The following text inputs give hints to the browser so they can be autofilled.
 
 ## 'Choose One' Inputs
 
-@docs Radio, radio, radioRow, Choice, choice, styledChoice
+@docs Radio, radio, radioRow, Choice, choice, styledChoice, radioKey
 
 @docs select, Select, SelectWith, autocomplete, dropMenu, menu, menuAbove, selected, SelectMsg, updateSelection
 
@@ -166,6 +167,9 @@ addOptionsAsAttrs options attrs =
     let
         renderOption option attrs =
             case option of
+                Key str ->
+                    attrs
+
                 FocusOnLoad ->
                     autofocusAttr True :: attrs
 
@@ -195,33 +199,12 @@ type alias Checkbox style variation msg =
 
 {-| Your basic checkbox
 
-    Input.checkbox CheckBoxStyle [ ]
-        { checked = True
-        , onChange = ChangeMsg
-        , label = Input.labelAbove (text "hello!")
-        , options =
-            -- Options are where we can add error messages
-            -- or disable input for this element
-            []
-        }
-
--- For more involved checkbox styling
-
-    Input.checkboxWith CheckBoxStyle [ ]
+    Input.checkbox Checkbox
+        []
         { onChange = Check
         , checked = model.checkbox
-        , label = text "hello!"
+        , label = el None [] (text "hello!")
         , options = []
-        , icon =
-            \on ->
-                el
-                    (if on then
-                        CheckboxChecked
-                     else
-                        Checkbox
-                    )
-                    []
-                    empty
         }
 
 -}
@@ -282,7 +265,29 @@ type alias StyledCheckbox style variation msg =
     }
 
 
-{-| -}
+{-| A checkbox that allows you to style the actual checkbox:
+
+    Input.styledCheckbox Checkbox
+        []
+        { onChange = Check
+        , checked = model.checkbox
+        , label = el None [] (text "hello!")
+        , options = []
+        , icon =
+            -- A function which receives a checked bool
+            -- and returns the element that represents the checkbox
+            \checked ->
+                circle 7
+                    (if on then
+                        CheckboxChecked
+                    else
+                        Checkbox
+                    )
+                    []
+                    empty
+        }
+
+-}
 styledCheckbox : style -> List (Attribute variation msg) -> StyledCheckbox style variation msg -> Element style variation msg
 styledCheckbox style attrs input =
     let
@@ -546,6 +551,7 @@ type Option style variation msg
     | FocusOnLoad
     | AutoFill String
     | SpellCheck
+    | Key String
 
 
 {-| Allow spellcheck for this input. Only works on text based inputs.
@@ -583,6 +589,18 @@ disabled =
     Disabled
 
 
+{-| Add a key string to a radio option.
+
+This is used to differentiate between separate radio menus.
+
+It's not needed if the text of the labels are unique.
+
+-}
+radioKey : String -> Option style variation msg
+radioKey =
+    Key
+
+
 type Error style variation msg
     = ErrorBelow (Element style variation msg)
     | ErrorAbove (Element style variation msg)
@@ -599,6 +617,28 @@ type Label style variation msg
 
 
 -- | FloatingPlaceholder (Element style variation msg)
+
+
+getLabelText : Label style variation msg -> String
+getLabelText label =
+    case label of
+        LabelBelow el ->
+            Modify.getText el
+
+        LabelAbove el ->
+            Modify.getText el
+
+        LabelOnRight el ->
+            Modify.getText el
+
+        LabelOnLeft el ->
+            Modify.getText el
+
+        HiddenLabel str ->
+            str
+
+        PlaceHolder str label ->
+            getLabelText label
 
 
 {-| -}
@@ -884,9 +924,10 @@ getOptionValue opt =
             value
 
 
-optionToString : a -> String
-optionToString =
-    Style.Internal.Selector.formatName
+
+-- optionToString : a -> String
+-- optionToString =
+--     Style.Internal.Selector.formatName
 
 
 {-| -}
@@ -903,28 +944,26 @@ type alias Radio option style variation msg =
 
     Input.radio Field
         [ padding 10
-        , spacing 5
+        , spacing 20
         ]
         { onChange = ChooseLunch
         , selected = Just model.lunch
-        , label = Input.labelAbove <| text "Lunch"
-        , errors = Input.noErrors
-        , disabled = Input.enabled
-        , options =
-            [ Input.optionWith None
-                []
-                { value = Burrito
-                , icon =
-                    (\selected ->
-                        if selected then
-                            text ":D"
-                        else
-                            text ":("
-                    )
-                , label = Input.labelRight <| text "burrito"
-                }
-            , Input.option Taco (text "Taco!")
-            , Input.option Gyro (text "Gyro")
+        , label = Input.labelAbove (text "Lunch")
+        , options = []
+        , choices =
+            [ Input.styledChoice Burrito <|
+                \selected ->
+                    Element.row None
+                        [ spacing 5 ]
+                        [ el None [] <|
+                            if selected then
+                                text ":D"
+                            else
+                                text ":("
+                        , text "burrito"
+                        ]
+            , Input.choice Taco (text "Taco!")
+            , Input.choice Gyro (text "Gyro")
             ]
         }
 -}
@@ -945,6 +984,19 @@ radio style attrs input =
         isDisabled =
             List.any ((==) Disabled) input.options
 
+        forKeys opt =
+            case opt of
+                Key key ->
+                    Just key
+
+                _ ->
+                    Nothing
+
+        key =
+            input.options
+                |> List.filterMap forKeys
+                |> String.join "-"
+
         inputElem =
             radioHelper Vertical
                 style
@@ -958,6 +1010,11 @@ radio style attrs input =
                 , label = input.label
                 , disabled = isDisabled
                 , errors = errs
+                , key =
+                    if key == "" then
+                        Nothing
+                    else
+                        Just key
                 }
     in
         applyLabel Nothing [] input.label errs isDisabled (not isDisabled) [ inputElem ]
@@ -982,6 +1039,19 @@ radioRow style attrs config =
         isDisabled =
             List.any ((==) Disabled) config.options
 
+        forKeys opt =
+            case opt of
+                Key key ->
+                    Just key
+
+                _ ->
+                    Nothing
+
+        key =
+            config.options
+                |> List.filterMap forKeys
+                |> String.join "-"
+
         input =
             radioHelper Horizontal
                 style
@@ -995,6 +1065,11 @@ radioRow style attrs config =
                 , label = config.label
                 , disabled = isDisabled
                 , errors = errs
+                , key =
+                    if key == "" then
+                        Nothing
+                    else
+                        Just key
                 }
     in
         applyLabel Nothing [] config.label errs isDisabled (not isDisabled) [ input ]
@@ -1061,6 +1136,7 @@ type alias MasterRadio option style variation msg =
     , label : Label style variation msg
     , disabled : Bool
     , errors : List (Error style variation msg)
+    , key : Maybe String
     }
 
 
@@ -1084,9 +1160,12 @@ radioHelper : Orientation msg -> style -> List (Attribute variation msg) -> Mast
 radioHelper orientation style attrs config =
     let
         group =
-            config.choices
-                |> List.map (optionToString << getOptionValue)
-                |> String.join "-"
+            case config.key of
+                Nothing ->
+                    getLabelText config.label
+
+                Just key ->
+                    key
 
         valueIsSelected val =
             case config.selection of
@@ -1136,6 +1215,14 @@ radioHelper orientation style attrs config =
             case option of
                 Choice val el ->
                     let
+                        textValue =
+                            case config.key of
+                                Nothing ->
+                                    Modify.getText el
+
+                                Just key ->
+                                    key ++ "-" ++ Modify.getText el
+
                         input =
                             Internal.Element
                                 { node = "input"
@@ -1144,7 +1231,7 @@ radioHelper orientation style attrs config =
                                     (withDisabled << addSelection val)
                                         [ type_ "radio"
                                         , name group
-                                        , valueAttr (optionToString val)
+                                        , valueAttr textValue
                                         ]
                                 , child = Internal.Empty
                                 , absolutelyPositioned = Nothing
@@ -1174,6 +1261,14 @@ radioHelper orientation style attrs config =
                         viewed =
                             view (valueIsSelected val)
 
+                        textValue =
+                            case config.key of
+                                Nothing ->
+                                    Modify.getText (view True)
+
+                                Just key ->
+                                    key ++ "-" ++ Modify.getText (view True)
+
                         hiddenInput =
                             Internal.Element
                                 { node = "input"
@@ -1183,7 +1278,7 @@ radioHelper orientation style attrs config =
                                         [ type_ "radio"
                                         , hidden
                                         , name group
-                                        , valueAttr (optionToString val)
+                                        , valueAttr textValue
                                         , Attr.toAttr <| Html.Attributes.class "focus-override"
                                         ]
                                 , child = Internal.Empty
@@ -1311,30 +1406,29 @@ type alias SearchMenu option style variation msg =
 
     Input.select Field
         [ padding 10
-        , spacing 5
+        , spacing 20
         ]
-        { isOpen = True
-        , onChange = ChooseLunch
-        , selected = Just model.lunch
-        , label = Input.labelAbove (text "Lunch")
-        , errors = Input.noErrors
-        , disabled = False
-        , options =
-            [ Input.optionWith None
+        { label = Input.labelAbove <| text "Lunch"
+        , with = model.selectMenu
+        , max = 5
+        , options = []
+        , menu =
+            Input.menuAbove SubMenu
                 []
-                { value = Burrito
-                , icon =
-                    (\selected ->
-                        if selected then
-                            text ":D"
-                        else
-                            text ":("
-                    )
-                , label = Input.labelRight (text "burrito")
-                }
-            , Input.option Taco (text "Taco!")
-            , Input.option Gyro (text "Gyro")
-            ]
+                [ Input.choice Taco (text "Taco!")
+                , Input.choice Gyro (text "Gyro")
+                , Input.styledChoice Burrito <|
+                    \selected ->
+                        Element.row None
+                            [ spacing 5 ]
+                            [ el None [] <|
+                                if selected then
+                                    text ":D"
+                                else
+                                    text ":("
+                            , text "burrito"
+                            ]
+                ]
         }
 
 -}

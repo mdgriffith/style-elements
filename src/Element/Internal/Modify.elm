@@ -16,6 +16,7 @@ module Element.Internal.Modify
         , getChild
         , setAttrs
         , makeInline
+        , getText
         )
 
 {-| -}
@@ -431,3 +432,34 @@ getChild el =
 
         Text dec content ->
             Text dec content
+
+
+getText : Element style variation msg -> String
+getText el =
+    case el of
+        Empty ->
+            ""
+
+        Spacer x ->
+            ""
+
+        Raw h ->
+            ""
+
+        Layout { children } ->
+            case children of
+                Normal childs ->
+                    childs
+                        |> List.map getText
+                        |> String.join "-"
+
+                Keyed childs ->
+                    childs
+                        |> List.map (getText << Tuple.second)
+                        |> String.join "-"
+
+        Element { child } ->
+            getText child
+
+        Text dec content ->
+            content
