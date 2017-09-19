@@ -16,6 +16,7 @@ import Time exposing (Time)
 import Murmur3
 import Dict
 import VirtualCss
+import Next.Internal.Model as Next
 
 
 type alias Model =
@@ -34,6 +35,7 @@ type Technique
     | CssAnimation
     | UsingVirtualCss
     | VirtualCssTransformViaAnimation
+    | StyleElements
 
 
 type Reducer
@@ -339,6 +341,9 @@ view model =
 
             VirtualCssTransformViaAnimation ->
                 virtualCssTransformViaAnimation model.time model.nodes model.renderer
+
+            StyleElements ->
+                styleElements model.time model.nodes model.renderer
         ]
 
 
@@ -471,6 +476,22 @@ viewStats model =
                         []
                     , text "VirtualCSS - Color(VCSS), Translate(Animation)"
                     ]
+                , label []
+                    [ input
+                        [ type_ "radio"
+                        , name "renderer"
+                        , checked (model.renderer.technique == StyleElements)
+                        , onClick
+                            (ChangeRenderer
+                                ({ renderer
+                                    | technique = StyleElements
+                                 }
+                                )
+                            )
+                        ]
+                        []
+                    , text "Style Elements (v5)"
+                    ]
                 ]
         , div [ style [ ( "padding-top", "20px" ) ] ]
             [ label []
@@ -519,6 +540,62 @@ viewStats model =
 {- Rendering Strategies -}
 
 
+styleElements time nodes renderer =
+    let
+        fixed x =
+            let
+                el i =
+                    Next.el
+                        [ Next.width (Next.px 10)
+                        , Next.height (Next.px 10)
+                        , Next.style props
+                        ]
+                        Next.empty
+            in
+                Next.row
+                    [ Next.width (Next.px 600)
+                    , Next.style [ Next.prop "flex-wrap" "wrap", Next.prop "margin-top" "100px" ]
+                    ]
+                    (List.map el (List.range 0 (x - 1)))
+
+        ( r, g, b ) =
+            animateColor time
+
+        pos =
+            animatePosSin time
+
+        props =
+            List.filterMap identity
+                [ Just <| Next.prop "margin-right" "10px"
+                , Just <| Next.prop "margin-bottom" "10px"
+                , if renderer.color then
+                    Just <| Next.prop "background-color" ("rgb(" ++ toString r ++ ", " ++ toString g ++ ", " ++ toString b ++ ")")
+                  else
+                    Nothing
+                , if renderer.translate || renderer.rotate then
+                    Just <|
+                        Next.prop "transform" <|
+                            (String.join " " <|
+                                [ if renderer.translate then
+                                    ("translate(" ++ toString pos ++ "px, 0px)")
+                                  else
+                                    ""
+                                , if renderer.rotate then
+                                    ("rotate(" ++ toString pos ++ "deg)")
+                                  else
+                                    ""
+                                ]
+                            )
+                  else
+                    Nothing
+                ]
+    in
+        -- if renderer.lazy then
+        --     Html.Lazy.lazy fixed nodes
+        -- else
+        Next.layout <| fixed nodes
+
+
 virtualCss time nodes renderer =
     let
         fixed x =
@@ -533,7 +610,7 @@ virtualCss time nodes renderer =
                                 |> (\x -> "style-" ++ x)
 
                         Indexed ->
-                            "styled-" ++ toString i
+                            "virtual-css-" ++ toString i
 
                 el i =
                     if renderer.color then
@@ -561,7 +638,7 @@ virtualCss time nodes renderer =
                                 |> (\x -> "style-" ++ x)
 
                         Indexed ->
-                            "styled-" ++ toString i
+                            "virtual-css-" ++ toString i
 
                 _ =
                     VirtualCss.delete i
@@ -586,9 +663,9 @@ virtualCssTransformViaAnimation time nodes renderer =
             let
                 el i =
                     if renderer.color then
-                        div [ class ("style-no-bg test move-it styled-" ++ toString i) ] []
+                        div [ class ("style-no-bg test move-it virtual-css-" ++ toString i) ] []
                     else
-                        div [ class ("style test move-it styled-" ++ toString i) ] []
+                        div [ class ("style test move-it virtual-css-" ++ toString i) ] []
             in
                 div [ class "renderer" ]
                     (List.map el (List.range 0 (x - 1)))
@@ -603,7 +680,7 @@ virtualCssTransformViaAnimation time nodes renderer =
                     VirtualCss.delete i
 
                 rendered =
-                    renderStyle <| Style (".styled-" ++ toString i) props
+                    renderStyle <| Style (".virtual-css-" ++ toString i) props
             in
                 VirtualCss.insert rendered i
 
@@ -676,7 +753,7 @@ concreteStylesheet time nodes renderer =
                                 |> (\x -> "style-" ++ x)
 
                         Indexed ->
-                            "styled-" ++ toString i
+                            "concrete-style-" ++ toString i
             in
                 ( Style ("." ++ cls)
                     myStyleProps

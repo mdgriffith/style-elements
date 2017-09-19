@@ -6,8 +6,9 @@ import Html
 
 main =
     layout <|
-        el
-            [ height (px 200)
+        container
+            [ center
+            , verticalCenter
             , style
                 [ prop "color" "blue"
                 , prop "background-color" "yellow"
@@ -17,7 +18,9 @@ main =
             column
                 [ height (px 200)
                 , spacing 20
-                , verticalCenter
+                , width (px 500)
+
+                -- , verticalCenter
                 , spread
                 , style
                     [ prop "color" "blue"
@@ -32,7 +35,8 @@ main =
                         ]
                     ]
                     (text "First!")
-                , spacer 5
+
+                -- , spacer 5
                 , el
                     [ style
                         [ prop "color" "blue"
@@ -40,7 +44,7 @@ main =
                         ]
                     ]
                     (text "Second")
-                , paragraph [ width (px 100) ]
+                , paragraph [ width (px 200) ]
                     [ text "Hellow "
                     , text "Hellow "
                     , text "Hellow "
@@ -56,3 +60,30 @@ main =
                     , text "Hellow "
                     ]
                 ]
+
+
+{-| Can we propogate a width or height up the tree?
+
+In the following case, we'd like all `el`'s to get width fill
+
+-}
+mainOff =
+    layout <|
+        el [] <|
+            el [] <|
+                el
+                    [ style
+                        [ prop "background-color" "blue"
+                        , prop "color" "white"
+                        ]
+                    , width (px 200)
+                    ]
+                    (text "fill!")
+
+
+mainNearby =
+    layout <|
+        (el [ center, verticalCenter, width (px 200), height (px 200) ] (text "Hello!")
+            |> below
+                (el [] (text "I am below, yup!"))
+        )

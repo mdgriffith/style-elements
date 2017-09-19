@@ -2,6 +2,7 @@ module Next.Internal.Model exposing (..)
 
 import Html exposing (Html)
 import Html.Attributes
+import Html.Lazy
 
 
 type Element msg
@@ -16,8 +17,26 @@ type Element msg
     | TextLayout (List (Attribute msg)) (List (Element msg))
     | Paragraph (List (Attribute msg)) (List (Element msg))
     | Raw (Html msg)
-    | Nearby Location (Element msg)
-    | Screen (Element msg)
+    | Nearby
+        { anchor : Element msg
+        , nearby : List ( Location, Element msg )
+        }
+
+
+below : Element msg -> Element msg -> Element msg
+below placed anchoringElement =
+    case anchoringElement of
+        Nearby { anchor, nearby } ->
+            Nearby
+                { anchor = anchor
+                , nearby = ( Below, placed ) :: nearby
+                }
+
+        _ ->
+            Nearby
+                { anchor = anchoringElement
+                , nearby = [ ( Below, placed ) ]
+                }
 
 
 type Decoration
@@ -184,7 +203,20 @@ unstyled =
 static =
     """
 
+.el {
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border-width: 0;
+}
+
 .paragraph > .el {
+    display: inline;
+}
+
+.paragraph > .el > .text {
     display: inline;
 }
 
@@ -194,16 +226,12 @@ static =
 .paragraph > .column {
     display: inline-flex;
 }
-.paragraph >
 
 .row {
     display: flex;
     flex-direction: row;
 }
 
-.row > .el {
-    flex-basis: 0;
-}
 .row > .align-top {
     align-self: flex-start;
 }
@@ -241,10 +269,6 @@ static =
     display: flex;
     flex-direction: column;
 }
-
-.column > .el {
-    flex-basis: 0;
-}
 .column > .align-left {
     align-self: flex-start;
 }
@@ -254,7 +278,6 @@ static =
 .column > .center {
     align-self: center;
 }
-
 .column.align-left {
     align-items: flex-start;
 }
@@ -265,7 +288,7 @@ static =
     align-items: center;
 }
 .column.spread {
-    align-items: space-between;
+    justify-content: space-between;
 }
 .column.align-top {
     justify-content: flex-start;
@@ -277,6 +300,17 @@ static =
     justify-content: center;
 }
 
+.el.below {
+    position: absolute;
+    bottom: 0;
+    height: 0;
+}
+.el.above {
+    position: absolute;
+    top: 0;
+    height: 0;
+}
+
 
 
 """
@@ -286,10 +320,11 @@ layout : Element msg -> Html msg
 layout el =
     let
         (Styled styles html) =
-            render FirstAndLast [ 0 ] el
+            render FirstAndLast [ 0 ] [] el
     in
         Html.div []
-            [ Html.node "style" [] [ Html.text <| static ++ toStyleSheet styles ]
+            [ Html.Lazy.lazy (\_ -> Html.node "style" [] [ Html.text static ]) 1
+            , Html.node "style" [] [ Html.text <| toStyleSheet styles ]
             , html
             ]
 
@@ -325,8 +360,8 @@ These definitions change depending on what type of parent is present.
   - Parent Row/Column alignment should naturally not apply because nearby elements use `position:absolute`
 
 -}
-render : Position -> List Int -> Element msg -> Styled (Html msg)
-render position index el =
+render : Position -> List Int -> List (Element msg) -> Element msg -> Styled (Html msg)
+render position index addedChildren el =
     let
         positionClass =
             case position of
@@ -349,28 +384,28 @@ render position index el =
             Text decoration content ->
                 case decoration of
                     NoDecoration ->
-                        unstyled <| Html.div [ Html.Attributes.class positionClass ] [ Html.text content ]
+                        unstyled <| Html.div [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
 
                     RawText ->
                         unstyled <| Html.text content
 
                     Bold ->
-                        unstyled <| Html.strong [ Html.Attributes.class positionClass ] [ Html.text content ]
+                        unstyled <| Html.strong [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
 
                     Italic ->
-                        unstyled <| Html.em [ Html.Attributes.class positionClass ] [ Html.text content ]
+                        unstyled <| Html.em [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
 
                     Underline ->
-                        unstyled <| Html.u [ Html.Attributes.class positionClass ] [ Html.text content ]
+                        unstyled <| Html.u [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
 
                     Strike ->
-                        unstyled <| Html.u [ Html.Attributes.class positionClass ] [ Html.text content ]
+                        unstyled <| Html.u [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
 
                     Super ->
-                        unstyled <| Html.sup [ Html.Attributes.class positionClass ] [ Html.text content ]
+                        unstyled <| Html.sup [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
 
                     Sub ->
-                        unstyled <| Html.sub [ Html.Attributes.class positionClass ] [ Html.text content ]
+                        unstyled <| Html.sub [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
 
             Spacer pixels ->
                 let
@@ -397,150 +432,80 @@ render position index el =
                         )
 
             El name attributes child ->
-                let
-                    (Styled styles renderedChild) =
-                        render FirstAndLast (0 :: index) child
-
-                    -- { attributes, styleProperties, otherStyles }
-                    rendered =
-                        renderAttributes SingleLayout attributes
-
-                    self =
-                        "styled-" ++ String.join "" (List.map toString index)
-
-                    myStyle =
-                        Style ("." ++ self) rendered.styleProperties
-
-                    others =
-                        List.map (renderDependent ("." ++ self)) rendered.otherStyles
-                in
-                    Styled (myStyle :: others ++ styles)
-                        (Html.node name
-                            (Html.Attributes.class (self ++ " el " ++ positionClass) :: rendered.attributes)
-                            [ renderedChild ]
-                        )
+                renderStyled name index attributes positionClass SingleLayout [ child ] addedChildren ""
 
             Container name attributes child ->
                 todo
 
             Row name attributes children ->
-                let
-                    ( childrenStyles, renderedChildren ) =
-                        renderChildren index children
-
-                    -- { attributes, styleProperties, otherStyles }
-                    rendered =
-                        renderAttributes RowLayout attributes
-
-                    self =
-                        "styled-" ++ String.join "" (List.map toString index)
-
-                    additionalProperties =
-                        [ Property "display" "flex"
-                        , Property "flex-direction" "row"
-                        ]
-
-                    myStyle =
-                        Style ("." ++ self)
-                            (additionalProperties ++ rendered.styleProperties)
-
-                    others =
-                        List.map (renderDependent ("." ++ self)) rendered.otherStyles
-                in
-                    Styled (myStyle :: others ++ childrenStyles)
-                        (Html.node name (Html.Attributes.class (self ++ " el row " ++ positionClass) :: rendered.attributes) renderedChildren)
+                renderStyled name index attributes positionClass RowLayout children addedChildren "row"
 
             Column name attributes children ->
-                let
-                    ( childrenStyles, renderedChildren ) =
-                        renderChildren index children
-
-                    -- { attributes, styleProperties, otherStyles }
-                    rendered =
-                        renderAttributes ColumnLayout attributes
-
-                    self =
-                        "styled-" ++ String.join "" (List.map toString index)
-
-                    myStyle =
-                        Style ("." ++ self)
-                            rendered.styleProperties
-
-                    others =
-                        List.map (renderDependent ("." ++ self)) rendered.otherStyles
-                in
-                    Styled (myStyle :: others ++ childrenStyles)
-                        (Html.node name (Html.Attributes.class (self ++ " el column " ++ positionClass) :: rendered.attributes) renderedChildren)
+                renderStyled name index attributes positionClass ColumnLayout children addedChildren "column"
 
             Grid attributes children ->
                 todo
 
             TextLayout attributes children ->
-                let
-                    ( childrenStyles, renderedChildren ) =
-                        renderChildren index children
-
-                    -- { attributes, styleProperties, otherStyles }
-                    rendered =
-                        renderAttributes ColumnLayout attributes
-
-                    self =
-                        "styled-" ++ String.join "" (List.map toString index)
-
-                    myStyle =
-                        Style ("." ++ self)
-                            (rendered.styleProperties)
-
-                    others =
-                        List.map (renderDependent ("." ++ self)) rendered.otherStyles
-                in
-                    Styled (myStyle :: others ++ childrenStyles)
-                        (Html.node "div" (Html.Attributes.class (self ++ " el text " ++ positionClass) :: rendered.attributes) renderedChildren)
+                renderStyled "div" index attributes positionClass ColumnLayout children addedChildren "text"
 
             Paragraph attributes children ->
-                let
-                    ( childrenStyles, renderedChildren ) =
-                        renderChildren index children
+                renderStyled "p" index attributes positionClass RowLayout children addedChildren "paragraph"
 
-                    -- { attributes, styleProperties, otherStyles }
-                    rendered =
-                        renderAttributes RowLayout attributes
-
-                    self =
-                        "styled-" ++ String.join "" (List.map toString index)
-
-                    myStyle =
-                        Style ("." ++ self)
-                            (rendered.styleProperties)
-
-                    others =
-                        List.map (renderDependent ("." ++ self)) rendered.otherStyles
-                in
-                    Styled (myStyle :: others ++ childrenStyles)
-                        (Html.node "p" (Html.Attributes.class (self ++ " el paragraph " ++ positionClass) :: rendered.attributes) renderedChildren)
+            Nearby { anchor, nearby } ->
+                render position index (List.map positionNearby nearby) anchor
 
             Raw html ->
                 Styled [] html
 
-            Nearby location child ->
-                case location of
-                    Above ->
-                        todo
 
-                    Below ->
-                        todo
+positionNearby : ( Location, Element msg ) -> Element msg
+positionNearby ( location, element ) =
+    case location of
+        Above ->
+            El "div" [ Attr <| Html.Attributes.class "above" ] element
 
-                    OnRight ->
-                        todo
+        Below ->
+            El "div" [ Attr <| Html.Attributes.class "below" ] element
 
-                    OnLeft ->
-                        todo
+        OnRight ->
+            El "div" [ Attr <| Html.Attributes.class "on-right" ] element
 
-                    Within ->
-                        todo
+        OnLeft ->
+            El "div" [ Attr <| Html.Attributes.class "on-left" ] element
 
-            Screen child ->
-                todo
+        Within ->
+            El "div" [ Attr <| Html.Attributes.class "within" ] element
+
+
+renderStyled : String -> List Int -> List (Attribute msg) -> String -> LayoutHint -> List (Element msg) -> List (Element msg) -> String -> Styled (Html msg)
+renderStyled name index attributes positionClass hint children otherChildren additionalClass =
+    let
+        ( childrenStyles, renderedChildren ) =
+            renderChildren index children
+
+        ( otherChildrenStyles, renderedOtherChildren ) =
+            renderOtherChildren (List.length children) index otherChildren
+
+        -- { attributes, styleProperties, otherStyles }
+        rendered =
+            renderAttributes hint attributes
+
+        self =
+            "styled-" ++ String.join "" (List.map toString index)
+
+        myStyle =
+            Style ("#" ++ self)
+                (rendered.styleProperties)
+
+        others =
+            List.map (renderDependent ("." ++ self)) rendered.otherStyles
+    in
+        Styled (myStyle :: others ++ childrenStyles ++ otherChildrenStyles)
+            (Html.node name
+                (Html.Attributes.id self :: Html.Attributes.class (additionalClass ++ " " ++ positionClass) :: rendered.attributes)
+                (renderedChildren ++ renderedOtherChildren)
+            )
 
 
 renderChildren : List Int -> List (Element msg) -> ( List Style, List (Html msg) )
@@ -555,7 +520,26 @@ renderChildren index children =
         renderStyleList child ( i, renderedStyles, renderedEls ) =
             let
                 (Styled styles el) =
-                    render (place i) (i :: index) child
+                    render (place i) (i :: index) [] child
+            in
+                ( i + 1
+                , styles ++ renderedStyles
+                , el :: renderedEls
+                )
+    in
+        ( childrenStyles, renderedChildren )
+
+
+renderOtherChildren : Int -> List Int -> List (Element msg) -> ( List Style, List (Html msg) )
+renderOtherChildren offset index children =
+    let
+        ( _, childrenStyles, renderedChildren ) =
+            List.foldr renderStyleList ( 0, [], [] ) children
+
+        renderStyleList child ( i, renderedStyles, renderedEls ) =
+            let
+                (Styled styles el) =
+                    render FirstAndLast (i + offset :: index) [] child
             in
                 ( i + 1
                 , styles ++ renderedStyles
@@ -874,6 +858,10 @@ positionMap fn list =
 {- API Interface -}
 
 
+empty =
+    Empty
+
+
 text : String -> Element msg
 text =
     Text NoDecoration
@@ -887,6 +875,11 @@ paragraph =
 textLayout : List (Attribute msg) -> List (Element msg) -> Element msg
 textLayout =
     TextLayout
+
+
+container : List (Attribute msg) -> Element msg -> Element msg
+container attrs el =
+    Row "div" (Width (Fill 1) :: Height (Fill 1) :: attrs) [ el ]
 
 
 el : List (Attribute msg) -> Element msg -> Element msg
@@ -1002,5 +995,6 @@ spacingXY =
     SpacingXY
 
 
+spacer : Float -> Element msg
 spacer =
     Spacer
