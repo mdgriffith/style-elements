@@ -56,34 +56,18 @@ stylesheet =
             , Color.border Color.grey
             ]
         , style LabelBox
-            [-- focus
-             -- [ Color.border Color.red
-             -- , Border.all 1
-             -- , Border.solid
-             -- , prop "outline" "none"
-             -- ]
-            ]
+            []
         , style Checkbox
             [ Color.background Color.white
             , Border.all 1
             , Border.solid
             , Color.border Color.grey
-
-            -- , focus
-            --     [ Color.border Color.red
-            --     , prop "outline" "none"
-            --     ]
             ]
         , style CheckboxChecked
             [ Color.background Color.blue
             , Border.all 1
             , Border.solid
             , Color.border Color.blue
-
-            -- , focus
-            --     [ Color.border Color.red
-            --     , prop "outline" "none"
-            --     ]
             ]
         , style Page
             [ Color.text Color.darkCharcoal
@@ -101,11 +85,6 @@ stylesheet =
             , Border.all 1
             , Border.solid
             , Color.border Color.lightGrey
-
-            -- , focus
-            --     [ Color.border Color.blue
-            --     , prop "outline" "none"
-            --     ]
             ]
         , style SubMenu
             [ Border.rounded 5
@@ -148,8 +127,7 @@ main =
 
 
 type Msg
-    = Log String
-    | Check Bool
+    = Check Bool
     | ChooseLunch Lunch
     | ChangeText String
     | UpdateLunches (List Lunch)
@@ -160,13 +138,6 @@ type Msg
 
 update msg model =
     case Debug.log "action" msg of
-        Log str ->
-            let
-                _ =
-                    Debug.log "form" str
-            in
-                ( model, Cmd.none )
-
         Check checkbox ->
             ( { model | checkbox = checkbox }
             , Cmd.none
@@ -183,9 +154,6 @@ update msg model =
             )
 
         ChangeText str ->
-            -- ( { model | text = str }
-            -- , Cmd.none
-            -- )
             ( { model | text = str }
             , Cmd.none
             )
