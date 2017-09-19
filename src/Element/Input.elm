@@ -505,7 +505,7 @@ textHelper kind addedOptions style attrs input =
                         { node = "textarea"
                         , style = Just style
                         , attrs =
-                            (Attr.inlineStyle [ ( "resize", "none" ) ] :: Events.onInput input.onChange :: attrs)
+                            (Attr.inlineStyle [ ( "resize", "none" ) ] :: Events.onInput input.onChange :: valueAttr input.value :: attrs)
                                 |> (withPlaceholder >> withReadonly >> withError >> addOptionsAsAttrs options)
                         , child =
                             Internal.Text
