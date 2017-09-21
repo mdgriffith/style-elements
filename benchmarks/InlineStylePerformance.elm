@@ -41,6 +41,7 @@ type Technique
 type Reducer
     = NoReducer
     | DictReducer
+    | CheatReducer
 
 
 type alias RenderConfig =
@@ -51,12 +52,18 @@ type alias RenderConfig =
     , reducer : Reducer
     , names : Naming
     , lazy : Bool
+    , independent : Bool
     }
 
 
 type Naming
     = Hashed
     | Indexed
+    | Encoded
+
+
+
+-- | Encoded
 
 
 model : Model
@@ -73,6 +80,7 @@ model =
         , reducer = NoReducer
         , names = Indexed
         , lazy = False
+        , independent = False
         }
     , frameTime = 16.66
     }
@@ -135,6 +143,7 @@ type Msg
     | Name Naming
     | MakeLazy Bool
     | SetReducer Reducer
+    | MakeIndependent Bool
 
 
 update msg model =
@@ -178,6 +187,17 @@ update msg model =
             in
                 ( { model
                     | renderer = { renderer | lazy = on }
+                  }
+                , Cmd.none
+                )
+
+        MakeIndependent on ->
+            let
+                renderer =
+                    model.renderer
+            in
+                ( { model
+                    | renderer = { renderer | independent = on }
                   }
                 , Cmd.none
                 )
@@ -258,8 +278,6 @@ view model =
                     display: flex;
                     flex: 1;
                     flex-direction: column;
-
-
                 }
                 .disabled {
                     color:red;
@@ -516,6 +534,10 @@ viewStats model =
                 [ input [ type_ "radio", name "naming strategy", checked (model.renderer.names == Hashed), onClick (Name Hashed) ] []
                 , text " hashed"
                 ]
+            , label []
+                [ input [ type_ "radio", name "naming strategy", checked (model.renderer.names == Encoded), onClick (Name Encoded) ] []
+                , text " encoded"
+                ]
             ]
         , div [ class "column", style [ ( "padding-top", "20px" ) ] ]
             [ label []
@@ -526,11 +548,21 @@ viewStats model =
                 [ input [ type_ "radio", name "reducing-strategy", checked (model.renderer.reducer == DictReducer), onClick (SetReducer DictReducer) ] []
                 , text " dict reducer"
                 ]
+            , label []
+                [ input [ type_ "radio", name "reducing-strategy", checked (model.renderer.reducer == CheatReducer), onClick (SetReducer CheatReducer) ] []
+                , text " cheat reducer"
+                ]
             ]
         , div [ style [ ( "padding-top", "20px" ) ] ]
             [ label []
                 [ input [ type_ "checkbox", checked model.renderer.lazy, onCheck MakeLazy ] []
                 , text " lazy"
+                ]
+            ]
+        , div [ style [ ( "padding-top", "20px" ) ] ]
+            [ label []
+                [ input [ type_ "checkbox", checked model.renderer.independent, onCheck MakeIndependent ] []
+                , text " indepedent"
                 ]
             ]
         ]
@@ -559,10 +591,10 @@ styleElements time nodes renderer =
                     (List.map el (List.range 0 (x - 1)))
 
         ( r, g, b ) =
-            animateColor time
+            animateColor time 0
 
         pos =
-            animatePosSin time
+            animatePosSin time 0
 
         props =
             List.filterMap identity
@@ -598,63 +630,168 @@ styleElements time nodes renderer =
 
 virtualCss time nodes renderer =
     let
-        fixed x =
-            let
-                cls i =
-                    case renderer.names of
-                        Hashed ->
-                            props
-                                |> toString
-                                |> Murmur3.hashString 8675309
-                                |> toString
-                                |> (\x -> "style-" ++ x)
-
-                        Indexed ->
-                            "virtual-css-" ++ toString i
-
-                el i =
-                    if renderer.color then
-                        div [ class ("style-no-bg test " ++ cls i) ] []
-                    else
-                        div [ class ("style test " ++ cls i) ] []
-            in
-                div [ class "renderer" ]
-                    (List.map el (List.range 0 (x - 1)))
-
         props =
             []
-                |> addColor renderer time
-                |> addTransform renderer time
+                |> addColor renderer time 0
+                |> addTransform renderer time 0
+
+        cheatHash =
+            if renderer.reducer == CheatReducer then
+                props
+                    |> toString
+                    |> Murmur3.hashString 8675309
+                    |> toString
+                    |> (\x -> "style-" ++ x)
+            else
+                ""
 
         newStyle i =
             let
-                cls =
-                    case renderer.names of
-                        Hashed ->
-                            props
-                                |> toString
-                                |> Murmur3.hashString 8675309
-                                |> toString
-                                |> (\x -> "style-" ++ x)
-
-                        Indexed ->
-                            "virtual-css-" ++ toString i
+                ( cls, properties ) =
+                    buildStyle i
 
                 _ =
                     VirtualCss.delete i
 
                 rendered =
-                    renderStyle <| Style ("." ++ cls) props
+                    renderStyle <| Style ("." ++ cls) properties
             in
                 VirtualCss.insert rendered i
 
+        refresh i cls props =
+            let
+                _ =
+                    VirtualCss.delete i
+            in
+                VirtualCss.insert (renderStyle <| Style ("." ++ cls) props) i
+
+        buildStyle i =
+            case renderer.names of
+                Encoded ->
+                    encodedProps renderer time (toFloat i)
+
+                Hashed ->
+                    if renderer.reducer == CheatReducer then
+                        ( cheatHash, props )
+                    else
+                        ( []
+                            |> addColor renderer time (toFloat i)
+                            |> addTransform renderer time (toFloat i)
+                            |> toString
+                            |> Murmur3.hashString 8675309
+                            |> toString
+                            |> (\x -> "style-" ++ x)
+                        , []
+                            |> addColor renderer time (toFloat i)
+                            |> addTransform renderer time (toFloat i)
+                        )
+
+                Indexed ->
+                    ( "virtual-css-" ++ toString i
+                    , []
+                        |> addColor renderer time (toFloat i)
+                        |> addTransform renderer time (toFloat i)
+                    )
+
+        reduceStyles _ =
+            let
+                combine i stylesheet =
+                    let
+                        ( cls, props ) =
+                            buildStyle i
+                    in
+                        Dict.insert cls props stylesheet
+            in
+                List.foldr combine Dict.empty (List.range 0 (nodes - 1))
+                    |> Dict.toList
+                    |> List.indexedMap (\i ( cls, props ) -> refresh i cls props)
+
         renderedCss =
-            List.map newStyle (List.range 0 (nodes - 1))
+            case renderer.names of
+                Encoded ->
+                    if renderer.reducer == DictReducer then
+                        reduceStyles ()
+                    else
+                        List.map newStyle (List.range 0 (nodes - 1))
+
+                Indexed ->
+                    List.map newStyle (List.range 0 (nodes - 1))
+
+                Hashed ->
+                    if renderer.reducer == CheatReducer then
+                        [ newStyle 0 ]
+                    else
+                        List.map newStyle (List.range 0 (nodes - 1))
     in
-        if renderer.lazy then
-            Html.Lazy.lazy fixed nodes
+        if renderer.lazy && renderer.names == Indexed then
+            Html.Lazy.lazy2 createNodesLazy renderer nodes
         else
-            fixed nodes
+            createNodes renderer nodes time
+
+
+createNodes renderer x time =
+    let
+        props =
+            []
+                |> addColor renderer time 0
+                |> addTransform renderer time 0
+
+        cheatHash =
+            if renderer.reducer == CheatReducer then
+                props
+                    |> toString
+                    |> Murmur3.hashString 8675309
+                    |> toString
+                    |> (\x -> "style-" ++ x)
+            else
+                ""
+
+        cls i =
+            case renderer.names of
+                Encoded ->
+                    Tuple.first <| encodedProps renderer time (toFloat i)
+
+                Hashed ->
+                    if renderer.reducer == CheatReducer && not renderer.independent then
+                        cheatHash
+                    else
+                        []
+                            |> addColor renderer time (toFloat i)
+                            |> addTransform renderer time (toFloat i)
+                            |> toString
+                            |> Murmur3.hashString 8675309
+                            |> toString
+                            |> (\x -> "style-" ++ x)
+
+                Indexed ->
+                    "virtual-css-" ++ toString i
+
+        el i =
+            if renderer.color then
+                div [ class ("style-no-bg test " ++ cls i) ] []
+            else
+                div [ class ("style test " ++ cls i) ] []
+    in
+        div [ class "renderer" ]
+            (List.map el (List.range 0 (x - 1)))
+
+
+createNodesLazy renderer x =
+    let
+        _ =
+            Debug.log "create nodes, lazily" "doin it"
+
+        cls i =
+            "virtual-css-" ++ toString i
+
+        el i =
+            if renderer.color then
+                div [ class ("style-no-bg test " ++ cls i) ] []
+            else
+                div [ class ("style test " ++ cls i) ] []
+    in
+        div [ class "renderer" ]
+            (List.map el (List.range 0 (x - 1)))
 
 
 virtualCssTransformViaAnimation time nodes renderer =
@@ -672,7 +809,7 @@ virtualCssTransformViaAnimation time nodes renderer =
 
         props =
             []
-                |> addColor renderer time
+                |> addColor renderer time 0
 
         newStyle i =
             let
@@ -700,8 +837,8 @@ inlineRenderer time nodes renderer =
                 [ class ("style test")
                 , style
                     ([]
-                        |> addColor renderer time
-                        |> addTransform renderer time
+                        |> addColor renderer time i
+                        |> addTransform renderer time i
                     )
                 ]
                 []
@@ -736,15 +873,22 @@ cssAnimationRenderer nodes renderer =
 
 concreteStylesheet time nodes renderer =
     let
+        myStyleProps =
+            []
+                |> addColor renderer time 0
+                |> addTransform renderer time 0
+
         viewStyled renderer time i =
             let
-                myStyleProps =
-                    []
-                        |> addColor renderer time
-                        |> addTransform renderer time
-
                 cls =
                     case renderer.names of
+                        Encoded ->
+                            myStyleProps
+                                |> toString
+                                |> Murmur3.hashString 8675309
+                                |> toString
+                                |> (\x -> "style-" ++ x)
+
                         Hashed ->
                             myStyleProps
                                 |> toString
@@ -762,6 +906,20 @@ concreteStylesheet time nodes renderer =
 
         ( allStyles, renderedNodes ) =
             case renderer.reducer of
+                CheatReducer ->
+                    let
+                        combine i ( stylesheet, ns ) =
+                            let
+                                ( style, node ) =
+                                    viewStyled renderer time i
+                            in
+                                ( renderStyle style :: stylesheet
+                                , node :: ns
+                                )
+                    in
+                        (List.range 0 (nodes - 1))
+                            |> List.foldr combine ( [], [] )
+
                 NoReducer ->
                     let
                         combine i ( stylesheet, ns ) =
@@ -824,14 +982,14 @@ wrap bound i =
         i
 
 
-animateColor time =
-    ( wrap 255 <| round <| ((sin (Time.inSeconds time) + 1) / 2) * 255
+animateColor time i =
+    ( wrap 255 <| round <| ((sin (Time.inSeconds (time + i)) + 1) / 2) * 255
     , 151
     , 167
     )
 
 
-animatePos time =
+animatePos time i =
     (round <| Time.inSeconds time)
         |> toFloat
         |> (*) 300.0
@@ -839,17 +997,92 @@ animatePos time =
         |> (toFloat << wrap 800 << round)
 
 
-animatePosSin time =
-    Time.inSeconds time
+animatePosSin time i =
+    (Time.inSeconds (time + i))
         |> sin
         |> (*) 100.0
         |> (+) 200.0
 
 
-addColor renderer time styleAttrs =
+encodedProps : { a | color : Bool, independent : Bool, translate : Bool, rotate : Bool } -> Float -> Float -> ( String, List ( String, String ) )
+encodedProps renderer time i =
+    let
+        ( r, g, b ) =
+            animateColor (time)
+                (if renderer.independent then
+                    i
+                 else
+                    0
+                )
+
+        pos =
+            animatePosSin (time)
+                (if renderer.independent then
+                    i
+                 else
+                    0
+                )
+
+        encoding =
+            (String.join "-" << List.filterMap identity)
+                [ if renderer.color then
+                    Just <| (String.join "-" [ "bc", toString r, toString g, toString b ])
+                  else
+                    Nothing
+                , if renderer.translate || renderer.rotate then
+                    Just <|
+                        (String.join "-" <|
+                            [ if renderer.translate then
+                                ("tr-" ++ toString (round (pos * 100)) ++ "px-0px")
+                              else
+                                ""
+                            , if renderer.rotate then
+                                ("rt" ++ toString (round (pos * 100)) ++ "d")
+                              else
+                                ""
+                            ]
+                        )
+                  else
+                    Nothing
+                ]
+
+        props =
+            List.filterMap identity
+                [ if renderer.color then
+                    Just <| ( "background-color", ("rgb(" ++ toString r ++ ", " ++ toString g ++ ", " ++ toString b ++ ")") )
+                  else
+                    Nothing
+                , if renderer.translate || renderer.rotate then
+                    Just <|
+                        ( "transform"
+                        , (String.join " " <|
+                            [ if renderer.translate then
+                                ("translate(" ++ toString pos ++ "px, 0px)")
+                              else
+                                ""
+                            , if renderer.rotate then
+                                ("rotate(" ++ toString pos ++ "deg)")
+                              else
+                                ""
+                            ]
+                          )
+                        )
+                  else
+                    Nothing
+                ]
+    in
+        ( encoding, props )
+
+
+addColor renderer time i styleAttrs =
     let
         ( r, g, b ) =
             animateColor time
+                (if renderer.independent then
+                    i
+                 else
+                    0
+                )
     in
         if renderer.color then
             ( "background-color", "rgb(" ++ toString r ++ ", " ++ toString g ++ ", " ++ toString b ++ ")" ) :: styleAttrs
@@ -857,10 +1090,15 @@ addColor renderer time styleAttrs =
             styleAttrs
 
 
-addTransform renderer time styleAttrs =
+addTransform renderer time i styleAttrs =
     let
         pos =
             animatePosSin time
+                (if renderer.independent then
+                    i
+                 else
+                    0
+                )
 
         transforms =
             List.filterMap identity
