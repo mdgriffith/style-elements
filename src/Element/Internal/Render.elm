@@ -17,14 +17,13 @@ import Element.Internal.Adjustments as Adjustments
 The unminified version lives in `references/modified-normalize.css`.
 
 -}
-normalize : String
-normalize =
-    """html,body{width:100%;height:100%;}.style-elements-root{width:100%;height:100%;}html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video,hr{margin:0;padding:0;border:0;font-size:100%;font:inherit}html{line-height:1;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}article,aside,footer,header,nav,section{display:block}h1{font-size:2em;margin:0.67em 0}figcaption,figure,main{display:block}figure{margin:1em 40px}hr{box-sizing:content-box;height:0;overflow:visible}pre{font-family:monospace, monospace;font-size:1em}a{background-color:transparent;-webkit-text-decoration-skip:objects}abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}b,strong{font-weight:inherit}b,strong{font-weight:bolder}code,kbd,samp{font-family:monospace, monospace;font-size:1em}dfn{font-style:italic}mark{background-color:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-0.25em}sup{top:-0.5em}audio,video{display:inline-block}audio:not([controls]){display:none;height:0}img{border-style:none}svg:not(:root){overflow:hidden}button,input,optgroup,select,textarea{font-family:sans-serif;font-size:100%;margin:0}button,input{overflow:visible}button,select{text-transform:none}button,html [type="button"],[type="reset"],[type="submit"]{-webkit-appearance:button}button::-moz-focus-inner,[type="button"]::-moz-focus-inner,[type="reset"]::-moz-focus-inner,[type="submit"]::-moz-focus-inner{border-style:none;padding:0}button:-moz-focusring,[type="button"]:-moz-focusring,[type="reset"]:-moz-focusring,[type="submit"]:-moz-focusring{outline:1px dotted ButtonText}fieldset{padding:0.35em 0.75em 0.625em}legend{box-sizing:border-box;color:inherit;display:table;max-width:100%;padding:0;white-space:normal}progress{display:inline-block;vertical-align:baseline}textarea{overflow:auto}[type="checkbox"],[type="radio"]{box-sizing:border-box;padding:0}[type="number"]::-webkit-inner-spin-button,[type="number"]::-webkit-outer-spin-button{height:auto}[type="search"]{-webkit-appearance:textfield;outline-offset:-2px}[type="search"]::-webkit-search-cancel-button,[type="search"]::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}details,menu{display:block}summary{display:list-item}canvas{display:inline-block}template{display:none}[hidden]{display:none}em{font-style:italic}strong{font-weight:bold}a{text-decoration:none}input,textarea{border:0}.clearfix:after{content:"";display:table;clear:both}""" ++ withFocus
-
-
 qualifiedNormalize : String
 qualifiedNormalize =
     """html{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;margin:0;padding:0;border:0}body{margin:0}.style-elements article,.style-elements aside,.style-elements footer,.style-elements header,.style-elements nav,.style-elements section{display:block}.style-elements h1{font-size:1em;margin:0}.style-elements figcaption,.style-elements figure,.style-elements main{display:block}.style-elements figure{margin:1em 40px}.style-elements hr{box-sizing:content-box;height:0;overflow:visible}.style-elements pre{font-family:monospace, monospace;font-size:1em}.style-elements a{background-color:transparent;-webkit-text-decoration-skip:objects}.style-elements abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}.style-elements b,.style-elements strong{font-weight:inherit}.style-elements b,.style-elements strong{font-weight:bolder}.style-elements code,.style-elements kbd,.style-elements samp{font-family:monospace, monospace;font-size:1em}.style-elements dfn{font-style:italic}.style-elements mark{background-color:#ff0;color:#000}.style-elements small{font-size:80%}.style-elements audio,.style-elements video{display:inline-block}.style-elements audio:not([controls]){display:none;height:0}.style-elements img{border-style:none}.style-elements svg:not(:root){overflow:hidden}.style-elements button,.style-elements input,.style-elements optgroup,.style-elements select,.style-elements textarea{font-family:sans-serif;font-size:100%;margin:0}.style-elements button,.style-elements input{overflow:visible}.style-elements button,.style-elements select{text-transform:none}.style-elements button,.style-elements html [type="button"],.style-elements [type="reset"],.style-elements [type="submit"]{-webkit-appearance:button}.style-elements [type="button"]::-moz-focus-inner,.style-elements [type="reset"]::-moz-focus-inner,.style-elements [type="submit"]::-moz-focus-inner,.style-elements button::-moz-focus-inner{border-style:none;padding:0}.style-elements [type="button"]:-moz-focusring,.style-elements [type="reset"]:-moz-focusring,.style-elements [type="submit"]:-moz-focusring,.style-elements button:-moz-focusring{outline:1px dotted ButtonText}.style-elements fieldset{padding:0.35em 0.75em 0.625em}.style-elements legend{box-sizing:border-box;color:inherit;display:table;max-width:100%;padding:0;white-space:normal}.style-elements progress{display:inline-block;vertical-align:baseline}.style-elements textarea{overflow:auto}.style-elements [type="checkbox"],.style-elements [type="radio"]{box-sizing:border-box;padding:0}.style-elements [type="number"]::-webkit-inner-spin-button,.style-elements [type="number"]::-webkit-outer-spin-button{height:auto}.style-elements [type="search"]{-webkit-appearance:textfield;outline-offset:-2px}.style-elements [type="search"]::-webkit-search-cancel-button,.style-elements [type="search"]::-webkit-search-decoration{-webkit-appearance:none}.style-elements::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}.style-elements details,.style-elements menu{display:block}.style-elements summary{display:list-item}.style-elements canvas{display:inline-block}.style-elements template{display:none}.style-elements [hidden]{display:none}.style-elements a{text-decoration:none}.style-elements input,.style-elements textarea{border:0}.style-elements .clearfix:after{content:"";display:table;clear:both}.style-elements a,.style-elements abbr,.style-elements acronym,.style-elements address,.style-elements applet,.style-elements article,.style-elements aside,.style-elements audio,.style-elements b,.style-elements big,.style-elements blockquote,.style-elements canvas,.style-elements caption,.style-elements center,.style-elements cite,.style-elements code,.style-elements dd,.style-elements del,.style-elements details,.style-elements dfn,.style-elements div,.style-elements dl,.style-elements dt,.style-elements em,.style-elements embed,.style-elements fieldset,.style-elements figcaption,.style-elements figure,.style-elements footer,.style-elements form,.style-elements h1,.style-elements h2,.style-elements h3,.style-elements h4,.style-elements h5,.style-elements h6,.style-elements header,.style-elements hgroup,.style-elements hr,.style-elements i,.style-elements iframe,.style-elements img,.style-elements ins,.style-elements kbd,.style-elements label,.style-elements legend,.style-elements li,.style-elements mark,.style-elements menu,.style-elements nav,.style-elements object,.style-elements ol,.style-elements output,.style-elements p,.style-elements pre,.style-elements q,.style-elements ruby,.style-elements s,.style-elements samp,.style-elements section,.style-elements small,.style-elements span,.style-elements strike,.style-elements strong,.style-elements sub,.style-elements summary,.style-elements sup,.style-elements table,.style-elements tbody,.style-elements td,.style-elements tfoot,.style-elements th,.style-elements thead,.style-elements time,.style-elements tr,.style-elements tt,.style-elements u,.style-elements ul,.style-elements var,.style-elements video{margin:0;padding:0;border:0;font-size:100%;font:inherit;box-sizing:border-box}.style-elements{margin:0;padding:0;border:0;font-size:100%;font:inherit;line-height:1}.style-elements em.el{font-style:italic}.style-elements strong.el{font-weight:bold}.style-elements strike.el{text-decoration:line-through}.style-elements u.el{text-decoration:underline}.style-elements sub.el,.style-elements sup.el{font-size:75%;line-height:0;position:relative;vertical-align:baseline}.style-elements sub.el{bottom:-0.25em}.style-elements sup.el{top:-0.5em}""" ++ withFocus
+
+
+miniNormalize =
+    """html{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;margin:0;padding:0;border:0}body{margin:0}.style-elements{display:block;position:relative;margin:0;padding:0;border:0;font-size:100%;font:inherit;box-sizing:border-box;line-height:1}.el{display:block;position:relative;margin:0;padding:0;border:0;font-size:100%;font:inherit;box-sizing:border-box}em.el{font-style:italic}strong.el{font-weight:bolder}strike.el{text-decoration:line-through}u.el{text-decoration:underline}sub.el,sup.el{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub.el{bottom:-0.25em}sup.el{top:-0.5em}""" ++ withFocus
 
 
 withFocus : String
@@ -102,11 +101,6 @@ withFocus =
 """
 
 
-normalizeFull : () -> String
-normalizeFull _ =
-    "html,body{width:100%;height:100%;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;}" ++ qualifiedNormalize
-
-
 viewport : Internal.StyleSheet elem variation -> Element elem variation msg -> Html msg
 viewport stylesheet elm =
     Html.div
@@ -116,25 +110,31 @@ viewport stylesheet elm =
             , ( "height", "100%" )
             ]
         ]
-        (embed True stylesheet :: render stylesheet elm)
+        (embed True stylesheet ++ render stylesheet elm)
 
 
 root : Internal.StyleSheet elem variation -> Element elem variation msg -> Html msg
 root stylesheet elm =
     Html.div [ Html.Attributes.class "style-elements" ]
-        (embed False stylesheet :: render stylesheet elm)
+        (embed False stylesheet ++ render stylesheet elm)
 
 
-embed : Bool -> Internal.StyleSheet elem variation -> Html msg
+embed : Bool -> Internal.StyleSheet elem variation -> List (Html msg)
 embed full stylesheet =
-    Html.node "style"
+    [ Html.node "style"
         []
         [ Html.text <|
             if full then
-                normalizeFull () ++ stylesheet.css
+                "html,body{width:100%;height:100%;}" ++ miniNormalize
             else
-                qualifiedNormalize ++ stylesheet.css
+                miniNormalize
         ]
+    , Html.node "style"
+        []
+        [ Html.text
+            stylesheet.css
+        ]
+    ]
 
 
 render : Internal.StyleSheet elem variation -> Element elem variation msg -> List (Html msg)
@@ -407,7 +407,7 @@ renderElement parent stylesheet order elm =
                 htmlAttrs =
                     renderAttributes Single order style parent stylesheet (gather attributes)
             in
-                Html.node node htmlAttrs childHtml
+                Html.node node (Html.Attributes.class "el" :: htmlAttrs) childHtml
 
         Layout { node, layout, style, attrs, children, absolutelyPositioned } ->
             let
@@ -527,7 +527,7 @@ renderElement parent stylesheet order elm =
                                     Just absol ->
                                         childHtml ++ (List.map (renderElement Nothing stylesheet FirstAndLast) absol)
                         in
-                            adjacentFlexboxCorrection <| Html.node node htmlAttrs allChildren
+                            adjacentFlexboxCorrection <| Html.node node (Html.Attributes.class "el" :: htmlAttrs) allChildren
 
                     Keyed keyed ->
                         let
@@ -545,7 +545,7 @@ renderElement parent stylesheet order elm =
                                     )
                                     keyed
                         in
-                            adjacentFlexboxCorrection <| Html.Keyed.node node htmlAttrs childHtml
+                            adjacentFlexboxCorrection <| Html.Keyed.node node (Html.Attributes.class "el" :: htmlAttrs) childHtml
 
 
 type alias Positionable variation msg =

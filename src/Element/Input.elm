@@ -277,14 +277,14 @@ type alias StyledCheckbox style variation msg =
             -- A function which receives a checked bool
             -- and returns the element that represents the checkbox
             \checked ->
-                circle 7
-                    (if on then
-                        CheckboxChecked
-                    else
-                        Checkbox
-                    )
-                    []
-                    empty
+                let
+                    checkboxStyle =
+                        if on then
+                            CheckboxChecked
+                        else
+                            Checkbox
+                in
+                el checkboxStyle [] empty
         }
 
 -}
@@ -460,6 +460,12 @@ textHelper kind addedOptions style attrs input =
             else
                 attrs
 
+        withSpellCheck attrs =
+            if List.any ((==) SpellCheck) options then
+                spellcheckAttr True :: attrs
+            else
+                spellcheckAttr False :: attrs
+
         forErrors opt =
             case opt of
                 ErrorOpt err ->
@@ -511,7 +517,7 @@ textHelper kind addedOptions style attrs input =
                         , style = Just style
                         , attrs =
                             (Attr.inlineStyle [ ( "resize", "none" ) ] :: Events.onInput input.onChange :: valueAttr input.value :: attrs)
-                                |> (withPlaceholder >> withReadonly >> withError >> addOptionsAsAttrs options)
+                                |> (withPlaceholder >> withReadonly >> withError >> withSpellCheck >> addOptionsAsAttrs options)
                         , child =
                             Internal.Text
                                 { decoration = Internal.RawText
@@ -818,21 +824,23 @@ applyLabel style attrs label errors isDisabled hasPointer input =
                 applyLabel style attrs newLabel errors isDisabled hasPointer input
 
             HiddenLabel title ->
-                Internal.Layout
-                    { node = "label"
-                    , style = style
-                    , layout = Style.FlexLayout Style.Down []
-                    , attrs =
-                        if hasPointer then
-                            pointer :: attrs
-                        else
-                            attrs
-                    , children =
+                let
+                    labeledInput =
                         input
                             |> List.map (Modify.addAttr (Attr.attribute "title" title))
-                            |> Internal.Normal
-                    , absolutelyPositioned = Nothing
-                    }
+                in
+                    case orientedErrors of
+                        Nothing ->
+                            labelContainer Style.Down (labeledInput)
+
+                        Just (ErrorAllAbove above) ->
+                            labelContainer Style.Down ((orient Style.GoRight above) :: labeledInput)
+
+                        Just (ErrorAllBelow below) ->
+                            labelContainer Style.Down (labeledInput ++ [ orient Style.GoRight below ])
+
+                        Just (ErrorAboveBelow above below) ->
+                            labelContainer Style.Down ((orient Style.GoRight above) :: labeledInput ++ [ orient Style.GoRight below ])
 
             LabelAbove lab ->
                 case orientedErrors of
@@ -1020,7 +1028,7 @@ radio style attrs input =
         applyLabel Nothing [] input.label errs isDisabled (not isDisabled) [ inputElem ]
 
 
-{-| Same as `radio`, but arranges the options in a row instead of a column
+{-| Same as `radio`, but arranges the choices in a row instead of a column
 -}
 radioRow : style -> List (Attribute variation msg) -> Radio option style variation msg -> Element style variation msg
 radioRow style attrs config =
@@ -1347,7 +1355,40 @@ menuAbove =
     MenuUp
 
 
-{-| -}
+{-| This function needs to be paired with either `Input.autocomplete` or `Input.dropMenu`.
+
+    Input.select Field
+        [ padding 10
+        , spacing 20
+        ]
+        { label = Input.labelAbove <| text "Lunch"
+
+        -- model.selection is some state(value, a Msg constructor, and the focus) we store in our model.
+        -- It can be created using Input.autocomplete or Input.dropMenu
+        -- Check out the Form.elm example to see a complete version.
+        , with = model.selection
+        , max = 5
+        , options = []
+        , menu =
+            Input.menuAbove SubMenu
+                []
+                [ Input.choice Taco (text "Taco!")
+                , Input.choice Gyro (text "Gyro")
+                , Input.styledChoice Burrito <|
+                    \selected ->
+                        Element.row None
+                            [ spacing 5 ]
+                            [ el None [] <|
+                                if selected then
+                                    text ":D"
+                                else
+                                    text ":("
+                            , text "burrito"
+                            ]
+                ]
+        }
+
+-}
 select : style -> List (Attribute variation msg) -> Select option style variation msg -> Element style variation msg
 select style attrs input =
     case input.with of
@@ -1409,6 +1450,8 @@ type alias SearchMenu option style variation msg =
         , spacing 20
         ]
         { label = Input.labelAbove <| text "Lunch"
+
+        -- in this case, model.selectmenu is
         , with = model.selectMenu
         , max = 5
         , options = []
@@ -1797,6 +1840,8 @@ This is the part which goes in your model.
 
 You'll need to update it using `Input.updateSelection`.
 
+Once you have this in your model, you can extract the current selected value from it using `Input.selected model.autocompleteState`.
+
 -}
 autocomplete : Maybe option -> (SelectMsg option -> msg) -> SelectWith option msg
 autocomplete selected onUpdate =
@@ -1812,6 +1857,8 @@ autocomplete selected onUpdate =
 {-| Create a `select` menu which shows all options and allows the user to select one.
 
 Use this if you only have 3-5 options. If you have a ton of options, use `Input.autocomplete` instead!
+
+Once you have this in your model, you can extract the current selected value from it using `Input.selected model.dropMenuState`.
 
 -}
 dropMenu : Maybe option -> (SelectMsg option -> msg) -> SelectWith option msg

@@ -1155,7 +1155,7 @@ toHtml stylesheet el =
 embedStylesheet : StyleSheet style variation -> Html msg
 embedStylesheet sheet =
     -- We embed it not as a fullscreen
-    Render.embed False sheet
+    Html.div [] (Render.embed False sheet)
 
 
 {-| -}
