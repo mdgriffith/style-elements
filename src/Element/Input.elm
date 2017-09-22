@@ -43,6 +43,7 @@ module Element.Input
         , updateSelection
         , SelectMsg
         , selected
+        , clear
           -- , grid
           -- , Grid
           -- , cell
@@ -1892,6 +1893,28 @@ type SelectMsg opt
     | SelectFocused
     | Clear
     | Batch (List (SelectMsg opt))
+
+
+{-| Clear a selection.
+-}
+clear : SelectWith option msg -> SelectWith option msg
+clear select =
+    case select of
+        Autocomplete auto ->
+            Autocomplete
+                { query = ""
+                , selected = Nothing
+                , focus = Nothing
+                , onUpdate = auto.onUpdate
+                , isOpen = False
+                }
+
+        SelectMenu menu ->
+            SelectMenu
+                { selected = Nothing
+                , onUpdate = menu.onUpdate
+                , isOpen = False
+                }
 
 
 {-| -}
