@@ -6,6 +6,7 @@ import Element.Attributes exposing (..)
 import Element.Events as Events
 import Element.Keyed
 import Html
+import Html.Attributes
 import Style exposing (..)
 import Style.Background as Background
 import Style.Border as Border
@@ -177,6 +178,7 @@ view model =
                     , anchoredAboveLayout
                     , viewTextLayout
                     , [ otherTextLayout ]
+                    , [ embeddedStyledHtml ]
                     , overflowIssue
                     , [ overFlowIssue2 ]
                     , viewRowLayouts
@@ -932,3 +934,14 @@ verticalCenterText =
             (el None [ verticalCenter ] <| text "vertical centered in box")
         , el Box [] (text "normal")
         ]
+
+
+embeddedStyledHtml =
+    el None [] <|
+        html <|
+            Html.div []
+                [ Html.node "style" [] [ Html.text ".test-style{font-family: fantasy; font-size: 80px;}" ]
+                , Html.text "Hello!"
+                , Html.b [] [ Html.text "This should be bold" ]
+                , Html.span [ Html.Attributes.class "test-style" ] [ Html.text "Fantasy Text!" ]
+                ]
