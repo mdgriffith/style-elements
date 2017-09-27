@@ -519,7 +519,7 @@ textHelper kind addedOptions style attrs input =
                         { node = "textarea"
                         , style = Just style
                         , attrs =
-                            (Attr.inlineStyle [ ( "resize", "none" ) ] :: Events.onInput input.onChange :: valueAttr input.value :: attrs)
+                            (Internal.Width (Style.Fill 1) :: Attr.inlineStyle [ ( "resize", "none" ) ] :: Events.onInput input.onChange :: valueAttr input.value :: attrs)
                                 |> (withPlaceholder >> withReadonly >> withError >> withSpellCheck >> addOptionsAsAttrs options)
                         , child =
                             Internal.Text
@@ -535,7 +535,7 @@ textHelper kind addedOptions style attrs input =
                         { node = "input"
                         , style = Just style
                         , attrs =
-                            (type_ kindAsText :: Events.onInput input.onChange :: valueAttr input.value :: attrs)
+                            (Internal.Width (Style.Fill 1) :: type_ kindAsText :: Events.onInput input.onChange :: valueAttr input.value :: attrs)
                                 |> (withPlaceholder >> withDisabled >> withError >> addOptionsAsAttrs options)
                         , child = Internal.Empty
                         , absolutelyPositioned = Nothing
@@ -757,9 +757,9 @@ applyLabel style attrs label errors isDisabled hasPointer input =
                 , layout = Style.FlexLayout direction []
                 , attrs =
                     if hasPointer then
-                        pointer :: attrs
+                        Internal.Width (Style.Fill 1) :: pointer :: attrs
                     else
-                        attrs
+                        Internal.Width (Style.Fill 1) :: attrs
                 , children = Internal.Normal children
                 , absolutelyPositioned = Nothing
                 }
