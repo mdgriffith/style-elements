@@ -18,6 +18,8 @@ module Element.Input
         , Choice
         , choice
         , styledChoice
+        , styledSelectChoice
+        , ChoiceState(..)
         , Option
         , hiddenLabel
         , labelLeft
@@ -66,9 +68,9 @@ The following text inputs give hints to the browser so they can be autofilled.
 
 ## 'Choose One' Inputs
 
-@docs Radio, radio, radioRow, Choice, choice, styledChoice, radioKey
+@docs Radio, radio, radioRow, Choice, choice, styledChoice, styledSelectChoice, radioKey, ChoiceState
 
-@docs select, Select, SelectWith, autocomplete, dropMenu, menu, menuAbove, selected, SelectMsg, updateSelection
+@docs select, Select, SelectWith, autocomplete, dropMenu, menu, menuAbove, selected, SelectMsg, updateSelection, clear
 
 
 ## Labels
@@ -908,7 +910,15 @@ applyLabel style attrs label errors isDisabled hasPointer input =
 -}
 type Choice value style variation msg
     = Choice value (Element style variation msg)
-    | ChoiceWith value (Bool -> Element style variation msg)
+    | ChoiceWith value (ChoiceState -> Element style variation msg)
+
+
+{-| -}
+type ChoiceState
+    = Idle
+    | Focused
+    | Selected
+    | SelectedInBox
 
 
 {-| -}
@@ -919,7 +929,28 @@ choice =
 
 {-| -}
 styledChoice : value -> (Bool -> Element style variation msg) -> Choice value style variation msg
-styledChoice =
+styledChoice value selected =
+    let
+        choose state =
+            case state of
+                Focused ->
+                    selected False
+
+                Selected ->
+                    selected True
+
+                SelectedInBox ->
+                    selected True
+
+                Idle ->
+                    selected False
+    in
+        ChoiceWith value choose
+
+
+{-| -}
+styledSelectChoice : value -> (ChoiceState -> Element style variation msg) -> Choice value style variation msg
+styledSelectChoice =
     ChoiceWith
 
 
@@ -1268,15 +1299,19 @@ radioHelper orientation style attrs config =
                 ChoiceWith val view ->
                     let
                         viewed =
-                            view (valueIsSelected val)
+                            view <|
+                                if valueIsSelected val then
+                                    Selected
+                                else
+                                    Idle
 
                         textValue =
                             case config.key of
                                 Nothing ->
-                                    Modify.getText (view True)
+                                    Modify.getText (view Selected)
 
                                 Just key ->
-                                    key ++ "-" ++ Modify.getText (view True)
+                                    key ++ "-" ++ Modify.getText (view Selected)
 
                         hiddenInput =
                             Internal.Element
@@ -1502,7 +1537,7 @@ selectMenu style attrs input =
                         Just el
 
                     ChoiceWith _ view ->
-                        Just <| view True
+                        Just <| view SelectedInBox
             else
                 Nothing
 
@@ -1697,12 +1732,10 @@ selectMenu style attrs input =
                     let
                         isSelected =
                             if Just val == input.selected then
-                                [ Attr.attribute "aria-selected" "true"
-                                , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.03)" ) ]
-                                ]
-                                    ++ parentPadding
+                                Attr.attribute "aria-selected" "true"
+                                    :: parentPadding
                             else
-                                [ Attr.attribute "aria-selected" "false" ] ++ parentPadding
+                                Attr.attribute "aria-selected" "false" :: parentPadding
 
                         additional =
                             if isDisabled then
@@ -1714,8 +1747,14 @@ selectMenu style attrs input =
                                     :: Internal.Expand
                                     :: Attr.attribute "role" "menuitemradio"
                                     :: isSelected
+
+                        viewState =
+                            if Just val == input.selected then
+                                Selected
+                            else
+                                Idle
                     in
-                        view (Just val == input.selected)
+                        view viewState
                             |> Modify.addAttrList additional
 
         fullElement =
@@ -2085,17 +2124,6 @@ searchSelect style attrs input =
                 _ ->
                     ""
 
-        getSelectedLabel selected option =
-            if getOptionValue option == selected then
-                case option of
-                    Choice _ el ->
-                        Just el
-
-                    ChoiceWith _ view ->
-                        Just <| view True
-            else
-                Nothing
-
         onlySpacing attr =
             case attr of
                 Internal.Spacing x y ->
@@ -2289,8 +2317,16 @@ searchSelect style attrs input =
                                     :: Internal.Expand
                                     :: Attr.attribute "role" "menuitemradio"
                                     :: isSelected
+
+                        selectedState =
+                            if Just val == input.selected then
+                                Selected
+                            else if Just val == input.focus then
+                                Focused
+                            else
+                                Idle
                     in
-                        view (Just val == input.selected)
+                        view selectedState
                             |> Modify.addAttrList additional
 
         matches =
@@ -2361,7 +2397,7 @@ searchSelect style attrs input =
                                                             el
 
                                                         ChoiceWith _ view ->
-                                                            view True
+                                                            view SelectedInBox
                                                 )
                                             |> List.head
                                             |> Maybe.withDefault (Element.text "")
