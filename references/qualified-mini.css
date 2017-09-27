@@ -23,7 +23,10 @@ body {
     font-size: 100%;
     font: inherit;
     box-sizing: border-box;
-    line-height: 1; /* 1 :NOTE: ADDED BY style-elements LIBRARY */
+    line-height: 1.2; /* :NOTE: ADDED BY style-elements LIBRARY.  
+                         1.2 was chosen because it's the smallest line-height
+                         that does not chop off the tail of a 'g'
+                      */
 }
 
 /* General style elements reset */
