@@ -1,5 +1,8 @@
 module Layout.Auto.BoundingBox exposing (Box, get, documentSize)
 
+{-| Get browser generated bounding box, or document size.
+-}
+
 import Native.BoundingBox
 
 

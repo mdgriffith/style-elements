@@ -1,6 +1,10 @@
 module Layout.Auto.Calc exposing (..)
 
-{-| -}
+{-| Manual calculation of position and dimensions.
+
+This is used to test against browser calculated positions.
+
+-}
 
 import Layout.Auto.BoundingBox exposing (Box)
 import Element.Internal.Model as Model exposing (..)
