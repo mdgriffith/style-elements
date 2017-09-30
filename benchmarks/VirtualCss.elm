@@ -1,4 +1,4 @@
-module VirtualCss exposing (StyleSheet, insert, delete)
+module VirtualCss exposing (StyleSheet, delete, insert)
 
 import Native.VirtualCss
 

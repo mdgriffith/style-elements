@@ -1,4 +1,4 @@
-module Layout.Auto.BoundingBox exposing (Box, get, documentSize)
+module Layout.Auto.BoundingBox exposing (Box, documentSize, get)
 
 {-| Get browser generated bounding box, or document size.
 -}

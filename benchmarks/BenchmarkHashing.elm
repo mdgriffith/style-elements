@@ -2,13 +2,13 @@ module Main exposing (..)
 
 import Benchmark exposing (..)
 import Benchmark.Runner exposing (BenchmarkProgram, program)
-import Style exposing (..)
-import Style.Font as Font
-import Style.Border as Border
-import Style.Sheet
 import Color
-import Style.Color as Color
 import Murmur3
+import Style exposing (..)
+import Style.Border as Border
+import Style.Color as Color
+import Style.Font as Font
+import Style.Sheet
 
 
 main : BenchmarkProgram
@@ -57,9 +57,8 @@ test =
 
 
 convertInt i =
-    (List.map toString i
+    List.map toString i
         |> String.join ""
-    )
 
 
 _ =

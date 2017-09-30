@@ -1,8 +1,8 @@
 module Main exposing (..)
 
-import Test exposing (..)
 import Expect
 import Fuzz exposing (..)
+import Test exposing (..)
 
 
 suite : Test
@@ -16,7 +16,7 @@ suite =
                         palindrome =
                             "hannah"
                     in
-                        Expect.equal palindrome (String.reverse palindrome)
+                    Expect.equal palindrome (String.reverse palindrome)
 
             -- Expect.equal is designed to be used in pipeline style, like this.
             , test "reverses a known string" <|

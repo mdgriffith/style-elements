@@ -5,10 +5,10 @@ import Style exposing (..)
 import Style.Background as Background
 import Style.Border as Border
 import Style.Color as Color
+import Style.Filter as Filter
 import Style.Font as Font
 import Style.Shadow as Shadow
 import Style.Transition as Transition
-import Style.Filter as Filter
 
 
 type Styles

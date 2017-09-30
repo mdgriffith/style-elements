@@ -7,9 +7,9 @@ module Visual.CssReset exposing (..)
 
 -}
 
+import Element.Internal.Render as Render
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Element.Internal.Render as Render
 
 
 testNode attrs label name =

@@ -7,16 +7,16 @@ module Main exposing (..)
 
 -}
 
+import AnimationFrame
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Lazy
-import AnimationFrame
-import Time exposing (Time)
 import Murmur3
-import Dict
-import VirtualCss
 import Next.Internal.Model as Next
+import Time exposing (Time)
+import VirtualCss
 
 
 type alias Model =
@@ -94,7 +94,7 @@ prime model =
         primed =
             List.map primeStyle (List.range 0 (model.nodes - 1))
     in
-        model
+    model
 
 
 reprime model newNodes =
@@ -111,7 +111,7 @@ reprime model newNodes =
         primed =
             List.map primeStyle (List.range 0 (newNodes - 1))
     in
-        model
+    model
 
 
 primeOne model =
@@ -119,7 +119,7 @@ primeOne model =
         primeStyle =
             VirtualCss.insert ".test { color: blue; }" 0
     in
-        model
+    model
 
 
 main : Program Never Model Msg
@@ -153,7 +153,7 @@ update msg model =
                 _ =
                     reprime model n
             in
-                ( { model | nodes = n }, Cmd.none )
+            ( { model | nodes = n }, Cmd.none )
 
         ChangeRenderer n ->
             ( { model | renderer = n }, Cmd.none )
@@ -163,77 +163,77 @@ update msg model =
                 renderer =
                     model.renderer
             in
-                ( { model
-                    | renderer = { renderer | names = naming }
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | renderer = { renderer | names = naming }
+              }
+            , Cmd.none
+            )
 
         SetReducer reducer ->
             let
                 renderer =
                     model.renderer
             in
-                ( { model
-                    | renderer = { renderer | reducer = reducer }
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | renderer = { renderer | reducer = reducer }
+              }
+            , Cmd.none
+            )
 
         MakeLazy on ->
             let
                 renderer =
                     model.renderer
             in
-                ( { model
-                    | renderer = { renderer | lazy = on }
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | renderer = { renderer | lazy = on }
+              }
+            , Cmd.none
+            )
 
         MakeIndependent on ->
             let
                 renderer =
                     model.renderer
             in
-                ( { model
-                    | renderer = { renderer | independent = on }
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | renderer = { renderer | independent = on }
+              }
+            , Cmd.none
+            )
 
         SetColor on ->
             let
                 renderer =
                     model.renderer
             in
-                ( { model
-                    | renderer = { renderer | color = on }
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | renderer = { renderer | color = on }
+              }
+            , Cmd.none
+            )
 
         SetTranslate on ->
             let
                 renderer =
                     model.renderer
             in
-                ( { model
-                    | renderer = { renderer | translate = on }
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | renderer = { renderer | translate = on }
+              }
+            , Cmd.none
+            )
 
         SetRotate on ->
             let
                 renderer =
                     model.renderer
             in
-                ( { model
-                    | renderer = { renderer | rotate = on }
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | renderer = { renderer | rotate = on }
+              }
+            , Cmd.none
+            )
 
         Tick time ->
             let
@@ -242,7 +242,7 @@ update msg model =
 
                 newSkipped =
                     if model.time /= 0 && time - model.time > Time.millisecond * 18 then
-                        (time - model.time)
+                        time - model.time
                     else
                         0
 
@@ -258,14 +258,14 @@ update msg model =
                     else
                         time - model.time
             in
-                ( { model
-                    | time = time
-                    , total = newTotal
-                    , skipped = model.skipped + newSkipped
-                    , frameTime = model.frameTime + ((currentFrameTime - model.frameTime) / filterStrength)
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | time = time
+                , total = newTotal
+                , skipped = model.skipped + newSkipped
+                , frameTime = model.frameTime + ((currentFrameTime - model.frameTime) / filterStrength)
+              }
+            , Cmd.none
+            )
 
 
 view : Model -> Html Msg
@@ -392,9 +392,8 @@ viewStats model =
             , div
                 [ classList
                     [ ( "disabled"
-                      , (List.member model.renderer.technique
+                      , List.member model.renderer.technique
                             [ InlineStyles, CssAnimation ]
-                        )
                       )
                     ]
                 ]
@@ -402,9 +401,8 @@ viewStats model =
             , div
                 [ classList
                     [ ( "disabled"
-                      , (List.member model.renderer.technique
+                      , List.member model.renderer.technique
                             [ InlineStyles, CssAnimation, UsingVirtualCss ]
-                        )
                       )
                     ]
                 ]
@@ -414,103 +412,98 @@ viewStats model =
             renderer =
                 model.renderer
           in
-            div [ class "column", style [ ( "padding-top", "20px" ) ] ]
-                [ label []
-                    [ input
-                        [ type_ "radio"
-                        , name "renderer"
-                        , checked (model.renderer.technique == InlineStyles)
-                        , onClick
-                            (ChangeRenderer
-                                { renderer
-                                    | technique = InlineStyles
-                                }
-                            )
-                        ]
-                        []
-                    , text "Inline"
+          div [ class "column", style [ ( "padding-top", "20px" ) ] ]
+            [ label []
+                [ input
+                    [ type_ "radio"
+                    , name "renderer"
+                    , checked (model.renderer.technique == InlineStyles)
+                    , onClick
+                        (ChangeRenderer
+                            { renderer
+                                | technique = InlineStyles
+                            }
+                        )
                     ]
-                , label []
-                    [ input
-                        [ type_ "radio"
-                        , name "renderer"
-                        , checked (model.renderer.technique == ConcreteStyleSheet)
-                        , onClick
-                            (ChangeRenderer
-                                ({ renderer
-                                    | technique = ConcreteStyleSheet
-                                 }
-                                )
-                            )
-                        ]
-                        []
-                    , text "Concrete Stylesheet"
-                    ]
-                , label []
-                    [ input
-                        [ type_ "radio"
-                        , name "renderer"
-                        , checked (model.renderer.technique == CssAnimation)
-                        , onClick
-                            (ChangeRenderer
-                                ({ renderer
-                                    | technique = CssAnimation
-                                 }
-                                )
-                            )
-                        ]
-                        []
-                    , text "CssAnimation"
-                    ]
-                , label []
-                    [ input
-                        [ type_ "radio"
-                        , name "renderer"
-                        , checked (model.renderer.technique == UsingVirtualCss)
-                        , onClick
-                            (ChangeRenderer
-                                ({ renderer
-                                    | technique = UsingVirtualCss
-                                 }
-                                )
-                            )
-                        ]
-                        []
-                    , text "VirtualCSS"
-                    ]
-                , label []
-                    [ input
-                        [ type_ "radio"
-                        , name "renderer"
-                        , checked (model.renderer.technique == VirtualCssTransformViaAnimation)
-                        , onClick
-                            (ChangeRenderer
-                                ({ renderer
-                                    | technique = VirtualCssTransformViaAnimation
-                                 }
-                                )
-                            )
-                        ]
-                        []
-                    , text "VirtualCSS - Color(VCSS), Translate(Animation)"
-                    ]
-                , label []
-                    [ input
-                        [ type_ "radio"
-                        , name "renderer"
-                        , checked (model.renderer.technique == StyleElements)
-                        , onClick
-                            (ChangeRenderer
-                                ({ renderer
-                                    | technique = StyleElements
-                                 }
-                                )
-                            )
-                        ]
-                        []
-                    , text "Style Elements (v5)"
-                    ]
+                    []
+                , text "Inline"
                 ]
+            , label []
+                [ input
+                    [ type_ "radio"
+                    , name "renderer"
+                    , checked (model.renderer.technique == ConcreteStyleSheet)
+                    , onClick
+                        (ChangeRenderer
+                            { renderer
+                                | technique = ConcreteStyleSheet
+                            }
+                        )
+                    ]
+                    []
+                , text "Concrete Stylesheet"
+                ]
+            , label []
+                [ input
+                    [ type_ "radio"
+                    , name "renderer"
+                    , checked (model.renderer.technique == CssAnimation)
+                    , onClick
+                        (ChangeRenderer
+                            { renderer
+                                | technique = CssAnimation
+                            }
+                        )
+                    ]
+                    []
+                , text "CssAnimation"
+                ]
+            , label []
+                [ input
+                    [ type_ "radio"
+                    , name "renderer"
+                    , checked (model.renderer.technique == UsingVirtualCss)
+                    , onClick
+                        (ChangeRenderer
+                            { renderer
+                                | technique = UsingVirtualCss
+                            }
+                        )
+                    ]
+                    []
+                , text "VirtualCSS"
+                ]
+            , label []
+                [ input
+                    [ type_ "radio"
+                    , name "renderer"
+                    , checked (model.renderer.technique == VirtualCssTransformViaAnimation)
+                    , onClick
+                        (ChangeRenderer
+                            { renderer
+                                | technique = VirtualCssTransformViaAnimation
+                            }
+                        )
+                    ]
+                    []
+                , text "VirtualCSS - Color(VCSS), Translate(Animation)"
+                ]
+            , label []
+                [ input
+                    [ type_ "radio"
+                    , name "renderer"
+                    , checked (model.renderer.technique == StyleElements)
+                    , onClick
+                        (ChangeRenderer
+                            { renderer
+                                | technique = StyleElements
+                            }
+                        )
+                    ]
+                    []
+                , text "Style Elements (v5)"
+                ]
+            ]
         , div [ style [ ( "padding-top", "20px" ) ] ]
             [ label []
                 [ input [ type_ "checkbox", checked model.renderer.color, onCheck SetColor ] []
@@ -584,11 +577,11 @@ styleElements time nodes renderer =
                         ]
                         Next.empty
             in
-                Next.row
-                    [ Next.width (Next.px 600)
-                    , Next.style [ Next.prop "flex-wrap" "wrap", Next.prop "margin-top" "100px" ]
-                    ]
-                    (List.map el (List.range 0 (x - 1)))
+            Next.row
+                [ Next.width (Next.px 600)
+                , Next.style [ Next.prop "flex-wrap" "wrap", Next.prop "margin-top" "100px" ]
+                ]
+                (List.map el (List.range 0 (x - 1)))
 
         ( r, g, b ) =
             animateColor time 0
@@ -609,11 +602,11 @@ styleElements time nodes renderer =
                         Next.prop "transform" <|
                             (String.join " " <|
                                 [ if renderer.translate then
-                                    ("translate(" ++ toString pos ++ "px, 0px)")
+                                    "translate(" ++ toString pos ++ "px, 0px)"
                                   else
                                     ""
                                 , if renderer.rotate then
-                                    ("rotate(" ++ toString pos ++ "deg)")
+                                    "rotate(" ++ toString pos ++ "deg)"
                                   else
                                     ""
                                 ]
@@ -622,10 +615,10 @@ styleElements time nodes renderer =
                     Nothing
                 ]
     in
-        -- if renderer.lazy then
-        --     Html.Lazy.lazy fixed nodes
-        -- else
-        Next.layout <| fixed nodes
+    -- if renderer.lazy then
+    --     Html.Lazy.lazy fixed nodes
+    -- else
+    Next.layout <| fixed nodes
 
 
 virtualCss time nodes renderer =
@@ -656,14 +649,14 @@ virtualCss time nodes renderer =
                 rendered =
                     renderStyle <| Style ("." ++ cls) properties
             in
-                VirtualCss.insert rendered i
+            VirtualCss.insert rendered i
 
         refresh i cls props =
             let
                 _ =
                     VirtualCss.delete i
             in
-                VirtualCss.insert (renderStyle <| Style ("." ++ cls) props) i
+            VirtualCss.insert (renderStyle <| Style ("." ++ cls) props) i
 
         buildStyle i =
             case renderer.names of
@@ -700,11 +693,11 @@ virtualCss time nodes renderer =
                         ( cls, props ) =
                             buildStyle i
                     in
-                        Dict.insert cls props stylesheet
+                    Dict.insert cls props stylesheet
             in
-                List.foldr combine Dict.empty (List.range 0 (nodes - 1))
-                    |> Dict.toList
-                    |> List.indexedMap (\i ( cls, props ) -> refresh i cls props)
+            List.foldr combine Dict.empty (List.range 0 (nodes - 1))
+                |> Dict.toList
+                |> List.indexedMap (\i ( cls, props ) -> refresh i cls props)
 
         renderedCss =
             case renderer.names of
@@ -723,10 +716,10 @@ virtualCss time nodes renderer =
                     else
                         List.map newStyle (List.range 0 (nodes - 1))
     in
-        if renderer.lazy && renderer.names == Indexed then
-            Html.Lazy.lazy2 createNodesLazy renderer nodes
-        else
-            createNodes renderer nodes time
+    if renderer.lazy && renderer.names == Indexed then
+        Html.Lazy.lazy2 createNodesLazy renderer nodes
+    else
+        createNodes renderer nodes time
 
 
 createNodes renderer x time =
@@ -772,8 +765,8 @@ createNodes renderer x time =
             else
                 div [ class ("style test " ++ cls i) ] []
     in
-        div [ class "renderer" ]
-            (List.map el (List.range 0 (x - 1)))
+    div [ class "renderer" ]
+        (List.map el (List.range 0 (x - 1)))
 
 
 createNodesLazy renderer x =
@@ -790,8 +783,8 @@ createNodesLazy renderer x =
             else
                 div [ class ("style test " ++ cls i) ] []
     in
-        div [ class "renderer" ]
-            (List.map el (List.range 0 (x - 1)))
+    div [ class "renderer" ]
+        (List.map el (List.range 0 (x - 1)))
 
 
 virtualCssTransformViaAnimation time nodes renderer =
@@ -804,8 +797,8 @@ virtualCssTransformViaAnimation time nodes renderer =
                     else
                         div [ class ("style test move-it virtual-css-" ++ toString i) ] []
             in
-                div [ class "renderer" ]
-                    (List.map el (List.range 0 (x - 1)))
+            div [ class "renderer" ]
+                (List.map el (List.range 0 (x - 1)))
 
         props =
             []
@@ -819,22 +812,22 @@ virtualCssTransformViaAnimation time nodes renderer =
                 rendered =
                     renderStyle <| Style (".virtual-css-" ++ toString i) props
             in
-                VirtualCss.insert rendered i
+            VirtualCss.insert rendered i
 
         renderedCss =
             List.map newStyle (List.range 0 (nodes - 1))
     in
-        if renderer.lazy then
-            Html.Lazy.lazy fixed nodes
-        else
-            fixed nodes
+    if renderer.lazy then
+        Html.Lazy.lazy fixed nodes
+    else
+        fixed nodes
 
 
 inlineRenderer time nodes renderer =
     let
         viewInline time i =
             div
-                [ class ("style test")
+                [ class "style test"
                 , style
                     ([]
                         |> addColor renderer time i
@@ -843,8 +836,8 @@ inlineRenderer time nodes renderer =
                 ]
                 []
     in
-        div [ class "renderer" ]
-            (List.map (viewInline time << toFloat) (List.range 0 (nodes - 1)))
+    div [ class "renderer" ]
+        (List.map (viewInline time << toFloat) (List.range 0 (nodes - 1)))
 
 
 cssAnimationRenderer nodes renderer =
@@ -857,18 +850,18 @@ cssAnimationRenderer nodes renderer =
                     else
                         "style blue test move-it"
             in
-                div [ class styleCls ] []
+            div [ class styleCls ] []
     in
-        if renderer.lazy then
-            Html.Lazy.lazy
-                (\n ->
-                    div [ class "renderer" ]
-                        (List.repeat n el)
-                )
-                nodes
-        else
-            div [ class "renderer" ]
-                (List.repeat nodes el)
+    if renderer.lazy then
+        Html.Lazy.lazy
+            (\n ->
+                div [ class "renderer" ]
+                    (List.repeat n el)
+            )
+            nodes
+    else
+        div [ class "renderer" ]
+            (List.repeat nodes el)
 
 
 concreteStylesheet time nodes renderer =
@@ -899,10 +892,10 @@ concreteStylesheet time nodes renderer =
                         Indexed ->
                             "concrete-style-" ++ toString i
             in
-                ( Style ("." ++ cls)
-                    myStyleProps
-                , div [ class ("style test " ++ cls) ] []
-                )
+            ( Style ("." ++ cls)
+                myStyleProps
+            , div [ class ("style test " ++ cls) ] []
+            )
 
         ( allStyles, renderedNodes ) =
             case renderer.reducer of
@@ -913,12 +906,12 @@ concreteStylesheet time nodes renderer =
                                 ( style, node ) =
                                     viewStyled renderer time i
                             in
-                                ( renderStyle style :: stylesheet
-                                , node :: ns
-                                )
+                            ( renderStyle style :: stylesheet
+                            , node :: ns
+                            )
                     in
-                        (List.range 0 (nodes - 1))
-                            |> List.foldr combine ( [], [] )
+                    List.range 0 (nodes - 1)
+                        |> List.foldr combine ( [], [] )
 
                 NoReducer ->
                     let
@@ -927,12 +920,12 @@ concreteStylesheet time nodes renderer =
                                 ( style, node ) =
                                     viewStyled renderer time i
                             in
-                                ( renderStyle style :: stylesheet
-                                , node :: ns
-                                )
+                            ( renderStyle style :: stylesheet
+                            , node :: ns
+                            )
                     in
-                        (List.range 0 (nodes - 1))
-                            |> List.foldr combine ( [], [] )
+                    List.range 0 (nodes - 1)
+                        |> List.foldr combine ( [], [] )
 
                 DictReducer ->
                     let
@@ -941,21 +934,21 @@ concreteStylesheet time nodes renderer =
                                 ( Style cls props, node ) =
                                     viewStyled renderer time i
                             in
-                                ( Dict.insert cls props stylesheet
-                                , node :: ns
-                                )
+                            ( Dict.insert cls props stylesheet
+                            , node :: ns
+                            )
                     in
-                        (List.range 0 (nodes - 1))
-                            |> List.foldr combine ( Dict.empty, [] )
-                            |> Tuple.mapFirst ((List.map (renderStyle << asStyle)) << Dict.toList)
+                    List.range 0 (nodes - 1)
+                        |> List.foldr combine ( Dict.empty, [] )
+                        |> Tuple.mapFirst (List.map (renderStyle << asStyle) << Dict.toList)
 
         stylesheet =
             node "style"
                 []
                 [ text (String.join "\n" allStyles) ]
     in
-        div [ class "renderer" ]
-            (stylesheet :: renderedNodes)
+    div [ class "renderer" ]
+        (stylesheet :: renderedNodes)
 
 
 asStyle ( cls, props ) =
@@ -967,7 +960,7 @@ renderStyle (Style cls props) =
         renderProp ( name, val ) =
             "  " ++ name ++ ": " ++ val ++ ";"
     in
-        cls ++ "{" ++ (String.join "\n" (List.map renderProp props)) ++ "}"
+    cls ++ "{" ++ String.join "\n" (List.map renderProp props) ++ "}"
 
 
 type Style
@@ -998,7 +991,7 @@ animatePos time i =
 
 
 animatePosSin time i =
-    (Time.inSeconds (time + i))
+    Time.inSeconds (time + i)
         |> sin
         |> (*) 100.0
         |> (+) 200.0
@@ -1008,7 +1001,7 @@ encodedProps : { a | color : Bool, independent : Bool, translate : Bool, rotate 
 encodedProps renderer time i =
     let
         ( r, g, b ) =
-            animateColor (time)
+            animateColor time
                 (if renderer.independent then
                     i
                  else
@@ -1016,7 +1009,7 @@ encodedProps renderer time i =
                 )
 
         pos =
-            animatePosSin (time)
+            animatePosSin time
                 (if renderer.independent then
                     i
                  else
@@ -1026,18 +1019,18 @@ encodedProps renderer time i =
         encoding =
             (String.join "-" << List.filterMap identity)
                 [ if renderer.color then
-                    Just <| (String.join "-" [ "bc", toString r, toString g, toString b ])
+                    Just <| String.join "-" [ "bc", toString r, toString g, toString b ]
                   else
                     Nothing
                 , if renderer.translate || renderer.rotate then
                     Just <|
                         (String.join "-" <|
                             [ if renderer.translate then
-                                ("tr-" ++ toString (round (pos * 100)) ++ "px-0px")
+                                "tr-" ++ toString (round (pos * 100)) ++ "px-0px"
                               else
                                 ""
                             , if renderer.rotate then
-                                ("rt" ++ toString (round (pos * 100)) ++ "d")
+                                "rt" ++ toString (round (pos * 100)) ++ "d"
                               else
                                 ""
                             ]
@@ -1049,29 +1042,28 @@ encodedProps renderer time i =
         props =
             List.filterMap identity
                 [ if renderer.color then
-                    Just <| ( "background-color", ("rgb(" ++ toString r ++ ", " ++ toString g ++ ", " ++ toString b ++ ")") )
+                    Just <| ( "background-color", "rgb(" ++ toString r ++ ", " ++ toString g ++ ", " ++ toString b ++ ")" )
                   else
                     Nothing
                 , if renderer.translate || renderer.rotate then
                     Just <|
                         ( "transform"
-                        , (String.join " " <|
+                        , String.join " " <|
                             [ if renderer.translate then
-                                ("translate(" ++ toString pos ++ "px, 0px)")
+                                "translate(" ++ toString pos ++ "px, 0px)"
                               else
                                 ""
                             , if renderer.rotate then
-                                ("rotate(" ++ toString pos ++ "deg)")
+                                "rotate(" ++ toString pos ++ "deg)"
                               else
                                 ""
                             ]
-                          )
                         )
                   else
                     Nothing
                 ]
     in
-        ( encoding, props )
+    ( encoding, props )
 
 
 addColor renderer time i styleAttrs =
@@ -1084,10 +1076,10 @@ addColor renderer time i styleAttrs =
                     0
                 )
     in
-        if renderer.color then
-            ( "background-color", "rgb(" ++ toString r ++ ", " ++ toString g ++ ", " ++ toString b ++ ")" ) :: styleAttrs
-        else
-            styleAttrs
+    if renderer.color then
+        ( "background-color", "rgb(" ++ toString r ++ ", " ++ toString g ++ ", " ++ toString b ++ ")" ) :: styleAttrs
+    else
+        styleAttrs
 
 
 addTransform renderer time i styleAttrs =
@@ -1112,10 +1104,10 @@ addTransform renderer time i styleAttrs =
                     Nothing
                 ]
     in
-        if List.isEmpty transforms then
-            styleAttrs
-        else
-            ( "transform"
-            , String.join " " transforms
-            )
-                :: styleAttrs
+    if List.isEmpty transforms then
+        styleAttrs
+    else
+        ( "transform"
+        , String.join " " transforms
+        )
+            :: styleAttrs

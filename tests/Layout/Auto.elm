@@ -10,15 +10,15 @@ module Layout.Auto exposing (..)
 -}
 
 import Element
-import Element.Internal.Model as Model exposing (..)
 import Element.Attributes as Attr
-import Style.Internal.Model as Style exposing (Length(..))
-import Html exposing (Html)
-import Test exposing (Test)
+import Element.Internal.Model as Model exposing (..)
 import Expect
+import Html exposing (Html)
 import Layout.Auto.BoundingBox as BoundingBox exposing (Box)
-import Style
 import Layout.Auto.Calc as Calc exposing (Parent, ParentLayout(..))
+import Style
+import Style.Internal.Model as Style exposing (Length(..))
+import Test exposing (Test)
 import Window
 
 
@@ -120,41 +120,41 @@ test el =
                 -- _ =
                 --     Debug.log "window" window
             in
-                tagged
-                    |> fetchBoxes
-                    |> createTest
-                        { box =
-                            { left = 0
-                            , right = root.width
-                            , top = 0
-                            , bottom = root.height
-                            , width = root.width
-                            , height = root.height
-                            }
-                        , childElementInitialPosition =
-                            { left = 0
-                            , right = root.width
-                            , top = 0
-                            , bottom = root.height
-                            , width = root.width
-                            , height = root.height
-                            }
-                        , attrs = []
-                        , layout = NoLayout
-                        , fillPortionX = root.width
-                        , fillPortionY = root.height
-                        , boxWithPadding =
-                            { left = 0
-                            , right = root.width
-                            , top = 0
-                            , bottom = root.height
-                            , width = root.width
-                            , height = root.height
-                            }
+            tagged
+                |> fetchBoxes
+                |> createTest
+                    { box =
+                        { left = 0
+                        , right = root.width
+                        , top = 0
+                        , bottom = root.height
+                        , width = root.width
+                        , height = root.height
                         }
-                    |> Test.describe "Style Elements Auto Test"
+                    , childElementInitialPosition =
+                        { left = 0
+                        , right = root.width
+                        , top = 0
+                        , bottom = root.height
+                        , width = root.width
+                        , height = root.height
+                        }
+                    , attrs = []
+                    , layout = NoLayout
+                    , fillPortionX = root.width
+                    , fillPortionY = root.height
+                    , boxWithPadding =
+                        { left = 0
+                        , right = root.width
+                        , top = 0
+                        , bottom = root.height
+                        , width = root.width
+                        , height = root.height
+                        }
+                    }
+                |> Test.describe "Style Elements Auto Test"
     in
-        ( rendered, createTests )
+    ( rendered, createTests )
 
 
 {-| Adds an id to the element, and captures that id in the boundingbox type.
@@ -173,155 +173,155 @@ tag ids element =
             ids
                 |> List.map toString
                 |> String.join "-"
-                |> \str -> "bb-id-" ++ str
+                |> (\str -> "bb-id-" ++ str)
     in
-        case element of
-            Model.Empty ->
-                ( element
-                , TaggedEmpty
-                )
+    case element of
+        Model.Empty ->
+            ( element
+            , TaggedEmpty
+            )
 
-            Model.Spacer i ->
-                ( element
-                , TaggedSpacer i
-                )
+        Model.Spacer i ->
+            ( element
+            , TaggedSpacer i
+            )
 
-            Model.Raw html ->
-                ( element
-                , TaggedRaw
-                    { tag = tagName
-                    , content = html
-                    }
-                )
+        Model.Raw html ->
+            ( element
+            , TaggedRaw
+                { tag = tagName
+                , content = html
+                }
+            )
 
-            Model.Text { decoration, inline } content ->
-                ( element
-                , TaggedText
-                    { tag = tagName
-                    , content = content
-                    , decoration = decoration
-                    }
-                )
+        Model.Text { decoration, inline } content ->
+            ( element
+            , TaggedText
+                { tag = tagName
+                , content = content
+                , decoration = decoration
+                }
+            )
 
-            Model.Element el ->
-                let
-                    ( taggedChildEl, taggedChild ) =
-                        tag (ids ++ [ 0 ]) el.child
+        Model.Element el ->
+            let
+                ( taggedChildEl, taggedChild ) =
+                    tag (ids ++ [ 0 ]) el.child
 
-                    ( taggedAbsEls, taggedAbs ) =
-                        case el.absolutelyPositioned of
-                            Nothing ->
-                                ( Nothing, Nothing )
+                ( taggedAbsEls, taggedAbs ) =
+                    case el.absolutelyPositioned of
+                        Nothing ->
+                            ( Nothing, Nothing )
 
-                            Just children ->
-                                let
-                                    addTag child ( i, els, taggeds ) =
-                                        let
-                                            ( newEl, newTagged ) =
-                                                tag (ids ++ [ i ]) child
-                                        in
-                                            ( i + 1, els ++ [ newEl ], taggeds ++ [ newTagged ] )
+                        Just children ->
+                            let
+                                addTag child ( i, els, taggeds ) =
+                                    let
+                                        ( newEl, newTagged ) =
+                                            tag (ids ++ [ i ]) child
+                                    in
+                                    ( i + 1, els ++ [ newEl ], taggeds ++ [ newTagged ] )
 
-                                    finalize ( i, el, tagged ) =
-                                        ( Just el, Just tagged )
-                                in
-                                    List.foldl addTag ( 1, [], [] ) children
-                                        |> finalize
-                in
-                    ( Model.Element
-                        { el
-                            | attrs = Attr.id tagString :: el.attrs
-                            , child = taggedChildEl
-                            , absolutelyPositioned = taggedAbsEls
-                        }
-                    , TaggedElement
-                        { node = el.node
-                        , style = el.style
-                        , attrs = Attr.id tagString :: el.attrs
-                        , child = taggedChild
-                        , absolutelyPositioned = taggedAbs
-                        , tag = tagName
-                        }
-                    )
+                                finalize ( i, el, tagged ) =
+                                    ( Just el, Just tagged )
+                            in
+                            List.foldl addTag ( 1, [], [] ) children
+                                |> finalize
+            in
+            ( Model.Element
+                { el
+                    | attrs = Attr.id tagString :: el.attrs
+                    , child = taggedChildEl
+                    , absolutelyPositioned = taggedAbsEls
+                }
+            , TaggedElement
+                { node = el.node
+                , style = el.style
+                , attrs = Attr.id tagString :: el.attrs
+                , child = taggedChild
+                , absolutelyPositioned = taggedAbs
+                , tag = tagName
+                }
+            )
 
-            Model.Layout layout ->
-                let
-                    numAbsChildren =
-                        case layout.absolutelyPositioned of
-                            Nothing ->
-                                0
+        Model.Layout layout ->
+            let
+                numAbsChildren =
+                    case layout.absolutelyPositioned of
+                        Nothing ->
+                            0
 
-                            Just children ->
-                                List.length children
+                        Just children ->
+                            List.length children
 
-                    ( children, taggedChildren ) =
-                        case layout.children of
-                            Model.Normal children ->
-                                let
-                                    addTag child ( i, els, taggeds ) =
-                                        let
-                                            ( newEl, newTagged ) =
-                                                tag (ids ++ [ i ]) child
-                                        in
-                                            ( i + 1, els ++ [ newEl ], taggeds ++ [ newTagged ] )
+                ( children, taggedChildren ) =
+                    case layout.children of
+                        Model.Normal children ->
+                            let
+                                addTag child ( i, els, taggeds ) =
+                                    let
+                                        ( newEl, newTagged ) =
+                                            tag (ids ++ [ i ]) child
+                                    in
+                                    ( i + 1, els ++ [ newEl ], taggeds ++ [ newTagged ] )
 
-                                    finalize ( i, el, tagged ) =
-                                        ( Model.Normal el, tagged )
-                                in
-                                    List.foldl addTag ( numAbsChildren, [], [] ) children
-                                        |> finalize
+                                finalize ( i, el, tagged ) =
+                                    ( Model.Normal el, tagged )
+                            in
+                            List.foldl addTag ( numAbsChildren, [], [] ) children
+                                |> finalize
 
-                            Model.Keyed children ->
-                                let
-                                    addTag ( key, child ) ( i, els, taggeds ) =
-                                        let
-                                            ( newEl, newTagged ) =
-                                                tag (ids ++ [ i ]) child
-                                        in
-                                            ( i + 1, els ++ [ ( key, newEl ) ], taggeds ++ [ newTagged ] )
+                        Model.Keyed children ->
+                            let
+                                addTag ( key, child ) ( i, els, taggeds ) =
+                                    let
+                                        ( newEl, newTagged ) =
+                                            tag (ids ++ [ i ]) child
+                                    in
+                                    ( i + 1, els ++ [ ( key, newEl ) ], taggeds ++ [ newTagged ] )
 
-                                    finalize ( i, el, tagged ) =
-                                        ( Model.Keyed el, tagged )
-                                in
-                                    List.foldl addTag ( numAbsChildren, [], [] ) children
-                                        |> finalize
+                                finalize ( i, el, tagged ) =
+                                    ( Model.Keyed el, tagged )
+                            in
+                            List.foldl addTag ( numAbsChildren, [], [] ) children
+                                |> finalize
 
-                    ( taggedAbsEls, taggedAbs ) =
-                        case layout.absolutelyPositioned of
-                            Nothing ->
-                                ( Nothing, Nothing )
+                ( taggedAbsEls, taggedAbs ) =
+                    case layout.absolutelyPositioned of
+                        Nothing ->
+                            ( Nothing, Nothing )
 
-                            Just children ->
-                                let
-                                    addTag child ( i, els, taggeds ) =
-                                        let
-                                            ( newEl, newTagged ) =
-                                                tag (ids ++ [ i ]) child
-                                        in
-                                            ( i + 1, els ++ [ newEl ], taggeds ++ [ newTagged ] )
+                        Just children ->
+                            let
+                                addTag child ( i, els, taggeds ) =
+                                    let
+                                        ( newEl, newTagged ) =
+                                            tag (ids ++ [ i ]) child
+                                    in
+                                    ( i + 1, els ++ [ newEl ], taggeds ++ [ newTagged ] )
 
-                                    finalize ( i, el, tagged ) =
-                                        ( Just el, Just tagged )
-                                in
-                                    List.foldl addTag ( 1, [], [] ) children
-                                        |> finalize
-                in
-                    ( Model.Layout
-                        { layout
-                            | attrs = Attr.id tagString :: layout.attrs
-                            , children = children
-                            , absolutelyPositioned = taggedAbsEls
-                        }
-                    , TaggedLayout
-                        { node = layout.node
-                        , layout = layout.layout
-                        , style = layout.style
-                        , attrs = Attr.id tagString :: layout.attrs
-                        , children = taggedChildren
-                        , absolutelyPositioned = taggedAbs
-                        , tag = tagName
-                        }
-                    )
+                                finalize ( i, el, tagged ) =
+                                    ( Just el, Just tagged )
+                            in
+                            List.foldl addTag ( 1, [], [] ) children
+                                |> finalize
+            in
+            ( Model.Layout
+                { layout
+                    | attrs = Attr.id tagString :: layout.attrs
+                    , children = children
+                    , absolutelyPositioned = taggedAbsEls
+                }
+            , TaggedLayout
+                { node = layout.node
+                , layout = layout.layout
+                , style = layout.style
+                , attrs = Attr.id tagString :: layout.attrs
+                , children = taggedChildren
+                , absolutelyPositioned = taggedAbs
+                , tag = tagName
+                }
+            )
 
 
 {-| Performs the retreival of bounding boxes using Kernal code.
@@ -341,57 +341,57 @@ fetchBoxes tagged =
             , bottom = 0
             }
     in
-        case tagged of
-            TaggedEmpty ->
-                BoxedEmpty
+    case tagged of
+        TaggedEmpty ->
+            BoxedEmpty
 
-            TaggedSpacer i ->
-                BoxedSpacer i
+        TaggedSpacer i ->
+            BoxedSpacer i
 
-            TaggedRaw { tag, content } ->
-                BoxedRaw
-                    { boundingBox = getBoundingBox tag
-                    , content = content
-                    , tag = tag
-                    }
+        TaggedRaw { tag, content } ->
+            BoxedRaw
+                { boundingBox = getBoundingBox tag
+                , content = content
+                , tag = tag
+                }
 
-            TaggedText { decoration, content, tag } ->
-                BoxedText
-                    { boundingBox = emptyBox
-                    , content = content
-                    , decoration = decoration
-                    , tag = tag
-                    }
+        TaggedText { decoration, content, tag } ->
+            BoxedText
+                { boundingBox = emptyBox
+                , content = content
+                , decoration = decoration
+                , tag = tag
+                }
 
-            TaggedElement el ->
-                BoxedElement
-                    { node = el.node
-                    , style = el.style
-                    , attrs = el.attrs
-                    , child = fetchBoxes el.child
-                    , absolutelyPositioned =
-                        Maybe.map
-                            (List.map fetchBoxes)
-                            el.absolutelyPositioned
-                    , boundingBox = getBoundingBox el.tag
-                    , tag = el.tag
-                    }
+        TaggedElement el ->
+            BoxedElement
+                { node = el.node
+                , style = el.style
+                , attrs = el.attrs
+                , child = fetchBoxes el.child
+                , absolutelyPositioned =
+                    Maybe.map
+                        (List.map fetchBoxes)
+                        el.absolutelyPositioned
+                , boundingBox = getBoundingBox el.tag
+                , tag = el.tag
+                }
 
-            TaggedLayout layout ->
-                BoxedLayout
-                    { node = layout.node
-                    , layout = layout.layout
-                    , style = layout.style
-                    , attrs = layout.attrs
-                    , children =
-                        List.map fetchBoxes layout.children
-                    , absolutelyPositioned =
-                        Maybe.map
-                            (List.map fetchBoxes)
-                            layout.absolutelyPositioned
-                    , boundingBox = getBoundingBox layout.tag
-                    , tag = layout.tag
-                    }
+        TaggedLayout layout ->
+            BoxedLayout
+                { node = layout.node
+                , layout = layout.layout
+                , style = layout.style
+                , attrs = layout.attrs
+                , children =
+                    List.map fetchBoxes layout.children
+                , absolutelyPositioned =
+                    Maybe.map
+                        (List.map fetchBoxes)
+                        layout.absolutelyPositioned
+                , boundingBox = getBoundingBox layout.tag
+                , tag = layout.tag
+                }
 
 
 {-| Put the coordinates of a box in terms of another.
@@ -455,10 +455,9 @@ createTest parent boxed =
                 --     Debug.log (applyTag "parent" tag) parent
                 testPosition =
                     if inline then
-                        Test.test (applyTag ("inline element, position test skipped!") tag) <|
-                            (\_ ->
+                        Test.test (applyTag "inline element, position test skipped!" tag) <|
+                            \_ ->
                                 Expect.equal True True
-                            )
                     else
                         Test.test (applyTag ("calculated vs real position " ++ String.join ", " calcLabel) tag) <|
                             \_ ->
@@ -500,22 +499,22 @@ createTest parent boxed =
                         )
                         (Maybe.withDefault [] absolutelyPositioned)
             in
-                [ Test.describe (applyTag "Element" tag)
-                    (List.filterMap identity
-                        [ Just <| Test.describe (applyTag "attributes" tag) (testPosition :: attributeTests)
-                        , if List.length childTest == 0 then
-                            Nothing
-                          else
-                            Just <| Test.describe (applyTag "child of " tag) childTest
-                        , if List.length absChildrenTest == 0 then
-                            Nothing
-                          else
-                            Just <|
-                                Test.describe (applyTag "Absolutely Positioned Children" tag)
-                                    (List.concat absChildrenTest)
-                        ]
-                    )
-                ]
+            [ Test.describe (applyTag "Element" tag)
+                (List.filterMap identity
+                    [ Just <| Test.describe (applyTag "attributes" tag) (testPosition :: attributeTests)
+                    , if List.length childTest == 0 then
+                        Nothing
+                      else
+                        Just <| Test.describe (applyTag "child of " tag) childTest
+                    , if List.length absChildrenTest == 0 then
+                        Nothing
+                      else
+                        Just <|
+                            Test.describe (applyTag "Absolutely Positioned Children" tag)
+                                (List.concat absChildrenTest)
+                    ]
+                )
+            ]
 
         BoxedLayout { layout, boundingBox, attrs, children, absolutelyPositioned, tag } ->
             let
@@ -613,18 +612,18 @@ createTest parent boxed =
                                 sumWidth child total =
                                     getChildWidth filled child + total
                             in
-                                children
-                                    |> List.foldl (sumWidth) 0
-                                    |> (+) ((totalChildren - 1) * spacingX)
+                            children
+                                |> List.foldl sumWidth 0
+                                |> (+) ((totalChildren - 1) * spacingX)
 
                         totalChildrenHeight =
                             let
                                 sumHeight child total =
                                     getChildHeight filled child + total
                             in
-                                children
-                                    |> List.foldl (sumHeight) 0
-                                    |> (+) ((totalChildren - 1) * spacingY)
+                            children
+                                |> List.foldl sumHeight 0
+                                |> (+) ((totalChildren - 1) * spacingY)
 
                         applyLayout child cursor =
                             let
@@ -654,7 +653,7 @@ createTest parent boxed =
                                             box
 
                                         Just Right ->
-                                            Calc.move ((adjustedForPadding.width - totalChildrenWidth)) 0 0 box
+                                            Calc.move (adjustedForPadding.width - totalChildrenWidth) 0 0 box
 
                                         Just Center ->
                                             Calc.move ((adjustedForPadding.width - totalChildrenWidth) / 2) 0 0 box
@@ -671,7 +670,7 @@ createTest parent boxed =
                                             box
 
                                         Just Bottom ->
-                                            Calc.move 0 ((adjustedForPadding.height - totalChildrenHeight)) 0 box
+                                            Calc.move 0 (adjustedForPadding.height - totalChildrenHeight) 0 box
 
                                         Just VerticalCenter ->
                                             Calc.move 0 ((adjustedForPadding.height - totalChildrenHeight) / 2) 0 box
@@ -687,26 +686,26 @@ createTest parent boxed =
                                                     child
                                                         |> mapBoxAttrs (\attrs -> List.any leftRightAttr attrs)
                                             in
-                                                ( cursor.x
-                                                , if leftRightAlignment then
-                                                    cursor.y
-                                                  else
-                                                    cursor.y + height + spacingY
-                                                , createTest
-                                                    { box =
-                                                        adjustedForPadding
-                                                    , childElementInitialPosition =
-                                                        adjustedForPadding
-                                                            |> hAlignmentAdjustment
-                                                            |> Calc.move cursor.x cursor.y 0
-                                                    , attrs = attrs
-                                                    , layout = Calc.Layout layout
-                                                    , fillPortionX = fillPortionX
-                                                    , fillPortionY = fillPortionY
-                                                    , boxWithPadding = calculatedPosition
-                                                    }
-                                                    child
-                                                )
+                                            ( cursor.x
+                                            , if leftRightAlignment then
+                                                cursor.y
+                                              else
+                                                cursor.y + height + spacingY
+                                            , createTest
+                                                { box =
+                                                    adjustedForPadding
+                                                , childElementInitialPosition =
+                                                    adjustedForPadding
+                                                        |> hAlignmentAdjustment
+                                                        |> Calc.move cursor.x cursor.y 0
+                                                , attrs = attrs
+                                                , layout = Calc.Layout layout
+                                                , fillPortionX = fillPortionX
+                                                , fillPortionY = fillPortionY
+                                                , boxWithPadding = calculatedPosition
+                                                }
+                                                child
+                                            )
 
                                         Style.FlexLayout dir flexAttrs ->
                                             case dir of
@@ -814,15 +813,15 @@ createTest parent boxed =
                                                 child
                                             )
                             in
-                                { cursor
-                                    | tests = cursor.tests ++ [ layedOut ]
-                                    , x = newX
-                                    , y = newY
-                                    , i = cursor.i + 1
-                                }
+                            { cursor
+                                | tests = cursor.tests ++ [ layedOut ]
+                                , x = newX
+                                , y = newY
+                                , i = cursor.i + 1
+                            }
                     in
-                        List.foldl applyLayout init children
-                            |> .tests
+                    List.foldl applyLayout init children
+                        |> .tests
 
                 absChildrenTest =
                     List.map
@@ -843,22 +842,22 @@ createTest parent boxed =
                         )
                         (Maybe.withDefault [] absolutelyPositioned)
             in
-                [ Test.describe (applyTag "Layout" tag)
-                    (List.filterMap identity
-                        [ Just <| Test.describe (applyTag "Attributes" tag) (testPosition :: attributeTests)
-                        , if List.length (List.concat childrenTest) == 0 then
-                            Nothing
-                          else
-                            Just <| Test.describe (applyTag "Children" tag) (List.concat childrenTest)
-                        , if List.length absChildrenTest == 0 then
-                            Nothing
-                          else
-                            Just <|
-                                Test.describe (applyTag "Absolutely Positioned Children" tag)
-                                    (List.concat absChildrenTest)
-                        ]
-                    )
-                ]
+            [ Test.describe (applyTag "Layout" tag)
+                (List.filterMap identity
+                    [ Just <| Test.describe (applyTag "Attributes" tag) (testPosition :: attributeTests)
+                    , if List.length (List.concat childrenTest) == 0 then
+                        Nothing
+                      else
+                        Just <| Test.describe (applyTag "Children" tag) (List.concat childrenTest)
+                    , if List.length absChildrenTest == 0 then
+                        Nothing
+                      else
+                        Just <|
+                            Test.describe (applyTag "Absolutely Positioned Children" tag)
+                                (List.concat absChildrenTest)
+                    ]
+                )
+            ]
 
 
 testAttribute : Tag -> Parent variation msg -> Box -> Attribute variation msg -> Maybe Test
@@ -912,14 +911,14 @@ testAttribute tag parent groundTruth attr =
                             Debug.log (applyTag "fill width" tag) (parent.fillPortionX * x)
 
                         _ =
-                            Debug.log (applyTag "fill portion" tag) (parent.fillPortionX)
+                            Debug.log (applyTag "fill portion" tag) parent.fillPortionX
 
                         _ =
-                            Debug.log (applyTag "fill x" tag) (x)
+                            Debug.log (applyTag "fill x" tag) x
                     in
-                        Just <|
-                            Test.test (applyTag ("fill " ++ toString x ++ " width vs ground truth") tag) <|
-                                \_ -> Expect.equal (parent.fillPortionX * x) groundTruth.width
+                    Just <|
+                        Test.test (applyTag ("fill " ++ toString x ++ " width vs ground truth") tag) <|
+                            \_ -> Expect.equal (parent.fillPortionX * x) groundTruth.width
 
                 Calc percent adjust ->
                     Just <|
@@ -998,10 +997,10 @@ addFillPortions parent elem =
                 ( fillPortionX, fillPortionY ) =
                     getFillPortions ( 0, 0 ) parent.box [ child ]
             in
-                { parent
-                    | fillPortionX = fillPortionX
-                    , fillPortionY = fillPortionY
-                }
+            { parent
+                | fillPortionX = fillPortionX
+                , fillPortionY = fillPortionY
+            }
 
         BoxedLayout { attrs, children } ->
             let
@@ -1023,10 +1022,10 @@ addFillPortions parent elem =
                 ( fillPortionX, fillPortionY ) =
                     getFillPortions spacing parent.box children
             in
-                { parent
-                    | fillPortionX = fillPortionX
-                    , fillPortionY = fillPortionY
-                }
+            { parent
+                | fillPortionX = fillPortionX
+                , fillPortionY = fillPortionY
+            }
 
 
 {-| -}
@@ -1059,15 +1058,15 @@ getFillPortions ( spacingX, spacingY ) parent children =
         verticalSpacing =
             spacingY * ((toFloat <| List.length children) - 1)
     in
-        ( if totalFillWidthPortions <= 0 then
-            0
-          else
-            ((parent.width - totalConcreteWidth) - horizontalSpacing) / totalFillWidthPortions
-        , if totalFillHeightPortions <= 0 then
-            0
-          else
-            ((parent.height - totalConcreteHeight) - verticalSpacing) / totalFillHeightPortions
-        )
+    ( if totalFillWidthPortions <= 0 then
+        0
+      else
+        ((parent.width - totalConcreteWidth) - horizontalSpacing) / totalFillWidthPortions
+    , if totalFillHeightPortions <= 0 then
+        0
+      else
+        ((parent.height - totalConcreteHeight) - verticalSpacing) / totalFillHeightPortions
+    )
 
 
 mapBoxAttrs fn el =
@@ -1136,7 +1135,7 @@ getChildWidth parent child =
             getBox child
                 |> Maybe.withDefault parent.box
     in
-        mapBoxAttrs (\child -> Calc.width parent child |> Maybe.withDefault auto.width) child
+    mapBoxAttrs (\child -> Calc.width parent child |> Maybe.withDefault auto.width) child
 
 
 getChildHeight parent child =
@@ -1145,4 +1144,4 @@ getChildHeight parent child =
             getBox child
                 |> Maybe.withDefault parent.box
     in
-        mapBoxAttrs (\child -> Calc.height parent child |> Maybe.withDefault auto.height) child
+    mapBoxAttrs (\child -> Calc.height parent child |> Maybe.withDefault auto.height) child

@@ -1,20 +1,20 @@
 module Main exposing (..)
 
-import Html
-import Layout.Auto
+import Color
 import Element exposing (..)
 import Element.Attributes exposing (..)
-import Style exposing (style, cursor, hover, StyleSheet)
+import Html
+import Keyboard
+import Layout.Auto
+import Random.Pcg
+import Style exposing (StyleSheet, cursor, hover, style)
+import Style.Border as Border
+import Style.Color as Color
+import Style.Font as Font
+import Style.Transition as Transition
 import Test exposing (Test)
 import Test.Runner
-import Random.Pcg
-import Keyboard
-import Style.Color as Color
-import Color
-import Style.Font as Font
 import Window
-import Style.Border as Border
-import Style.Transition as Transition
 
 
 ( elems, tests ) =
@@ -94,11 +94,11 @@ update msg model =
                                 ran =
                                     List.map Test.Runner.getFailure (runner.run ())
                             in
-                                List.map2 (,) runner.labels ran
+                            List.map2 (,) runner.labels ran
                     in
-                        ( { model | results = Just (List.concat results) }
-                        , Cmd.none
-                        )
+                    ( { model | results = Just (List.concat results) }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -119,9 +119,9 @@ view model =
                         , elems
                         ]
     in
-        Element.layout
-            stylesheet
-            content
+    Element.layout
+        stylesheet
+        content
 
 
 
@@ -162,9 +162,9 @@ viewResults results =
                                 , paragraph None [] [ text <| indent 4 wrong.message ]
                                 ]
             in
-                Element.column TestResults
-                    [ padding 15, spacing 25, width fill, inlineStyle [ ( "white-space", "pre" ) ] ]
-                    (List.map viewResult res)
+            Element.column TestResults
+                [ padding 15, spacing 25, width fill, inlineStyle [ ( "white-space", "pre" ) ] ]
+                (List.map viewResult res)
 
 
 elementView : Element Styles variation msg
@@ -901,31 +901,31 @@ overflowIssue =
         long =
             "something very long too long to fit on a mobile screen and should break lorem ipsum dolar sit amet lorem ipsum lorem ipsum dolar sit amet lorem ipsum lorem ipsum dolar sit amet lorem ipsum lorem ipsum dolar sit amet lorem ipsum "
     in
-        [ el Label [] (text "No overflow")
-        , row Container
-            []
-            [ el None [] (text long) ]
-        , row Container
-            [ width (px 800) ]
-            [ el None [] (text long) ]
-        , row Container
-            [ width (percent 100) ]
-            [ el None [] (text long) ]
-        , row Container
-            [ width fill ]
-            [ el None [] (text long) ]
-        , el Label [] (text "Overflow on purpose")
-        , row Container
-            []
-            [ el None [ width (px 1800) ] (text long)
-            ]
-        , row Container
-            [ width fill ]
-            [ el None [ width (percent 120) ] (text long) ]
-        , row Container
-            [ width fill ]
-            [ el None [ width (fillPortion 2) ] (text long) ]
+    [ el Label [] (text "No overflow")
+    , row Container
+        []
+        [ el None [] (text long) ]
+    , row Container
+        [ width (px 800) ]
+        [ el None [] (text long) ]
+    , row Container
+        [ width (percent 100) ]
+        [ el None [] (text long) ]
+    , row Container
+        [ width fill ]
+        [ el None [] (text long) ]
+    , el Label [] (text "Overflow on purpose")
+    , row Container
+        []
+        [ el None [ width (px 1800) ] (text long)
         ]
+    , row Container
+        [ width fill ]
+        [ el None [ width (percent 120) ] (text long) ]
+    , row Container
+        [ width fill ]
+        [ el None [ width (fillPortion 2) ] (text long) ]
+    ]
 
 
 viewRowLayouts =
@@ -1102,25 +1102,25 @@ viewGridLayout =
                 { start = ( 0, 0 )
                 , width = 1
                 , height = 1
-                , content = (el Box [] (text "box"))
+                , content = el Box [] (text "box")
                 }
             , cell
                 { start = ( 1, 1 )
                 , width = 1
                 , height = 2
-                , content = (el Box [ spacing 100 ] (text "box"))
+                , content = el Box [ spacing 100 ] (text "box")
                 }
             , cell
                 { start = ( 2, 1 )
                 , width = 2
                 , height = 2
-                , content = (el Box [] (text "box"))
+                , content = el Box [] (text "box")
                 }
             , cell
                 { start = ( 1, 0 )
                 , width = 1
                 , height = 1
-                , content = (el Box [] (text "box"))
+                , content = el Box [] (text "box")
                 }
             ]
         }
@@ -1131,17 +1131,17 @@ viewTable =
     [ el Label [] (text "Table Layout")
     , table Container
         [ spacing 20 ]
-        [ [ (el Box [] (text "box"))
-          , (el Box [ spacing 100 ] (text "box"))
-          , (el Box [] (text "box"))
+        [ [ el Box [] (text "box")
+          , el Box [ spacing 100 ] (text "box")
+          , el Box [] (text "box")
           ]
         , [ el Box [] (text "reallly big box here is all the content, woohooo!!")
-          , (el Box [ spacing 100 ] (text "box"))
-          , (el Box [] (text "box"))
+          , el Box [ spacing 100 ] (text "box")
+          , el Box [] (text "box")
           ]
-        , [ (el Box [ spacing 100 ] (text "box"))
+        , [ el Box [ spacing 100 ] (text "box")
           , el Box [] (text "reallly big box here is all the content, woohooo!!")
-          , (el Box [] (text "box"))
+          , el Box [] (text "box")
           ]
         ]
     ]
@@ -1196,15 +1196,15 @@ overFlowIssue2 =
         lorem =
             "Donec interdum elementum aliquam. Maecenas cursus sem tellus, id elementum elit condimentum eget. Proin quis massa mi. In fermentum risus at quam tristique vestibulum. Quisque convallis odio in sodales euismod. Maecenas convallis nec justo nec facilisis."
     in
-        column Container
-            [ spacing 10, height <| px 800 ]
-            [ followingMessage
-            , followingMessage
-            , followingMessage
-            , followingMessage
-            , followingMessage
-            , followingMessage
-            ]
+    column Container
+        [ spacing 10, height <| px 800 ]
+        [ followingMessage
+        , followingMessage
+        , followingMessage
+        , followingMessage
+        , followingMessage
+        , followingMessage
+        ]
 
 
 
