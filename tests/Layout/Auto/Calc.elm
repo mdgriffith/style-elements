@@ -1,8 +1,8 @@
-module Calc exposing (..)
+module Layout.Auto.Calc exposing (..)
 
 {-| -}
 
-import BoundingBox exposing (Box)
+import Layout.Auto.BoundingBox exposing (Box)
 import Element.Internal.Model as Model exposing (..)
 import Style.Internal.Model as Style exposing (Length(..))
 

@@ -1,4 +1,4 @@
-module AutoSelfTest exposing (..)
+module Layout.Auto exposing (..)
 
 {- This module sketches out what needs to be in place in order for style-elements to be self-testing.
 
@@ -16,9 +16,9 @@ import Style.Internal.Model as Style exposing (Length(..))
 import Html exposing (Html)
 import Test exposing (Test)
 import Expect
-import BoundingBox exposing (Box)
+import Layout.Auto.BoundingBox as BoundingBox exposing (Box)
 import Style
-import Calc exposing (Parent, ParentLayout(..))
+import Layout.Auto.Calc as Calc exposing (Parent, ParentLayout(..))
 import Window
 
 
@@ -194,7 +194,7 @@ tag ids element =
                     }
                 )
 
-            Model.Text decoration content ->
+            Model.Text { decoration, inline } content ->
                 ( element
                 , TaggedText
                     { tag = tagName

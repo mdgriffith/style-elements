@@ -1,4 +1,4 @@
-module ElementTest exposing (..)
+module HtmlGeneration.Tests exposing (..)
 
 import Element exposing (..)
 import Element.Attributes exposing (..)
@@ -21,7 +21,7 @@ type Styles
 
 stylesheet : StyleSheet Styles variation
 stylesheet =
-    Style.stylesheet
+    Style.styleSheet
         [ style None [] ]
 
 

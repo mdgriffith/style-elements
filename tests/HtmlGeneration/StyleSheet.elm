@@ -1,4 +1,4 @@
-module StyleSheet exposing (..)
+module HtmlGeneration.StyleSheet exposing (..)
 
 import Color
 import Style exposing (..)
@@ -29,7 +29,7 @@ stylesheet =
             , Color.text Color.darkCharcoal
             , Color.background Color.white
             , Color.border Color.lightGrey
-            , Font.typeface [ "helvetica", "arial", "sans-serif" ]
+            , Font.typeface [ Font.font "helvetica", Font.font "arial", Font.font "sans-serif" ]
             , Font.size 16
             , Font.lineHeight 1.3
             ]

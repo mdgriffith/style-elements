@@ -1,52 +1,52 @@
 {
     "files": {
-        "ViewSnippets.elm": [
+        "HtmlGeneration/Snippets.elm": [
             {
-                "output": "rendered/emptyElement.html", 
+                "output": "HtmlGeneration/rendered/emptyElement.html", 
                 "viewFunction": "emptyElement"
             }, 
             {
-                "output": "rendered/textElement.html", 
+                "output": "HtmlGeneration/rendered/textElement.html", 
                 "viewFunction": "textElement"
             }, 
             {
-                "output": "rendered/singleElement.html", 
+                "output": "HtmlGeneration/rendered/singleElement.html", 
                 "viewFunction": "singleElement"
             }, 
             {
-                "output": "rendered/singleElementText.html", 
+                "output": "HtmlGeneration/rendered/singleElementText.html", 
                 "viewFunction": "singleElementText"
             }, 
             {
-                "output": "rendered/singleElementPercentWidthText.html", 
+                "output": "HtmlGeneration/rendered/singleElementPercentWidthText.html", 
                 "viewFunction": "singleElementPercentWidthText"
             }, 
             {
-                "output": "rendered/centeredSingleElementPercentWidthText.html", 
+                "output": "HtmlGeneration/rendered/centeredSingleElementPercentWidthText.html", 
                 "viewFunction": "centeredSingleElementPercentWidthText"
             }, 
             {
-                "output": "rendered/centeredSingleElementText.html", 
+                "output": "HtmlGeneration/rendered/centeredSingleElementText.html", 
                 "viewFunction": "centeredSingleElementText"
             }, 
             {
-                "output": "rendered/viewBox.html", 
+                "output": "HtmlGeneration/rendered/viewBox.html", 
                 "viewFunction": "viewBox"
             }, 
             {
-                "output": "rendered/viewWithinOrder.html", 
+                "output": "HtmlGeneration/rendered/viewWithinOrder.html", 
                 "viewFunction": "viewWithinOrder"
             }, 
             {
-                "output": "rendered/viewRow.html", 
+                "output": "HtmlGeneration/rendered/viewRow.html", 
                 "viewFunction": "viewRow"
             }, 
             {
-                "output": "rendered/viewRowWithSpacing.html", 
+                "output": "HtmlGeneration/rendered/viewRowWithSpacing.html", 
                 "viewFunction": "viewRowWithSpacing"
             }, 
             {
-                "output": "rendered/viewRowWithSpacingPadding.html", 
+                "output": "HtmlGeneration/rendered/viewRowWithSpacingPadding.html", 
                 "viewFunction": "viewRowWithSpacingPadding"
             }
         ]

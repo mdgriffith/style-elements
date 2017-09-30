@@ -1,4 +1,4 @@
-module BoundingBox exposing (Box, get, documentSize)
+module Layout.Auto.BoundingBox exposing (Box, get, documentSize)
 
 import Native.BoundingBox
 

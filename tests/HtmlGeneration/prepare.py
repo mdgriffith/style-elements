@@ -8,17 +8,18 @@ import re
 import json
 
 if __name__ == "__main__":
-    with open('ViewSnippets.elm') as VIEW:
+
+    snippetFile = 'HtmlGeneration/Snippets.elm'
+
+    with open(snippetFile) as VIEW:
         views = VIEW.read()
         sections = views.split("{- views -}")
         # print(sections[1])
         found = re.findall(r"\n(\w+)\s=", sections[1])
         
-
-        # Doesnt actually work
         config = {
             "files": {
-                "ViewSnippets.elm": [{"output": "rendered/" + view + ".html" , "viewFunction": view } for view in found ]
+                snippetFile: [{"output": "HtmlGeneration/rendered/" + view + ".html" , "viewFunction": view } for view in found ]
             }
         }
         with open('elm-static-html.json', 'w') as CONFIG:

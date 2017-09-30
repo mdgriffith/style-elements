@@ -1,4 +1,4 @@
-module VisualTest exposing (..)
+module Visual.Master exposing (..)
 
 import Color
 import Element exposing (..)
@@ -52,7 +52,8 @@ stylesheet =
             , Color.border Color.lightGrey
             , Font.typeface [ Font.font "helvetica", Font.font "arial", Font.sansSerif ]
             , Font.size 16
-            , Font.lineHeight 1.3
+
+            -- , Font.lineHeight 1.2
             ]
         , style Page
             [ Border.rounded 5
@@ -189,9 +190,9 @@ view model =
                     , viewNamedGridLayout
 
                     -- -- , testForm
-                    , [ screenExample
-                      , screenExample2
-                      ]
+                    -- , [ screenExample
+                    --   , screenExample2
+                    --   ]
                     ]
                 )
 
