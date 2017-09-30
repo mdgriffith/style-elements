@@ -47,7 +47,7 @@ toList batchables =
                 Batch embedded ->
                     toList embedded
     in
-        List.concatMap flatten batchables
+    List.concatMap flatten batchables
 
 
 {-| -}

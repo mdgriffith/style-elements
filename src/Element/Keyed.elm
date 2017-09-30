@@ -1,15 +1,15 @@
 module Element.Keyed
     exposing
-        ( row
-        , column
-        , wrappedRow
-        , wrappedColumn
-        , grid
-        , namedGrid
-        , cell
-        , named
-        , Grid
+        ( Grid
         , NamedGrid
+        , cell
+        , column
+        , grid
+        , named
+        , namedGrid
+        , row
+        , wrappedColumn
+        , wrappedRow
         )
 
 {-| Keyed Layouts
@@ -23,11 +23,10 @@ module Element.Keyed
 
 -}
 
-import Element exposing (Attribute, Element, OnGrid, Grid, NamedOnGrid, NamedGrid)
-import Element.Internal.Model exposing (Children(..))
-import Element.Internal.Model as Internal
-import Style.Internal.Model as Style exposing (Length)
+import Element exposing (Attribute, Element, Grid, NamedGrid, NamedOnGrid, OnGrid)
+import Element.Internal.Model as Internal exposing (Children(..))
 import Element.Internal.Modify as Modify
+import Style.Internal.Model as Style exposing (Length)
 
 
 {-| -}
@@ -103,7 +102,7 @@ cell box =
             , height = box.height
             }
     in
-        Internal.OnGrid ( box.key, Modify.addAttr (Internal.GridCoords <| Style.GridPosition pos) box.content )
+    Internal.OnGrid ( box.key, Modify.addAttr (Internal.GridCoords <| Style.GridPosition pos) box.content )
 
 
 {-| Specify a named postion on a `namedGrid`.
@@ -153,14 +152,14 @@ grid style attrs config =
                 _ ->
                     []
     in
-        Internal.Layout
-            { node = "div"
-            , style = Just style
-            , layout = Style.Grid (Style.GridTemplate { rows = config.rows, columns = config.columns }) gridAttributes
-            , attrs = notSpacingAttrs
-            , children = prepare config.cells
-            , absolutelyPositioned = Nothing
-            }
+    Internal.Layout
+        { node = "div"
+        , style = Just style
+        , layout = Style.Grid (Style.GridTemplate { rows = config.rows, columns = config.columns }) gridAttributes
+        , attrs = notSpacingAttrs
+        , children = prepare config.cells
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
@@ -200,11 +199,11 @@ namedGrid style attrs config =
                 _ ->
                     []
     in
-        Internal.Layout
-            { node = "div"
-            , style = Just style
-            , layout = Style.Grid (Style.NamedGridTemplate { rows = config.rows, columns = config.columns }) gridAttributes
-            , attrs = notSpacingAttrs
-            , children = (prepare config.cells)
-            , absolutelyPositioned = Nothing
-            }
+    Internal.Layout
+        { node = "div"
+        , style = Just style
+        , layout = Style.Grid (Style.NamedGridTemplate { rows = config.rows, columns = config.columns }) gridAttributes
+        , attrs = notSpacingAttrs
+        , children = prepare config.cells
+        , absolutelyPositioned = Nothing
+        }

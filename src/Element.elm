@@ -1,84 +1,84 @@
 module Element
     exposing
-        ( Element
-        , Attribute
-        , empty
-        , text
+        ( Attribute
+        , Device
+        , Element
+        , Grid
+        , GridPosition
+        , NamedGrid
+        , NamedGridPosition
+        , NamedOnGrid
+        , OnGrid
+        , above
+        , article
+        , aside
+        , below
         , bold
-        , italic
-        , strike
-        , underline
-        , sub
-        , super
-        , el
+        , button
+        , cell
         , circle
-        , spacer
-        , image
+        , classifyDevice
+        , column
         , decorativeImage
-        , hairline
-        , node
-        , subheading
+        , download
+        , downloadAs
+        , el
+        , embedStylesheet
+        , empty
+        , footer
+        , full
+        , grid
         , h1
         , h2
         , h3
         , h4
         , h5
         , h6
-        , section
-        , article
-        , aside
-        , button
-        , full
-        , textLayout
-        , paragraph
-        , row
-        , column
-        , wrappedRow
-        , wrappedColumn
-        , grid
-        , table
-        , namedGrid
-        , cell
-        , named
-        , span
-        , spanAll
+        , hairline
+        , header
+        , html
+        , image
+        , italic
+        , layout
         , link
+        , mainContent
+        , map
+        , modal
+        , named
+        , namedGrid
+        , navigation
+        , navigationColumn
         , newTab
-        , download
-        , downloadAs
-        , when
-        , whenJust
-        , within
-        , above
-        , below
-        , onRight
+        , node
         , onLeft
+        , onRight
+        , paragraph
+        , responsive
+        , row
         , screen
           -- , numbered
           -- , bulleted
-        , navigation
-        , navigationColumn
-        , header
-        , mainContent
-        , footer
-        , sidebar
         , search
-        , modal
-        , layout
-        , viewport
+        , section
+        , sidebar
+        , spacer
+        , span
+        , spanAll
+        , strike
+        , sub
+        , subheading
+        , super
+        , table
+        , text
+        , textLayout
         , toHtml
-        , embedStylesheet
-        , Device
-        , classifyDevice
-        , responsive
-        , OnGrid
-        , NamedOnGrid
-        , Grid
-        , NamedGrid
-        , GridPosition
-        , NamedGridPosition
-        , html
-        , map
+        , underline
+        , viewport
+        , when
+        , whenJust
+        , within
+        , wrappedColumn
+        , wrappedRow
         )
 
 {-|
@@ -201,14 +201,14 @@ Here's how it's done:
 
 -}
 
-import Html exposing (Html)
-import Html.Attributes
+import Element.Attributes as Attr exposing (Length)
 import Element.Internal.Model as Internal exposing (..)
 import Element.Internal.Modify as Modify
+import Element.Internal.Render as Render
+import Html exposing (Html)
+import Html.Attributes
 import Style exposing (Style, StyleSheet)
 import Style.Internal.Model as Style
-import Element.Attributes as Attr exposing (Length)
-import Element.Internal.Render as Render
 import Window
 
 
@@ -372,14 +372,13 @@ circle radius style attrs child =
         { node = "div"
         , style = Just style
         , attrs =
-            (Attr
+            Attr
                 (Html.Attributes.style
                     [ ( "border-radius", toString radius ++ "px" ) ]
                 )
                 :: Width (Style.Px (2 * radius))
                 :: Height (Style.Px (2 * radius))
                 :: attrs
-            )
         , child = child
         , absolutelyPositioned = Nothing
         }
@@ -402,7 +401,7 @@ image style attrs { src, caption } =
     Element
         { node = "img"
         , style = Just style
-        , attrs = (Attr (Html.Attributes.src src) :: Attr (Html.Attributes.alt caption) :: attrs)
+        , attrs = Attr (Html.Attributes.src src) :: Attr (Html.Attributes.alt caption) :: attrs
         , child = empty
         , absolutelyPositioned = Nothing
         }
@@ -415,7 +414,7 @@ decorativeImage style attrs { src } =
     Element
         { node = "img"
         , style = Just style
-        , attrs = (Attr (Html.Attributes.src src) :: attrs)
+        , attrs = Attr (Html.Attributes.src src) :: attrs
         , child = empty
         , absolutelyPositioned = Nothing
         }
@@ -572,7 +571,7 @@ full elem attrs child =
     Element
         { node = "div"
         , style = Just elem
-        , attrs = (Expand :: attrs)
+        , attrs = Expand :: attrs
         , child = child
         , absolutelyPositioned = Nothing
         }
@@ -691,7 +690,7 @@ table style attrs rows =
                     )
                     rows
     in
-        grid style attrs { columns = [], rows = [], cells = children }
+    grid style attrs { columns = [], rows = [], cells = children }
 
 
 {-| -}
@@ -759,14 +758,14 @@ grid style attrs config =
                 _ ->
                     []
     in
-        Layout
-            { node = "div"
-            , style = Just style
-            , layout = Style.Grid (Style.GridTemplate { rows = config.rows, columns = config.columns }) gridAttributes
-            , attrs = notSpacingAttrs
-            , children = prepare config.cells
-            , absolutelyPositioned = Nothing
-            }
+    Layout
+        { node = "div"
+        , style = Just style
+        , layout = Style.Grid (Style.GridTemplate { rows = config.rows, columns = config.columns }) gridAttributes
+        , attrs = notSpacingAttrs
+        , children = prepare config.cells
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
@@ -828,14 +827,14 @@ namedGrid style attrs config =
                 _ ->
                     []
     in
-        Layout
-            { node = "div"
-            , style = Just style
-            , layout = Style.Grid (Style.NamedGridTemplate { rows = config.rows, columns = config.columns }) gridAttributes
-            , attrs = notSpacingAttrs
-            , children = (prepare config.cells)
-            , absolutelyPositioned = Nothing
-            }
+    Layout
+        { node = "div"
+        , style = Just style
+        , layout = Style.Grid (Style.NamedGridTemplate { rows = config.rows, columns = config.columns }) gridAttributes
+        , attrs = notSpacingAttrs
+        , children = prepare config.cells
+        , absolutelyPositioned = Nothing
+        }
 
 
 {-| -}
@@ -868,7 +867,7 @@ cell box =
             , height = box.height
             }
     in
-        OnGrid <| Modify.addAttr (GridCoords <| Style.GridPosition coords) box.content
+    OnGrid <| Modify.addAttr (GridCoords <| Style.GridPosition coords) box.content
 
 
 {-| Specify a named postion on a `namedGrid`.
@@ -1043,7 +1042,7 @@ within nearbys parent =
                 |> Modify.addAttr (PositionFrame (Nearby Within))
                 |> Modify.addChild p
     in
-        List.foldr position parent nearbys
+    List.foldr position parent nearbys
 
 
 {-| -}
@@ -1057,7 +1056,7 @@ above nearbys parent =
                 |> Modify.removeAttrs [ VAlign Top, VAlign Bottom ]
                 |> Modify.addChild p
     in
-        List.foldr position parent nearbys
+    List.foldr position parent nearbys
 
 
 {-| -}
@@ -1071,7 +1070,7 @@ below nearbys parent =
                 |> Modify.removeAttrs [ VAlign Top, VAlign Bottom ]
                 |> Modify.addChild p
     in
-        List.foldr position parent nearbys
+    List.foldr position parent nearbys
 
 
 {-| -}
@@ -1085,7 +1084,7 @@ onRight nearbys parent =
                 |> Modify.removeAttrs [ HAlign Right, HAlign Left ]
                 |> Modify.addChild p
     in
-        List.foldr position parent nearbys
+    List.foldr position parent nearbys
 
 
 {-| -}
@@ -1099,7 +1098,7 @@ onLeft nearbys parent =
                 |> Modify.removeAttrs [ HAlign Right, HAlign Left ]
                 |> Modify.addChild p
     in
-        List.foldr position parent nearbys
+    List.foldr position parent nearbys
 
 
 {-| Position an element relative to the window.
@@ -1205,7 +1204,7 @@ responsive a ( aMin, aMax ) ( bMin, bMax ) =
             deltaA =
                 (a - aMin) / (aMax - aMin)
         in
-            (deltaA * (bMax - bMin)) + bMin
+        (deltaA * (bMax - bMin)) + bMin
 
 
 {-| Change the msg that an Element is sending.
@@ -1240,7 +1239,7 @@ search style attrs child =
 
 The required `name` is used by accessibility software to describe to non-sighted users what this navigation element pertains to.
 
-Don't leave `name` blank, even if you just put *"Main Navigation"* in it.
+Don't leave `name` blank, even if you just put _"Main Navigation"_ in it.
 
      navigation NavMenuStyle
         []

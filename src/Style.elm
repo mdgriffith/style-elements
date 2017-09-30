@@ -1,30 +1,30 @@
 module Style
     exposing
-        ( styleSheet
-        , styleSheetWith
-        , unguarded
-        , Style
-        , Property
-        , StyleSheet
+        ( Font
         , Option
-        , Font
+        , Property
+        , Style
+        , StyleSheet
         , Transform
-        , style
-        , variation
-        , prop
+        , checked
         , cursor
+        , focus
+        , hover
+        , importCss
+        , importUrl
         , opacity
         , origin
-        , translate
+        , prop
+        , pseudo
         , rotate
         , rotateAround
         , scale
-        , hover
-        , checked
-        , focus
-        , pseudo
-        , importUrl
-        , importCss
+        , style
+        , styleSheet
+        , styleSheetWith
+        , translate
+        , unguarded
+        , variation
         )
 
 {-|
@@ -151,10 +151,10 @@ Psuedo classes can be nested.
 
 -}
 
-import Style.Internal.Model as Internal
 import Style.Internal.Batchable as Batchable exposing (Batchable)
-import Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
 import Style.Internal.Find as Find
+import Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
+import Style.Internal.Model as Internal
 import Style.Internal.Render as Render
 
 
@@ -366,7 +366,7 @@ styleSheetWith options styles =
         unguarded =
             List.any ((==) Unguarded) options
     in
-        prepareSheet (Render.stylesheet "" (not <| unguarded) styles)
+    prepareSheet (Render.stylesheet "" (not <| unguarded) styles)
 
 
 {-| -}
@@ -384,9 +384,9 @@ prepareSheet (Rendered { css, findable }) =
                         |> List.map ((\vary -> Find.variation class vary findable) << Tuple.first)
                         |> List.map (\cls -> ( cls, True ))
             in
-                (( parent, True ) :: varys)
+            ( parent, True ) :: varys
     in
-        { style = \class -> (Find.style class findable)
-        , variations = \class varys -> variations class varys
-        , css = css
-        }
+    { style = \class -> Find.style class findable
+    , variations = \class varys -> variations class varys
+    , css = css
+    }

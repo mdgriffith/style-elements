@@ -1,19 +1,19 @@
 module Style.Border
     exposing
         ( all
-        , left
-        , right
-        , top
         , bottom
-        , none
-        , solid
         , dashed
         , dotted
-        , rounded
+        , left
+        , none
+        , right
+        , roundBottomLeft
+        , roundBottomRight
         , roundTopLeft
         , roundTopRight
-        , roundBottomRight
-        , roundBottomLeft
+        , rounded
+        , solid
+        , top
         )
 
 {-| Border Properties
@@ -35,9 +35,9 @@ module Style.Border
 
 -}
 
+import Style exposing (Property)
 import Style.Internal.Model as Internal
 import Style.Internal.Render.Value as Render
-import Style exposing (Property)
 
 
 {-| -}

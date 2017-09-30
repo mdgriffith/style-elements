@@ -1,55 +1,55 @@
 module Element.Attributes
     exposing
-        ( property
-        , attribute
-        , center
-        , verticalCenter
-        , verticalSpread
-        , spread
-        , alignTop
+        ( Length
         , alignBottom
         , alignLeft
         , alignRight
-        , moveUp
-        , moveDown
-        , moveRight
-        , moveLeft
-        , width
-        , minWidth
-        , maxWidth
-        , minHeight
-        , maxHeight
-        , height
-        , Length
-        , px
-        , content
-        , fill
-        , fillPortion
-        , percent
-        , vary
-        , spacing
-        , spacingXY
-        , padding
-        , paddingXY
-        , paddingTop
-        , paddingRight
-        , paddingBottom
-        , paddingLeft
-        , scrollbars
-        , yScrollbar
-        , xScrollbar
+        , alignTop
+        , attribute
+        , center
+        , class
+        , classList
         , clip
         , clipX
         , clipY
-        , class
-        , classList
-        , inlineStyle
-        , id
-        , map
+        , content
+        , fill
+        , fillPortion
+        , height
         , hidden
+        , id
+        , inlineStyle
+        , map
+        , maxHeight
+        , maxWidth
+        , minHeight
+        , minWidth
+        , moveDown
+        , moveLeft
+        , moveRight
+        , moveUp
+        , padding
+        , paddingBottom
+        , paddingLeft
+        , paddingRight
+        , paddingTop
+        , paddingXY
+        , percent
+        , property
+        , px
+        , scrollbars
+        , spacing
+        , spacingXY
+        , spread
         , toAttr
           -- , ping
           -- , rel
+        , vary
+        , verticalCenter
+        , verticalSpread
+        , width
+        , xScrollbar
+        , yScrollbar
         )
 
 {-|
@@ -138,13 +138,12 @@ Is rendered into something like this:
 -}
 
 import Element.Internal.Model as Internal exposing (..)
+import Html
+import Html.Attributes
+import Json.Decode as Json
 import Style.Internal.Model as Style
 import Style.Internal.Render.Value as StyleValue
-import Html.Attributes
-import Html
 import VirtualDom
-import Json.Decode as Json
-import Html
 
 
 {-| -}
@@ -452,7 +451,7 @@ inlineStyle =
 -- CUSTOM ATTRIBUTES
 
 
-{-| Create *properties*, like saying `domNode.className = 'greeting'` in
+{-| Create _properties_, like saying `domNode.className = 'greeting'` in
 JavaScript.
 
     import Json.Encode as Encode
@@ -471,7 +470,7 @@ property str val =
     Attr <| Html.Attributes.property str val
 
 
-{-| Create *attributes*, like saying `domNode.setAttribute('class', 'greeting')`
+{-| Create _attributes_, like saying `domNode.setAttribute('class', 'greeting')`
 in JavaScript.
 
     class : String -> Attribute variation msg

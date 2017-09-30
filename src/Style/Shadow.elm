@@ -1,4 +1,4 @@
-module Style.Shadow exposing (simple, deep, glow, innerGlow, textGlow, box, drop, inset, text)
+module Style.Shadow exposing (box, deep, drop, glow, innerGlow, inset, simple, text, textGlow)
 
 {-| Shadows
 
@@ -41,8 +41,8 @@ You can also have more control over the paraters of the shadow, such as the `Sha
 -}
 
 import Color exposing (Color)
-import Style.Internal.Model as Internal
 import Style exposing (Property)
+import Style.Internal.Model as Internal
 
 
 {-| A simple glow by specifying the color and size.

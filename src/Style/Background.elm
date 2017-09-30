@@ -1,32 +1,32 @@
 module Style.Background
     exposing
-        ( step
+        ( contain
+        , cover
+        , coverImage
+        , gradient
+        , gradientBottomLeft
+        , gradientBottomRight
+        , gradientDown
+        , gradientLeft
+        , gradientRight
+        , gradientTopLeft
+        , gradientTopRight
+        , gradientUp
+        , height
+        , image
+        , imageWith
+        , natural
+        , noRepeat
         , percent
         , px
-        , gradientRight
-        , gradientLeft
-        , gradientUp
-        , gradientDown
-        , gradientTopRight
-        , gradientBottomRight
-        , gradientTopLeft
-        , gradientBottomLeft
-        , gradient
-        , image
-        , coverImage
-        , imageWith
+        , repeat
         , repeatX
         , repeatY
-        , repeat
-        , space
-        , stretch
-        , noRepeat
-        , cover
-        , contain
-        , natural
-        , width
-        , height
         , size
+        , space
+        , step
+        , stretch
+        , width
         )
 
 {-|
@@ -53,9 +53,9 @@ module Style.Background
 
 -}
 
-import Style.Internal.Model as Internal
 import Color exposing (Color)
 import Style exposing (Property)
+import Style.Internal.Model as Internal
 
 
 {-| -}

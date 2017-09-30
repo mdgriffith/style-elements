@@ -1,9 +1,9 @@
 module Next.Internal.Model exposing (..)
 
+import Color
 import Html exposing (Html)
 import Html.Attributes
 import Html.Lazy
-import Color
 
 
 type Element msg
@@ -87,14 +87,14 @@ gridPosition { start, width, height } =
         ( colStart, colEnd ) =
             ( x + 1, x + 1 + width )
     in
-        Property "grid-area"
-            (String.join " / "
-                [ toString rowStart
-                , toString colStart
-                , toString rowEnd
-                , toString colEnd
-                ]
-            )
+    Property "grid-area"
+        (String.join " / "
+            [ toString rowStart
+            , toString colStart
+            , toString rowEnd
+            , toString colEnd
+            ]
+        )
 
 
 gridTemplate { rows, columns } =
@@ -113,11 +113,11 @@ gridTemplate { rows, columns } =
                 Fill i ->
                     toString i ++ "fr"
     in
-        [ Property "grid-template-rows"
-            (String.join " " (List.map renderLen rows))
-        , Property "grid-template-columns"
-            (String.join " " (List.map renderLen columns))
-        ]
+    [ Property "grid-template-rows"
+        (String.join " " (List.map renderLen rows))
+    , Property "grid-template-columns"
+        (String.join " " (List.map renderLen columns))
+    ]
 
 
 {-| -}
@@ -144,7 +144,7 @@ cell box =
                 , height = box.height
                 }
     in
-        OnGrid <| addAttrs [ StyleProps [ coords ] ] box.content
+    OnGrid <| addAttrs [ StyleProps [ coords ] ] box.content
 
 
 nearby : Location -> Element msg -> Element msg -> Element msg
@@ -305,9 +305,9 @@ toStyleSheet styles =
             existing ++ "\n" ++ key ++ ": " ++ val ++ ";"
 
         combine (Style str props) rendered =
-            rendered ++ "\n" ++ str ++ "{" ++ (List.foldl renderProps "" props) ++ "}"
+            rendered ++ "\n" ++ str ++ "{" ++ List.foldl renderProps "" props ++ "}"
     in
-        List.foldl combine "" styles
+    List.foldl combine "" styles
 
 
 
@@ -488,11 +488,11 @@ layout el =
         (Styled styles html) =
             render FirstAndLast [ 0 ] [] el
     in
-        Html.div [ Html.Attributes.class "style-elements" ]
-            [ staticSheet
-            , Html.node "style" [] [ Html.text <| toStyleSheet styles ]
-            , html
-            ]
+    Html.div [ Html.Attributes.class "style-elements" ]
+        [ staticSheet
+        , Html.node "style" [] [ Html.text <| toStyleSheet styles ]
+        , html
+        ]
 
 
 viewport : Element msg -> Html msg
@@ -501,11 +501,11 @@ viewport el =
         (Styled styles html) =
             render FirstAndLast [ 0 ] [] el
     in
-        Html.div [ Html.Attributes.class "style-elements" ]
-            [ viewportSheet
-            , Html.node "style" [] [ Html.text <| toStyleSheet styles ]
-            , html
-            ]
+    Html.div [ Html.Attributes.class "style-elements" ]
+        [ viewportSheet
+        , Html.node "style" [] [ Html.text <| toStyleSheet styles ]
+        , html
+        ]
 
 
 {-| Classes Needed
@@ -556,83 +556,83 @@ render position index addedChildren el =
                 Middle ->
                     "el middle"
     in
-        case el of
-            Empty ->
-                Styled [] (Html.text "")
+    case el of
+        Empty ->
+            Styled [] (Html.text "")
 
-            Text decoration content ->
-                case decoration of
-                    NoDecoration ->
-                        unstyled <| Html.div [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
+        Text decoration content ->
+            case decoration of
+                NoDecoration ->
+                    unstyled <| Html.div [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
 
-                    RawText ->
-                        unstyled <| Html.text content
+                RawText ->
+                    unstyled <| Html.text content
 
-                    Bold ->
-                        unstyled <| Html.strong [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
+                Bold ->
+                    unstyled <| Html.strong [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
 
-                    Italic ->
-                        unstyled <| Html.em [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
+                Italic ->
+                    unstyled <| Html.em [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
 
-                    Underline ->
-                        unstyled <| Html.u [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
+                Underline ->
+                    unstyled <| Html.u [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
 
-                    Strike ->
-                        unstyled <| Html.u [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
+                Strike ->
+                    unstyled <| Html.u [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
 
-                    Super ->
-                        unstyled <| Html.sup [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
+                Super ->
+                    unstyled <| Html.sup [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
 
-                    Sub ->
-                        unstyled <| Html.sub [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
+                Sub ->
+                    unstyled <| Html.sub [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
 
-            Spacer pixels ->
-                let
-                    self =
-                        "styled-" ++ String.join "" (List.map toString index)
+        Spacer pixels ->
+            let
+                self =
+                    "styled-" ++ String.join "" (List.map toString index)
 
-                    spacings =
-                        [ renderDependent ("#" ++ self) <|
-                            FollowingSibling ".el" [ Property "margin-left" "0", Property "margin-top" "0" ]
-                        , Style (".row > ." ++ self)
-                            [ Property "width" (toString pixels ++ "px")
-                            , Property "height" "0px"
-                            ]
-                        , Style (".column > ." ++ self)
-                            [ Property "height" (toString pixels ++ "px")
-                            , Property "width" "0px"
-                            ]
+                spacings =
+                    [ renderDependent ("#" ++ self) <|
+                        FollowingSibling ".el" [ Property "margin-left" "0", Property "margin-top" "0" ]
+                    , Style (".row > ." ++ self)
+                        [ Property "width" (toString pixels ++ "px")
+                        , Property "height" "0px"
                         ]
-                in
-                    Styled spacings
-                        (Html.node "span"
-                            [ Html.Attributes.class (self) ]
-                            []
-                        )
+                    , Style (".column > ." ++ self)
+                        [ Property "height" (toString pixels ++ "px")
+                        , Property "width" "0px"
+                        ]
+                    ]
+            in
+            Styled spacings
+                (Html.node "span"
+                    [ Html.Attributes.class self ]
+                    []
+                )
 
-            El name attributes child ->
-                renderStyled name index attributes positionClass SingleLayout [ child ] addedChildren ""
+        El name attributes child ->
+            renderStyled name index attributes positionClass SingleLayout [ child ] addedChildren ""
 
-            Row name attributes children ->
-                renderStyled name index attributes positionClass RowLayout children addedChildren "row"
+        Row name attributes children ->
+            renderStyled name index attributes positionClass RowLayout children addedChildren "row"
 
-            Column name attributes children ->
-                renderStyled name index attributes positionClass ColumnLayout children addedChildren "column"
+        Column name attributes children ->
+            renderStyled name index attributes positionClass ColumnLayout children addedChildren "column"
 
-            Grid name attributes children ->
-                renderStyled name index attributes positionClass GridLayout children addedChildren "grid"
+        Grid name attributes children ->
+            renderStyled name index attributes positionClass GridLayout children addedChildren "grid"
 
-            Page attributes children ->
-                renderStyled "div" index attributes positionClass ColumnLayout children addedChildren "text"
+        Page attributes children ->
+            renderStyled "div" index attributes positionClass ColumnLayout children addedChildren "text"
 
-            Paragraph attributes children ->
-                renderStyled "p" index attributes positionClass RowLayout children addedChildren "paragraph"
+        Paragraph attributes children ->
+            renderStyled "p" index attributes positionClass RowLayout children addedChildren "paragraph"
 
-            Nearby { anchor, nearby } ->
-                render position index (List.map positionNearby nearby) anchor
+        Nearby { anchor, nearby } ->
+            render position index (List.map positionNearby nearby) anchor
 
-            Raw html ->
-                Styled [] html
+        Raw html ->
+            Styled [] html
 
 
 positionNearby : ( Location, Element msg ) -> Element msg
@@ -672,16 +672,16 @@ renderStyled name index attributes positionClass hint children otherChildren add
 
         myStyle =
             Style ("#" ++ self)
-                (rendered.styleProperties)
+                rendered.styleProperties
 
         others =
             List.map (renderDependent ("#" ++ self)) rendered.otherStyles
     in
-        Styled (myStyle :: others ++ childrenStyles ++ otherChildrenStyles)
-            (Html.node name
-                (Html.Attributes.id self :: Html.Attributes.class (additionalClass ++ " " ++ positionClass) :: rendered.attributes)
-                (renderedChildren ++ renderedOtherChildren)
-            )
+    Styled (myStyle :: others ++ childrenStyles ++ otherChildrenStyles)
+        (Html.node name
+            (Html.Attributes.id self :: Html.Attributes.class (additionalClass ++ " " ++ positionClass) :: rendered.attributes)
+            (renderedChildren ++ renderedOtherChildren)
+        )
 
 
 renderChildren : List Int -> List (Element msg) -> ( List Style, List (Html msg) )
@@ -698,12 +698,12 @@ renderChildren index children =
                 (Styled styles el) =
                     render (place i) (i :: index) [] child
             in
-                ( i + 1
-                , styles ++ renderedStyles
-                , el :: renderedEls
-                )
+            ( i + 1
+            , styles ++ renderedStyles
+            , el :: renderedEls
+            )
     in
-        ( childrenStyles, renderedChildren )
+    ( childrenStyles, renderedChildren )
 
 
 renderOtherChildren : Int -> List Int -> List (Element msg) -> ( List Style, List (Html msg) )
@@ -717,12 +717,12 @@ renderOtherChildren offset index children =
                 (Styled styles el) =
                     render FirstAndLast (i + offset :: index) [] child
             in
-                ( i + 1
-                , styles ++ renderedStyles
-                , el :: renderedEls
-                )
+            ( i + 1
+            , styles ++ renderedStyles
+            , el :: renderedEls
+            )
     in
-        ( childrenStyles, renderedChildren )
+    ( childrenStyles, renderedChildren )
 
 
 type alias Gathered msg =
@@ -772,8 +772,8 @@ renderAttributes hint attrs =
             , scale = Nothing
             }
     in
-        List.foldr (gatherAttributes hint) init attrs
-            |> formatTransformations
+    List.foldr (gatherAttributes hint) init attrs
+        |> formatTransformations
 
 
 formatTransformations gathered =
@@ -815,12 +815,12 @@ formatTransformations gathered =
                 |> List.filterMap identity
                 |> String.join " "
     in
-        if transform == "" then
-            gathered
-        else
-            { gathered
-                | styleProperties = Property "transform" transform :: gathered.styleProperties
-            }
+    if transform == "" then
+        gathered
+    else
+        { gathered
+            | styleProperties = Property "transform" transform :: gathered.styleProperties
+        }
 
 
 type LayoutHint
@@ -927,7 +927,7 @@ gatherAttributes hint attr gathered =
                                 , addIfNothing mz existingZ
                                 )
             in
-                { gathered | translation = translate }
+            { gathered | translation = translate }
 
         Rotate x y z angle ->
             { gathered
@@ -972,7 +972,7 @@ gatherAttributes hint attr gathered =
                                 , addIfNothing mz existingZ
                                 )
             in
-                { gathered | scale = scale }
+            { gathered | scale = scale }
 
         Opacity o ->
             -- add opacity to style
@@ -1143,9 +1143,9 @@ positionMap fn list =
                     else
                         ( index + 1, fn Middle (len - index) a :: existing )
             in
-                list
-                    |> List.foldr applyFn ( 0, [] )
-                    |> Tuple.second
+            list
+                |> List.foldr applyFn ( 0, [] )
+                |> Tuple.second
 
 
 

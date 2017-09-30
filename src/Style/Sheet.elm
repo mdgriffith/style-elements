@@ -1,4 +1,4 @@
-module Style.Sheet exposing (ChildSheet, merge, map, mix)
+module Style.Sheet exposing (ChildSheet, map, merge, mix)
 
 {-| Combine and mix child stylesheets.
 
@@ -6,9 +6,9 @@ module Style.Sheet exposing (ChildSheet, merge, map, mix)
 
 -}
 
-import Style.Internal.Model as Internal exposing (StyleSheet)
-import Style.Internal.Batchable as Batchable
 import Style exposing (Style)
+import Style.Internal.Batchable as Batchable
+import Style.Internal.Model as Internal exposing (StyleSheet)
 
 
 {-| -}

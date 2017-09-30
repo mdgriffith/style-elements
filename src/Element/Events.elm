@@ -1,25 +1,25 @@
 module Element.Events
     exposing
-        ( onClick
+        ( Options
+        , defaultOptions
+        , keyCode
+        , on
+        , onBlur
+        , onCheck
+        , onClick
         , onDoubleClick
+        , onFocus
+        , onInput
         , onMouseDown
-        , onMouseUp
         , onMouseEnter
         , onMouseLeave
-        , onMouseOver
         , onMouseOut
-        , onInput
-        , onCheck
+        , onMouseOver
+        , onMouseUp
         , onSubmit
-        , onBlur
-        , onFocus
-        , on
         , onWithOptions
-        , Options
-        , defaultOptions
-        , targetValue
         , targetChecked
-        , keyCode
+        , targetValue
         )
 
 {-| This module is mirrored nearly completely from Html.Events
@@ -53,11 +53,11 @@ The only difference is that the HTML.Events are turned into Element.Events
 
 -}
 
+import Element.Internal.Model as Internal exposing (Attribute(..))
 import Html
 import Html.Events
-import VirtualDom
 import Json.Decode as Json
-import Element.Internal.Model as Internal exposing (Attribute(..))
+import VirtualDom
 
 
 -- MOUSE EVENTS

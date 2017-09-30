@@ -18,4 +18,4 @@ brace i str =
 {-| -}
 prop : Int -> ( String, String ) -> String
 prop i ( name, value ) =
-    (String.repeat i " ") ++ name ++ ": " ++ value ++ ";"
+    String.repeat i " " ++ name ++ ": " ++ value ++ ";"

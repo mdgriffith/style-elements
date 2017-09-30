@@ -1,4 +1,4 @@
-module Style.Filter exposing (url, blur, brightness, contrast, grayscale, hueRotate, invert, opacity, saturate, sepia)
+module Style.Filter exposing (blur, brightness, contrast, grayscale, hueRotate, invert, opacity, saturate, sepia, url)
 
 {-| Filters that can be applied to an element.
 
@@ -16,8 +16,8 @@ If multiple filters are given, they will stack.
 
 -}
 
-import Style.Internal.Model as Internal
 import Style exposing (Property)
+import Style.Internal.Model as Internal
 
 
 {-| -}

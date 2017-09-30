@@ -6,8 +6,8 @@ module Style.Transition exposing (Transition, all, performant, transitions)
 
 -}
 
-import Style.Internal.Model as Internal
 import Style exposing (Property)
+import Style.Internal.Model as Internal
 import Time exposing (Time)
 
 

@@ -1,22 +1,22 @@
 module Element.Internal.Modify
     exposing
-        ( setNode
-        , wrapHtml
-        , addAttrToNonText
-        , addAttr
-        , addAttrPriority
-        , removeAttrs
-        , addChild
+        ( addAttr
         , addAttrList
-        , removeAllAttrs
-        , removeContent
-        , getStyle
+        , addAttrPriority
+        , addAttrToNonText
+        , addChild
         , getAttrs
-        , removeStyle
         , getChild
-        , setAttrs
-        , makeInline
+        , getStyle
         , getText
+        , makeInline
+        , removeAllAttrs
+        , removeAttrs
+        , removeContent
+        , removeStyle
+        , setAttrs
+        , setNode
+        , wrapHtml
         )
 
 {-| -}
@@ -65,7 +65,7 @@ setNode node el =
                 { node = node
                 , style = Nothing
                 , attrs = []
-                , child = (Text dec content)
+                , child = Text dec content
                 , absolutelyPositioned = Nothing
                 }
 
@@ -83,12 +83,12 @@ makeInline el =
             Spacer x
 
         Layout elm ->
-            Layout { elm | attrs = (Internal.Inline :: elm.attrs) }
+            Layout { elm | attrs = Internal.Inline :: elm.attrs }
 
         Element elm ->
             Element
                 { elm
-                    | attrs = (Internal.Inline :: elm.attrs)
+                    | attrs = Internal.Inline :: elm.attrs
                     , child = makeInline elm.child
                 }
 
@@ -109,10 +109,10 @@ addAttrToNonText prop el =
             Spacer x
 
         Layout elm ->
-            Layout { elm | attrs = (prop :: elm.attrs) }
+            Layout { elm | attrs = prop :: elm.attrs }
 
         Element elm ->
-            Element { elm | attrs = (prop :: elm.attrs) }
+            Element { elm | attrs = prop :: elm.attrs }
 
         Text dec content ->
             Text dec content
@@ -131,17 +131,17 @@ addAttr prop el =
             Spacer x
 
         Layout elm ->
-            Layout { elm | attrs = (prop :: elm.attrs) }
+            Layout { elm | attrs = prop :: elm.attrs }
 
         Element elm ->
-            Element { elm | attrs = (prop :: elm.attrs) }
+            Element { elm | attrs = prop :: elm.attrs }
 
         Text dec content ->
             Element
                 { node = "div"
                 , style = Nothing
                 , attrs = [ prop ]
-                , child = (Text dec content)
+                , child = Text dec content
                 , absolutelyPositioned = Nothing
                 }
 
@@ -159,17 +159,17 @@ addAttrPriority prop el =
             Spacer x
 
         Layout elm ->
-            Layout { elm | attrs = (elm.attrs ++ [ prop ]) }
+            Layout { elm | attrs = elm.attrs ++ [ prop ] }
 
         Element elm ->
-            Element { elm | attrs = (elm.attrs ++ [ prop ]) }
+            Element { elm | attrs = elm.attrs ++ [ prop ] }
 
         Text dec content ->
             Element
                 { node = "div"
                 , style = Nothing
                 , attrs = [ prop ]
-                , child = (Text dec content)
+                , child = Text dec content
                 , absolutelyPositioned = Nothing
                 }
 
@@ -187,17 +187,17 @@ addAttrList props el =
             Raw h
 
         Layout elm ->
-            Layout { elm | attrs = (props ++ elm.attrs) }
+            Layout { elm | attrs = props ++ elm.attrs }
 
         Element elm ->
-            Element { elm | attrs = (props ++ elm.attrs) }
+            Element { elm | attrs = props ++ elm.attrs }
 
         Text dec content ->
             Element
                 { node = "div"
                 , style = Nothing
                 , attrs = props
-                , child = (Text dec content)
+                , child = Text dec content
                 , absolutelyPositioned = Nothing
                 }
 
@@ -230,24 +230,24 @@ removeAttrs props el =
         match p =
             not <| List.member p props
     in
-        case el of
-            Empty ->
-                Empty
+    case el of
+        Empty ->
+            Empty
 
-            Raw h ->
-                Raw h
+        Raw h ->
+            Raw h
 
-            Spacer x ->
-                Spacer x
+        Spacer x ->
+            Spacer x
 
-            Layout elm ->
-                Layout { elm | attrs = List.filter match elm.attrs }
+        Layout elm ->
+            Layout { elm | attrs = List.filter match elm.attrs }
 
-            Element elm ->
-                Element { elm | attrs = List.filter match elm.attrs }
+        Element elm ->
+            Element { elm | attrs = List.filter match elm.attrs }
 
-            Text dec content ->
-                Text dec content
+        Text dec content ->
+            Text dec content
 
 
 removeAllAttrs : Element style variation msg -> Element style variation msg

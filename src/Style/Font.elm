@@ -1,31 +1,31 @@
 module Style.Font
     exposing
-        ( typeface
-        , size
-        , lineHeight
-        , letterSpacing
-        , wordSpacing
-        , alignLeft
+        ( alignLeft
         , alignRight
+        , bold
+        , capitalize
         , center
+        , cursive
+        , fantasy
+        , font
+        , importUrl
+        , italic
         , justify
         , justifyAll
-        , underline
-        , strike
-        , italic
-        , bold
-        , weight
+        , letterSpacing
         , light
-        , uppercase
-        , capitalize
+        , lineHeight
         , lowercase
-        , font
-        , serif
-        , sansSerif
-        , cursive
         , monospace
-        , fantasy
-        , importUrl
+        , sansSerif
+        , serif
+        , size
+        , strike
+        , typeface
+        , underline
+        , uppercase
+        , weight
+        , wordSpacing
         )
 
 {-| Font Properties
@@ -51,8 +51,8 @@ Meant to be imported as:
 
 -}
 
+import Style exposing (Font, Property)
 import Style.Internal.Model as Internal
-import Style exposing (Property, Font)
 
 
 {-| -}
@@ -112,7 +112,7 @@ size size =
 
 {-| This is the only unitless value in the library that isn't `px`.
 
-Given as a *proportion* of the `Font.size`.
+Given as a _proportion_ of the `Font.size`.
 
 This means the final lineHeight in px is:
 
