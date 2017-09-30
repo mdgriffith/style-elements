@@ -43,7 +43,7 @@ Styles only deal with properties that are not related to layout, position, or si
 
 Generally all properties only have one allowed unit, which is usually px.
 
-If you want to use something like em
+If you want to use something like em, you should check out the `Style.Scale` module, which will show how to make something similar to `em`.
 
 -}
 stylesheet : StyleSheet Styles variation
