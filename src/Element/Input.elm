@@ -964,12 +964,6 @@ getOptionValue opt =
             value
 
 
-
--- optionToString : a -> String
--- optionToString =
---     Style.Internal.Selector.formatName
-
-
 {-| -}
 type alias Radio option style variation msg =
     { onChange : option -> msg
