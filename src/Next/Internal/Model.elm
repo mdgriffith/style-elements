@@ -3,6 +3,7 @@ module Next.Internal.Model exposing (..)
 import Html exposing (Html)
 import Html.Attributes
 import Html.Lazy
+import Color
 
 
 type Element msg
@@ -10,11 +11,10 @@ type Element msg
     | Spacer Float
     | Text Decoration String
     | El String (List (Attribute msg)) (Element msg)
-    | Container String (List (Attribute msg)) (Element msg)
     | Row String (List (Attribute msg)) (List (Element msg))
     | Column String (List (Attribute msg)) (List (Element msg))
-    | Grid (List (Attribute msg)) (List (Element msg))
-    | TextLayout (List (Attribute msg)) (List (Element msg))
+    | Grid String (List (Attribute msg)) (List (Element msg))
+    | Page (List (Attribute msg)) (List (Element msg))
     | Paragraph (List (Attribute msg)) (List (Element msg))
     | Raw (Html msg)
     | Nearby
@@ -23,19 +23,143 @@ type Element msg
         }
 
 
-below : Element msg -> Element msg -> Element msg
-below placed anchoringElement =
+addAttrs additional element =
+    case element of
+        Empty ->
+            El "div" additional Empty
+
+        Spacer pixels ->
+            element
+
+        Text dec str ->
+            El "div" additional element
+
+        El node attrs child ->
+            El node (additional ++ attrs) child
+
+        Row node attrs children ->
+            Row node (additional ++ attrs) children
+
+        Column node attrs children ->
+            Column node (additional ++ attrs) children
+
+        Grid name attrs children ->
+            Grid name (additional ++ attrs) children
+
+        Page attrs children ->
+            Page (additional ++ attrs) children
+
+        Paragraph attrs children ->
+            Paragraph (additional ++ attrs) children
+
+        Raw html ->
+            El "div" additional element
+
+        Nearby close ->
+            Nearby { close | anchor = addAttrs additional close.anchor }
+
+
+{-| -}
+type alias GridPosition msg =
+    { start : ( Int, Int )
+    , width : Int
+    , height : Int
+    , content : Element msg
+    }
+
+
+type OnGrid el
+    = OnGrid el
+
+
+type NamedOnGrid el
+    = NamedOnGrid el
+
+
+gridPosition { start, width, height } =
+    let
+        ( x, y ) =
+            start
+
+        ( rowStart, rowEnd ) =
+            ( y + 1, y + 1 + height )
+
+        ( colStart, colEnd ) =
+            ( x + 1, x + 1 + width )
+    in
+        Property "grid-area"
+            (String.join " / "
+                [ toString rowStart
+                , toString colStart
+                , toString rowEnd
+                , toString colEnd
+                ]
+            )
+
+
+gridTemplate { rows, columns } =
+    let
+        renderLen len =
+            case len of
+                Px x ->
+                    toString x ++ "px"
+
+                Expand ->
+                    "100%"
+
+                Content ->
+                    "auto"
+
+                Fill i ->
+                    toString i ++ "fr"
+    in
+        [ Property "grid-template-rows"
+            (String.join " " (List.map renderLen rows))
+        , Property "grid-template-columns"
+            (String.join " " (List.map renderLen columns))
+        ]
+
+
+{-| -}
+type alias GridTemplate msg =
+    { rows : List Length
+    , columns : List Length
+    , cells : List (OnGrid (Element msg))
+    }
+
+
+{-| -}
+grid : List (Attribute msg) -> GridTemplate msg -> Element msg
+grid attrs template =
+    Grid "div" (StyleProps (gridTemplate template) :: attrs) (List.map (\(OnGrid cell) -> cell) template.cells)
+
+
+cell : GridPosition msg -> OnGrid (Element msg)
+cell box =
+    let
+        coords =
+            gridPosition
+                { start = box.start
+                , width = box.width
+                , height = box.height
+                }
+    in
+        OnGrid <| addAttrs [ StyleProps [ coords ] ] box.content
+
+
+nearby : Location -> Element msg -> Element msg -> Element msg
+nearby position placed anchoringElement =
     case anchoringElement of
         Nearby { anchor, nearby } ->
             Nearby
                 { anchor = anchor
-                , nearby = ( Below, placed ) :: nearby
+                , nearby = ( position, placed ) :: nearby
                 }
 
         _ ->
             Nearby
                 { anchor = anchoringElement
-                , nearby = [ ( Below, placed ) ]
+                , nearby = [ ( position, placed ) ]
                 }
 
 
@@ -56,7 +180,9 @@ type Attribute msg
     | Width Length
     | HAlign HorizontalAlignment
     | VAlign VerticalAlignment
-    | Position (Maybe Float) (Maybe Float) (Maybe Float)
+    | Move (Maybe Float) (Maybe Float) (Maybe Float)
+    | Rotate Float Float Float Float
+    | Scale (Maybe Float) (Maybe Float) (Maybe Float)
     | Opacity Float
     | Spacing Float
     | SpacingXY Float Float
@@ -202,6 +328,10 @@ unstyled =
 
 static =
     """
+.style-elements {
+    width: 100%;
+    height: 100%;
+}
 
 .el {
     position: relative;
@@ -225,6 +355,9 @@ static =
 }
 .paragraph > .column {
     display: inline-flex;
+}
+.paragraph > .grid {
+    display: inline-grid;
 }
 
 .row {
@@ -310,10 +443,43 @@ static =
     top: 0;
     height: 0;
 }
+.el.on-right {
+    position: absolute;
+    left: 100%;
+    width: 0;
+}
+.el.on-left {
+    position: absolute;
+    right: 100%;
+    width: 0;
+}
+.el.overlay {
+    position: absolute;
+    left:0;
+    top:0;
+}
 
 
 
 """
+
+
+viewportStylesheet =
+    """html, body {
+        height: 100%;
+        width: 100%;
+}
+
+"""
+
+
+staticSheet : Html msg
+staticSheet =
+    Html.node "style" [] [ Html.text static ]
+
+
+viewportSheet =
+    Html.node "style" [] [ Html.text (viewportStylesheet ++ static) ]
 
 
 layout : Element msg -> Html msg
@@ -322,8 +488,21 @@ layout el =
         (Styled styles html) =
             render FirstAndLast [ 0 ] [] el
     in
-        Html.div []
-            [ Html.Lazy.lazy (\_ -> Html.node "style" [] [ Html.text static ]) 1
+        Html.div [ Html.Attributes.class "style-elements" ]
+            [ staticSheet
+            , Html.node "style" [] [ Html.text <| toStyleSheet styles ]
+            , html
+            ]
+
+
+viewport : Element msg -> Html msg
+viewport el =
+    let
+        (Styled styles html) =
+            render FirstAndLast [ 0 ] [] el
+    in
+        Html.div [ Html.Attributes.class "style-elements" ]
+            [ viewportSheet
             , Html.node "style" [] [ Html.text <| toStyleSheet styles ]
             , html
             ]
@@ -413,7 +592,7 @@ render position index addedChildren el =
                         "styled-" ++ String.join "" (List.map toString index)
 
                     spacings =
-                        [ renderDependent ("." ++ self) <|
+                        [ renderDependent ("#" ++ self) <|
                             FollowingSibling ".el" [ Property "margin-left" "0", Property "margin-top" "0" ]
                         , Style (".row > ." ++ self)
                             [ Property "width" (toString pixels ++ "px")
@@ -434,19 +613,16 @@ render position index addedChildren el =
             El name attributes child ->
                 renderStyled name index attributes positionClass SingleLayout [ child ] addedChildren ""
 
-            Container name attributes child ->
-                todo
-
             Row name attributes children ->
                 renderStyled name index attributes positionClass RowLayout children addedChildren "row"
 
             Column name attributes children ->
                 renderStyled name index attributes positionClass ColumnLayout children addedChildren "column"
 
-            Grid attributes children ->
-                todo
+            Grid name attributes children ->
+                renderStyled name index attributes positionClass GridLayout children addedChildren "grid"
 
-            TextLayout attributes children ->
+            Page attributes children ->
                 renderStyled "div" index attributes positionClass ColumnLayout children addedChildren "text"
 
             Paragraph attributes children ->
@@ -475,7 +651,7 @@ positionNearby ( location, element ) =
             El "div" [ Attr <| Html.Attributes.class "on-left" ] element
 
         Within ->
-            El "div" [ Attr <| Html.Attributes.class "within" ] element
+            El "div" [ Attr <| Html.Attributes.class "overlay" ] element
 
 
 renderStyled : String -> List Int -> List (Attribute msg) -> String -> LayoutHint -> List (Element msg) -> List (Element msg) -> String -> Styled (Html msg)
@@ -499,7 +675,7 @@ renderStyled name index attributes positionClass hint children otherChildren add
                 (rendered.styleProperties)
 
         others =
-            List.map (renderDependent ("." ++ self)) rendered.otherStyles
+            List.map (renderDependent ("#" ++ self)) rendered.otherStyles
     in
         Styled (myStyle :: others ++ childrenStyles ++ otherChildrenStyles)
             (Html.node name
@@ -553,6 +729,9 @@ type alias Gathered msg =
     { attributes : List (Html.Attribute msg)
     , styleProperties : List Property
     , otherStyles : List DependentStyle
+    , rotation : Maybe String
+    , translation : Maybe ( Maybe Float, Maybe Float, Maybe Float )
+    , scale : Maybe ( Maybe Float, Maybe Float, Maybe Float )
     }
 
 
@@ -588,9 +767,60 @@ renderAttributes hint attrs =
             { attributes = []
             , styleProperties = []
             , otherStyles = []
+            , rotation = Nothing
+            , translation = Nothing
+            , scale = Nothing
             }
     in
         List.foldr (gatherAttributes hint) init attrs
+            |> formatTransformations
+
+
+formatTransformations gathered =
+    let
+        translate =
+            case gathered.translation of
+                Nothing ->
+                    Nothing
+
+                Just ( x, y, z ) ->
+                    Just
+                        ("translate3d("
+                            ++ toString (Maybe.withDefault 0 x)
+                            ++ "px, "
+                            ++ toString (Maybe.withDefault 0 y)
+                            ++ "px, "
+                            ++ toString (Maybe.withDefault 0 z)
+                            ++ "px)"
+                        )
+
+        scale =
+            case gathered.scale of
+                Nothing ->
+                    Nothing
+
+                Just ( x, y, z ) ->
+                    Just
+                        ("scale3d("
+                            ++ toString (Maybe.withDefault 0 x)
+                            ++ "px, "
+                            ++ toString (Maybe.withDefault 0 y)
+                            ++ "px, "
+                            ++ toString (Maybe.withDefault 0 z)
+                            ++ "px)"
+                        )
+
+        transform =
+            [ scale, translate, gathered.rotation ]
+                |> List.filterMap identity
+                |> String.join " "
+    in
+        if transform == "" then
+            gathered
+        else
+            { gathered
+                | styleProperties = Property "transform" transform :: gathered.styleProperties
+            }
 
 
 type LayoutHint
@@ -670,9 +900,79 @@ gatherAttributes hint attr gathered =
                 VerticalJustify ->
                     { gathered | attributes = Html.Attributes.class "vertical-justify" :: gathered.attributes }
 
-        Position mx my mz ->
+        Move mx my mz ->
             -- add translate to the transform stack
-            gathered
+            let
+                addIfNothing val existing =
+                    case existing of
+                        Nothing ->
+                            val
+
+                        x ->
+                            x
+
+                translate =
+                    case gathered.translation of
+                        Nothing ->
+                            Just
+                                ( mx
+                                , my
+                                , mz
+                                )
+
+                        Just ( existingX, existingY, existingZ ) ->
+                            Just
+                                ( addIfNothing mx existingX
+                                , addIfNothing my existingY
+                                , addIfNothing mz existingZ
+                                )
+            in
+                { gathered | translation = translate }
+
+        Rotate x y z angle ->
+            { gathered
+                | rotation =
+                    Just
+                        ("rotate3d("
+                            ++ toString x
+                            ++ ","
+                            ++ toString y
+                            ++ ","
+                            ++ toString z
+                            ++ ","
+                            ++ toString angle
+                            ++ "rad)"
+                        )
+            }
+
+        Scale mx my mz ->
+            -- add scale to the transform stack
+            let
+                addIfNothing val existing =
+                    case existing of
+                        Nothing ->
+                            val
+
+                        x ->
+                            x
+
+                scale =
+                    case gathered.scale of
+                        Nothing ->
+                            Just
+                                ( mx
+                                , my
+                                , mz
+                                )
+
+                        Just ( existingX, existingY, existingZ ) ->
+                            Just
+                                ( addIfNothing mx existingX
+                                , addIfNothing my existingY
+                                , addIfNothing mz existingZ
+                                )
+            in
+                { gathered | scale = scale }
 
         Opacity o ->
             -- add opacity to style
@@ -872,14 +1172,19 @@ paragraph =
     Paragraph
 
 
-textLayout : List (Attribute msg) -> List (Element msg) -> Element msg
-textLayout =
-    TextLayout
+page : List (Attribute msg) -> List (Element msg) -> Element msg
+page =
+    Page
 
 
 container : List (Attribute msg) -> Element msg -> Element msg
 container attrs el =
     Row "div" (Width (Fill 1) :: Height (Fill 1) :: attrs) [ el ]
+
+
+node : String -> List (Attribute msg) -> Element msg -> Element msg
+node =
+    El
 
 
 el : List (Attribute msg) -> Element msg -> Element msg
@@ -895,6 +1200,36 @@ row =
 column : List (Attribute msg) -> List (Element msg) -> Element msg
 column =
     Column "div"
+
+
+below : Element msg -> Element msg -> Element msg
+below =
+    nearby Below
+
+
+above : Element msg -> Element msg -> Element msg
+above =
+    nearby Above
+
+
+onRight : Element msg -> Element msg -> Element msg
+onRight =
+    nearby OnRight
+
+
+onLeft : Element msg -> Element msg -> Element msg
+onLeft =
+    nearby OnLeft
+
+
+overlay : Element msg -> Element msg -> Element msg
+overlay =
+    nearby Within
+
+
+spacer : Float -> Element msg
+spacer =
+    Spacer
 
 
 style : List Property -> Attribute msg
@@ -995,6 +1330,25 @@ spacingXY =
     SpacingXY
 
 
-spacer : Float -> Element msg
-spacer =
-    Spacer
+{-| -}
+moveUp : Float -> Attribute msg
+moveUp y =
+    Move Nothing (Just (negate y)) Nothing
+
+
+{-| -}
+moveDown : Float -> Attribute msg
+moveDown y =
+    Move Nothing (Just y) Nothing
+
+
+{-| -}
+moveRight : Float -> Attribute msg
+moveRight x =
+    Move (Just x) Nothing Nothing
+
+
+{-| -}
+moveLeft : Float -> Attribute msg
+moveLeft x =
+    Move (Just (negate x)) Nothing Nothing
