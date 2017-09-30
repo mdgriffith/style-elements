@@ -26,6 +26,7 @@ module Element.Attributes
         , fill
         , fillPortion
         , percent
+        , auto
         , vary
         , spacing
         , spacingXY
@@ -292,6 +293,11 @@ fillPortion =
 percent : Float -> Length
 percent =
     Style.Percent
+
+{-| -}
+auto : Length
+auto =
+    Style.Auto
 
 
 {-| Apply a style variation.
