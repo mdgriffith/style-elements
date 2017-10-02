@@ -112,31 +112,35 @@ viewport stylesheet elm =
             , ( "height", "100%" )
             ]
         ]
-        (embed True stylesheet ++ render stylesheet elm)
+        (embed True stylesheet :: render stylesheet elm)
 
 
 root : Internal.StyleSheet elem variation -> Element elem variation msg -> Html msg
 root stylesheet elm =
     Html.div [ Html.Attributes.class "style-elements" ]
-        (embed False stylesheet ++ render stylesheet elm)
+        (embed False stylesheet :: render stylesheet elm)
 
 
-embed : Bool -> Internal.StyleSheet elem variation -> List (Html msg)
+viewportCss : Internal.StyleSheet elem variation -> String
+viewportCss stylesheet =
+    "html,body{width:100%;height:100%;}" ++ (layoutCss stylesheet)
+
+
+layoutCss : Internal.StyleSheet elem variation -> String
+layoutCss stylesheet =
+    miniNormalize ++ stylesheet.css
+
+
+embed : Bool -> Internal.StyleSheet elem variation -> Html msg
 embed full stylesheet =
-    [ Html.node "style"
+    Html.node "style"
         []
         [ Html.text <|
             if full then
-                "html,body{width:100%;height:100%;}" ++ miniNormalize
+                viewportCss stylesheet
             else
-                miniNormalize
+                layoutCss stylesheet
         ]
-    , Html.node "style"
-        []
-        [ Html.text
-            stylesheet.css
-        ]
-    ]
 
 
 render : Internal.StyleSheet elem variation -> Element elem variation msg -> List (Html msg)
