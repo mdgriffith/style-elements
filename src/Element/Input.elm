@@ -48,6 +48,7 @@ module Element.Input
         , styledChoice
         , styledSelectChoice
         , text
+        , textKey
         , updateSelection
         , username
         )
@@ -64,6 +65,8 @@ module Element.Input
 The following text inputs give hints to the browser so they can be autofilled.
 
 @docs username, newPassword, currentPassword
+
+@docs textKey
 
 
 ## 'Choose One' Inputs
@@ -128,6 +131,11 @@ name =
 valueAttr : String -> Internal.Attribute variation msg
 valueAttr =
     Attr.toAttr << Html.Attributes.value
+
+
+textValueAttr : String -> Internal.Attribute variation msg
+textValueAttr =
+    Attr.toAttr << Html.Attributes.defaultValue
 
 
 tabindex : Int -> Internal.Attribute variation msg
@@ -255,7 +263,7 @@ checkbox style attrs input =
                 }
             ]
     in
-    applyLabel Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attrs) (LabelOnRight input.label) errs isDisabled True inputElem
+    applyLabel Nothing Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attrs) (LabelOnRight input.label) errs isDisabled True inputElem
 
 
 {-| -}
@@ -339,7 +347,7 @@ styledCheckbox style attrs input =
                 |> Modify.addAttr (Attr.toAttr <| Html.Attributes.class "alt-icon")
             ]
     in
-    applyLabel Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attrs) (LabelOnRight input.label) errs isDisabled True inputElem
+    applyLabel Nothing Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attrs) (LabelOnRight input.label) errs isDisabled True inputElem
 
 
 
@@ -470,6 +478,18 @@ textHelper kind addedOptions style attrs input =
             else
                 spellcheckAttr False :: attrs
 
+        key =
+            List.filterMap forKey options
+                |> List.head
+
+        forKey opt =
+            case opt of
+                Key str ->
+                    Just str
+
+                _ ->
+                    Nothing
+
         forErrors opt =
             case opt of
                 ErrorOpt err ->
@@ -520,14 +540,14 @@ textHelper kind addedOptions style attrs input =
                         { node = "textarea"
                         , style = Just style
                         , attrs =
-                            (Internal.Width (Style.Fill 1) :: Attr.inlineStyle [ ( "resize", "none" ) ] :: Events.onInput input.onChange :: valueAttr input.value :: attrs)
+                            (Internal.Width (Style.Fill 1) :: Attr.inlineStyle [ ( "resize", "none" ) ] :: Events.onInput input.onChange :: textValueAttr input.value :: attrs)
                                 |> (withPlaceholder >> withReadonly >> withError >> withSpellCheck >> addOptionsAsAttrs options)
                         , child =
                             Internal.Text
                                 { decoration = Internal.RawText
                                 , inline = False
                                 }
-                                input.value
+                                ""
                         , absolutelyPositioned = Nothing
                         }
 
@@ -536,13 +556,13 @@ textHelper kind addedOptions style attrs input =
                         { node = "input"
                         , style = Just style
                         , attrs =
-                            (Internal.Width (Style.Fill 1) :: type_ kindAsText :: Events.onInput input.onChange :: valueAttr input.value :: attrs)
+                            (Internal.Width (Style.Fill 1) :: type_ kindAsText :: Events.onInput input.onChange :: textValueAttr input.value :: attrs)
                                 |> (withPlaceholder >> withDisabled >> withError >> addOptionsAsAttrs options)
                         , child = Internal.Empty
                         , absolutelyPositioned = Nothing
                         }
     in
-    applyLabel Nothing [ spacing ] input.label errors isDisabled False [ inputElem ]
+    applyLabel key Nothing [ spacing ] input.label errors isDisabled False [ inputElem ]
 
 
 {-| -}
@@ -597,6 +617,24 @@ Does not change the styling of the inputs unless they're controlled by the brows
 disabled : Option style variation msg
 disabled =
     Disabled
+
+
+{-| This key is needed because of the fix that is used to address [the cursor jumping bug](https://github.com/mdgriffith/style-elements/issues/91).
+
+Style Elements renders a text input using `defaultValue`, but if the value changes in your model, but not as a result of the input `onChange` event, then your input and model will get out of sync.
+
+So, if you manually change the value of a text input in your model, you need to ensure this key changes.
+
+A common way to do this is to maintain increment a counter whenever you manually change the text.
+
+**This option will be removed as soon as this bug is addressed farther upstream.**
+
+So if it feels awkward and like a hack, it's be cause it is.
+
+-}
+textKey : String -> Option style variation msg
+textKey =
+    Key
 
 
 {-| Add a key string to a radio option.
@@ -732,8 +770,8 @@ type ErrorOrientation style variation msg
 
 {-| Builds an input element with a label, errors, and a disabled
 -}
-applyLabel : Maybe style -> List (Attribute variation msg) -> Label style variation msg -> List (Error style variation msg) -> Bool -> Bool -> List (Element style variation msg) -> Element style variation msg
-applyLabel style attrs label errors isDisabled hasPointer input =
+applyLabel : Maybe String -> Maybe style -> List (Attribute variation msg) -> Label style variation msg -> List (Error style variation msg) -> Bool -> Bool -> List (Element style variation msg) -> Element style variation msg
+applyLabel maybeKey style attrs label errors isDisabled hasPointer input =
     let
         forSpacing attr =
             case attr of
@@ -752,18 +790,34 @@ applyLabel style attrs label errors isDisabled hasPointer input =
                     (Internal.Spacing 0 0)
 
         labelContainer direction children =
-            Internal.Layout
-                { node = "label"
-                , style = style
-                , layout = Style.FlexLayout direction []
-                , attrs =
-                    if hasPointer then
-                        Internal.Width (Style.Fill 1) :: pointer :: attrs
-                    else
-                        Internal.Width (Style.Fill 1) :: attrs
-                , children = Internal.Normal children
-                , absolutelyPositioned = Nothing
-                }
+            case maybeKey of
+                Nothing ->
+                    Internal.Layout
+                        { node = "label"
+                        , style = style
+                        , layout = Style.FlexLayout direction []
+                        , attrs =
+                            if hasPointer then
+                                Internal.Width (Style.Fill 1) :: pointer :: attrs
+                            else
+                                Internal.Width (Style.Fill 1) :: attrs
+                        , children = Internal.Normal children
+                        , absolutelyPositioned = Nothing
+                        }
+
+                Just key ->
+                    Internal.Layout
+                        { node = "label"
+                        , style = style
+                        , layout = Style.FlexLayout direction []
+                        , attrs =
+                            if hasPointer then
+                                Internal.Width (Style.Fill 1) :: pointer :: attrs
+                            else
+                                Internal.Width (Style.Fill 1) :: attrs
+                        , children = Internal.Keyed (List.indexedMap (\i child -> ( key ++ "-" ++ toString i, child )) children)
+                        , absolutelyPositioned = Nothing
+                        }
 
         orientedErrors =
             List.foldl
@@ -825,7 +879,7 @@ applyLabel style attrs label errors isDisabled hasPointer input =
     case label of
         PlaceHolder placeholder newLabel ->
             -- placeholder is set in a previous function
-            applyLabel style attrs newLabel errors isDisabled hasPointer input
+            applyLabel maybeKey style attrs newLabel errors isDisabled hasPointer input
 
         HiddenLabel title ->
             let
@@ -1053,7 +1107,7 @@ radio style attrs input =
                         Just key
                 }
     in
-    applyLabel Nothing [] input.label errs isDisabled (not isDisabled) [ inputElem ]
+    applyLabel Nothing Nothing [] input.label errs isDisabled (not isDisabled) [ inputElem ]
 
 
 {-| Same as `radio`, but arranges the choices in a row instead of a column
@@ -1108,7 +1162,7 @@ radioRow style attrs config =
                         Just key
                 }
     in
-    applyLabel Nothing [] config.label errs isDisabled (not isDisabled) [ input ]
+    applyLabel Nothing Nothing [] config.label errs isDisabled (not isDisabled) [ input ]
 
 
 
@@ -1838,7 +1892,7 @@ selectMenu style attrs input =
                         []
                     )
     in
-    applyLabel Nothing attrsWithSpacing input.label errors isDisabled (not isDisabled) [ fullElement ]
+    applyLabel Nothing Nothing attrsWithSpacing input.label errors isDisabled (not isDisabled) [ fullElement ]
 
 
 {-| -}
@@ -2482,7 +2536,7 @@ searchSelect style attrs input =
                         []
                     )
     in
-    applyLabel Nothing ([ Attr.inlineStyle [ ( "cursor", "auto" ) ] ] ++ attrsWithSpacing) input.label errors isDisabled False [ fullElement ]
+    applyLabel Nothing Nothing ([ Attr.inlineStyle [ ( "cursor", "auto" ) ] ] ++ attrsWithSpacing) input.label errors isDisabled False [ fullElement ]
 
 
 {-| -}
