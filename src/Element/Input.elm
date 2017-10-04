@@ -2292,10 +2292,10 @@ searchSelect style attrs input =
         choiceText choice =
             case choice of
                 Choice _ el ->
-                    Modify.getText el
+                    Modify.getTextList el
 
                 ChoiceWith _ view ->
-                    Modify.getText (view Idle)
+                    Modify.getTextList (view Idle)
 
         matchesQuery query opt =
             if query == "" then
@@ -2303,9 +2303,7 @@ searchSelect style attrs input =
             else
                 opt
                     |> choiceText
-                    |> String.trimLeft
-                    |> String.toLower
-                    |> String.startsWith ((String.toLower << String.trimLeft) query)
+                    |> List.any (\str -> String.startsWith ((String.toLower << String.trimLeft) query) (String.toLower <| String.trimLeft str))
 
         getFocus query =
             choices

@@ -9,6 +9,7 @@ module Element.Internal.Modify
         , getChild
         , getStyle
         , getText
+        , getTextList
         , makeInline
         , removeAllAttrs
         , removeAttrs
@@ -463,3 +464,32 @@ getText el =
 
         Text dec content ->
             content
+
+
+getTextList : Element style variation msg -> List String
+getTextList el =
+    case el of
+        Empty ->
+            []
+
+        Spacer x ->
+            []
+
+        Raw h ->
+            []
+
+        Layout { children } ->
+            case children of
+                Normal childs ->
+                    childs
+                        |> List.concatMap getTextList
+
+                Keyed childs ->
+                    childs
+                        |> List.concatMap (getTextList << Tuple.second)
+
+        Element { child } ->
+            getTextList child
+
+        Text dec content ->
+            [ content ]
