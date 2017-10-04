@@ -1564,7 +1564,7 @@ type alias SearchMenu option style variation msg =
 selectMenu : style -> List (Attribute variation msg) -> SelectMenuValues option style variation msg -> Element style variation msg
 selectMenu style attrs input =
     let
-        ( menuAbove, menuStyle, menuAttrs, options ) =
+        ( menuAbove, menuStyle, menuAttrs, choices ) =
             case input.menu of
                 MenuUp menuStyle menuAttrs menuOptions ->
                     ( True, menuStyle, menuAttrs, menuOptions )
@@ -1597,7 +1597,7 @@ selectMenu style attrs input =
                     placeholderText
 
                 Just selected ->
-                    options
+                    choices
                         |> List.filterMap (getSelectedLabel selected)
                         |> List.head
                         |> Maybe.withDefault placeholderText
@@ -1733,7 +1733,7 @@ selectMenu style attrs input =
                 , first = Nothing
                 , last = Nothing
                 }
-                options
+                choices
 
         { next, prev } =
             if cursor.found == False then
@@ -1886,7 +1886,7 @@ selectMenu style attrs input =
                                 :: Attr.width Attr.fill
                                 :: menuAttrs
                             )
-                            (List.map renderOption options)
+                            (List.map renderOption choices)
                         ]
                      else
                         []
@@ -2151,7 +2151,7 @@ searchSelect style attrs input =
         isDisabled =
             List.any ((==) Disabled) input.options
 
-        ( menuAbove, menuStyle, menuAttrs, options ) =
+        ( menuAbove, menuStyle, menuAttrs, choices ) =
             case input.menu of
                 MenuUp menuStyle menuAttrs menuOptions ->
                     ( True, menuStyle, menuAttrs, menuOptions )
@@ -2271,7 +2271,7 @@ searchSelect style attrs input =
                 , first = Nothing
                 , last = Nothing
                 }
-                (List.filter (matchesQuery input.query) options)
+                (List.filter (matchesQuery input.query) choices)
 
         { next, prev } =
             if cursor.found == False then
@@ -2289,21 +2289,29 @@ searchSelect style attrs input =
                 , prev = cursor.prev
                 }
 
+        choiceText choice =
+            case choice of
+                Choice _ el ->
+                    Modify.getText el
+
+                ChoiceWith _ view ->
+                    Modify.getText (view Idle)
+
         matchesQuery query opt =
             if query == "" then
                 True
             else
                 opt
-                    |> toString
+                    |> choiceText
                     |> String.trimLeft
                     |> String.toLower
                     |> String.startsWith ((String.toLower << String.trimLeft) query)
 
         getFocus query =
-            options
-                |> List.map getOptionValue
+            choices
                 |> List.filter (matchesQuery query)
                 |> List.head
+                |> Maybe.map getOptionValue
 
         renderOption option =
             case option of
@@ -2378,8 +2386,8 @@ searchSelect style attrs input =
                         |> Modify.addAttrList additional
 
         matches =
-            options
-                |> List.filter (matchesQuery input.query << getOptionValue)
+            choices
+                |> List.filter (matchesQuery input.query)
                 |> List.take input.max
                 |> List.map renderOption
 
@@ -2436,7 +2444,7 @@ searchSelect style attrs input =
                                         Element.text ""
 
                                     Just sel ->
-                                        options
+                                        choices
                                             |> List.filter (\opt -> sel == getOptionValue opt)
                                             |> List.map
                                                 (\opt ->
