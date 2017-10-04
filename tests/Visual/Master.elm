@@ -458,7 +458,7 @@ anchoredLayoutWithContent =
                     [ row Container [ moveDown -20, spacing 10, alignRight, width fill ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
                     ]
                 |> below
-                    [ column Container [ moveDown 20, spacing 10, width fill ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    [ row Container [ moveDown 20, spacing 10, width fill ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
                     ]
                 |> onRight
                     [ column Container [ moveRight 20, spacing 10, alignBottom, height fill ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
@@ -470,14 +470,18 @@ anchoredLayoutWithContent =
         , column
             None
             [ spacingXY 20 60 ]
-            [ section Label [] (text "Nearby Layouts")
+            [ section Label [] (text "Nearby Layouts (Within)")
             , el Container [ width (px 200), height (px 200) ] (text "Hi!")
                 |> within
-                    [ row Container [ spacing 10, alignRight, width fill ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
-                    , row Container [ spacing 10, alignBottom ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
-
-                    -- , column Container [ spacing 10, alignRight, alignBottom ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
-                    -- , column Container [ spacing 10, alignLeft ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    [ el None [ alignRight ] <| row Container [ spacing 10, width fill ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    , el None [ alignBottom ] <| row Container [ spacing 10, alignBottom, height fill ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    , el None [ alignRight, alignBottom ] <| column Container [ spacing 10, alignRight, alignBottom, width fill, height fill ] [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
+                    , el None [ alignLeft ] <|
+                        column Container
+                            [ spacing 10
+                            , alignLeft
+                            ]
+                            [ el Box [] (text "Hi!"), el Box [] (text "Hi!") ]
                     ]
             ]
         ]
