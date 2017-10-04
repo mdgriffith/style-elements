@@ -37,9 +37,10 @@ type Other
     = Thing Int
 
 
-options =
-    [ Style.unguarded
-    ]
+
+-- options =
+--     [ Style.unguarded
+--     ]
 
 
 stylesheet : StyleSheet Styles variation
@@ -196,31 +197,7 @@ view model =
                             , text = "Placeholder!"
                             }
                     , options =
-                        [ Input.errorBelow (el Error [] (text "This is an Error!  You've somehow filled this checkbox incorrectly!"))
-                        ]
-                    }
-                , Input.search Field
-                    [ spacing 5, padding 5 ]
-                    { onChange = ChangeText
-                    , value = model.text
-                    , label =
-                        Input.placeholder
-                            { label = Input.labelLeft (text "Search")
-                            , text = "Placeholder!"
-                            }
-                    , options = []
-                    }
-                , Input.multiline Field
-                    [ spacing 5, padding 10 ]
-                    { onChange = ChangeText
-                    , value = model.text
-                    , label =
-                        Input.placeholder
-                            { label = Input.labelLeft (text "Multiline")
-                            , text = "Placeholder!"
-                            }
-                    , options =
-                        [ Input.errorBelow (el Error [] (text "This one is wrong too!"))
+                        [ Input.errorBelow (el Error [] (text "This is an Error!"))
                         ]
                     }
                 , Input.checkbox Checkbox
@@ -273,13 +250,13 @@ view model =
                                             Input.SelectedInBox ->
                                                 ":D"
                                 in
-                                    Element.row None
-                                        [ spacing 5 ]
-                                        [ el None
-                                            []
-                                            (text icon)
-                                        , text "burrito"
-                                        ]
+                                Element.row None
+                                    [ spacing 5 ]
+                                    [ el None
+                                        []
+                                        (text icon)
+                                    , text "burrito"
+                                    ]
                         , Input.choice Taco (text "Taco!")
                         , Input.choice Gyro (text "Gyro")
                         ]
@@ -363,13 +340,13 @@ view model =
                                                 Input.SelectedInBox ->
                                                     ":D"
                                     in
-                                        Element.row None
-                                            [ spacing 5 ]
-                                            [ el None
-                                                []
-                                                (text icon)
-                                            , text "burrito"
-                                            ]
+                                    Element.row None
+                                        [ spacing 5 ]
+                                        [ el None
+                                            []
+                                            (text icon)
+                                        , text "burrito"
+                                        ]
                             ]
                     }
                 ]
