@@ -1,5 +1,20 @@
 module Main exposing (..)
 
+{-| Main Overview of tests
+
+Start with an initial seed.
+
+Cycle ->
+
+    - Generate new random layout
+        - Save Test to model, render html to view
+        - when rendered -> run test
+            - If success, go to next cycle
+            - If failure -> go on shrink cycle to find smallest error
+            -> Store results of either smallest failure or largest success.
+
+-}
+
 import Color
 import Element exposing (..)
 import Element.Attributes exposing (..)
@@ -14,6 +29,7 @@ import Style.Font as Font
 import Style.Transition as Transition
 import Test exposing (Test)
 import Test.Runner
+import Time
 import Window
 
 
@@ -33,11 +49,11 @@ main =
         , update = update
         , view = view
         , subscriptions =
-            \_ ->
-                Sub.batch
-                    [ Keyboard.presses (\_ -> Refresh)
-                    , Window.resizes Resize
-                    ]
+            \model ->
+                if model.results == Nothing then
+                    Time.every (Time.inSeconds 0.3) (always Refresh)
+                else
+                    Sub.none
         }
 
 
