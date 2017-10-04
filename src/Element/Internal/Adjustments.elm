@@ -205,8 +205,9 @@ positionNearby parent elm =
                                             if isLayout then
                                                 Width (Internal.Percent 100) :: attrs
                                             else
-                                                -- attrs
-                                                Width (Internal.Percent 100) :: attrs
+                                                attrs
+
+                                        -- Width (Internal.Percent 100) :: attrs
                                     in
                                     addWidth
                                         [ tag "above-below-intermediate"
