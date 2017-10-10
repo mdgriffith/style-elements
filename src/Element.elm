@@ -1253,6 +1253,16 @@ Don't leave `name` blank, even if you just put _"Main Navigation"_ in it.
 -}
 navigation : style -> List (Attribute variation msg) -> { options : List (Element style variation msg), name : String } -> Element style variation msg
 navigation style attrs { options, name } =
+    let
+        wrap el =
+            Element
+                { node = "li"
+                , style = Nothing
+                , attrs = []
+                , child = el
+                , absolutelyPositioned = Nothing
+                }
+    in
     Internal.Element
         { node = "nav"
         , style = Nothing
@@ -1265,7 +1275,7 @@ navigation style attrs { options, name } =
                 , attrs = attrs
                 , children =
                     options
-                        |> List.map (Modify.setNode "li")
+                        |> List.map wrap
                         |> Internal.Normal
                 , absolutelyPositioned = Nothing
                 }
