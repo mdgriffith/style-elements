@@ -290,7 +290,7 @@ type alias StyledCheckbox style variation msg =
             \checked ->
                 let
                     checkboxStyle =
-                        if on then
+                        if checked then
                             CheckboxChecked
                         else
                             Checkbox
