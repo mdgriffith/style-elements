@@ -43,6 +43,7 @@ module Element
         , link
         , mainContent
         , map
+        , mapAll
         , modal
         , named
         , namedGrid
@@ -100,7 +101,7 @@ By building your view with `Elements`, you have a single place to go to adjust o
 
 @docs Element, Attribute
 
-@docs empty, text, el, when, whenJust, html, map, full
+@docs empty, text, el, when, whenJust, html, map, mapAll, full
 
 
 # Layout
@@ -1215,6 +1216,13 @@ An analog of `Html.map`.
 map : (a -> msg) -> Element style variation a -> Element style variation msg
 map =
     Internal.mapMsg
+
+
+{-| Map the msg, style, and variation that is used.
+-}
+mapAll : (msgA -> msgB) -> (styleA -> styleB) -> (variationA -> variationB) -> Element styleA variationA msgA -> Element styleB variationB msgB
+mapAll =
+    Internal.mapAll
 
 
 {-| An area that houses the controls for running a search.

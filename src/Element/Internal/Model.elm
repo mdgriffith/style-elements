@@ -200,6 +200,115 @@ type Element style variation msg
     | Raw (Html msg)
 
 
+mapAll : (msgA -> msgB) -> (styleA -> styleB) -> (variationA -> variationB) -> Element styleA variationA msgA -> Element styleB variationB msgB
+mapAll onMsg onStyle onVariation el =
+    case el of
+        Empty ->
+            Empty
+
+        Spacer f ->
+            Spacer f
+
+        Text dec str ->
+            Text dec str
+
+        Element ({ attrs, child, absolutelyPositioned, style } as elm) ->
+            Element
+                { elm
+                    | attrs = List.map (mapAllAttr onMsg onVariation) attrs
+                    , style = Maybe.map onStyle style
+                    , child = mapAll onMsg onStyle onVariation child
+                    , absolutelyPositioned =
+                        Maybe.map (List.map (\child -> mapAll onMsg onStyle onVariation child)) absolutelyPositioned
+                }
+
+        Layout ({ attrs, children, absolutelyPositioned, style } as elm) ->
+            Layout
+                { elm
+                    | attrs = List.map (mapAllAttr onMsg onVariation) attrs
+                    , style = Maybe.map onStyle style
+                    , children = mapChildren (\child -> mapAll onMsg onStyle onVariation child) children
+                    , absolutelyPositioned =
+                        Maybe.map (List.map (\child -> mapAll onMsg onStyle onVariation child)) absolutelyPositioned
+                }
+
+        Raw html ->
+            Raw (Html.map onMsg html)
+
+
+mapAllAttr : (msg -> msg1) -> (variationA -> variationB) -> Attribute variationA msg -> Attribute variationB msg1
+mapAllAttr fnMsg fnVar attr =
+    case attr of
+        Event htmlAttr ->
+            Event (Html.Attributes.map fnMsg htmlAttr)
+
+        InputEvent htmlAttr ->
+            InputEvent (Html.Attributes.map fnMsg htmlAttr)
+
+        Attr htmlAttr ->
+            Attr (Html.Attributes.map fnMsg htmlAttr)
+
+        Vary v b ->
+            Vary (fnVar v) b
+
+        Height len ->
+            Height len
+
+        Width len ->
+            Width len
+
+        Inline ->
+            Inline
+
+        HAlign align ->
+            HAlign align
+
+        VAlign align ->
+            VAlign align
+
+        Position x y z ->
+            Position x y z
+
+        PositionFrame fr ->
+            PositionFrame fr
+
+        Hidden ->
+            Hidden
+
+        Opacity o ->
+            Opacity o
+
+        Spacing x y ->
+            Spacing x y
+
+        Margin m ->
+            Margin m
+
+        Expand ->
+            Expand
+
+        Padding t r b l ->
+            Padding t r b l
+
+        PhantomPadding x ->
+            PhantomPadding x
+
+        GridArea str ->
+            GridArea str
+
+        GridCoords pos ->
+            GridCoords pos
+
+        PointerEvents on ->
+            PointerEvents on
+
+        Shrink i ->
+            Shrink i
+
+        Overflow x ->
+            Overflow x
+
+
 mapMsg : (a -> msg) -> Element style variation a -> Element style variation msg
 mapMsg fn el =
     case el of
