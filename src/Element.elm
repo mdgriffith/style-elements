@@ -957,7 +957,6 @@ download src el =
         , style = Nothing
         , attrs =
             [ Attr (Html.Attributes.href src)
-            , Attr (Html.Attributes.rel "noopener noreferrer")
             , Attr (Html.Attributes.download True)
             ]
         , child = el
@@ -981,8 +980,6 @@ downloadAs { src, filename } el =
         , style = Nothing
         , attrs =
             [ Attr (Html.Attributes.href src)
-            , Attr (Html.Attributes.rel "noopener noreferrer")
-            , Attr (Html.Attributes.download True)
             , Attr (Html.Attributes.downloadAs filename)
             ]
         , child = el
