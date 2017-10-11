@@ -1,4 +1,4 @@
-module Style.Shadow exposing (simple, deep, glow, innerGlow, textGlow, box, drop, inset, text)
+module Style.Shadow exposing (box, deep, drop, glow, innerGlow, inset, simple, text, textGlow)
 
 {-| Shadows
 
@@ -20,21 +20,20 @@ These can be used directly as properties.
 
 # Advanced Shadows
 
-These are for when you want to specify shadows manually. They're meant to be specified in a shadow stack using `Style.shadows`:
+You can also have more control over the paraters of the shadow, such as the `Shadow.box` shown below.
 
     import Color
     import Style exposing (..)
     import Style.Shadow as Shadow
 
     style MyStyleWithShadow
-        [ Style.shadows
-            [ Shadow.inset
-                { offset = ( 0, 0 )
-                , size = 5
-                , blur = 2
-                , color = Color.blue
-                }
-            ]
+        [ Shadow.box
+            { offset = ( 0, 0 )
+            , size = 5
+            , blur = 2
+            , color = Color.blue
+            }
+
         ]
 
 @docs box, drop, inset, text
@@ -42,8 +41,8 @@ These are for when you want to specify shadows manually. They're meant to be spe
 -}
 
 import Color exposing (Color)
+import Style exposing (Property)
 import Style.Internal.Model as Internal
-import Style exposing (Shadow, Property)
 
 
 {-| A simple glow by specifying the color and size.
@@ -93,14 +92,14 @@ textGlow color size =
 -}
 simple : Property class variation
 simple =
-    Style.shadows
-        [ box
+    Internal.Shadows
+        [ boxHelper
             { color = Color.rgba 0 0 0 0.5
             , offset = ( 0, 29 )
             , blur = 32
             , size = -20
             }
-        , box
+        , boxHelper
             { color = Color.rgba 0 0 0 0.25
             , offset = ( 0, 4 )
             , blur = 11
@@ -113,14 +112,12 @@ simple =
 -}
 deep : Property class variation
 deep =
-    Style.shadows
-        [ box
-            { color = Color.rgba 0 0 0 0.2
-            , offset = ( 0, 14 )
-            , blur = 20
-            , size = -12
-            }
-        ]
+    box
+        { color = Color.rgba 0 0 0 0.2
+        , offset = ( 0, 14 )
+        , blur = 20
+        , size = -12
+        }
 
 
 {-| -}
@@ -130,8 +127,15 @@ box :
     , blur : Float
     , color : Color
     }
-    -> Shadow
-box { offset, size, blur, color } =
+    -> Property class variation
+box shadow =
+    Internal.Shadows
+        [ boxHelper shadow
+        ]
+
+
+boxHelper : { a | blur : Float, color : Color, offset : ( Float, Float ), size : Float } -> Internal.ShadowModel
+boxHelper { offset, size, blur, color } =
     Internal.ShadowModel
         { kind = "box"
         , offset = offset
@@ -148,15 +152,17 @@ inset :
     , blur : Float
     , color : Color
     }
-    -> Shadow
+    -> Property class variation
 inset { offset, blur, color, size } =
-    Internal.ShadowModel
-        { kind = "inset"
-        , offset = offset
-        , size = size
-        , blur = blur
-        , color = color
-        }
+    Internal.Shadows
+        [ Internal.ShadowModel
+            { kind = "inset"
+            , offset = offset
+            , size = size
+            , blur = blur
+            , color = color
+            }
+        ]
 
 
 {-| -}
@@ -165,29 +171,36 @@ text :
     , blur : Float
     , color : Color
     }
-    -> Shadow
+    -> Property class variation
 text { offset, blur, color } =
-    Internal.ShadowModel
-        { kind = "text"
-        , offset = offset
-        , size = 0
-        , blur = blur
-        , color = color
-        }
+    Internal.Shadows
+        [ Internal.ShadowModel
+            { kind = "text"
+            , offset = offset
+            , size = 0
+            , blur = blur
+            , color = color
+            }
+        ]
 
 
-{-| -}
+{-| A drop shadow will add a shadow to whatever shape you give it.
+
+So, if you apply a drop shadow to an image with an alpha channel, the shadow will appear around the eges.
+
+-}
 drop :
     { offset : ( Float, Float )
     , blur : Float
     , color : Color
     }
-    -> Shadow
+    -> Property class variation
 drop { offset, blur, color } =
-    Internal.ShadowModel
-        { kind = "drop"
-        , offset = offset
-        , size = 0
-        , blur = blur
-        , color = color
-        }
+    Internal.Filters
+        [ Internal.DropShadow
+            { offset = offset
+            , size = 0
+            , blur = blur
+            , color = color
+            }
+        ]

@@ -1,6 +1,17 @@
 # The Style Elements Library!
 
-> Join us on the `#style-elements` channel in the [Elm Slack](https://elmlang.herokuapp.com/)!
+#### Resources to get you started
+
+Check out the [intro guide to style-elements!](https://mdgriffith.gitbooks.io/style-elements/content/)
+
+I also spoke about the basis of this library at [Elm Europe, 2017](https://www.youtube.com/watch?v=NYb2GDWMIm0)
+
+
+Join us on the `#style-elements` channel in the [Elm Slack](https://elmlang.herokuapp.com/).  Many style-element friends and I are there to answer questions and point you in the right direction.  Don't be shy!
+
+
+
+### Building a new layout language
 
 The Style Elements library is a new set of primitives for working with layout and style in Elm.
 

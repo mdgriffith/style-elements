@@ -15,7 +15,15 @@ Modifications have been annotated, but only a minified version is kept in the co
    
 */
 
+html,body {
+   width:100%;
+   height:100%;
+}
 
+.style-elements-root {
+  width: 100%;
+  height: 100%
+}
 
 /**
  * ADDED From CSS Reset.

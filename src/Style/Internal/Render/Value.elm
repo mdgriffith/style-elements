@@ -55,10 +55,10 @@ color color =
         { red, green, blue, alpha } =
             Color.toRgb color
     in
-        ("rgba(" ++ toString red)
-            ++ ("," ++ toString green)
-            ++ ("," ++ toString blue)
-            ++ ("," ++ toString alpha ++ ")")
+    ("rgba(" ++ toString red)
+        ++ ("," ++ toString green)
+        ++ ("," ++ toString blue)
+        ++ ("," ++ toString alpha ++ ")")
 
 
 shadow : ShadowModel -> String
@@ -70,11 +70,10 @@ shadow (ShadowModel shadow) =
     , Just <| toString (Tuple.first shadow.offset) ++ "px"
     , Just <| toString (Tuple.second shadow.offset) ++ "px"
     , Just <| toString shadow.blur ++ "px"
-    , (if shadow.kind == "text" || shadow.kind == "drop" then
+    , if shadow.kind == "text" || shadow.kind == "drop" then
         Nothing
-       else
+      else
         Just <| toString shadow.size ++ "px"
-      )
     , Just <| color shadow.color
     ]
         |> List.filterMap identity
@@ -93,19 +92,44 @@ gridPosition (GridPosition { start, width, height }) =
         ( colStart, colEnd ) =
             ( x + 1, x + 1 + width )
     in
-        if width == 0 || height == 0 then
-            Nothing
-        else
-            Just <|
-                String.join " / "
-                    [ toString rowStart
-                    , toString colStart
-                    , toString rowEnd
-                    , toString colEnd
-                    ]
+    if width == 0 || height == 0 then
+        Nothing
+    else
+        Just <|
+            String.join " / "
+                [ toString rowStart
+                , toString colStart
+                , toString rowEnd
+                , toString colEnd
+                ]
 
 
+typeface : List Font -> String
 typeface families =
+    let
+        renderFont font =
+            case font of
+                Serif ->
+                    "serif"
+
+                SansSerif ->
+                    "sans-serif"
+
+                Cursive ->
+                    "cursive"
+
+                Fantasy ->
+                    "fantasy"
+
+                Monospace ->
+                    "monospace"
+
+                FontName name ->
+                    "\"" ++ name ++ "\""
+
+                ImportFont name url ->
+                    "\"" ++ name ++ "\""
+    in
     families
-        |> List.map (\fam -> "\"" ++ fam ++ "\"")
+        |> List.map renderFont
         |> String.join ", "

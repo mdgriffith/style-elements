@@ -1,83 +1,80 @@
-module Style.Filter exposing (url, blur, brightness, contrast, grayscale, hueRotate, invert, opacity, saturate, sepia)
+module Style.Filter exposing (blur, brightness, contrast, grayscale, hueRotate, invert, opacity, saturate, sepia, url)
 
-{-| CSS filters.
+{-| Filters that can be applied to an element.
 
-Apply a stack of filters.
+If multiple filters are given, they will stack.
 
     import Style.Filter as Filter
     import Style exposing (..)
 
     style MyFitleredStyle
-        [ filters
-            [ Filter.blur 0.5
-            , Filter.invert 0.5
-            ]
-
+        [ Filter.blur 0.5
+        , Filter.invert 0.5
         ]
 
 @docs url, blur, brightness, contrast, grayscale, hueRotate, invert, opacity, saturate, sepia
 
 -}
 
+import Style exposing (Property)
 import Style.Internal.Model as Internal
-import Style exposing (Filter)
 
 
 {-| -}
-url : String -> Filter
+url : String -> Property class variation
 url s =
-    Internal.FilterUrl s
+    Internal.Filters [ Internal.FilterUrl s ]
 
 
 {-| -}
-blur : Float -> Filter
+blur : Float -> Property class variation
 blur x =
-    Internal.Blur x
+    Internal.Filters [ Internal.Blur x ]
 
 
 {-| -}
-brightness : Float -> Filter
+brightness : Float -> Property class variation
 brightness x =
-    Internal.Brightness x
+    Internal.Filters [ Internal.Brightness x ]
 
 
 {-| -}
-contrast : Float -> Filter
+contrast : Float -> Property class variation
 contrast x =
-    Internal.Contrast x
+    Internal.Filters [ Internal.Contrast x ]
 
 
 {-| -}
-grayscale : Float -> Filter
+grayscale : Float -> Property class variation
 grayscale x =
-    Internal.Grayscale x
+    Internal.Filters [ Internal.Grayscale x ]
 
 
 {-| -}
-hueRotate : Float -> Filter
+hueRotate : Float -> Property class variation
 hueRotate x =
-    Internal.HueRotate x
+    Internal.Filters [ Internal.HueRotate x ]
 
 
 {-| -}
-invert : Float -> Filter
+invert : Float -> Property class variation
 invert x =
-    Internal.Invert x
+    Internal.Filters [ Internal.Invert x ]
 
 
 {-| -}
-opacity : Float -> Filter
+opacity : Float -> Property class variation
 opacity x =
-    Internal.OpacityFilter x
+    Internal.Filters [ Internal.OpacityFilter x ]
 
 
 {-| -}
-saturate : Float -> Filter
+saturate : Float -> Property class variation
 saturate x =
-    Internal.Saturate x
+    Internal.Filters [ Internal.Saturate x ]
 
 
 {-| -}
-sepia : Float -> Filter
+sepia : Float -> Property class variation
 sepia x =
-    Internal.Sepia x
+    Internal.Filters [ Internal.Sepia x ]

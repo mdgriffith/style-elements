@@ -7,9 +7,9 @@ module Main exposing (..)
 
 -}
 
+import AnimationFrame
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import AnimationFrame
 import Time exposing (Time)
 
 
@@ -52,13 +52,13 @@ update msg model =
                     else
                         model.total + (time - model.time)
             in
-                ( { model
-                    | time = time
-                    , total = newTotal
-                    , skipped = model.skipped + newSkipped
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | time = time
+                , total = newTotal
+                , skipped = model.skipped + newSkipped
+              }
+            , Cmd.none
+            )
 
 
 view model =
@@ -81,7 +81,7 @@ viewStats model =
         , div [] [ text "total time (seconds)" ]
         , div [] [ text <| toString <| round (Time.inSeconds model.total) ]
         , div [] [ text "frames skipped/minute" ]
-        , div [] [ text <| toString (round <| (model.skipped / 16.33) / (Time.inMinutes model.total)) ]
+        , div [] [ text <| toString (round <| (model.skipped / 16.33) / Time.inMinutes model.total) ]
         ]
 
 
@@ -93,11 +93,11 @@ viewNode time i =
                 |> (*) 300.0
                 |> (+) 500.0
     in
-        div
-            [ class ("style test")
-            , style [ ( "transform", "translateX(" ++ toString value ++ "px" ) ]
-            ]
-            []
+    div
+        [ class "style test"
+        , style [ ( "transform", "translateX(" ++ toString value ++ "px" ) ]
+        ]
+        []
 
 
 
@@ -121,7 +121,7 @@ nodeStyle time i =
                 |> (*) 300.0
                 |> (+) 500.0
     in
-        ".test{ position:relative;top:0;left:" ++ toString value ++ "px}"
+    ".test{ position:relative;top:0;left:" ++ toString value ++ "px}"
 
 
 

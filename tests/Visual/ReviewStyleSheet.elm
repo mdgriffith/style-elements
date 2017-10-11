@@ -1,4 +1,4 @@
-module StyleSheetTest exposing (..)
+module Visual.ReviewStyleSheet exposing (..)
 
 import Color
 import Element exposing (..)
@@ -34,7 +34,7 @@ options =
 
 stylesheet : StyleSheet Styles Vary
 stylesheet =
-    Style.stylesheetWith options
+    Style.styleSheetWith options
         [ style None []
         , style TestStyle
             [ Border.all 1

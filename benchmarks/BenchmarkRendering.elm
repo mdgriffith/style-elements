@@ -10,17 +10,17 @@ module Main exposing (..)
 
 import Benchmark exposing (..)
 import Benchmark.Runner exposing (BenchmarkProgram, program)
-import Style.Font as Font
-import Style.Border as Border
-import Style.Color as Color
+import Color
 import Element
 import Element.Attributes
-import Html
-import Color
-import Style
-import Style.Internal.Render
 import Element.Internal.Adjustments as Adjustments
 import Element.Internal.Render
+import Html
+import Style
+import Style.Border as Border
+import Style.Color as Color
+import Style.Font as Font
+import Style.Internal.Render
 
 
 main : BenchmarkProgram
@@ -86,7 +86,7 @@ builder _ =
         x xs =
             1 :: xs
     in
-        (x << x << x << x << x << x << x << x) []
+    (x << x << x << x << x << x << x << x) []
 
 
 concatMapBuilder _ =
@@ -97,11 +97,11 @@ concatMapBuilder _ =
         y =
             Nothing
     in
-        List.filterMap identity [ x, y, x, y, x, y, x, y ]
+    List.filterMap identity [ x, y, x, y, x, y, x, y ]
 
 
 composed =
-    (identity << identity << identity << identity << identity << identity << identity << identity << identity)
+    identity << identity << identity << identity << identity << identity << identity << identity << identity
 
 
 fnPrecomposed x =

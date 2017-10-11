@@ -5,9 +5,9 @@
     "license": "BSD3",
     "source-directories": [
         "../src",
-        ".",
-        "../elm-style-animation/src"
+        "."
     ],
+    "native-modules": true,
     "exposed-modules": [
        
     ],

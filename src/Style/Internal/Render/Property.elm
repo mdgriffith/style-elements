@@ -2,7 +2,7 @@ module Style.Internal.Render.Property exposing (..)
 
 {-| -}
 
-import Style.Internal.Model as Internal exposing (..)
+import Style.Internal.Model exposing (..)
 import Style.Internal.Render.Value as Value
 import Time
 
@@ -20,42 +20,42 @@ visibility vis =
             [ ( "opacity", toString x ) ]
 
 
-flexWidth : Length -> Float -> ( String, String )
+flexWidth : Length -> Float -> List ( String, String )
 flexWidth len adjustment =
     case len of
         Px x ->
-            ( "width", toString x ++ "px" )
+            [ ( "width", toString x ++ "px" ) ]
 
         Percent x ->
-            ( "width", "calc(" ++ toString x ++ "% - " ++ toString adjustment ++ "px)" )
+            [ ( "width", "calc(" ++ toString x ++ "% - " ++ toString adjustment ++ "px)" ) ]
 
         Auto ->
-            ( "width", "auto" )
+            [ ( "width", "auto" ) ]
 
         Fill i ->
-            ( "flex-grow", toString i )
+            [ ( "flex-grow", toString i ), ( "flex-basis", "0" ) ]
 
         Calc perc px ->
-            ( "width", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" )
+            [ ( "width", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" ) ]
 
 
-flexHeight : Length -> ( String, String )
+flexHeight : Length -> List ( String, String )
 flexHeight l =
     case l of
         Px x ->
-            ( "height", toString x ++ "px" )
+            [ ( "height", toString x ++ "px" ) ]
 
         Percent x ->
-            ( "height", toString x ++ "%" )
+            [ ( "height", toString x ++ "%" ) ]
 
         Auto ->
-            ( "height", "auto" )
+            [ ( "height", "auto" ) ]
 
         Fill i ->
-            ( "flex-grow", toString i )
+            [ ( "flex-grow", toString i ), ( "flex-basis", "0" ) ]
 
         Calc perc px ->
-            ( "height", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" )
+            [ ( "height", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" ) ]
 
 
 filters : List Filter -> List ( String, String )
@@ -104,15 +104,15 @@ filters filters =
                                 , color = shadow.color
                                 }
                     in
-                        "drop-shadow(" ++ Value.shadow shadowModel ++ ")"
+                    "drop-shadow(" ++ Value.shadow shadowModel ++ ")"
     in
-        if List.length filters == 0 then
-            []
-        else
-            [ ( "filter"
-              , (String.join " " <| List.map filterName filters)
-              )
-            ]
+    if List.length filters == 0 then
+        []
+    else
+        [ ( "filter"
+          , String.join " " <| List.map filterName filters
+          )
+        ]
 
 
 shadow : List ShadowModel -> List ( String, String )
@@ -127,16 +127,16 @@ shadow shadows =
         renderedText =
             String.join ", " (List.map Value.shadow text)
     in
-        List.filterMap identity
-            [ if renderedBox == "" then
-                Nothing
-              else
-                Just ( "box-shadow", renderedBox )
-            , if renderedText == "" then
-                Nothing
-              else
-                Just ( "text-shadow", renderedText )
-            ]
+    List.filterMap identity
+        [ if renderedBox == "" then
+            Nothing
+          else
+            Just ( "box-shadow", renderedBox )
+        , if renderedText == "" then
+            Nothing
+          else
+            Just ( "text-shadow", renderedText )
+        ]
 
 
 box : BoxElement -> ( String, String )
@@ -150,19 +150,19 @@ transformations transforms =
         transformToString transform =
             case transform of
                 Translate x y z ->
-                    ("translate3d(" ++ toString x ++ "px, " ++ toString y ++ "px, " ++ toString z ++ "px)")
+                    "translate3d(" ++ toString x ++ "px, " ++ toString y ++ "px, " ++ toString z ++ "px)"
 
                 RotateAround x y z angle ->
-                    ("rotate3d(" ++ toString x ++ "," ++ toString y ++ "," ++ toString z ++ "," ++ toString angle ++ "rad)")
+                    "rotate3d(" ++ toString x ++ "," ++ toString y ++ "," ++ toString z ++ "," ++ toString angle ++ "rad)"
 
                 Rotate x ->
-                    ("rotate(" ++ toString x ++ "rad)")
+                    "rotate(" ++ toString x ++ "rad)"
 
                 Scale x y z ->
-                    ("scale3d(" ++ toString x ++ ", " ++ toString y ++ ", " ++ toString z ++ ")")
+                    "scale3d(" ++ toString x ++ ", " ++ toString y ++ ", " ++ toString z ++ ")"
 
         transformString =
-            (String.join " " (List.map transformToString transforms))
+            String.join " " (List.map transformToString transforms)
 
         renderedTransforms =
             if String.length transformString > 0 then
@@ -170,10 +170,10 @@ transformations transforms =
             else
                 []
     in
-        if List.length transforms == 0 then
-            []
-        else
-            renderedTransforms
+    if List.length transforms == 0 then
+        []
+    else
+        renderedTransforms
 
 
 position : List PositionElement -> List ( String, String )
@@ -220,7 +220,7 @@ position posEls =
                 Float FloatTopRight ->
                     ( "float", "right" )
     in
-        List.map renderPos posEls
+    List.map renderPos posEls
 
 
 background : BackgroundElement -> List ( String, String )
@@ -261,49 +261,66 @@ background prop =
                     Value.color color
 
                 PercentStep color percent ->
-                    (Value.color color ++ " " ++ toString percent ++ "%")
+                    Value.color color ++ " " ++ toString percent ++ "%"
 
                 PxStep color percent ->
-                    (Value.color color ++ " " ++ toString percent ++ "px")
+                    Value.color color ++ " " ++ toString percent ++ "px"
     in
-        case prop of
-            BackgroundElement name val ->
-                [ ( name, val ) ]
+    case prop of
+        BackgroundElement name val ->
+            [ ( name, val ) ]
 
-            BackgroundImage { src, position, repeat } ->
-                [ ( "background-image", src )
-                , ( "background-repeat"
-                  , case repeat of
-                        RepeatX ->
-                            "repeat-x"
+        BackgroundImage { src, position, repeat, size } ->
+            [ ( "background-image", "url(" ++ src ++ ")" )
+            , ( "background-position", toString (Tuple.first position) ++ "px " ++ toString (Tuple.second position) ++ "px" )
+            , ( "background-repeat"
+              , case repeat of
+                    RepeatX ->
+                        "repeat-x"
 
-                        RepeatY ->
-                            "repeat-y"
+                    RepeatY ->
+                        "repeat-y"
 
-                        Repeat ->
-                            "repeat"
+                    Repeat ->
+                        "repeat"
 
-                        Space ->
-                            "space"
+                    Space ->
+                        "space"
 
-                        Round ->
-                            "round"
+                    Round ->
+                        "round"
 
-                        NoRepeat ->
-                            "no-repeat"
-                  )
-                , ( "background-position", (toString (Tuple.first position) ++ "px " ++ toString (Tuple.second position) ++ "px") )
-                ]
+                    NoRepeat ->
+                        "no-repeat"
+              )
+            , ( "background-size"
+              , case size of
+                    Contain ->
+                        "container"
 
-            BackgroundLinearGradient dir steps ->
-                [ ( "background-image", ("linear-gradient(" ++ (String.join ", " <| directionName dir :: List.map renderStep steps) ++ ")") ) ]
+                    Cover ->
+                        "cover"
+
+                    BackgroundWidth width ->
+                        Value.length width ++ " auto"
+
+                    BackgroundHeight height ->
+                        "auto " ++ Value.length height
+
+                    BackgroundSize { width, height } ->
+                        Value.length width ++ " " ++ Value.length height
+              )
+            ]
+
+        BackgroundLinearGradient dir steps ->
+            [ ( "background-image", "linear-gradient(" ++ (String.join ", " <| directionName dir :: List.map renderStep steps) ++ ")" ) ]
 
 
 {-| -}
 layout : Bool -> LayoutModel -> List ( String, String )
 layout inline lay =
     case lay of
-        Internal.TextLayout _ ->
+        TextLayout _ ->
             [ ( "display"
               , if inline then
                     "inline-block"
@@ -312,18 +329,17 @@ layout inline lay =
               )
             ]
 
-        Internal.FlexLayout dir flexProps ->
-            (( "display"
-             , if inline then
+        FlexLayout dir flexProps ->
+            ( "display"
+            , if inline then
                 "inline-flex"
-               else
+              else
                 "flex"
-             )
             )
                 :: direction dir
                 :: List.map (flexbox dir) flexProps
 
-        Internal.Grid (NamedGridTemplate { rows, columns }) options ->
+        Grid (NamedGridTemplate { rows, columns }) options ->
             let
                 grid =
                     if inline then
@@ -361,12 +377,12 @@ layout inline lay =
                                 Just str ->
                                     str
                     in
-                        case span of
-                            SpanAll ->
-                                List.repeat (List.length columns) name
+                    case span of
+                        SpanAll ->
+                            List.repeat (List.length columns) name
 
-                            SpanJust i ->
-                                List.repeat i name
+                        SpanJust i ->
+                            List.repeat i name
 
                 areasInRow areas =
                     let
@@ -376,40 +392,40 @@ layout inline lay =
                         areaStrs =
                             List.concatMap areaSpan areas
                     in
-                        if List.length areaStrs > List.length columns then
-                            let
-                                _ =
-                                    Debug.log "style-elements" "Named grid row (" ++ toString areas ++ ") is too big for this grid!"
-                            in
-                                areaStrs
-                                    |> String.join " "
-                                    |> quote
-                        else if List.length areaStrs < List.length columns then
-                            let
-                                _ =
-                                    Debug.log "style-elements" "Named grid row (" ++ toString areas ++ ") doesn't have enough names to fit this grid!"
-                            in
-                                areaStrs
-                                    |> String.join " "
-                                    |> quote
-                        else
-                            areaStrs
-                                |> String.join " "
-                                |> quote
+                    if List.length areaStrs > List.length columns then
+                        let
+                            _ =
+                                Debug.log "style-elements" "Named grid row (" ++ toString areas ++ ") is too big for this grid!"
+                        in
+                        areaStrs
+                            |> String.join " "
+                            |> quote
+                    else if List.length areaStrs < List.length columns then
+                        let
+                            _ =
+                                Debug.log "style-elements" "Named grid row (" ++ toString areas ++ ") doesn't have enough names to fit this grid!"
+                        in
+                        areaStrs
+                            |> String.join " "
+                            |> quote
+                    else
+                        areaStrs
+                            |> String.join " "
+                            |> quote
             in
-                grid
-                    :: ( "grid-template-rows"
-                       , String.join " " <| List.map (renderLen << Tuple.first) rows
-                       )
-                    :: ( "grid-template-columns"
-                       , String.join " " <| List.map renderLen columns
-                       )
-                    :: ( "grid-template-areas"
-                       , String.join "\n" <| List.map (areasInRow << Tuple.second) rows
-                       )
-                    :: alignment
+            grid
+                :: ( "grid-template-rows"
+                   , String.join " " <| List.map (renderLen << Tuple.first) rows
+                   )
+                :: ( "grid-template-columns"
+                   , String.join " " <| List.map renderLen columns
+                   )
+                :: ( "grid-template-areas"
+                   , String.join "\n" <| List.map (areasInRow << Tuple.second) rows
+                   )
+                :: alignment
 
-        Internal.Grid (GridTemplate { rows, columns }) options ->
+        Grid (GridTemplate { rows, columns }) options ->
             let
                 grid =
                     if inline then
@@ -437,21 +453,21 @@ layout inline lay =
                 alignment =
                     List.map gridAlignment options
             in
-                grid
-                    :: ( "grid-template-rows"
-                       , String.join " " <| List.map renderLen rows
-                       )
-                    :: ( "grid-template-columns"
-                       , String.join " " <| List.map renderLen columns
-                       )
-                    :: alignment
+            grid
+                :: ( "grid-template-rows"
+                   , String.join " " <| List.map renderLen rows
+                   )
+                :: ( "grid-template-columns"
+                   , String.join " " <| List.map renderLen columns
+                   )
+                :: alignment
 
 
 gridAlignment : GridAlignment -> ( String, String )
 gridAlignment align =
     case align of
         GridGap row column ->
-            ( "grid-gap", (toString row ++ "px " ++ toString column ++ "px") )
+            ( "grid-gap", toString row ++ "px " ++ toString column ++ "px" )
 
         GridH horizontal ->
             case horizontal of
@@ -511,9 +527,9 @@ transition (Transition { delay, duration, easing, props }) =
             String.join " "
                 [ prop, toString (duration * Time.millisecond) ++ "ms", easing, toString (delay * Time.millisecond) ++ "ms" ]
     in
-        props
-            |> List.map formatTrans
-            |> String.join ", "
+    props
+        |> List.map formatTrans
+        |> String.join ", "
 
 
 flexbox : Direction -> FlexBoxElement -> ( String, String )

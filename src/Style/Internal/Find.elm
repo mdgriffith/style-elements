@@ -1,4 +1,4 @@
-module Style.Internal.Find exposing (Element(..), Findable, style, variation, toVariation)
+module Style.Internal.Find exposing (Element(..), Findable, style, toVariation, variation)
 
 {-| Findable Styles
 
@@ -48,12 +48,12 @@ style class elements =
             List.filterMap find elements
                 |> List.head
     in
-        case found of
-            Nothing ->
-                Debug.log ("No style present for " ++ toString class) ""
+    case found of
+        Nothing ->
+            Debug.log ("No style present for " ++ toString class) ""
 
-            Just cls ->
-                cls
+        Just cls ->
+            cls
 
 
 {-| -}
@@ -75,9 +75,9 @@ variation class variation elements =
             List.filterMap find elements
                 |> List.head
     in
-        case found of
-            Nothing ->
-                Debug.log ("No " ++ toString variation ++ " variation  present for " ++ toString class) ""
+    case found of
+        Nothing ->
+            Debug.log ("No " ++ toString variation ++ " variation  present for " ++ toString class) ""
 
-            Just cls ->
-                cls
+        Just cls ->
+            cls

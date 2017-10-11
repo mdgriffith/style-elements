@@ -1,0 +1,54 @@
+{
+    "files": {
+        "HtmlGeneration/Snippets.elm": [
+            {
+                "output": "HtmlGeneration/rendered/emptyElement.html", 
+                "viewFunction": "emptyElement"
+            }, 
+            {
+                "output": "HtmlGeneration/rendered/textElement.html", 
+                "viewFunction": "textElement"
+            }, 
+            {
+                "output": "HtmlGeneration/rendered/singleElement.html", 
+                "viewFunction": "singleElement"
+            }, 
+            {
+                "output": "HtmlGeneration/rendered/singleElementText.html", 
+                "viewFunction": "singleElementText"
+            }, 
+            {
+                "output": "HtmlGeneration/rendered/singleElementPercentWidthText.html", 
+                "viewFunction": "singleElementPercentWidthText"
+            }, 
+            {
+                "output": "HtmlGeneration/rendered/centeredSingleElementPercentWidthText.html", 
+                "viewFunction": "centeredSingleElementPercentWidthText"
+            }, 
+            {
+                "output": "HtmlGeneration/rendered/centeredSingleElementText.html", 
+                "viewFunction": "centeredSingleElementText"
+            }, 
+            {
+                "output": "HtmlGeneration/rendered/viewBox.html", 
+                "viewFunction": "viewBox"
+            }, 
+            {
+                "output": "HtmlGeneration/rendered/viewWithinOrder.html", 
+                "viewFunction": "viewWithinOrder"
+            }, 
+            {
+                "output": "HtmlGeneration/rendered/viewRow.html", 
+                "viewFunction": "viewRow"
+            }, 
+            {
+                "output": "HtmlGeneration/rendered/viewRowWithSpacing.html", 
+                "viewFunction": "viewRowWithSpacing"
+            }, 
+            {
+                "output": "HtmlGeneration/rendered/viewRowWithSpacingPadding.html", 
+                "viewFunction": "viewRowWithSpacingPadding"
+            }
+        ]
+    }
+}

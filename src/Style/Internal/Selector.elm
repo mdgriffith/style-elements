@@ -6,8 +6,8 @@ module Style.Internal.Selector exposing (Selector, child, formatName, free, getF
 
 -}
 
-import Style.Internal.Find as Findable
 import Regex
+import Style.Internal.Find as Findable
 
 
 {-| -}
@@ -40,7 +40,7 @@ uncapitalize str =
         tail =
             String.dropLeft 1 str
     in
-        head ++ tail
+    head ++ tail
 
 
 {-| -}
@@ -95,7 +95,7 @@ guard guard selector =
                 x ->
                     x
     in
-        onSelector selector
+    onSelector selector
 
 
 {-| -}
@@ -122,25 +122,25 @@ render maybeGuard selector =
             if i == 0 then
                 render maybeGuard sel
             else
-                (spacer sel ++ render maybeGuard sel)
+                spacer sel ++ render maybeGuard sel
     in
-        case selector of
-            Select single _ ->
-                "." ++ guard single
+    case selector of
+        Select single _ ->
+            ".style-elements ." ++ guard single
 
-            SelectChild child ->
-                "> " ++ render maybeGuard child
+        SelectChild child ->
+            "> " ++ render maybeGuard child
 
-            Free single ->
-                single
+        Free single ->
+            single
 
-            Pseudo psu ->
-                psu
+        Pseudo psu ->
+            psu
 
-            Stack sels ->
-                sels
-                    |> List.indexedMap renderAndSpace
-                    |> String.concat
+        Stack sels ->
+            sels
+                |> List.indexedMap renderAndSpace
+                |> String.concat
 
 
 {-| -}
@@ -216,12 +216,12 @@ variant sel var =
                         |> List.drop 1
                         |> List.reverse
             in
-                case lastElem of
-                    Nothing ->
-                        Stack sels
+            case lastElem of
+                Nothing ->
+                    Stack sels
 
-                    Just last ->
-                        Stack (init ++ [ variant last var ])
+                Just last ->
+                    Stack (init ++ [ variant last var ])
 
 
 {-| Pseudo-classes are allowed anywhere in selectors while pseudo-elements may only be appended after the last simple selector of the selector.
@@ -254,9 +254,9 @@ pseudo psu sel =
                         |> List.drop 1
                         |> List.reverse
             in
-                case lastElem of
-                    Nothing ->
-                        Stack sels
+            case lastElem of
+                Nothing ->
+                    Stack sels
 
-                    Just last ->
-                        Stack (init ++ [ pseudo psu last ])
+                Just last ->
+                    Stack (init ++ [ pseudo psu last ])

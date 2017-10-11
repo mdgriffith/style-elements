@@ -1,25 +1,32 @@
 module Style.Background
     exposing
-        ( step
-        , percent
-        , px
-        , gradientRight
-        , gradientLeft
-        , gradientUp
-        , gradientDown
-        , gradientTopRight
-        , gradientBottomRight
-        , gradientTopLeft
-        , gradientBottomLeft
+        ( contain
+        , cover
+        , coverImage
         , gradient
+        , gradientBottomLeft
+        , gradientBottomRight
+        , gradientDown
+        , gradientLeft
+        , gradientRight
+        , gradientTopLeft
+        , gradientTopRight
+        , gradientUp
+        , height
         , image
         , imageWith
+        , natural
+        , noRepeat
+        , percent
+        , px
+        , repeat
         , repeatX
         , repeatY
-        , repeat
+        , size
         , space
-        , round
-        , noRepeat
+        , step
+        , stretch
+        , width
         )
 
 {-|
@@ -27,7 +34,12 @@ module Style.Background
 
 ## Background Image
 
-@docs image, imageWith, repeatX, repeatY, repeat, space, round, noRepeat
+@docs image, coverImage, imageWith, repeatX, repeatY, repeat, space, stretch, noRepeat
+
+
+### Background Image Sizes
+
+@docs natural, cover, contain, width, height, size
 
 
 ## Background Gradient
@@ -41,9 +53,9 @@ module Style.Background
 
 -}
 
-import Style.Internal.Model as Internal
 import Color exposing (Color)
 import Style exposing (Property)
+import Style.Internal.Model as Internal
 
 
 {-| -}
@@ -157,7 +169,8 @@ gradientBottomLeft steps =
         |> Internal.Background
 
 
-{-| -}
+{-| A background image that keeps it's natural width and height.
+-}
 image : String -> Property class variation
 image src =
     Internal.Background <|
@@ -165,7 +178,71 @@ image src =
             { src = src
             , position = ( 0, 0 )
             , repeat = noRepeat
+            , size = natural
             }
+
+
+{-| A background image that will scale to cover the entire background.
+-}
+coverImage : String -> Property class variation
+coverImage src =
+    Internal.Background <|
+        Internal.BackgroundImage
+            { src = src
+            , position = ( 0, 0 )
+            , repeat = noRepeat
+            , size = cover
+            }
+
+
+{-| -}
+type alias Size =
+    Internal.BackgroundSize
+
+
+{-| Scale the image proportionally so that it fits entirely in view.
+-}
+contain : Size
+contain =
+    Internal.Contain
+
+
+{-| Scale the image proportionally so that it covers the background.
+-}
+cover : Size
+cover =
+    Internal.Cover
+
+
+{-| Keep the image at it's natural size.
+-}
+natural : Size
+natural =
+    size
+        { height = Internal.Auto
+        , width = Internal.Auto
+        }
+
+
+{-| Set only the background image width, the height will be scaled autmatically.
+-}
+width : Internal.Length -> Size
+width =
+    Internal.BackgroundWidth
+
+
+{-| Set only the background image height, the width will be scaled autmatically.
+-}
+height : Internal.Length -> Size
+height =
+    Internal.BackgroundHeight
+
+
+{-| Set both the width and height independently. This can potentially skew the image.
+-}
+size : { height : Internal.Length, width : Internal.Length } -> Size
+size =
+    Internal.BackgroundSize
 
 
 {-| -}
@@ -173,6 +250,7 @@ imageWith :
     { src : String
     , position : ( Float, Float )
     , repeat : Repeat
+    , size : Size
     }
     -> Property class variation
 imageWith attrs =
@@ -198,15 +276,17 @@ repeat =
     Internal.Repeat
 
 
-{-| -}
+{-| Leftover space between tiled images will be blank.
+-}
 space : Repeat
 space =
     Internal.Space
 
 
-{-| -}
-round : Repeat
-round =
+{-| Images will stretch to take up to take up leftover space. Background position will be ignored.
+-}
+stretch : Repeat
+stretch =
     Internal.Round
 
 

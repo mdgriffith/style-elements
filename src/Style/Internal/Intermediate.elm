@@ -3,9 +3,9 @@ module Style.Internal.Intermediate exposing (..)
 {-| -}
 
 import Murmur3
-import Style.Internal.Selector as Selector exposing (Selector)
-import Style.Internal.Render.Css as Css
 import Style.Internal.Find as Findable
+import Style.Internal.Render.Css as Css
+import Style.Internal.Selector as Selector exposing (Selector)
 
 
 type Class class variation
@@ -60,12 +60,12 @@ raw cls =
                 Free _ ->
                     ""
     in
-        ( topName
-        , cls
-            |> makeRenderable
-            |> List.map render
-            |> String.join "\n"
-        )
+    ( topName
+    , cls
+        |> makeRenderable
+        |> List.map render
+        |> String.join "\n"
+    )
 
 
 finalize : List (Class class variation) -> Rendered class variation
@@ -76,14 +76,14 @@ finalize intermediates =
                 |> List.map render
                 |> String.join "\n"
     in
-        Rendered
-            { css =
-                intermediates
-                    |> List.map finalizeCss
-                    |> String.join "\n"
-            , findable =
-                List.concatMap asFindable intermediates
-            }
+    Rendered
+        { css =
+            intermediates
+                |> List.map finalizeCss
+                |> String.join "\n"
+        , findable =
+            List.concatMap asFindable intermediates
+        }
 
 
 guard : Class class variation -> Class class variation
@@ -111,17 +111,17 @@ calculateGuard class =
                 Animation ->
                     ""
     in
-        case class of
-            Class { props } ->
-                List.map asString props
-                    |> String.concat
+    case class of
+        Class { props } ->
+            List.map asString props
+                |> String.concat
 
-            Media { props } ->
-                List.map asString props
-                    |> String.concat
+        Media { props } ->
+            List.map asString props
+                |> String.concat
 
-            _ ->
-                ""
+        _ ->
+            ""
 
 
 applyGuard : String -> Class class variation -> Class class variation
@@ -135,22 +135,22 @@ applyGuard guard class =
                 x ->
                     x
     in
-        case class of
-            Class cls ->
-                Class
-                    { selector = Selector.guard guard cls.selector
-                    , props = List.map guardProp cls.props
-                    }
+    case class of
+        Class cls ->
+            Class
+                { selector = Selector.guard guard cls.selector
+                , props = List.map guardProp cls.props
+                }
 
-            Media media ->
-                Media
-                    { query = media.query
-                    , selector = Selector.guard guard media.selector
-                    , props = List.map guardProp media.props
-                    }
+        Media media ->
+            Media
+                { query = media.query
+                , selector = Selector.guard guard media.selector
+                , props = List.map guardProp media.props
+                }
 
-            x ->
-                x
+        x ->
+            x
 
 
 asMediaQuery : String -> Prop class variation -> Prop class variation
@@ -168,15 +168,15 @@ asMediaQuery query prop =
                 x ->
                     x
     in
-        case prop of
-            SubClass cls ->
-                SubClass (classAsMediaQuery cls)
+    case prop of
+        SubClass cls ->
+            SubClass (classAsMediaQuery cls)
 
-            PropsAndSub x cls ->
-                PropsAndSub x (classAsMediaQuery cls)
+        PropsAndSub x cls ->
+            PropsAndSub x (classAsMediaQuery cls)
 
-            x ->
-                x
+        x ->
+            x
 
 
 {-| -}
@@ -191,7 +191,7 @@ render : Renderable -> String
 render renderable =
     case renderable of
         RenderableClass selector props ->
-            (selector ++ Css.brace 0 (String.join "\n" <| List.map (Css.prop 2) props) ++ "\n")
+            selector ++ Css.brace 0 (String.join "\n" <| List.map (Css.prop 2) props) ++ "\n"
 
         RenderableMedia query selector props ->
             query ++ Css.brace 0 ("  " ++ selector ++ Css.brace 2 (String.join "\n" <| List.map (Css.prop 4) props))
@@ -223,23 +223,23 @@ makeRenderable cls =
                 Animation ->
                     ( rendered, subEls )
     in
-        case cls of
-            Class { selector, props } ->
-                let
-                    ( rendered, subelements ) =
-                        List.foldl renderableProps ( [], [] ) props
-                in
-                    RenderableClass (Selector.render Nothing selector) rendered :: subelements
+    case cls of
+        Class { selector, props } ->
+            let
+                ( rendered, subelements ) =
+                    List.foldl renderableProps ( [], [] ) props
+            in
+            RenderableClass (Selector.render Nothing selector) rendered :: subelements
 
-            Media { query, selector, props } ->
-                let
-                    ( rendered, subelements ) =
-                        List.foldl renderableProps ( [], [] ) props
-                in
-                    RenderableMedia query (Selector.render Nothing selector) rendered :: subelements
+        Media { query, selector, props } ->
+            let
+                ( rendered, subelements ) =
+                    List.foldl renderableProps ( [], [] ) props
+            in
+            RenderableMedia query (Selector.render Nothing selector) rendered :: subelements
 
-            Free str ->
-                [ RenderableFree str ]
+        Free str ->
+            [ RenderableFree str ]
 
 
 {-| -}
@@ -257,9 +257,9 @@ asFindable intermediate =
                 _ ->
                     []
     in
-        case intermediate of
-            Class { selector, props } ->
-                Selector.getFindable selector ++ List.concatMap findableProp props
+    case intermediate of
+        Class { selector, props } ->
+            Selector.getFindable selector ++ List.concatMap findableProp props
 
-            _ ->
-                []
+        _ ->
+            []

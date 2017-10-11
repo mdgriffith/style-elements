@@ -1,14 +1,15 @@
-module Style.Internal.Render exposing (stylesheet, unbatchedStylesheet, spacing, class)
+module Style.Internal.Render exposing (class, spacing, stylesheet, unbatchedStylesheet)
 
 {-| -}
 
+import Set
+import Style.Internal.Batchable as Batchable exposing (Batchable)
+import Style.Internal.Intermediate as Intermediate
 import Style.Internal.Model as Internal exposing (..)
+import Style.Internal.Render.Css as Css
 import Style.Internal.Render.Property as Render
 import Style.Internal.Render.Value as Value
 import Style.Internal.Selector as Selector exposing (Selector)
-import Style.Internal.Batchable as Batchable exposing (Batchable)
-import Style.Internal.Intermediate as Intermediate
-import Style.Internal.Render.Css as Css
 
 
 single : Bool -> Internal.Style class variation -> ( String, String )
@@ -24,7 +25,7 @@ class name props =
                 |> List.map (Css.prop 2)
                 |> String.join "\n"
     in
-        "." ++ name ++ Css.brace 0 renderedProps
+    "." ++ name ++ Css.brace 0 renderedProps
 
 
 spacing : ( Float, Float, Float, Float ) -> ( String, String )
@@ -35,9 +36,9 @@ spacing box =
                 ( a, b, c, d ) ->
                     "spacing-" ++ toString a ++ "-" ++ toString b ++ "-" ++ toString c ++ "-" ++ toString d ++ " > *:not(.nospacing)"
     in
-        Css.prop 2 ( "margin", Value.box box )
-            |> Css.brace 0
-            |> (\cls -> ( name, "." ++ name ++ cls ))
+    Css.prop 2 ( "margin", Value.box box )
+        |> Css.brace 0
+        |> (\cls -> ( name, "." ++ name ++ cls ))
 
 
 stylesheet : String -> Bool -> List (Batchable (Internal.Style class variation)) -> Intermediate.Rendered class variation
@@ -52,6 +53,38 @@ stylesheet reset guard batched =
 reorderImportAddReset : String -> List (Style class variation) -> List (Style class variation)
 reorderImportAddReset reset styles =
     let
+        getFontStyle style =
+            case style of
+                Style _ props ->
+                    let
+                        forFont prop =
+                            case prop of
+                                FontFamily fams ->
+                                    let
+                                        forImport font =
+                                            case font of
+                                                ImportFont _ url ->
+                                                    Just url
+
+                                                _ ->
+                                                    Nothing
+                                    in
+                                    List.filterMap forImport fams
+
+                                _ ->
+                                    []
+                    in
+                    List.concatMap forFont props
+
+                _ ->
+                    []
+
+        importedFonts =
+            styles
+                |> List.concatMap getFontStyle
+                |> (Set.toList << Set.fromList)
+                |> List.map (\uri -> Import ("url('" ++ uri ++ "')"))
+
         reorder style ( imports, remainingStyles ) =
             case style of
                 Import _ ->
@@ -63,7 +96,7 @@ reorderImportAddReset reset styles =
         ( imports, allStyles ) =
             List.foldr reorder ( [], [] ) styles
     in
-        imports ++ [ Reset reset ] ++ allStyles
+    imports ++ importedFonts ++ [ Reset reset ] ++ allStyles
 
 
 unbatchedStylesheet : Bool -> List (Internal.Style class variation) -> Intermediate.Rendered class variation
@@ -108,7 +141,7 @@ preprocess style =
                         ( high, low ) =
                             List.partition isPriority props
                     in
-                        low ++ high
+                    low ++ high
 
                 overridePrevious overridable props =
                     let
@@ -120,8 +153,8 @@ preprocess style =
                             else
                                 ( prop :: existing, overridden )
                     in
-                        List.foldr eliminatePrevious ( [], False ) props
-                            |> Tuple.first
+                    List.foldr eliminatePrevious ( [], False ) props
+                        |> Tuple.first
 
                 dropShadow (ShadowModel shade) =
                     shade.kind == "drop"
@@ -171,60 +204,44 @@ preprocess style =
                                         , scale
                                         ]
                             in
-                                if List.isEmpty transformations then
-                                    gathered
-                                else
-                                    (Transform transformations) :: gathered
+                            if List.isEmpty transformations then
+                                gathered
+                            else
+                                Transform transformations :: gathered
                     in
-                        props
-                            |> List.foldr gatherTransforms
-                                ( { rotate = Nothing
-                                  , scale = Nothing
-                                  , translate = Nothing
-                                  }
-                                , []
-                                )
-                            |> applyTransforms
+                    props
+                        |> List.foldr gatherTransforms
+                            ( { rotate = Nothing
+                              , scale = Nothing
+                              , translate = Nothing
+                              }
+                            , []
+                            )
+                        |> applyTransforms
 
-                moveDropShadow props =
+                mergeShadowsAndFilters props =
                     let
-                        asDropShadow (ShadowModel shadow) =
-                            DropShadow
-                                { offset = shadow.offset
-                                , size = shadow.size
-                                , blur = shadow.blur
-                                , color = shadow.color
-                                }
-
-                        moveDropped prop ( existing, dropped ) =
+                        gather prop existing =
                             case prop of
-                                Shadows shadows ->
-                                    ( (Shadows <| List.filter (not << dropShadow) shadows) :: existing
-                                    , case List.filter dropShadow shadows of
-                                        [] ->
-                                            Nothing
+                                Filters fs ->
+                                    { existing | filters = fs ++ existing.filters }
 
-                                        d ->
-                                            Just d
-                                    )
-
-                                Filters filters ->
-                                    case dropped of
-                                        Nothing ->
-                                            ( prop :: existing
-                                            , dropped
-                                            )
-
-                                        Just drop ->
-                                            ( Filters (filters ++ (List.map asDropShadow drop)) :: existing
-                                            , dropped
-                                            )
+                                Shadows ss ->
+                                    { existing | shadows = ss ++ existing.shadows }
 
                                 _ ->
-                                    ( prop :: existing, dropped )
+                                    { existing | others = prop :: existing.others }
+
+                        combine { filters, shadows, others } =
+                            Filters filters :: Shadows shadows :: others
                     in
-                        List.foldr moveDropped ( [], Nothing ) props
-                            |> Tuple.first
+                    props
+                        |> List.foldr gather
+                            { filters = []
+                            , shadows = []
+                            , others = []
+                            }
+                        |> combine
 
                 processed =
                     props
@@ -232,10 +249,10 @@ preprocess style =
                         |> overridePrevious visible
                         |> prioritize shadows
                         |> overridePrevious shadows
-                        |> moveDropShadow
+                        |> mergeShadowsAndFilters
                         |> mergeTransforms
             in
-                Internal.Style class processed
+            Internal.Style class processed
 
         _ ->
             style
@@ -270,8 +287,8 @@ renderStyle guarded style =
                     else
                         i
             in
-                inter
-                    |> guard
+            inter
+                |> guard
 
 
 renderProp : Selector class variation -> Property class variation -> Intermediate.Prop class variation
@@ -288,10 +305,10 @@ renderProp parentClass prop =
                 selectVariation =
                     Selector.variant parentClass var
             in
-                (Intermediate.SubClass << Intermediate.Class)
-                    { selector = selectVariation
-                    , props = List.filterMap (renderVariationProp selectVariation) props
-                    }
+            (Intermediate.SubClass << Intermediate.Class)
+                { selector = selectVariation
+                , props = List.filterMap (renderVariationProp selectVariation) props
+                }
 
         PseudoElement class props ->
             (Intermediate.SubClass << Intermediate.Class)
@@ -356,6 +373,11 @@ renderProp parentClass prop =
                   )
                 ]
 
+        FontFamily fam ->
+            Intermediate.props <|
+                [ ( "font-family", Value.typeface fam )
+                ]
+
 
 renderVariationProp : Selector class variation -> Property class Never -> Maybe (Intermediate.Prop class variation)
 renderVariationProp parentClass prop =
@@ -393,6 +415,11 @@ renderVariationProp parentClass prop =
 
         Font name val ->
             (Just << Intermediate.props) <| [ ( name, val ) ]
+
+        FontFamily fam ->
+            (Just << Intermediate.props) <|
+                [ ( "font-family", Value.typeface fam )
+                ]
 
         Layout lay ->
             (Just << Intermediate.props) (Render.layout False lay)

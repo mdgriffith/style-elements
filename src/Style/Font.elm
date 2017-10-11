@@ -1,29 +1,31 @@
 module Style.Font
     exposing
-        ( typeface
-        , size
-        , lineHeight
-        , letterSpacing
-        , wordSpacing
-        , alignLeft
+        ( alignLeft
         , alignRight
+        , bold
+        , capitalize
         , center
+        , cursive
+        , fantasy
+        , font
+        , importUrl
+        , italic
         , justify
         , justifyAll
-        , wrap
-        , pre
-        , preWrap
-        , preLine
-        , noWrap
-        , underline
-        , strike
-        , italic
-        , bold
-        , weight
+        , letterSpacing
         , light
-        , uppercase
-        , capitalize
+        , lineHeight
         , lowercase
+        , monospace
+        , sansSerif
+        , serif
+        , size
+        , strike
+        , typeface
+        , underline
+        , uppercase
+        , weight
+        , wordSpacing
         )
 
 {-| Font Properties
@@ -32,33 +34,90 @@ Meant to be imported as:
 
     import Style.Font as Font
 
-@docs typeface, size, lineHeight, letterSpacing, wordSpacing, alignLeft, alignRight, center, justify, justifyAll
 
-@docs wrap, pre, preWrap, preLine, noWrap
+## Typefaces
+
+@docs typeface, font, serif, sansSerif, cursive, fantasy, monospace, importUrl
+
+
+## Properties
+
+@docs size, lineHeight, letterSpacing, wordSpacing, alignLeft, alignRight, center, justify, justifyAll
+
+
+## Font Styles
 
 @docs uppercase, capitalize, lowercase, underline, strike, italic, bold, weight, light
 
 -}
 
+import Style exposing (Font, Property)
 import Style.Internal.Model as Internal
-import Style.Internal.Render.Value as Value
-import Style exposing (Property)
 
 
 {-| -}
-typeface : List String -> Property class variation
+typeface : List Font -> Property class variation
 typeface families =
-    Internal.Font "font-family" (Value.typeface families)
+    Internal.FontFamily families
 
 
-{-| Font size specified in `px`
+{-| -}
+serif : Font
+serif =
+    Internal.Serif
+
+
+{-| -}
+sansSerif : Font
+sansSerif =
+    Internal.SansSerif
+
+
+{-| -}
+cursive : Font
+cursive =
+    Internal.Cursive
+
+
+{-| -}
+fantasy : Font
+fantasy =
+    Internal.Fantasy
+
+
+{-| -}
+monospace : Font
+monospace =
+    Internal.Monospace
+
+
+{-| -}
+font : String -> Font
+font =
+    Internal.FontName
+
+
+{-| -}
+importUrl : { url : String, name : String } -> Font
+importUrl { url, name } =
+    Internal.ImportFont name url
+
+
+{-| Font size as `px`
 -}
 size : Float -> Property class variation
 size size =
     Internal.Font "font-size" (toString size ++ "px")
 
 
-{-| Given as a ratio of the `Font.size`.
+{-| This is the only unitless value in the library that isn't `px`.
+
+Given as a _proportion_ of the `Font.size`.
+
+This means the final lineHeight in px is:
+
+      Font.size * Font.lineHeight == lineHeightInPx
+
 -}
 lineHeight : Float -> Property class variation
 lineHeight height =
@@ -109,38 +168,7 @@ justify =
 {-| -}
 justifyAll : Property class variation
 justifyAll =
-    Internal.Font "text-align" "justifyAll"
-
-
-{-| Renders as "white-space:normal", which is the standard wrapping behavior you're probably used to.
--}
-wrap : Property class variation
-wrap =
-    Internal.Font "white-space" "normal"
-
-
-{-| -}
-pre : Property class variation
-pre =
-    Internal.Font "white-space" "pre"
-
-
-{-| -}
-preWrap : Property class variation
-preWrap =
-    Internal.Font "white-space" "pre-wrap"
-
-
-{-| -}
-preLine : Property class variation
-preLine =
-    Internal.Font "white-space" "pre-line"
-
-
-{-| -}
-noWrap : Property class variation
-noWrap =
-    Internal.Font "white-space" "nowrap"
+    Internal.Font "text-align" "justify-all"
 
 
 {-| -}

@@ -19,20 +19,20 @@ applyPrefix prefix ( name, value ) =
                 pair name value =
                     ( name, value )
             in
-                if value == valueMatch then
-                    ( name, value ) :: (List.map (pair name) newValues)
-                else
-                    [ ( name, value ) ]
+            if value == valueMatch then
+                ( name, value ) :: List.map (pair name) newValues
+            else
+                [ ( name, value ) ]
 
         Property nameMatch newNames ->
             let
                 pairValue value name =
                     ( name, value )
             in
-                if name == nameMatch then
-                    ( name, value ) :: (List.map (pairValue value) newNames)
-                else
-                    [ ( name, value ) ]
+            if name == nameMatch then
+                ( name, value ) :: List.map (pairValue value) newNames
+            else
+                [ ( name, value ) ]
 
 
 {-| -}
@@ -42,4 +42,4 @@ prefix prefixes attrs =
         applyAll attr prefixedAttrs =
             List.foldr (\prefix prefixed -> applyPrefix prefix attr ++ prefixed) prefixedAttrs prefixes
     in
-        List.foldr applyAll [] attrs
+    List.foldr applyAll [] attrs

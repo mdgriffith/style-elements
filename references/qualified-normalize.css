@@ -1,0 +1,517 @@
+/*! normalize.css v7.0.0 | MIT License | github.com/necolas/normalize.css */
+
+
+
+
+/* Document
+   ========================================================================== 
+   
+
+This is a modified version of normalize.css that is built-in to this library.  
+
+Modifications have been annotated, but only a minified version is kept in the code.
+
+   
+   
+*/
+
+
+
+
+
+
+/**
+* 1. Correct the line height in all browsers.
+* 2. Prevent adjustments of font size after orientation changes in
+*    IE on Windows Phone and in iOS.
+*/
+
+html {
+    -ms-text-size-adjust: 100%; /* 2 */
+    -webkit-text-size-adjust: 100%; /* 2 */
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+/* Sections
+    ========================================================================== */
+
+/**
+* Remove the margin in all browsers (opinionated).
+*/
+body {
+    margin: 0;
+}
+
+/**
+* Add the correct display in IE 9-.
+*/
+
+.style-elements article,
+.style-elements aside,
+.style-elements footer,
+.style-elements header,
+.style-elements nav,
+.style-elements section {
+    display: block;
+}
+
+/**
+* Correct the font size and margin on `h1` elements within `section` and
+* `article` contexts in Chrome, Firefox, and Safari.
+*/
+
+.style-elements h1 {
+    font-size: 1em;
+    margin:0;
+}
+
+/* Grouping content
+    ========================================================================== */
+
+/**
+* Add the correct display in IE 9-.
+* 1. Add the correct display in IE.
+*/
+
+.style-elements figcaption,
+.style-elements figure,
+.style-elements main { /* 1 */
+    display: block;
+}
+
+/**
+* Add the correct margin in IE 8.
+*/
+
+.style-elements figure {
+    margin: 1em 40px;
+}
+
+/**
+* 1. Add the correct box sizing in Firefox.
+* 2. Show the overflow in Edge and IE.
+*/
+
+.style-elements hr {
+box-sizing: content-box; /* 1 */
+height: 0; /* 1 */
+overflow: visible; /* 2 */
+}
+
+/**
+* 1. Correct the inheritance and scaling of font size in all browsers.
+* 2. Correct the odd `em` font sizing in all browsers.
+*/
+
+.style-elements pre {
+font-family: monospace, monospace; /* 1 */
+font-size: 1em; /* 2 */
+}
+
+/* Text-level semantics
+    ========================================================================== */
+
+/**
+* 1. Remove the gray background on active links in IE 10.
+* 2. Remove gaps in links underline in iOS 8+ and Safari 8+.
+*/
+
+.style-elements a {
+background-color: transparent; /* 1 */
+-webkit-text-decoration-skip: objects; /* 2 */
+}
+
+/**
+* 1. Remove the bottom border in Chrome 57- and Firefox 39-.
+* 2. Add the correct text decoration in Chrome, Edge, IE, Opera, and Safari.
+*/
+
+.style-elements abbr[title] {
+border-bottom: none; /* 1 */
+text-decoration: underline; /* 2 */
+text-decoration: underline dotted; /* 2 */
+}
+
+/**
+* Prevent the duplicate application of `bolder` by the next rule in Safari 6.
+*/
+
+.style-elements b,
+.style-elements strong {
+font-weight: inherit;
+}
+
+/**
+* Add the correct font weight in Chrome, Edge, and Safari.
+*/
+
+.style-elements b,
+.style-elements strong {
+font-weight: bolder;
+}
+
+/**
+* 1. Correct the inheritance and scaling of font size in all browsers.
+* 2. Correct the odd `em` font sizing in all browsers.
+*/
+
+.style-elements code,
+.style-elements kbd,
+.style-elements samp {
+    font-family: monospace, monospace; /* 1 */
+    font-size: 1em; /* 2 */
+}
+
+/**
+* Add the correct font style in Android 4.3-.
+*/
+
+.style-elements dfn {
+    font-style: italic;
+}
+
+/**
+* Add the correct background and color in IE 9-.
+*/
+
+.style-elements mark {
+background-color: #ff0;
+color: #000;
+}
+
+/**
+* Add the correct font size in all browsers.
+*/
+
+.style-elements small {
+    font-size: 80%;
+}
+
+
+/* Embedded content
+    ========================================================================== */
+
+/**
+* Add the correct display in IE 9-.
+*/
+
+.style-elements audio,
+.style-elements video {
+    display: inline-block;
+}
+
+/**
+* Add the correct display in iOS 4-7.
+*/
+
+.style-elements audio:not([controls]) {
+    display: none;
+    height: 0;
+}
+
+/**
+* Remove the border on images inside links in IE 10-.
+*/
+
+.style-elements img {
+    border-style: none;
+}
+
+/**
+* Hide the overflow in IE.
+*/
+
+.style-elements svg:not(:root) {
+    overflow: hidden;
+}
+
+/* Forms
+    ========================================================================== */
+
+/**
+* 1. Change the font styles in all browsers (opinionated).
+* 2. Remove the margin in Firefox and Safari.
+*/
+
+.style-elements button,
+.style-elements input,
+.style-elements optgroup,
+.style-elements select,
+.style-elements textarea {
+    font-family: sans-serif; /* 1 */
+    font-size: 100%; /* 1 */
+    /*line-height: 1; */ /* 1 ADDED BY STYLE ELEMENTS */
+    margin: 0; /* 2 */
+}
+
+/**
+* Show the overflow in IE.
+* 1. Show the overflow in Edge.
+*/
+
+.style-elements button,
+.style-elements input { /* 1 */
+    overflow: visible;
+}
+
+/**
+* Remove the inheritance of text transform in Edge, Firefox, and IE.
+* 1. Remove the inheritance of text transform in Firefox.
+*/
+
+.style-elements button,
+.style-elements select { /* 1 */
+    text-transform: none;
+}
+
+/**
+* 1. Prevent a WebKit bug where (2) destroys native `audio` and `video`
+*    controls in Android 4.
+* 2. Correct the inability to style clickable types in iOS and Safari.
+*/
+
+.style-elements button,
+.style-elements html [type="button"],
+.style-elements [type="reset"],
+.style-elements [type="submit"] {
+    -webkit-appearance: button; /* 2 */
+}
+
+/**
+* Remove the inner border and padding in Firefox.
+*/
+
+.style-elements button::-moz-focus-inner,
+.style-elements [type="button"]::-moz-focus-inner,
+.style-elements [type="reset"]::-moz-focus-inner,
+.style-elements [type="submit"]::-moz-focus-inner {
+    border-style: none;
+    padding: 0;
+}
+
+/**
+* Restore the focus styles unset by the previous rule.
+*/
+
+.style-elements button:-moz-focusring,
+.style-elements [type="button"]:-moz-focusring,
+.style-elements [type="reset"]:-moz-focusring,
+.style-elements [type="submit"]:-moz-focusring {
+outline: 1px dotted ButtonText;
+}
+
+/**
+* Correct the padding in Firefox.
+*/
+
+.style-elements fieldset {
+    padding: 0.35em 0.75em 0.625em;
+}
+
+/**
+* 1. Correct the text wrapping in Edge and IE.
+* 2. Correct the color inheritance from `fieldset` elements in IE.
+* 3. Remove the padding so developers are not caught out when they zero out
+*    `fieldset` elements in all browsers.
+*/
+
+.style-elements legend {
+    box-sizing: border-box; /* 1 */
+    color: inherit; /* 2 */
+    display: table; /* 1 */
+    max-width: 100%; /* 1 */
+    padding: 0; /* 3 */
+    white-space: normal; /* 1 */
+}
+
+/**
+* 1. Add the correct display in IE 9-.
+* 2. Add the correct vertical alignment in Chrome, Firefox, and Opera.
+*/
+
+.style-elements progress {
+    display: inline-block; /* 1 */
+    vertical-align: baseline; /* 2 */
+}
+
+/**
+* Remove the default vertical scrollbar in IE.
+*/
+
+.style-elements textarea {
+    overflow: auto;
+}
+
+/**
+* 1. Add the correct box sizing in IE 10-.
+* 2. Remove the padding in IE 10-.
+*/
+
+.style-elements [type="checkbox"],
+.style-elements [type="radio"] {
+    box-sizing: border-box; /* 1 */
+    padding: 0; /* 2 */
+}
+
+/**
+* Correct the cursor style of increment and decrement buttons in Chrome.
+*/
+
+.style-elements [type="number"]::-webkit-inner-spin-button,
+.style-elements [type="number"]::-webkit-outer-spin-button {
+    height: auto;
+}
+
+/**
+* 1. Correct the odd appearance in Chrome and Safari.
+* 2. Correct the outline style in Safari.
+*/
+
+.style-elements [type="search"] {
+    -webkit-appearance: textfield; /* 1 */
+    outline-offset: -2px; /* 2 */
+}
+
+/**
+* Remove the inner padding and cancel buttons in Chrome and Safari on macOS.
+*/
+
+.style-elements [type="search"]::-webkit-search-cancel-button,
+.style-elements [type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+}
+
+/**
+* 1. Correct the inability to style clickable types in iOS and Safari.
+* 2. Change font properties to `inherit` in Safari.
+*/
+
+.style-elements ::-webkit-file-upload-button {
+    -webkit-appearance: button; /* 1 */
+    font: inherit; /* 2 */
+}
+
+/* Interactive
+    ========================================================================== */
+
+/*
+* Add the correct display in IE 9-.
+* 1. Add the correct display in Edge, IE, and Firefox.
+*/
+
+.style-elements details, 
+.style-elements menu {
+    display: block;
+}
+
+/*
+* Add the correct display in all browsers.
+*/
+
+.style-elements summary {
+    display: list-item;
+}
+
+/* Scripting
+    ========================================================================== */
+
+/**
+* Add the correct display in IE 9-.
+*/
+
+.style-elements canvas {
+    display: inline-block;
+}
+
+/**
+* Add the correct display in IE.
+*/
+
+.style-elements template {
+    display: none;
+}
+
+/* Hidden
+    ========================================================================== */
+
+/**
+* Add the correct display in IE 10-.
+*/
+
+.style-elements [hidden] {
+    display: none;
+}
+
+/* Added
+    ========================================================================== */
+
+
+
+.style-elements a {
+    text-decoration: none;
+}
+
+.style-elements input, .style-elements textarea {
+    border: 0;
+}
+
+.style-elements .clearfix:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+
+/**
+* ADDED From CSS Reset.
+*/
+.style-elements div, .style-elements span, .style-elements applet, .style-elements object, .style-elements iframe, .style-elements h1, .style-elements h2, .style-elements h3, .style-elements h4, .style-elements h5, .style-elements h6, .style-elements p, .style-elements blockquote, .style-elements pre, .style-elements a, .style-elements abbr, .style-elements acronym, .style-elements address, .style-elements big, .style-elements cite, .style-elements code, .style-elements del, .style-elements dfn, .style-elements em, .style-elements img, .style-elements ins, .style-elements kbd, .style-elements q, .style-elements s, .style-elements samp, .style-elements small, .style-elements strike, .style-elements strong, .style-elements sub, .style-elements sup, .style-elements tt, .style-elements var, .style-elements b, .style-elements u, .style-elements i, .style-elements center, .style-elements dl, .style-elements dt, .style-elements dd, .style-elements ol, .style-elements ul, .style-elements li, .style-elements fieldset, .style-elements form, .style-elements label, .style-elements legend, .style-elements table, .style-elements caption, .style-elements tbody, .style-elements tfoot, .style-elements thead, .style-elements tr, .style-elements th, .style-elements td, .style-elements article, .style-elements aside, .style-elements canvas, .style-elements details, .style-elements embed, .style-elements figure, .style-elements figcaption, .style-elements footer, .style-elements header, .style-elements hgroup, .style-elements menu, .style-elements nav, .style-elements output, .style-elements ruby, .style-elements section, .style-elements summary, .style-elements time, .style-elements mark, .style-elements audio, .style-elements video, .style-elements hr {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    box-sizing: border-box;
+}
+.style-elements {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    line-height: 1; /* 1 :NOTE: ADDED BY style-elements LIBRARY */
+}
+.style-elements em.el {
+    font-style: italic;
+}
+.style-elements strong.el {
+    font-weight: bold;
+}
+.style-elements strike.el {
+    text-decoration: line-through;
+}
+.style-elements u.el {
+    text-decoration: underline;
+}
+/**
+* Prevent `sub` and `sup` elements from affecting the line height in
+* all browsers.
+*/
+
+.style-elements sub.el,
+.style-elements sup.el {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+}
+
+.style-elements sub.el {
+bottom: -0.25em;
+}
+
+.style-elements sup.el {
+top: -0.5em;
+}

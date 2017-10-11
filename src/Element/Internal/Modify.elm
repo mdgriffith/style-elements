@@ -1,23 +1,46 @@
 module Element.Internal.Modify
     exposing
-        ( setNode
-        , addAttrToNonText
-        , addAttr
-        , removeAttrs
-        , addChild
+        ( addAttr
         , addAttrList
-        , removeAllAttrs
-        , removeContent
-        , getStyle
+        , addAttrPriority
+        , addAttrToNonText
+        , addChild
         , getAttrs
-        , removeStyle
         , getChild
+        , getStyle
+        , getText
+        , getTextList
+        , makeInline
+        , removeAllAttrs
+        , removeAttrs
+        , removeContent
+        , removeStyle
         , setAttrs
+        , setNode
+        , wrapHtml
         )
 
 {-| -}
 
 import Element.Internal.Model as Internal exposing (..)
+
+
+{-| Wraps Html in an element.
+-}
+wrapHtml : Element style variation msg -> Element style variation msg
+wrapHtml el =
+    case el of
+        Raw h ->
+            Element
+                { node = "div"
+                , style = Nothing
+                , attrs = []
+                , child = Raw h
+                , absolutelyPositioned = Nothing
+                }
+
+        x ->
+            x
 
 
 setNode : String -> Element style variation msg -> Element style variation msg
@@ -43,9 +66,35 @@ setNode node el =
                 { node = node
                 , style = Nothing
                 , attrs = []
-                , child = (Text dec content)
+                , child = Text dec content
                 , absolutelyPositioned = Nothing
                 }
+
+
+makeInline : Element style variation msg -> Element style variation msg
+makeInline el =
+    case el of
+        Empty ->
+            Empty
+
+        Raw h ->
+            Raw h
+
+        Spacer x ->
+            Spacer x
+
+        Layout elm ->
+            Layout { elm | attrs = Internal.Inline :: elm.attrs }
+
+        Element elm ->
+            Element
+                { elm
+                    | attrs = Internal.Inline :: elm.attrs
+                    , child = makeInline elm.child
+                }
+
+        Text decoration content ->
+            Text { decoration | inline = True } content
 
 
 addAttrToNonText : Attribute variation msg -> Element style variation msg -> Element style variation msg
@@ -61,10 +110,10 @@ addAttrToNonText prop el =
             Spacer x
 
         Layout elm ->
-            Layout { elm | attrs = (prop :: elm.attrs) }
+            Layout { elm | attrs = prop :: elm.attrs }
 
         Element elm ->
-            Element { elm | attrs = (prop :: elm.attrs) }
+            Element { elm | attrs = prop :: elm.attrs }
 
         Text dec content ->
             Text dec content
@@ -83,17 +132,45 @@ addAttr prop el =
             Spacer x
 
         Layout elm ->
-            Layout { elm | attrs = (prop :: elm.attrs) }
+            Layout { elm | attrs = prop :: elm.attrs }
 
         Element elm ->
-            Element { elm | attrs = (prop :: elm.attrs) }
+            Element { elm | attrs = prop :: elm.attrs }
 
         Text dec content ->
             Element
                 { node = "div"
                 , style = Nothing
                 , attrs = [ prop ]
-                , child = (Text dec content)
+                , child = Text dec content
+                , absolutelyPositioned = Nothing
+                }
+
+
+addAttrPriority : Attribute variation msg -> Element style variation msg -> Element style variation msg
+addAttrPriority prop el =
+    case el of
+        Empty ->
+            Empty
+
+        Raw h ->
+            Raw h
+
+        Spacer x ->
+            Spacer x
+
+        Layout elm ->
+            Layout { elm | attrs = elm.attrs ++ [ prop ] }
+
+        Element elm ->
+            Element { elm | attrs = elm.attrs ++ [ prop ] }
+
+        Text dec content ->
+            Element
+                { node = "div"
+                , style = Nothing
+                , attrs = [ prop ]
+                , child = Text dec content
                 , absolutelyPositioned = Nothing
                 }
 
@@ -111,17 +188,17 @@ addAttrList props el =
             Raw h
 
         Layout elm ->
-            Layout { elm | attrs = (props ++ elm.attrs) }
+            Layout { elm | attrs = props ++ elm.attrs }
 
         Element elm ->
-            Element { elm | attrs = (props ++ elm.attrs) }
+            Element { elm | attrs = props ++ elm.attrs }
 
         Text dec content ->
             Element
                 { node = "div"
                 , style = Nothing
                 , attrs = props
-                , child = (Text dec content)
+                , child = Text dec content
                 , absolutelyPositioned = Nothing
                 }
 
@@ -154,24 +231,24 @@ removeAttrs props el =
         match p =
             not <| List.member p props
     in
-        case el of
-            Empty ->
-                Empty
+    case el of
+        Empty ->
+            Empty
 
-            Raw h ->
-                Raw h
+        Raw h ->
+            Raw h
 
-            Spacer x ->
-                Spacer x
+        Spacer x ->
+            Spacer x
 
-            Layout elm ->
-                Layout { elm | attrs = List.filter match elm.attrs }
+        Layout elm ->
+            Layout { elm | attrs = List.filter match elm.attrs }
 
-            Element elm ->
-                Element { elm | attrs = List.filter match elm.attrs }
+        Element elm ->
+            Element { elm | attrs = List.filter match elm.attrs }
 
-            Text dec content ->
-                Text dec content
+        Text dec content ->
+            Text dec content
 
 
 removeAllAttrs : Element style variation msg -> Element style variation msg
@@ -356,3 +433,63 @@ getChild el =
 
         Text dec content ->
             Text dec content
+
+
+getText : Element style variation msg -> String
+getText el =
+    case el of
+        Empty ->
+            ""
+
+        Spacer x ->
+            ""
+
+        Raw h ->
+            ""
+
+        Layout { children } ->
+            case children of
+                Normal childs ->
+                    childs
+                        |> List.map getText
+                        |> String.join "-"
+
+                Keyed childs ->
+                    childs
+                        |> List.map (getText << Tuple.second)
+                        |> String.join "-"
+
+        Element { child } ->
+            getText child
+
+        Text dec content ->
+            content
+
+
+getTextList : Element style variation msg -> List String
+getTextList el =
+    case el of
+        Empty ->
+            []
+
+        Spacer x ->
+            []
+
+        Raw h ->
+            []
+
+        Layout { children } ->
+            case children of
+                Normal childs ->
+                    childs
+                        |> List.concatMap getTextList
+
+                Keyed childs ->
+                    childs
+                        |> List.concatMap (getTextList << Tuple.second)
+
+        Element { child } ->
+            getTextList child
+
+        Text dec content ->
+            [ content ]
