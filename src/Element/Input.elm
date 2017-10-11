@@ -3,6 +3,7 @@ module Element.Input
         ( Checkbox
         , Choice
         , ChoiceState(..)
+        , Label
         , Option
         , Radio
         , Select
@@ -17,10 +18,6 @@ module Element.Input
         , checkbox
         , choice
         , clear
-          -- , grid
-          -- , Grid
-          -- , cell
-          -- , cellWith
         , currentPassword
         , disabled
         , dropMenu
@@ -78,7 +75,7 @@ The following text inputs give hints to the browser so they can be autofilled.
 
 ## Labels
 
-@docs labelAbove, labelBelow, labelLeft, labelRight, placeholder, hiddenLabel
+@docs Label, labelAbove, labelBelow, labelLeft, labelRight, placeholder, hiddenLabel
 
 
 ## Options
@@ -654,6 +651,7 @@ type Error style variation msg
     | ErrorAbove (Element style variation msg)
 
 
+{-| -}
 type Label style variation msg
     = LabelBelow (Element style variation msg)
     | LabelAbove (Element style variation msg)
