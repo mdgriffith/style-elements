@@ -464,7 +464,7 @@ button style attrs child =
     Element
         { node = "button"
         , style = Just style
-        , attrs = Attr.class "button-focus" :: Attr.inlineStyle [ ( "cursor", "pointer" ) ] :: Attr.toAttr (Html.Attributes.tabindex 0) :: attrs
+        , attrs = Attr.class "button-focus" :: Attr.toAttr (Html.Attributes.tabindex 0) :: attrs
         , child = child
         , absolutelyPositioned = Nothing
         }
