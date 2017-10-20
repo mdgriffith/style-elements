@@ -222,6 +222,7 @@ positionNearby parent elm =
                                             )
                                         , Position Nothing (Just 0) Nothing
                                         , VAlign Bottom
+                                        , Attr <| Html.Attributes.style [ ( "z-index", "10" ) ]
                                         ]
                                 , child =
                                     el
@@ -265,6 +266,7 @@ positionNearby parent elm =
                                         , PositionFrame Relative
                                         , Position (Just 0) (Just 0) Nothing
                                         , Padding (Just 0) (Just 0) (Just 0) (Just 0)
+                                        , Attr <| Html.Attributes.style [ ( "z-index", "10" ) ]
                                         , tag "nearby-intermediate"
                                         ]
                                 , child =
