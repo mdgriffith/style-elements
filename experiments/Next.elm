@@ -1,12 +1,12 @@
 module Main exposing (..)
 
-import Next.Internal.Model exposing (..)
+import AnimationFrame
+import Color exposing (Color)
 import Html
 import Html.Events
-import AnimationFrame
-import Time exposing (Time)
-import Color exposing (Color)
 import Mouse
+import Next.Internal.Model exposing (..)
+import Time exposing (Time)
 
 
 type Checkpoint
@@ -67,10 +67,58 @@ formatColor color =
         { red, green, blue, alpha } =
             Color.toRgb color
     in
-        ("rgba(" ++ toString red)
-            ++ ("," ++ toString green)
-            ++ ("," ++ toString blue)
-            ++ ("," ++ toString alpha ++ ")")
+    ("rgba(" ++ toString red)
+        ++ ("," ++ toString green)
+        ++ ("," ++ toString blue)
+        ++ ("," ++ toString alpha ++ ")")
+
+
+
+
+layers =
+    layered <|
+        
+
+navWithJustContainers =
+    viewport <|
+        column []
+            [ row [ height (px 80) ]
+                [ el [ alignleft ] (text "logo")
+                , el [ center ]
+                    (text "Matthew Griffith")
+                , el [ alignRight ]
+                    (text "option menu")
+                    |> below
+                        (column []
+                            [ text "option 1"
+                            , text "option 2"
+                            ]
+                        )
+                ]
+            , mainContent []
+                [ text "heres the content" ]
+            ]
+
+
+navWithAlignmentBuiltIn =
+    viewport <|
+        column []
+            [ row [ height (px 80) ]
+                [ left [] (text "logo")
+                , center []
+                    (text "Matthew Griffith")
+                , right []
+                    (text "option menu")
+                    |> below []
+                        (column []
+                            [ text "option 1"
+                            , text "option 2"
+                            ]
+                        )
+                ]
+            , mainContent []
+                [ text "heres the content" ]
+            ]
 
 
 view model =

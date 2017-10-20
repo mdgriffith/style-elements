@@ -482,32 +482,6 @@ viewportSheet =
     Html.node "style" [] [ Html.text (viewportStylesheet ++ static) ]
 
 
-layout : Element msg -> Html msg
-layout el =
-    let
-        (Styled styles html) =
-            render FirstAndLast [ 0 ] [] el
-    in
-    Html.div [ Html.Attributes.class "style-elements" ]
-        [ staticSheet
-        , Html.node "style" [] [ Html.text <| toStyleSheet styles ]
-        , html
-        ]
-
-
-viewport : Element msg -> Html msg
-viewport el =
-    let
-        (Styled styles html) =
-            render FirstAndLast [ 0 ] [] el
-    in
-    Html.div [ Html.Attributes.class "style-elements" ]
-        [ viewportSheet
-        , Html.node "style" [] [ Html.text <| toStyleSheet styles ]
-        , html
-        ]
-
-
 {-| Classes Needed
 
 .el ->
@@ -1156,80 +1130,6 @@ positionMap fn list =
 --         (VirtualCss.lazy (renderStyles << fn) a)
 --         (Html.lazy (renderHtml << fn) a)
 {- API Interface -}
-
-
-empty =
-    Empty
-
-
-text : String -> Element msg
-text =
-    Text NoDecoration
-
-
-paragraph : List (Attribute msg) -> List (Element msg) -> Element msg
-paragraph =
-    Paragraph
-
-
-page : List (Attribute msg) -> List (Element msg) -> Element msg
-page =
-    Page
-
-
-container : List (Attribute msg) -> Element msg -> Element msg
-container attrs el =
-    Row "div" (Width (Fill 1) :: Height (Fill 1) :: attrs) [ el ]
-
-
-node : String -> List (Attribute msg) -> Element msg -> Element msg
-node =
-    El
-
-
-el : List (Attribute msg) -> Element msg -> Element msg
-el =
-    El "div"
-
-
-row : List (Attribute msg) -> List (Element msg) -> Element msg
-row =
-    Row "div"
-
-
-column : List (Attribute msg) -> List (Element msg) -> Element msg
-column =
-    Column "div"
-
-
-below : Element msg -> Element msg -> Element msg
-below =
-    nearby Below
-
-
-above : Element msg -> Element msg -> Element msg
-above =
-    nearby Above
-
-
-onRight : Element msg -> Element msg -> Element msg
-onRight =
-    nearby OnRight
-
-
-onLeft : Element msg -> Element msg -> Element msg
-onLeft =
-    nearby OnLeft
-
-
-overlay : Element msg -> Element msg -> Element msg
-overlay =
-    nearby Within
-
-
-spacer : Float -> Element msg
-spacer =
-    Spacer
 
 
 style : List Property -> Attribute msg
