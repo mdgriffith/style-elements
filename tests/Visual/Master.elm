@@ -13,6 +13,7 @@ import Style.Border as Border
 import Style.Color as Color
 import Style.Font as Font
 import Style.Shadow as Shadow
+import Style.Sheet
 import Style.Transition as Transition
 
 
@@ -30,6 +31,11 @@ type Styles
     | Blue
     | BlackText
     | Crazy Other
+    | Sub SubStyle
+
+
+type SubStyle
+    = SubStyle
 
 
 type Other
@@ -103,7 +109,18 @@ stylesheet =
                 (Thing 5)
             )
             []
+        , subSheet
+            |> Style.Sheet.map Sub identity
+            |> Style.Sheet.merge
         ]
+
+
+subSheet =
+    [ style SubStyle
+        [ Color.text Color.white
+        , Color.background Color.blue
+        ]
+    ]
 
 
 
@@ -246,6 +263,8 @@ basics =
     , el Container [ paddingXY 20 5, center, spacingXY 20 20, width (px 200) ] (text "Centered ++ 20/20 Spacing Element")
     , el Container [ paddingXY 20 5, center, spacingXY 20 20, width content, height content ] (text "Centered ++ 20/20 Spacing Element (width/height content)")
     , el Container [ paddingXY 20 5, center, width (percent 100) ] (text "Single Element")
+    , mapAll identity Sub identity <|
+        el SubStyle [ paddingXY 20 5 ] (text "Sub Style!")
     ]
 
 
