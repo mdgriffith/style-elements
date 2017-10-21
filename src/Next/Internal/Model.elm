@@ -274,20 +274,11 @@ type Location
     .children.row -> -- Don't override anything (already a block element)
 
 
-
-
-
-
-
 -}
 
 
 type Styled thing
     = Styled (List Style) thing
-
-
-
--- | Unstyled thing
 
 
 type Style
@@ -316,10 +307,6 @@ toStyleSheet styles =
 -- inline styles -> add as Html.Attributes.style
 -- viaVirtualCss -> Generate Class via index, pass up css structure
 --
-
-
-todo =
-    Styled [] (Html.text "")
 
 
 unstyled =
