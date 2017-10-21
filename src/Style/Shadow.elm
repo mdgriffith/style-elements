@@ -2,6 +2,8 @@ module Style.Shadow exposing (box, deep, drop, glow, innerGlow, inset, simple, t
 
 {-| Shadows
 
+If multiple shadows are set, they will stack.
+
 
 # Easy Presets
 
