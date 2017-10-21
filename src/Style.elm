@@ -225,37 +225,6 @@ cursor name =
     Internal.Exact "cursor" name
 
 
-{-| You can give a hint about what the padding should be for this element, but the layout can override it.
--}
-paddingHint : Float -> Property class variation
-paddingHint x =
-    Internal.Exact "padding" (toString x ++ "px")
-
-
-{-| -}
-paddingLeftHint : Float -> Property class variation
-paddingLeftHint x =
-    Internal.Exact "padding-left" (toString x ++ "px")
-
-
-{-| -}
-paddingRightHint : Float -> Property class variation
-paddingRightHint x =
-    Internal.Exact "padding-right" (toString x ++ "px")
-
-
-{-| -}
-paddingTopHint : Float -> Property class variation
-paddingTopHint x =
-    Internal.Exact "padding-top" (toString x ++ "px")
-
-
-{-| -}
-paddingBottomHint : Float -> Property class variation
-paddingBottomHint x =
-    Internal.Exact "padding-bottom" (toString x ++ "px")
-
-
 {-| Set the transform origin.
 -}
 origin : Float -> Float -> Float -> Property class variation
