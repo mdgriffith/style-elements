@@ -31,6 +31,11 @@ withFocus : String
 withFocus =
     """
 
+.style-elements em.el {
+    padding: 0;
+    padding-left: 0.2em;
+}
+
 .style-elements button.button-focus:focus {
    outline: none;
    box-shadow: 0 0 3px 3px rgba(155,203,255,1.0);
