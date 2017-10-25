@@ -39,86 +39,86 @@ import Next.Internal.Model exposing (..)
 
 
 {-| -}
-all : Float -> Property
+all : Float -> Attribute msg
 all v =
-    Property "border-width" (toString v ++ "px")
+    StyleProperty "border-width" (toString v ++ "px")
 
 
 {-| -}
-left : Float -> Property
+left : Float -> Attribute msg
 left l =
-    Property "border-left-width" (toString l ++ "px")
+    StyleProperty "border-left-width" (toString l ++ "px")
 
 
 {-| -}
-right : Float -> Property
+right : Float -> Attribute msg
 right l =
-    Property "border-right-width" (toString l ++ "px")
+    StyleProperty "border-right-width" (toString l ++ "px")
 
 
 {-| -}
-top : Float -> Property
+top : Float -> Attribute msg
 top l =
-    Property "border-top-width" (toString l ++ "px")
+    StyleProperty "border-top-width" (toString l ++ "px")
 
 
 {-| -}
-bottom : Float -> Property
+bottom : Float -> Attribute msg
 bottom l =
-    Property "border-bottom-width" (toString l ++ "px")
+    StyleProperty "border-bottom-width" (toString l ++ "px")
 
 
 {-| No Borders
 -}
-none : Property
+none : Attribute msg
 none =
-    Property "border-width" "0"
+    StyleProperty "border-width" "0"
 
 
 {-| -}
-solid : Property
+solid : Attribute msg
 solid =
-    Property "border-style" "solid"
+    StyleProperty "border-style" "solid"
 
 
 {-| -}
-dashed : Property
+dashed : Attribute msg
 dashed =
-    Property "border-style" "dashed"
+    StyleProperty "border-style" "dashed"
 
 
 {-| -}
-dotted : Property
+dotted : Attribute msg
 dotted =
-    Property "border-style" "dotted"
+    StyleProperty "border-style" "dotted"
 
 
 {-| Round all corners.
 -}
-rounded : Float -> Property
+rounded : Float -> Attribute msg
 rounded box =
-    Property "border-radius" (toString box ++ "px")
+    StyleProperty "border-radius" (toString box ++ "px")
 
 
 {-| -}
-roundTopLeft : Float -> Property
+roundTopLeft : Float -> Attribute msg
 roundTopLeft x =
-    Property "border-top-left-radius" (toString x ++ "px")
+    StyleProperty "border-top-left-radius" (toString x ++ "px")
 
 
 {-| -}
-roundTopRight : Float -> Property
+roundTopRight : Float -> Attribute msg
 roundTopRight x =
-    Property "border-top-right-radius" (toString x ++ "px")
+    StyleProperty "border-top-right-radius" (toString x ++ "px")
 
 
 {-| -}
-roundBottomRight : Float -> Property
+roundBottomRight : Float -> Attribute msg
 roundBottomRight x =
-    Property "border-bottom-right-radius" (toString x ++ "px")
+    StyleProperty "border-bottom-right-radius" (toString x ++ "px")
 
 
 {-| -}
-roundBottomLeft : Float -> Property
+roundBottomLeft : Float -> Attribute msg
 roundBottomLeft x =
-    Property "border-bottom-left-radius" (toString x ++ "px")
+    StyleProperty "border-bottom-left-radius" (toString x ++ "px")
