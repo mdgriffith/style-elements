@@ -12,31 +12,30 @@ Meant to be imported as
 
 import Color exposing (Color)
 import Next.Internal.Model exposing (..)
-import Next.Internal.Value as Value
 
 
 {-| -}
 text : Color -> Attribute msg
 text clr =
-    StyleProperty "color" (Value.color clr)
+    StyleProperty "color" (formatColor clr)
 
 
 {-| -}
 background : Color -> Attribute msg
 background clr =
-    StyleProperty "background-color" (Value.color clr)
+    StyleProperty "background-color" (formatColor clr)
 
 
 {-| -}
 border : Color -> Attribute msg
 border clr =
-    StyleProperty "border-color" (Value.color clr)
+    StyleProperty "border-color" (formatColor clr)
 
 
 {-| -}
 cursor : Color -> Attribute msg
 cursor clr =
-    StyleProperty "cursor-color" (Value.color clr)
+    StyleProperty "cursor-color" (formatColor clr)
 
 
 
@@ -44,7 +43,7 @@ cursor clr =
 -- -}
 -- decoration : Color -> Property
 -- decoration clr =
---     Internal.Exact "text-decoration-color" (Value.color clr)
+--     Internal.Exact "text-decoration-color" (formatColor clr)
 -- {-| -}
 -- selection : Color -> Property
 -- selection clr =

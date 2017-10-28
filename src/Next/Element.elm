@@ -3,20 +3,26 @@ module Next.Element
         ( above
         , below
         , column
+        , content
         , el
         , empty
+        , expand
+        , fill
+        , height
         , layout
         , onLeft
         , onRight
         , overlay
         , page
         , paragraph
+        , px
         , row
-        , spacer
+        , space
         , text
         , viewport
         , when
         , whenJust
+        , width
         )
 
 {-| -}
@@ -26,11 +32,47 @@ import Html.Attributes
 import Next.Internal.Model exposing (..)
 
 
-layout : Element msg -> Html msg
-layout el =
+{-| -}
+width : Length -> Attribute msg
+width =
+    Width
+
+
+{-| -}
+height : Length -> Attribute msg
+height =
+    Height
+
+
+{-| -}
+px : Float -> Length
+px =
+    Px
+
+
+{-| -}
+content : Length
+content =
+    Content
+
+
+{-| -}
+fill : Length
+fill =
+    Fill 1
+
+
+{-| -}
+expand : Length
+expand =
+    Expand
+
+
+layout : List (Attribute msg) -> Element msg -> Html msg
+layout attrs child =
     let
         (Styled styles html) =
-            render FirstAndLast [ 0 ] [] el
+            render FirstAndLast [ 0 ] [] (el attrs child)
     in
     Html.div [ Html.Attributes.class "style-elements" ]
         [ staticSheet
@@ -39,11 +81,11 @@ layout el =
         ]
 
 
-viewport : Element msg -> Html msg
-viewport el =
+viewport : List (Attribute msg) -> Element msg -> Html msg
+viewport attrs child =
     let
         (Styled styles html) =
-            render FirstAndLast [ 0 ] [] el
+            render FirstAndLast [ 0 ] [] (el attrs child)
     in
     Html.div [ Html.Attributes.class "style-elements" ]
         [ viewportSheet
@@ -63,28 +105,28 @@ text =
 
 
 paragraph : List (Attribute msg) -> List (Element msg) -> Element msg
-paragraph =
-    Paragraph
+paragraph attrs children =
+    Paragraph (Width (Fill 1) :: Height (Fill 1) :: attrs) children
 
 
 page : List (Attribute msg) -> List (Element msg) -> Element msg
-page =
-    Page
+page attrs children =
+    Page (Width (Px 650) :: attrs) children
 
 
 el : List (Attribute msg) -> Element msg -> Element msg
-el attrs el =
-    Row "div" (Width (Fill 1) :: Height (Fill 1) :: attrs) [ el ]
+el attrs child =
+    El "div" (Width (Fill 1) :: Height (Fill 1) :: attrs) child
 
 
 row : List (Attribute msg) -> List (Element msg) -> Element msg
-row =
-    Row "div"
+row attrs children =
+    Row "div" (Width (Fill 1) :: Height (Fill 1) :: attrs) children
 
 
 column : List (Attribute msg) -> List (Element msg) -> Element msg
-column =
-    Column "div"
+column attrs children =
+    Column "div" (Width (Fill 1) :: Height (Fill 1) :: attrs) children
 
 
 below : Element msg -> Element msg -> Element msg
@@ -109,11 +151,11 @@ onLeft =
 
 overlay : Element msg -> Element msg -> Element msg
 overlay =
-    nearby Within
+    nearby Overlay
 
 
-spacer : Float -> Element msg
-spacer =
+space : Float -> Element msg
+space =
     Spacer
 
 

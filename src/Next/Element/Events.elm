@@ -58,49 +58,49 @@ import VirtualDom
 {-| -}
 onClick : msg -> Attribute msg
 onClick =
-    Event << Html.Events.onClick
+    Attr << Html.Events.onClick
 
 
 {-| -}
 onDoubleClick : msg -> Attribute msg
 onDoubleClick =
-    Event << Html.Events.onDoubleClick
+    Attr << Html.Events.onDoubleClick
 
 
 {-| -}
 onMouseDown : msg -> Attribute msg
 onMouseDown =
-    Event << Html.Events.onMouseDown
+    Attr << Html.Events.onMouseDown
 
 
 {-| -}
 onMouseUp : msg -> Attribute msg
 onMouseUp =
-    Event << Html.Events.onMouseUp
+    Attr << Html.Events.onMouseUp
 
 
 {-| -}
 onMouseEnter : msg -> Attribute msg
 onMouseEnter =
-    Event << Html.Events.onMouseEnter
+    Attr << Html.Events.onMouseEnter
 
 
 {-| -}
 onMouseLeave : msg -> Attribute msg
 onMouseLeave =
-    Event << Html.Events.onMouseLeave
+    Attr << Html.Events.onMouseLeave
 
 
 {-| -}
 onMouseOver : msg -> Attribute msg
 onMouseOver =
-    Event << Html.Events.onMouseOver
+    Attr << Html.Events.onMouseOver
 
 
 {-| -}
 onMouseOut : msg -> Attribute msg
 onMouseOut =
-    Event << Html.Events.onMouseOut
+    Attr << Html.Events.onMouseOut
 
 
 
@@ -110,13 +110,13 @@ onMouseOut =
 {-| -}
 onBlur : msg -> Attribute msg
 onBlur =
-    Event << Html.Events.onBlur
+    Attr << Html.Events.onBlur
 
 
 {-| -}
 onFocus : msg -> Attribute msg
 onFocus =
-    Event << Html.Events.onFocus
+    Attr << Html.Events.onFocus
 
 
 

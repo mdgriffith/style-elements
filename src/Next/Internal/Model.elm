@@ -1,9 +1,10 @@
 module Next.Internal.Model exposing (..)
 
-import Color
+import Color exposing (Color)
 import Html exposing (Html)
 import Html.Attributes
 import Html.Lazy
+import Next.Internal.Style
 
 
 type Element msg
@@ -23,6 +24,163 @@ type Element msg
         }
 
 
+type Decoration
+    = NoDecoration -- renders as <span>
+    | RawText --renders as raw text
+    | Bold
+    | Italic
+    | Underline
+    | Strike
+    | Super
+    | Sub
+
+
+type Attribute msg
+    = StyleProperty String String
+    | FontFamily (List Font)
+    | Opacity Float
+    | Hidden
+    | Height Length
+    | Width Length
+    | ContentXAlign HorizontalAlign
+    | ContentYAlign VerticalAlign
+    | SelfXAlign HorizontalAlign
+    | SelfYAlign VerticalAlign
+    | Move (Maybe Float) (Maybe Float) (Maybe Float)
+    | Rotate Float Float Float Float
+    | Scale (Maybe Float) (Maybe Float) (Maybe Float)
+    | Spacing Float
+    | SpacingXY Float Float
+    | Padding
+        { top : Maybe Float
+        , left : Maybe Float
+        , bottom : Maybe Float
+        , right : Maybe Float
+        }
+    | Attr (Html.Attribute msg)
+    | Overflow Axis
+    | TextShadow
+        { offset : ( Float, Float )
+        , blur : Float
+        , color : Color
+        }
+    | BoxShadow
+        { inset : Bool
+        , offset : ( Float, Float )
+        , size : Float
+        , blur : Float
+        , color : Color
+        }
+    | Filter FilterType
+
+
+type FilterType
+    = FilterUrl String
+    | Blur Float
+    | Brightness Float
+    | Contrast Float
+    | Grayscale Float
+    | HueRotate Float
+    | Invert Float
+    | OpacityFilter Float
+    | Saturate Float
+    | Sepia Float
+    | DropShadow
+        { offset : ( Float, Float )
+        , size : Float
+        , blur : Float
+        , color : Color
+        }
+
+
+type Font
+    = Serif
+    | SansSerif
+    | Monospace
+    | Typeface String
+    | ImportFont String String
+
+
+type Length
+    = Px Float
+    | Content
+    | Expand
+    | Fill Float
+
+
+type HorizontalAlign
+    = AlignLeft
+    | AlignRight
+    | XCenter
+    | Spread
+
+
+type VerticalAlign
+    = AlignTop
+    | AlignBottom
+    | YCenter
+    | VerticalJustify
+
+
+type Axis
+    = XAxis
+    | YAxis
+    | AllAxis
+
+
+type Location
+    = Above
+    | Below
+    | OnRight
+    | OnLeft
+    | Overlay
+
+
+filterName filtr =
+    case filtr of
+        FilterUrl url ->
+            "url(" ++ url ++ ")"
+
+        Blur x ->
+            "blur(" ++ toString x ++ "px)"
+
+        Brightness x ->
+            "brightness(" ++ toString x ++ "%)"
+
+        Contrast x ->
+            "contrast(" ++ toString x ++ "%)"
+
+        Grayscale x ->
+            "grayscale(" ++ toString x ++ "%)"
+
+        HueRotate x ->
+            "hueRotate(" ++ toString x ++ "deg)"
+
+        Invert x ->
+            "invert(" ++ toString x ++ "%)"
+
+        OpacityFilter x ->
+            "opacity(" ++ toString x ++ "%)"
+
+        Saturate x ->
+            "saturate(" ++ toString x ++ "%)"
+
+        Sepia x ->
+            "sepia(" ++ toString x ++ "%)"
+
+        DropShadow shadow ->
+            let
+                shadowModel =
+                    { offset = shadow.offset
+                    , size = shadow.size
+                    , blur = shadow.blur
+                    , color = shadow.color
+                    }
+            in
+            "drop-shadow(" ++ formatDropShadow shadowModel ++ ")"
+
+
+addAttrs : List (Attribute msg) -> Element msg -> Element msg
 addAttrs additional element =
     case element of
         Empty ->
@@ -87,7 +245,7 @@ gridPosition { start, width, height } =
         ( colStart, colEnd ) =
             ( x + 1, x + 1 + width )
     in
-    Property "grid-area"
+    StyleProperty "grid-area"
         (String.join " / "
             [ toString rowStart
             , toString colStart
@@ -97,6 +255,7 @@ gridPosition { start, width, height } =
         )
 
 
+gridTemplate : { a | columns : List Length, rows : List Length } -> List (Attribute msg)
 gridTemplate { rows, columns } =
     let
         renderLen len =
@@ -113,9 +272,9 @@ gridTemplate { rows, columns } =
                 Fill i ->
                     toString i ++ "fr"
     in
-    [ Property "grid-template-rows"
+    [ StyleProperty "grid-template-rows"
         (String.join " " (List.map renderLen rows))
-    , Property "grid-template-columns"
+    , StyleProperty "grid-template-columns"
         (String.join " " (List.map renderLen columns))
     ]
 
@@ -131,7 +290,7 @@ type alias GridTemplate msg =
 {-| -}
 grid : List (Attribute msg) -> GridTemplate msg -> Element msg
 grid attrs template =
-    Grid "div" (StyleProps (gridTemplate template) :: attrs) (List.map (\(OnGrid cell) -> cell) template.cells)
+    Grid "div" (gridTemplate template ++ attrs) (List.map (\(OnGrid cell) -> cell) template.cells)
 
 
 cell : GridPosition msg -> OnGrid (Element msg)
@@ -144,7 +303,7 @@ cell box =
                 , height = box.height
                 }
     in
-    OnGrid <| addAttrs [ StyleProps [ coords ] ] box.content
+    OnGrid <| addAttrs [ coords ] box.content
 
 
 nearby : Location -> Element msg -> Element msg -> Element msg
@@ -161,76 +320,6 @@ nearby position placed anchoringElement =
                 { anchor = anchoringElement
                 , nearby = [ ( position, placed ) ]
                 }
-
-
-type Decoration
-    = NoDecoration -- renders as <span>
-    | RawText --renders as raw text
-    | Bold
-    | Italic
-    | Underline
-    | Strike
-    | Super
-    | Sub
-
-
-type Attribute msg
-    = StyleProps (List Property)
-    | Height Length
-    | Width Length
-    | HAlign HorizontalAlignment
-    | VAlign VerticalAlignment
-    | Move (Maybe Float) (Maybe Float) (Maybe Float)
-    | Rotate Float Float Float Float
-    | Scale (Maybe Float) (Maybe Float) (Maybe Float)
-    | Opacity Float
-    | Spacing Float
-    | SpacingXY Float Float
-    | Padding
-        { top : Maybe Float
-        , left : Maybe Float
-        , bottom : Maybe Float
-        , right : Maybe Float
-        }
-    | Event (Html.Attribute msg)
-    | InputEvent (Html.Attribute msg)
-    | Attr (Html.Attribute msg)
-    | Overflow Axis
-
-
-type Length
-    = Px Float
-    | Content
-    | Expand
-    | Fill Float
-
-
-type HorizontalAlignment
-    = AlignLeft
-    | AlignRight
-    | Center
-    | Spread
-
-
-type VerticalAlignment
-    = AlignTop
-    | AlignBottom
-    | VerticalCenter
-    | VerticalJustify
-
-
-type Axis
-    = XAxis
-    | YAxis
-    | AllAxis
-
-
-type Location
-    = Above
-    | Below
-    | OnRight
-    | OnLeft
-    | Within
 
 
 
@@ -301,156 +390,6 @@ toStyleSheet styles =
     List.foldl combine "" styles
 
 
-
--- renderStyle : Strategy -> Style -> Html.Attribute msg
--- renderStyle
--- inline styles -> add as Html.Attributes.style
--- viaVirtualCss -> Generate Class via index, pass up css structure
---
-
-
-unstyled =
-    Styled []
-
-
-static =
-    """
-.style-elements {
-    width: 100%;
-    height: 100%;
-}
-
-.el {
-    position: relative;
-    display: block;
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    border-width: 0;
-}
-
-.paragraph > .el {
-    display: inline;
-}
-
-.paragraph > .el > .text {
-    display: inline;
-}
-
-.paragraph > .row {
-    display: inline-flex;
-}
-.paragraph > .column {
-    display: inline-flex;
-}
-.paragraph > .grid {
-    display: inline-grid;
-}
-
-.row {
-    display: flex;
-    flex-direction: row;
-}
-
-.row > .align-top {
-    align-self: flex-start;
-}
-.row > .align-bottom {
-    align-self: flex-end;
-}
-.row > .vertical-center {
-    align-self: center;
-}
-
-.row.align-left {
-    justify-content: flex-start;
-}
-.row.align-right {
-    justify-content: flex-end;
-}
-.row.center {
-    justify-content: center;
-}
-.row.spread {
-    justify-content: space-between;
-}
-.row.align-top {
-    align-items: flex-start;
-}
-.row.align-bottom {
-    align-items: flex-end;
-}
-.row.vertical-center {
-    align-items: center;
-}
-
-
-.column {
-    display: flex;
-    flex-direction: column;
-}
-.column > .align-left {
-    align-self: flex-start;
-}
-.column > .align-right {
-    align-self: flex-end;
-}
-.column > .center {
-    align-self: center;
-}
-.column.align-left {
-    align-items: flex-start;
-}
-.column.align-right {
-    align-items: flex-end;
-}
-.column.center {
-    align-items: center;
-}
-.column.spread {
-    justify-content: space-between;
-}
-.column.align-top {
-    justify-content: flex-start;
-}
-.column.align-bottom {
-    justify-content: flex-end;
-}
-.column.vertical-center {
-    justify-content: center;
-}
-
-.el.below {
-    position: absolute;
-    bottom: 0;
-    height: 0;
-}
-.el.above {
-    position: absolute;
-    top: 0;
-    height: 0;
-}
-.el.on-right {
-    position: absolute;
-    left: 100%;
-    width: 0;
-}
-.el.on-left {
-    position: absolute;
-    right: 100%;
-    width: 0;
-}
-.el.overlay {
-    position: absolute;
-    left:0;
-    top:0;
-}
-
-
-
-"""
-
-
 viewportStylesheet =
     """html, body {
         height: 100%;
@@ -462,11 +401,16 @@ viewportStylesheet =
 
 staticSheet : Html msg
 staticSheet =
-    Html.node "style" [] [ Html.text static ]
+    Html.node "style" [] [ Html.text Next.Internal.Style.rules ]
 
 
 viewportSheet =
-    Html.node "style" [] [ Html.text (viewportStylesheet ++ static) ]
+    Html.node "style" [] [ Html.text (viewportStylesheet ++ Next.Internal.Style.rules) ]
+
+
+
+-- unstyled =
+-- Styled []
 
 
 {-| Classes Needed
@@ -506,46 +450,57 @@ render position index addedChildren el =
         positionClass =
             case position of
                 FirstAndLast ->
-                    "el first-and-last"
+                    "se first-and-last"
 
                 Last ->
-                    "el last"
+                    "se last"
 
                 First ->
-                    "el first"
+                    "se first"
 
                 Middle ->
-                    "el middle"
+                    "se middle"
     in
     case el of
         Empty ->
             Styled [] (Html.text "")
 
         Text decoration content ->
-            case decoration of
-                NoDecoration ->
-                    unstyled <| Html.div [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
+            let
+                ( otherChildrenStyles, renderedOtherChildren ) =
+                    renderOtherChildren 1 index addedChildren
 
+                renderText node =
+                    Styled otherChildrenStyles <|
+                        node [ Html.Attributes.class (positionClass ++ " text") ]
+                            (Html.text content :: renderedOtherChildren)
+            in
+            case decoration of
                 RawText ->
-                    unstyled <| Html.text content
+                    -- This isn't exposed in a public API, but is only used internally when raw text is needed
+                    -- (mostly for Element.Input output)
+                    Styled [] (Html.text content)
+
+                NoDecoration ->
+                    renderText Html.div
 
                 Bold ->
-                    unstyled <| Html.strong [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
+                    renderText Html.strong
 
                 Italic ->
-                    unstyled <| Html.em [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
+                    renderText Html.em
 
                 Underline ->
-                    unstyled <| Html.u [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
+                    renderText Html.u
 
                 Strike ->
-                    unstyled <| Html.u [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
+                    renderText Html.u
 
                 Super ->
-                    unstyled <| Html.sup [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
+                    renderText Html.sup
 
                 Sub ->
-                    unstyled <| Html.sub [ Html.Attributes.class (positionClass ++ " text") ] [ Html.text content ]
+                    renderText Html.sub
 
         Spacer pixels ->
             let
@@ -553,9 +508,7 @@ render position index addedChildren el =
                     "styled-" ++ String.join "" (List.map toString index)
 
                 spacings =
-                    [ renderDependent ("#" ++ self) <|
-                        FollowingSibling ".el" [ Property "margin-left" "0", Property "margin-top" "0" ]
-                    , Style (".row > ." ++ self)
+                    [ Style (".row > ." ++ self)
                         [ Property "width" (toString pixels ++ "px")
                         , Property "height" "0px"
                         ]
@@ -567,12 +520,12 @@ render position index addedChildren el =
             in
             Styled spacings
                 (Html.node "span"
-                    [ Html.Attributes.class self ]
+                    [ Html.Attributes.class (self ++ " spacer") ]
                     []
                 )
 
         El name attributes child ->
-            renderStyled name index attributes positionClass SingleLayout [ child ] addedChildren ""
+            renderStyled name index attributes positionClass SingleLayout [ child ] addedChildren "el"
 
         Row name attributes children ->
             renderStyled name index attributes positionClass RowLayout children addedChildren "row"
@@ -611,7 +564,7 @@ positionNearby ( location, element ) =
         OnLeft ->
             El "div" [ Attr <| Html.Attributes.class "on-left" ] element
 
-        Within ->
+        Overlay ->
             El "div" [ Attr <| Html.Attributes.class "overlay" ] element
 
 
@@ -624,12 +577,11 @@ renderStyled name index attributes positionClass hint children otherChildren add
         ( otherChildrenStyles, renderedOtherChildren ) =
             renderOtherChildren (List.length children) index otherChildren
 
-        -- { attributes, styleProperties, otherStyles }
         rendered =
             renderAttributes hint attributes
 
         self =
-            "styled-" ++ String.join "" (List.map toString index)
+            "styled-" ++ String.join "-" (List.map toString index)
 
         myStyle =
             Style ("#" ++ self)
@@ -690,9 +642,26 @@ type alias Gathered msg =
     { attributes : List (Html.Attribute msg)
     , styleProperties : List Property
     , otherStyles : List DependentStyle
+    , filters : Maybe String
+    , boxShadows : Maybe String
+    , textShadows : Maybe String
+    , padding :
+        Maybe
+            { top : Maybe Float
+            , left : Maybe Float
+            , bottom : Maybe Float
+            , right : Maybe Float
+            }
     , rotation : Maybe String
     , translation : Maybe ( Maybe Float, Maybe Float, Maybe Float )
     , scale : Maybe ( Maybe Float, Maybe Float, Maybe Float )
+    , hasWidth : Bool
+    , hasHeight : Bool
+    , hasXContentAlign : Bool
+    , hasYContentAlign : Bool
+    , hasXSelfAlign : Bool
+    , hasYSelfAlign : Bool
+    , hasSpacing : Bool
     }
 
 
@@ -728,9 +697,20 @@ renderAttributes hint attrs =
             { attributes = []
             , styleProperties = []
             , otherStyles = []
+            , padding = Nothing
             , rotation = Nothing
             , translation = Nothing
             , scale = Nothing
+            , filters = Nothing
+            , boxShadows = Nothing
+            , textShadows = Nothing
+            , hasWidth = False
+            , hasHeight = False
+            , hasXContentAlign = False
+            , hasYContentAlign = False
+            , hasXSelfAlign = False
+            , hasYSelfAlign = False
+            , hasSpacing = False
             }
     in
     List.foldr (gatherAttributes hint) init attrs
@@ -775,13 +755,84 @@ formatTransformations gathered =
             [ scale, translate, gathered.rotation ]
                 |> List.filterMap identity
                 |> String.join " "
+
+        addPadding padding props =
+            Property "padding-top" ((toString <| Maybe.withDefault 0 padding.top) ++ "px")
+                :: Property "padding-bottom" ((toString <| Maybe.withDefault 0 padding.bottom) ++ "px")
+                :: Property "padding-left" ((toString <| Maybe.withDefault 0 padding.left) ++ "px")
+                :: Property "padding-right" ((toString <| Maybe.withDefault 0 padding.right) ++ "px")
+                :: props
+
+        expandWidth padding =
+            Child ".expand-width"
+                [ Property "width" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.left + Maybe.withDefault 0 padding.right) ++ "px)")
+                , Property "margin-left" (toString (negate <| Maybe.withDefault 0 padding.left) ++ "px")
+                ]
+
+        expandHeight padding =
+            Child ".expand-height"
+                [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.left + Maybe.withDefault 0 padding.right) ++ "px)")
+                , Property "margin-top" (toString (negate <| Maybe.withDefault 0 padding.top) ++ "px")
+                ]
+
+        addFilters filters props =
+            case filters of
+                Nothing ->
+                    props
+
+                Just filts ->
+                    Property "filters" filts :: props
+
+        addBoxShadows shadows props =
+            case shadows of
+                Nothing ->
+                    props
+
+                Just shades ->
+                    Property "box-shadow" shades :: props
+
+        addTextShadows shadows props =
+            case shadows of
+                Nothing ->
+                    props
+
+                Just shades ->
+                    Property "text-shadow" shades :: props
     in
-    if transform == "" then
-        gathered
-    else
-        { gathered
-            | styleProperties = Property "transform" transform :: gathered.styleProperties
-        }
+    case gathered.padding of
+        Nothing ->
+            let
+                style =
+                    gathered.styleProperties
+                        |> addFilters gathered.filters
+                        |> addBoxShadows gathered.boxShadows
+                        |> addTextShadows gathered.textShadows
+            in
+            { gathered
+                | styleProperties =
+                    if transform == "" then
+                        style
+                    else
+                        Property "transform" transform :: style
+            }
+
+        Just pad ->
+            let
+                style =
+                    gathered.styleProperties
+                        |> addPadding pad
+                        |> addBoxShadows gathered.boxShadows
+                        |> addTextShadows gathered.textShadows
+            in
+            { gathered
+                | styleProperties =
+                    if transform == "" then
+                        style
+                    else
+                        Property "transform" transform :: style
+                , otherStyles =
+                    expandWidth pad :: expandHeight pad :: gathered.otherStyles
+            }
 
 
 type LayoutHint
@@ -794,72 +845,221 @@ type LayoutHint
 gatherAttributes : LayoutHint -> Attribute msg -> Gathered msg -> Gathered msg
 gatherAttributes hint attr gathered =
     case attr of
-        StyleProps props ->
-            { gathered | styleProperties = props ++ gathered.styleProperties }
+        StyleProperty name val ->
+            { gathered | styleProperties = Property name val :: gathered.styleProperties }
+
+        FontFamily family ->
+            let
+                renderedFonts : Property
+                renderedFonts =
+                    let
+                        renderFont font =
+                            case font of
+                                Serif ->
+                                    "serif"
+
+                                SansSerif ->
+                                    "sans-serif"
+
+                                Monospace ->
+                                    "monospace"
+
+                                Typeface name ->
+                                    "\"" ++ name ++ "\""
+
+                                ImportFont name url ->
+                                    "\"" ++ name ++ "\""
+                    in
+                    family
+                        |> List.map renderFont
+                        |> String.join ", "
+                        |> Property "font-family"
+            in
+            { gathered | styleProperties = renderedFonts :: gathered.styleProperties }
+
+        Hidden ->
+            { gathered | attributes = Html.Attributes.class "hidden" :: gathered.attributes }
 
         Height len ->
-            case len of
-                Px px ->
-                    -- add width: Xpx to current style
-                    { gathered | styleProperties = Property "height" (toString px ++ "px") :: gathered.styleProperties }
+            if gathered.hasHeight then
+                gathered
+            else
+                case len of
+                    Px px ->
+                        -- add width: Xpx to current style
+                        { gathered
+                            | styleProperties = Property "height" (toString px ++ "px") :: gathered.styleProperties
+                            , hasHeight = True
+                        }
 
-                Content ->
-                    -- need to default to alignLeft
-                    { gathered | styleProperties = Property "height" "auto" :: gathered.styleProperties }
+                    Content ->
+                        -- need to default to alignLeft
+                        { gathered
+                            | styleProperties = Property "height" "auto" :: gathered.styleProperties
+                            , hasHeight = True
+                        }
 
-                Expand ->
-                    -- add class "expand-height"
-                    { gathered | attributes = Html.Attributes.class "expand-height" :: gathered.attributes }
+                    Expand ->
+                        -- add class "expand-height"
+                        { gathered
+                            | attributes = Html.Attributes.class "expand-height" :: gathered.attributes
+                            , hasHeight = True
+                        }
 
-                Fill portion ->
-                    -- renders as flex-grow: portion
-                    { gathered | styleProperties = Property "height" "100%" :: gathered.styleProperties }
+                    Fill portion ->
+                        -- renders as flex-grow: portion
+                        { gathered
+                            | styleProperties = Property "height" "100%" :: gathered.styleProperties
+                            , hasHeight = True
+                        }
 
         Width len ->
-            case len of
-                Px px ->
-                    -- add width: Xpx to current style
-                    { gathered | styleProperties = Property "width" (toString px ++ "px") :: gathered.styleProperties }
+            if gathered.hasWidth then
+                gathered
+            else
+                case len of
+                    Px px ->
+                        -- add width: Xpx to current style
+                        { gathered | styleProperties = Property "width" (toString px ++ "px") :: gathered.styleProperties, hasWidth = True }
 
-                Content ->
-                    -- need to default to alignLeft
-                    { gathered | styleProperties = Property "width" "auto" :: gathered.styleProperties }
+                    Content ->
+                        -- need to default to alignLeft
+                        { gathered
+                            | styleProperties = Property "width" "auto" :: gathered.styleProperties
+                            , hasWidth = True
+                        }
 
-                Expand ->
-                    -- add class "expand-width"
-                    { gathered | attributes = Html.Attributes.class "expand-width" :: gathered.attributes }
+                    Expand ->
+                        -- add class "expand-width"
+                        { gathered
+                            | attributes = Html.Attributes.class "expand-width" :: gathered.attributes
+                            , hasWidth = True
+                        }
 
-                Fill portion ->
-                    -- renders as flex-grow: portion
-                    { gathered | styleProperties = Property "width" "100%" :: gathered.styleProperties }
+                    Fill portion ->
+                        -- renders as flex-grow: portion
+                        { gathered
+                            | styleProperties = Property "width" "100%" :: gathered.styleProperties
+                            , hasWidth = True
+                        }
 
-        HAlign alignment ->
-            case alignment of
-                AlignLeft ->
-                    { gathered | attributes = Html.Attributes.class "align-left" :: gathered.attributes }
+        ContentXAlign alignment ->
+            if gathered.hasXContentAlign then
+                gathered
+            else
+                case alignment of
+                    AlignLeft ->
+                        { gathered
+                            | attributes = Html.Attributes.class "content-left" :: gathered.attributes
+                            , hasXContentAlign = True
+                        }
 
-                AlignRight ->
-                    { gathered | attributes = Html.Attributes.class "align-right" :: gathered.attributes }
+                    AlignRight ->
+                        { gathered
+                            | attributes =
+                                Html.Attributes.class "content-right"
+                                    :: gathered.attributes
+                            , hasXContentAlign = True
+                        }
 
-                Center ->
-                    { gathered | attributes = Html.Attributes.class "center" :: gathered.attributes }
+                    XCenter ->
+                        { gathered
+                            | attributes = Html.Attributes.class "content-center-x" :: gathered.attributes
+                            , hasXContentAlign = True
+                        }
 
-                Spread ->
-                    { gathered | attributes = Html.Attributes.class "spread" :: gathered.attributes }
+                    Spread ->
+                        { gathered
+                            | attributes = Html.Attributes.class "spread" :: gathered.attributes
+                            , hasXContentAlign = True
+                        }
 
-        VAlign alignment ->
-            case alignment of
-                AlignTop ->
-                    { gathered | attributes = Html.Attributes.class "align-top" :: gathered.attributes }
+        ContentYAlign alignment ->
+            if gathered.hasYContentAlign then
+                gathered
+            else
+                case alignment of
+                    AlignTop ->
+                        { gathered
+                            | attributes = Html.Attributes.class "content-top" :: gathered.attributes
+                            , hasYContentAlign = True
+                        }
 
-                AlignBottom ->
-                    { gathered | attributes = Html.Attributes.class "align-bottom" :: gathered.attributes }
+                    AlignBottom ->
+                        { gathered
+                            | attributes = Html.Attributes.class "content-bottom" :: gathered.attributes
+                            , hasYContentAlign = True
+                        }
 
-                VerticalCenter ->
-                    { gathered | attributes = Html.Attributes.class "vertical-center" :: gathered.attributes }
+                    YCenter ->
+                        { gathered
+                            | attributes = Html.Attributes.class "content-center-y" :: gathered.attributes
+                            , hasYContentAlign = True
+                        }
 
-                VerticalJustify ->
-                    { gathered | attributes = Html.Attributes.class "vertical-justify" :: gathered.attributes }
+                    VerticalJustify ->
+                        { gathered
+                            | attributes = Html.Attributes.class "vertical-justify" :: gathered.attributes
+                            , hasYContentAlign = True
+                        }
+
+        SelfXAlign alignment ->
+            if gathered.hasXSelfAlign then
+                gathered
+            else
+                case alignment of
+                    AlignLeft ->
+                        { gathered
+                            | attributes = Html.Attributes.class "self-left" :: gathered.attributes
+                            , hasXSelfAlign = True
+                        }
+
+                    AlignRight ->
+                        { gathered
+                            | attributes = Html.Attributes.class "self-right" :: gathered.attributes
+                            , hasXSelfAlign = True
+                        }
+
+                    XCenter ->
+                        { gathered
+                            | attributes = Html.Attributes.class "self-center-x" :: gathered.attributes
+                            , hasXSelfAlign = True
+                        }
+
+                    Spread ->
+                        { gathered
+                            | attributes = Html.Attributes.class "spread" :: gathered.attributes
+                            , hasXSelfAlign = True
+                        }
+
+        SelfYAlign alignment ->
+            if gathered.hasYSelfAlign then
+                gathered
+            else
+                case alignment of
+                    AlignTop ->
+                        { gathered
+                            | attributes = Html.Attributes.class "self-top" :: gathered.attributes
+                            , hasYSelfAlign = True
+                        }
+
+                    AlignBottom ->
+                        { gathered
+                            | attributes = Html.Attributes.class "self-bottom" :: gathered.attributes
+                            , hasYSelfAlign = True
+                        }
+
+                    YCenter ->
+                        { gathered
+                            | attributes = Html.Attributes.class "self-center-y" :: gathered.attributes
+                            , hasYSelfAlign = True
+                        }
+
+                    VerticalJustify ->
+                        { gathered
+                            | attributes = Html.Attributes.class "vertical-justify" :: gathered.attributes
+                            , hasYSelfAlign = True
+                        }
 
         Move mx my mz ->
             -- add translate to the transform stack
@@ -889,6 +1089,30 @@ gatherAttributes hint attr gathered =
                                 )
             in
             { gathered | translation = translate }
+
+        Filter filter ->
+            case gathered.filters of
+                Nothing ->
+                    { gathered | filters = Just (filterName filter) }
+
+                Just existing ->
+                    { gathered | filters = Just (filterName filter ++ " " ++ existing) }
+
+        BoxShadow shadow ->
+            case gathered.boxShadows of
+                Nothing ->
+                    { gathered | boxShadows = Just (formatBoxShadow shadow) }
+
+                Just existing ->
+                    { gathered | boxShadows = Just (formatBoxShadow shadow ++ ", " ++ existing) }
+
+        TextShadow shadow ->
+            case gathered.textShadows of
+                Nothing ->
+                    { gathered | textShadows = Just (formatTextShadow shadow) }
+
+                Just existing ->
+                    { gathered | textShadows = Just (formatTextShadow shadow ++ ", " ++ existing) }
 
         Rotate x y z angle ->
             { gathered
@@ -942,73 +1166,101 @@ gatherAttributes hint attr gathered =
             }
 
         Spacing spacing ->
-            -- Add a new style > .children
-            case hint of
-                RowLayout ->
-                    { gathered
-                        | otherStyles =
-                            Child ".middle" [ Property "margin-left" (toString spacing ++ "px") ]
-                                :: Child ".last" [ Property "margin-left" (toString spacing ++ "px") ]
-                                :: gathered.otherStyles
-                    }
+            if gathered.hasSpacing then
+                gathered
+            else
+                -- Add a new style > .children
+                case hint of
+                    RowLayout ->
+                        { gathered
+                            | otherStyles =
+                                Child ".middle" [ Property "margin-left" (toString spacing ++ "px") ]
+                                    :: Child ".last" [ Property "margin-left" (toString spacing ++ "px") ]
+                                    :: gathered.otherStyles
+                            , hasSpacing = True
+                        }
 
-                ColumnLayout ->
-                    { gathered
-                        | otherStyles =
-                            Child ".middle" [ Property "margin-top" (toString spacing ++ "px") ]
-                                :: Child ".last" [ Property "margin-top" (toString spacing ++ "px") ]
-                                :: gathered.otherStyles
-                    }
+                    ColumnLayout ->
+                        { gathered
+                            | otherStyles =
+                                Child ".middle" [ Property "margin-top" (toString spacing ++ "px") ]
+                                    :: Child ".last" [ Property "margin-top" (toString spacing ++ "px") ]
+                                    :: gathered.otherStyles
+                            , hasSpacing = True
+                        }
 
-                GridLayout ->
-                    { gathered
-                        | styleProperties =
-                            Property "grid-column-gap" (toString spacing ++ "px")
-                                :: Property "grid-row-gap" (toString spacing ++ "px")
-                                :: gathered.styleProperties
-                    }
+                    GridLayout ->
+                        { gathered
+                            | styleProperties =
+                                Property "grid-column-gap" (toString spacing ++ "px")
+                                    :: Property "grid-row-gap" (toString spacing ++ "px")
+                                    :: gathered.styleProperties
+                            , hasSpacing = True
+                        }
 
-                SingleLayout ->
-                    gathered
+                    SingleLayout ->
+                        gathered
 
         SpacingXY x y ->
-            case hint of
-                RowLayout ->
-                    { gathered
-                        | otherStyles =
-                            Child ".middle" [ Property "margin-left" (toString x ++ "px") ]
-                                :: Child ".last" [ Property "margin-left" (toString x ++ "px") ]
-                                :: gathered.otherStyles
-                    }
+            if gathered.hasSpacing then
+                gathered
+            else
+                case hint of
+                    RowLayout ->
+                        { gathered
+                            | otherStyles =
+                                Child ".middle" [ Property "margin-left" (toString x ++ "px") ]
+                                    :: Child ".last" [ Property "margin-left" (toString x ++ "px") ]
+                                    :: gathered.otherStyles
+                            , hasSpacing = True
+                        }
 
-                ColumnLayout ->
-                    { gathered
-                        | otherStyles =
-                            Child ".middle" [ Property "margin-top" (toString y ++ "px") ]
-                                :: Child ".last" [ Property "margin-top" (toString y ++ "px") ]
-                                :: gathered.otherStyles
-                    }
+                    ColumnLayout ->
+                        { gathered
+                            | otherStyles =
+                                Child ".middle" [ Property "margin-top" (toString y ++ "px") ]
+                                    :: Child ".last" [ Property "margin-top" (toString y ++ "px") ]
+                                    :: gathered.otherStyles
+                            , hasSpacing = True
+                        }
 
-                GridLayout ->
-                    { gathered
-                        | styleProperties =
-                            Property "grid-column-gap" (toString x ++ "px")
-                                :: Property "grid-row-gap" (toString y ++ "px")
-                                :: gathered.styleProperties
-                    }
+                    GridLayout ->
+                        { gathered
+                            | styleProperties =
+                                Property "grid-column-gap" (toString x ++ "px")
+                                    :: Property "grid-row-gap" (toString y ++ "px")
+                                    :: gathered.styleProperties
+                            , hasSpacing = True
+                        }
 
-                SingleLayout ->
-                    gathered
+                    SingleLayout ->
+                        gathered
 
-        Padding { top, right, bottom, left } ->
-            -- render to current style
+        Padding pad ->
+            let
+                ifMissing x y =
+                    case x of
+                        Nothing ->
+                            y
+
+                        _ ->
+                            x
+
+                mergePadding exist pad =
+                    case exist of
+                        Nothing ->
+                            pad
+
+                        Just existing ->
+                            { top = ifMissing existing.top pad.top
+                            , bottom = ifMissing existing.bottom pad.bottom
+                            , left = ifMissing existing.left pad.left
+                            , right = ifMissing existing.right pad.right
+                            }
+            in
             { gathered
-                | styleProperties =
-                    gathered.styleProperties
-                        |> addMaybe (Maybe.map (\x -> Property "padding-top" (toString x ++ "px")) top)
-                        |> addMaybe (Maybe.map (\x -> Property "padding-bottom" (toString x ++ "px")) bottom)
-                        |> addMaybe (Maybe.map (\x -> Property "padding-left" (toString x ++ "px")) left)
-                        |> addMaybe (Maybe.map (\x -> Property "padding-right" (toString x ++ "px")) right)
+                | padding =
+                    Just (mergePadding gathered.padding pad)
             }
 
         Overflow overflow ->
@@ -1027,14 +1279,6 @@ gatherAttributes hint attr gathered =
                     { gathered
                         | styleProperties = Property "overflow" "auto" :: gathered.styleProperties
                     }
-
-        Event attr ->
-            -- add to current attributes
-            { gathered | attributes = attr :: gathered.attributes }
-
-        InputEvent attr ->
-            -- add to current attributes
-            { gathered | attributes = attr :: gathered.attributes }
 
         Attr attr ->
             -- add to current attributes
@@ -1109,133 +1353,46 @@ positionMap fn list =
                 |> Tuple.second
 
 
-
--- {-| -}
--- lazy : (a -> Element msg) -> a -> Element msg
--- lazy fn a =
---     Styled
---         (VirtualCss.lazy (renderStyles << fn) a)
---         (Html.lazy (renderHtml << fn) a)
-{- API Interface -}
-
-
-style : List Property -> Attribute msg
-style =
-    StyleProps
+formatColor : Color -> String
+formatColor color =
+    let
+        { red, green, blue, alpha } =
+            Color.toRgb color
+    in
+    ("rgba(" ++ toString red)
+        ++ ("," ++ toString green)
+        ++ ("," ++ toString blue)
+        ++ ("," ++ toString alpha ++ ")")
 
 
-prop : String -> String -> Property
-prop =
-    Property
+formatDropShadow shadow =
+    String.join " "
+        [ toString (Tuple.first shadow.offset) ++ "px"
+        , toString (Tuple.second shadow.offset) ++ "px"
+        , toString shadow.blur ++ "px"
+        , formatColor shadow.color
+        ]
 
 
-{-| -}
-center : Attribute msg
-center =
-    HAlign Center
+formatTextShadow shadow =
+    String.join " "
+        [ toString (Tuple.first shadow.offset) ++ "px"
+        , toString (Tuple.second shadow.offset) ++ "px"
+        , toString shadow.blur ++ "px"
+        , formatColor shadow.color
+        ]
 
 
-{-| -}
-verticalCenter : Attribute msg
-verticalCenter =
-    VAlign VerticalCenter
-
-
-{-| -}
-verticalSpread : Attribute msg
-verticalSpread =
-    VAlign VerticalJustify
-
-
-{-| -}
-spread : Attribute msg
-spread =
-    HAlign Spread
-
-
-{-| -}
-alignTop : Attribute msg
-alignTop =
-    VAlign AlignTop
-
-
-{-| -}
-alignBottom : Attribute msg
-alignBottom =
-    VAlign AlignBottom
-
-
-{-| -}
-alignLeft : Attribute msg
-alignLeft =
-    HAlign AlignLeft
-
-
-{-| -}
-alignRight : Attribute msg
-alignRight =
-    HAlign AlignRight
-
-
-{-| -}
-width : Length -> Attribute msg
-width =
-    Width
-
-
-{-| -}
-height : Length -> Attribute msg
-height =
-    Height
-
-
-{-| -}
-px : Float -> Length
-px =
-    Px
-
-
-{-| -}
-content : Length
-content =
-    Content
-
-
-{-| -}
-fill : Length
-fill =
-    Fill 1
-
-
-spacing : Float -> Attribute msg
-spacing =
-    Spacing
-
-
-spacingXY : Float -> Float -> Attribute msg
-spacingXY =
-    SpacingXY
-
-
-{-| -}
-moveUp : Float -> Attribute msg
-moveUp y =
-    Move Nothing (Just (negate y)) Nothing
-
-
-{-| -}
-moveDown : Float -> Attribute msg
-moveDown y =
-    Move Nothing (Just y) Nothing
-
-
-{-| -}
-moveRight : Float -> Attribute msg
-moveRight x =
-    Move (Just x) Nothing Nothing
-
-
-{-| -}
-moveLeft : Float -> Attribute msg
-moveLeft x =
-    Move (Just (negate x)) Nothing Nothing
+formatBoxShadow shadow =
+    String.join " " <|
+        List.filterMap identity
+            [ if shadow.inset then
+                Just "inset"
+              else
+                Nothing
+            , Just <| toString (Tuple.first shadow.offset) ++ "px"
+            , Just <| toString (Tuple.second shadow.offset) ++ "px"
+            , Just <| toString shadow.blur ++ "px"
+            , Just <| toString shadow.size ++ "px"
+            , Just <| formatColor shadow.color
+            ]
