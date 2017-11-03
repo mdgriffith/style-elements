@@ -8,13 +8,17 @@ module Main exposing (..)
 -}
 
 import AnimationFrame
+import Color
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Lazy
 import Murmur3
-import Next.Internal.Model as Next
+import Next.Element as Next
+import Next.Element.Content as Content
+import Next.Element.Position as Position
+import Next.Style.Color as Color
 import Time exposing (Time)
 import VirtualCss
 
@@ -571,15 +575,17 @@ styleElements time nodes renderer =
             let
                 el i =
                     Next.el
-                        [ Next.width (Next.px 10)
-                        , Next.height (Next.px 10)
-                        , Next.style props
-                        ]
+                        ([ Next.width (Next.px 10)
+                         , Next.height (Next.px 10)
+                         ]
+                            ++ props
+                        )
                         Next.empty
             in
             Next.row
                 [ Next.width (Next.px 600)
-                , Next.style [ Next.prop "flex-wrap" "wrap", Next.prop "margin-top" "100px" ]
+                , Content.padding 100
+                , Content.spacing 10
                 ]
                 (List.map el (List.range 0 (x - 1)))
 
@@ -591,26 +597,16 @@ styleElements time nodes renderer =
 
         props =
             List.filterMap identity
-                [ Just <| Next.prop "margin-right" "10px"
-                , Just <| Next.prop "margin-bottom" "10px"
-                , if renderer.color then
-                    Just <| Next.prop "background-color" ("rgb(" ++ toString r ++ ", " ++ toString g ++ ", " ++ toString b ++ ")")
+                [ if renderer.color then
+                    Just <| Color.background (Color.rgb r g b)
                   else
                     Nothing
-                , if renderer.translate || renderer.rotate then
-                    Just <|
-                        Next.prop "transform" <|
-                            (String.join " " <|
-                                [ if renderer.translate then
-                                    "translate(" ++ toString pos ++ "px, 0px)"
-                                  else
-                                    ""
-                                , if renderer.rotate then
-                                    "rotate(" ++ toString pos ++ "deg)"
-                                  else
-                                    ""
-                                ]
-                            )
+                , if renderer.translate then
+                    Just <| Position.moveRight pos
+                  else
+                    Nothing
+                , if renderer.rotate then
+                    Just <| Position.rotate pos
                   else
                     Nothing
                 ]
@@ -618,7 +614,8 @@ styleElements time nodes renderer =
     -- if renderer.lazy then
     --     Html.Lazy.lazy fixed nodes
     -- else
-    Next.layout <| fixed nodes
+    Next.layout []
+        (fixed nodes)
 
 
 virtualCss time nodes renderer =
