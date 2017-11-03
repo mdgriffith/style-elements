@@ -390,7 +390,7 @@ renderVariationProp parentClass prop =
 
         PseudoElement class props ->
             (Just << Intermediate.SubClass << Intermediate.Class)
-                { selector = Debug.log "rendering variation pseudo" <| Selector.pseudo class parentClass
+                { selector = Selector.pseudo class parentClass
                 , props = List.filterMap (renderVariationProp parentClass) props
                 }
 
