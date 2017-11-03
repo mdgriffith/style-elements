@@ -20,6 +20,12 @@ text clr =
     StyleProperty "color" (formatColor clr)
 
 
+
+-- Single ("c-" ++ toString clr.red ++ "-" ++ toString clr.red ++ "-" ++ toString clr.red ++ "-" ++ toString clr.alpha)
+-- "color"
+-- (formatColor clr)
+
+
 {-| -}
 background : Color -> Attribute msg
 background clr =

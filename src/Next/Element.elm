@@ -13,12 +13,12 @@ module Next.Element
         , onLeft
         , onRight
         , overlay
-        , page
         , paragraph
         , px
         , row
         , space
         , text
+        , textPage
         , viewport
         , when
         , whenJust
@@ -29,6 +29,7 @@ module Next.Element
 
 import Html exposing (Html)
 import Html.Attributes
+import Next.Element.Events as Events
 import Next.Internal.Model exposing (..)
 
 
@@ -68,11 +69,12 @@ expand =
     Expand
 
 
+{-| -}
 layout : List (Attribute msg) -> Element msg -> Html msg
 layout attrs child =
     let
         (Styled styles html) =
-            render FirstAndLast [ 0 ] [] (el attrs child)
+            render [ 0 ] [] (el attrs child)
     in
     Html.div [ Html.Attributes.class "style-elements" ]
         [ staticSheet
@@ -81,11 +83,12 @@ layout attrs child =
         ]
 
 
+{-| -}
 viewport : List (Attribute msg) -> Element msg -> Html msg
 viewport attrs child =
     let
         (Styled styles html) =
-            render FirstAndLast [ 0 ] [] (el attrs child)
+            render [ 0 ] [] (el attrs child)
     in
     Html.div [ Html.Attributes.class "style-elements" ]
         [ viewportSheet
@@ -106,11 +109,11 @@ text =
 
 paragraph : List (Attribute msg) -> List (Element msg) -> Element msg
 paragraph attrs children =
-    Paragraph (Width (Fill 1) :: Height (Fill 1) :: attrs) children
+    Paragraph (Width (Fill 1) :: attrs) children
 
 
-page : List (Attribute msg) -> List (Element msg) -> Element msg
-page attrs children =
+textPage : List (Attribute msg) -> List (Element msg) -> Element msg
+textPage attrs children =
     Page (Width (Px 650) :: attrs) children
 
 
@@ -200,3 +203,85 @@ whenJust maybe view =
 
         Just thing ->
             view thing
+
+
+type alias Button msg =
+    { onClick : msg
+    , content : Element msg
+    }
+
+
+{-| -}
+button : List (Attribute msg) -> Button msg -> Element msg
+button attrs { onClick, content } =
+    El "button" (Events.onClick onClick :: attrs) content
+
+
+{-| For images, both a source and a caption are required. The caption will serve as the alt-text.
+-}
+image : List (Attribute Never) -> { src : String, caption : String } -> Element msg
+image attrs { src, caption } =
+    El "img"
+        (Attr (Html.Attributes.src src)
+            :: Attr (Html.Attributes.alt caption)
+            :: List.map (mapAttr Basics.never) attrs
+        )
+        empty
+
+
+{-| If an image is purely decorative, you can skip the caption.
+-}
+decorativeImage : List (Attribute Never) -> { src : String } -> Element msg
+decorativeImage attrs { src } =
+    El "img"
+        (Attr (Html.Attributes.src src)
+            :: Attr (Html.Attributes.alt "")
+            :: List.map (mapAttr Basics.never) attrs
+        )
+        empty
+
+
+{-| -}
+h1 : List (Attribute msg) -> Element msg -> Element msg
+h1 attrs child =
+    El "h1" (Width (Fill 1) :: Height (Fill 1) :: attrs) child
+
+
+{-| -}
+h2 : List (Attribute msg) -> Element msg -> Element msg
+h2 attrs child =
+    El "h2" (Width (Fill 1) :: Height (Fill 1) :: attrs) child
+
+
+{-| -}
+h3 : List (Attribute msg) -> Element msg -> Element msg
+h3 attrs child =
+    El "h3" (Width (Fill 1) :: Height (Fill 1) :: attrs) child
+
+
+{-| -}
+h4 : List (Attribute msg) -> Element msg -> Element msg
+h4 attrs child =
+    El "h4" (Width (Fill 1) :: Height (Fill 1) :: attrs) child
+
+
+{-| -}
+h5 : List (Attribute msg) -> Element msg -> Element msg
+h5 attrs child =
+    El "h5" (Width (Fill 1) :: Height (Fill 1) :: attrs) child
+
+
+{-| -}
+h6 : List (Attribute msg) -> Element msg -> Element msg
+h6 attrs child =
+    El "h6" (Width (Fill 1) :: Height (Fill 1) :: attrs) child
+
+
+{-| -}
+lazy : (a -> Element msg) -> a -> Element msg
+lazy fn a =
+    fn a
+
+
+
+-- Html.lazy fn a

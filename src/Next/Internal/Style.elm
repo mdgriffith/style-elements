@@ -22,6 +22,7 @@ type StyleClasses
     | Row
     | Column
     | Paragraph
+    | Page
     | Text
     | Grid
     | Spacer
@@ -188,6 +189,9 @@ class cls =
         Column ->
             ".column"
 
+        Page ->
+            ".page"
+
         Paragraph ->
             ".paragraph"
 
@@ -270,33 +274,6 @@ rules =
             [ Prop "width" "100%"
             , Prop "height" "100%"
             ]
-        , Class (class Text)
-            [ Prop "white-space" "pre"
-            , Prop "width" "100%"
-            ]
-        , Class (class Spacer)
-            [ Adjacent (class Any)
-                [ Prop "margin-top" "0"
-                , Prop "margin-left" "0"
-                ]
-            ]
-        , Class (class Paragraph)
-            [ Child (class Single)
-                [ Prop "display" "inline-flex"
-                , Child (class Text)
-                    [ Prop "display" "inline"
-                    ]
-                ]
-            , Child (class Row)
-                [ Prop "display" "inline-flex"
-                ]
-            , Child (class Column)
-                [ Prop "display" "inline-flex"
-                ]
-            , Child (class Grid)
-                [ Prop "display" "inline-grid"
-                ]
-            ]
         , Class (class Any)
             [ Prop "position" "relative"
             , Prop "display" "flex"
@@ -344,9 +321,25 @@ rules =
                                     , Prop "top" "0"
                                     ]
             ]
+        , Class (class Text)
+            [ Prop "white-space" "pre"
+            , Prop "display" "inline-block"
+            ]
+        , Class (class Spacer)
+            [ Adjacent (class Any)
+                [ Prop "margin-top" "0"
+                , Prop "margin-left" "0"
+                ]
+            ]
         , Class (class Single)
             [ Prop "display" "flex"
             , Prop "flex-direction" "row"
+            , Child ".height-fill"
+                [ Prop "height" "100%"
+                ]
+            , Child ".width-fill"
+                [ Prop "width" "100%"
+                ]
             , describeAlignment <|
                 \alignment ->
                     case alignment of
@@ -389,6 +382,12 @@ rules =
         , Class (class Row)
             [ Prop "display" "flex"
             , Prop "flex-direction" "row"
+            , Child ".height-fill"
+                [ Prop "height" "100%"
+                ]
+            , Child ".width-fill"
+                [ Prop "flex-grow" "1"
+                ]
             , describeAlignment <|
                 \alignment ->
                     case alignment of
@@ -431,6 +430,12 @@ rules =
         , Class (class Column)
             [ Prop "display" "flex"
             , Prop "flex-direction" "column"
+            , Child ".height-fill"
+                [ Prop "flex-grow" "1"
+                ]
+            , Child ".width-fill"
+                [ Prop "width" "100%"
+                ]
             , describeAlignment <|
                 \alignment ->
                     case alignment of
@@ -465,207 +470,117 @@ rules =
                             , []
                             )
             ]
+        , Class (class Page)
+            [ Prop "display" "block"
+
+            -- clear spacing of any subsequent element if an element is float-left
+            , Child (class Any ++ selfName (Self Left) ++ ":first-child + .se")
+                [ Prop "margin" "0 !important"
+                ]
+            , Child (class Any ++ selfName (Self Right) ++ ":first-child + .se")
+                [ Prop "margin" "0 !important"
+                ]
+            , describeAlignment <|
+                \alignment ->
+                    case alignment of
+                        Top ->
+                            ( []
+                            , []
+                            )
+
+                        Bottom ->
+                            ( []
+                            , []
+                            )
+
+                        Right ->
+                            ( []
+                            , [ Prop "float" "right"
+                              , Descriptor ":after:"
+                                    [ Prop "content" "\"\""
+                                    , Prop "display" "table"
+                                    , Prop "clear" "both"
+                                    ]
+                              ]
+                            )
+
+                        Left ->
+                            ( []
+                            , [ Prop "float" "left"
+                              , Descriptor ":after:"
+                                    [ Prop "content" "\"\""
+                                    , Prop "display" "table"
+                                    , Prop "clear" "both"
+                                    ]
+                              ]
+                            )
+
+                        CenterX ->
+                            ( []
+                            , []
+                            )
+
+                        CenterY ->
+                            ( []
+                            , []
+                            )
+            ]
+        , Class (class Paragraph)
+            [ Prop "display" "block"
+            , Child (class Text)
+                [ Prop "display" "inline"
+                , Prop "white-space" "normal"
+                ]
+            , Child (class Single)
+                [ Prop "display" "inline-flex"
+                , Child (class Text)
+                    [ Prop "display" "inline"
+                    , Prop "white-space" "normal"
+                    ]
+                ]
+            , Child (class Row)
+                [ Prop "display" "inline-flex"
+                ]
+            , Child (class Column)
+                [ Prop "display" "inline-flex"
+                ]
+            , Child (class Grid)
+                [ Prop "display" "inline-grid"
+                ]
+            , describeAlignment <|
+                \alignment ->
+                    case alignment of
+                        Top ->
+                            ( []
+                            , []
+                            )
+
+                        Bottom ->
+                            ( []
+                            , []
+                            )
+
+                        Right ->
+                            ( []
+                            , [ Prop "float" "right" ]
+                            )
+
+                        Left ->
+                            ( []
+                            , [ Prop "float" "left" ]
+                            )
+
+                        CenterX ->
+                            ( []
+                            , []
+                            )
+
+                        CenterY ->
+                            ( []
+                            , []
+                            )
+            ]
         , Class ".hidden"
             [ Prop "display" "none"
             ]
         ]
-
-
-static =
-    """
-.style-elements {
-    width: 100%;
-    height: 100%;
-}
-
-.el {
-    position: relative;
-    display: flex;
-    flex-direction: row;
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    border-width: 0;
-}
-
-.el.vertical-center > .el {
-    align-self: center;
-}
-.el.align-top > .el {
-    align-self: flex-start;
-}
-.el.align-bottom > .el {
-    align-self: flex-end;
-}
-.el.vertical-center > .el {
-    align-self: center;
-}
-.el.center > .el {
-    margin:0 auto;
-}
-.el.align-right > .el {
-    margin-left: auto;
-    margin-right: 0;
-}
-.el.align-left > .el {
-    margin-right: auto;
-    margin-left: 0;
-}
-
-
-
-
-.el > .align-top {
-    align-self: flex-start;
-}
-.el > .align-bottom {
-    align-self: flex-end;
-}
-.el > .vertical-center {
-    align-self: center;
-}
-.el > .center {
-    margin:0 auto;
-}
-.el > .align-right {
-    margin-left: auto;
-    margin-right: 0;
-}
-.el > .align-left {
-    margin-right: auto;
-    margin-left: 0;
-}
-
-.text {
-    white-space: pre;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    display: block;
-}
-
-
-.paragraph > .el {
-    display: inline;
-}
-.paragraph > .el > .text {
-    display: inline;
-}
-.paragraph > .row {
-    display: inline-flex;
-}
-.paragraph > .column {
-    display: inline-flex;
-}
-.paragraph > .grid {
-    display: inline-grid;
-}
-
-.row {
-    display: flex;
-    flex-direction: row;
-}
-
-.row > .align-top {
-    align-self: flex-start;
-}
-.row > .align-bottom {
-    align-self: flex-end;
-}
-.row > .vertical-center {
-    align-self: center;
-}
-
-.row.align-left {
-    justify-content: flex-start;
-}
-.row.align-right {
-    justify-content: flex-end;
-}
-
-.row.center {
-    justify-content: center;
-}
-
-.row.spread {
-    justify-content: space-between;
-}
-
-.row.align-top {
-    align-items: flex-start;
-}
-.row.align-bottom {
-    align-items: flex-end;
-}
-.row.vertical-center {
-    align-items: center;
-}
-
-
-.column {
-    display: flex;
-    flex-direction: column;
-}
-.column > .align-left {
-    align-self: flex-start;
-}
-.column > .align-right {
-    align-self: flex-end;
-}
-.column > .center {
-    align-self: center;
-}
-
-
-.column.align-left {
-    align-items: flex-start;
-}
-.column.align-right {
-    align-items: flex-end;
-}
-.column.center {
-    align-items: center;
-}
-
-.column.spread {
-    justify-content: space-between;
-}
-.column.align-top {
-    justify-content: flex-start;
-}
-.column.align-bottom {
-    justify-content: flex-end;
-}
-.column.vertical-center {
-    justify-content: center;
-}
-
-
-.el.below {
-    position: absolute;
-    bottom: 0;
-    height: 0;
-}
-.el.above {
-    position: absolute;
-    top: 0;
-    height: 0;
-}
-.el.on-right {
-    position: absolute;
-    left: 100%;
-    width: 0;
-}
-.el.on-left {
-    position: absolute;
-    right: 100%;
-    width: 0;
-}
-.el.overlay {
-    position: absolute;
-    left:0;
-    top:0;
-}
-
-
-
-"""

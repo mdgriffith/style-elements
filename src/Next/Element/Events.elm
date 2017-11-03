@@ -147,14 +147,14 @@ It really does help!
 -}
 on : String -> Json.Decoder msg -> Attribute msg
 on event decode =
-    Event <| Html.Events.on event decode
+    Attr <| Html.Events.on event decode
 
 
 {-| Same as `on` but you can set a few options.
 -}
 onWithOptions : String -> Html.Events.Options -> Json.Decoder msg -> Attribute msg
 onWithOptions event options decode =
-    Event <| Html.Events.onWithOptions event options decode
+    Attr <| Html.Events.onWithOptions event options decode
 
 
 

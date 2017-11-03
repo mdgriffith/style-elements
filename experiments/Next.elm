@@ -14,11 +14,8 @@ import Next.Element.Position as Position
 import Next.Internal.Style as Internal
 import Next.Style.Color as Color
 import Next.Style.Font as Font
+import Next.Style.Shadow as Shadow
 import Time exposing (Time)
-
-
--- _ =
--- Debug.log "styles"
 
 
 type Checkpoint
@@ -48,26 +45,8 @@ type Msg
     = NoOp
 
 
-
--- | StartAnim
--- | Tick Time
--- | StopMouse
--- | FollowMouse { x : Int, y : Int }
-
-
 update msg model =
     case msg of
-        -- Tick time ->
-        --     ( { model | timeline = Animator.update time model.timeline }
-        --     , Cmd.none
-        --     )
-        -- StartAnim ->
-        --     ( { model
-        --         | timeline = Animator.start timeline model.timeline
-        --         , trackingMouse = True
-        --       }
-        --     , Cmd.none
-        --     )
         NoOp ->
             ( model, Cmd.none )
 
@@ -166,6 +145,8 @@ view model =
                     (text "My Logo")
                 , el
                     [ Content.verticalCenter
+                    , Content.center
+                    , Font.center
 
                     -- , center
                     ]
@@ -182,18 +163,47 @@ view model =
                             (el [] (text "I am below, yup!"))
                     ]
                 ]
-
-            -- , el
-            --     [ Font.family
-            --         [ Font.typeface "Inconsolata"
-            --         , Font.monospace
-            --         ]
-            --     , Content.paddingXY 30 50
-            --     , Position.center
-            --     , width (px 600)
-            --     ]
-            --   <|
-            --     text Internal.rules
+            , el
+                [ Font.family
+                    [ Font.typeface "Inconsolata"
+                    , Font.monospace
+                    ]
+                , Content.paddingXY 30 50
+                , Position.center
+                , width (px 600)
+                ]
+                (text Internal.rules)
+            , textPage
+                [ Content.spacing 10
+                , Position.center
+                ]
+                [ el
+                    [ width (px 50)
+                    , height (px 50)
+                    , Color.background Color.blue
+                    , Position.alignRight
+                    ]
+                    empty
+                , paragraph []
+                    [ text ipsum
+                    ]
+                , paragraph []
+                    [ text ipsum
+                    ]
+                , paragraph []
+                    [ text ipsum
+                    ]
+                , el
+                    [ width (px 50)
+                    , height (px 50)
+                    , Color.background Color.blue
+                    , Position.alignRight
+                    ]
+                    empty
+                , paragraph []
+                    [ text ipsum
+                    ]
+                ]
             , column [ Content.spacing 20, Content.padding 20, width (px 200), Color.background Color.grey ]
                 [ el [ width fill, height (px 20), Color.background Color.blue ] empty
                 , el [ width expand, height (px 20), Color.background Color.blue ] empty
@@ -264,6 +274,10 @@ view model =
 --     --     , text "Hello "
 --     --     ]
 --     ]
+
+
+ipsum =
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris vel lectus eget lorem lobortis suscipit. Fusce porta auctor purus sed tempor. Mauris auctor sapien sit amet elementum egestas. Maecenas placerat consequat mauris, at dapibus enim tristique a. Quisque feugiat ultricies lorem nec volutpat. Sed risus enim, facilisis id fermentum quis, eleifend in diam. Suspendisse euismod, urna nec consectetur volutpat, massa libero aliquam urna, hendrerit venenatis leo lacus faucibus nulla. Curabitur et mattis dolor."
 
 
 {-| Can we propogate a width or height up the tree?

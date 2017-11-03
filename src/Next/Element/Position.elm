@@ -9,6 +9,7 @@ module Next.Element.Position
         , moveLeft
         , moveRight
         , moveUp
+        , rotate
         )
 
 {- API Interface -}
@@ -80,3 +81,9 @@ moveRight x =
 moveLeft : Float -> Attribute msg
 moveLeft x =
     Move (Just (negate x)) Nothing Nothing
+
+
+{-| -}
+rotate : Float -> Attribute msg
+rotate angle =
+    Rotate 0 0 1 angle

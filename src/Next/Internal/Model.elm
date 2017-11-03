@@ -1,10 +1,12 @@
 module Next.Internal.Model exposing (..)
 
 import Color exposing (Color)
+import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Attributes
 import Html.Lazy
 import Next.Internal.Style
+import Set
 
 
 type Element msg
@@ -72,6 +74,72 @@ type Attribute msg
         , color : Color
         }
     | Filter FilterType
+
+
+mapAttr fn attr =
+    case attr of
+        StyleProperty name val ->
+            StyleProperty name val
+
+        FontFamily typefaces ->
+            FontFamily typefaces
+
+        Opacity o ->
+            Opacity o
+
+        Hidden ->
+            Hidden
+
+        Height len ->
+            Height len
+
+        Width len ->
+            Width len
+
+        ContentXAlign align ->
+            ContentXAlign align
+
+        ContentYAlign align ->
+            ContentYAlign align
+
+        SelfXAlign align ->
+            SelfXAlign align
+
+        SelfYAlign align ->
+            SelfYAlign align
+
+        Move x y z ->
+            Move x y z
+
+        Rotate x y z a ->
+            Rotate x y z a
+
+        Scale x y z ->
+            Scale x y z
+
+        Spacing space ->
+            Spacing space
+
+        SpacingXY x y ->
+            SpacingXY x y
+
+        Padding pad ->
+            Padding pad
+
+        Attr htmlAttr ->
+            Attr (Html.Attributes.map fn htmlAttr)
+
+        Overflow axis ->
+            Overflow axis
+
+        TextShadow shadow ->
+            TextShadow shadow
+
+        BoxShadow shadow ->
+            BoxShadow shadow
+
+        Filter filter ->
+            Filter filter
 
 
 type FilterType
@@ -372,6 +440,7 @@ type Styled thing
 
 type Style
     = Style String (List Property)
+    | Keyed String (List ( String, List Property ))
 
 
 type Property
@@ -384,10 +453,28 @@ toStyleSheet styles =
         renderProps (Property key val) existing =
             existing ++ "\n" ++ key ++ ": " ++ val ++ ";"
 
-        combine (Style str props) rendered =
-            rendered ++ "\n" ++ str ++ "{" ++ List.foldl renderProps "" props ++ "}"
+        renderStyle selector props =
+            selector ++ "{" ++ List.foldl renderProps "" props ++ "}"
+
+        combine style ( rendered, cache ) =
+            case style of
+                Style selector props ->
+                    ( rendered ++ "\n" ++ renderStyle selector props
+                    , cache
+                    )
+
+                Keyed key styles ->
+                    if Set.member key cache then
+                        ( rendered, cache )
+                    else
+                        let
+                            merge ( selector, props ) existing =
+                                existing ++ "\n" ++ renderStyle selector props
+                        in
+                        ( List.foldl merge rendered styles, Set.insert key cache )
     in
-    List.foldl combine "" styles
+    List.foldl combine ( "", Set.empty ) styles
+        |> Tuple.first
 
 
 viewportStylesheet =
@@ -408,59 +495,10 @@ viewportSheet =
     Html.node "style" [] [ Html.text (viewportStylesheet ++ Next.Internal.Style.rules) ]
 
 
-
--- unstyled =
--- Styled []
-
-
 {-| Classes Needed
-
-.el ->
-On every element. When is it needed?
-paragraph -> sets children as .inline
-
-.expanded-width/expanded-height ->
-class added instead of rendering
-
-.styled-01 ->
-This is the actual styling class that is generated.
-
-.alignLeft, .alignRight, .center, .spread, .verticalCenter, .alignTop, .alignBottom ->
-These definitions change depending on what type of parent is present.
-
-  - Row, Column -> flexbox
-  - TextLayout, Paragraph -> Float
-  - container, el -> flexbox
-  - grid -> unaffected?
-
-.first, .middle, .firstAndLast, .last ->
-
-  - Used to set Spacing Margins
-  - Could it be replaced by nth-child? (<https://developer.mozilla.org/en-US/docs/Web/CSS/:nth-child>)
-
--- Elements Positioned Nearby
-
-  - Spacing doesn't directly apply to them (meaning nth-child selectors might not work)
-  - Parent Row/Column alignment should naturally not apply because nearby elements use `position:absolute`
-
 -}
-render : Position -> List Int -> List (Element msg) -> Element msg -> Styled (Html msg)
-render position index addedChildren el =
-    let
-        positionClass =
-            case position of
-                FirstAndLast ->
-                    "se first-and-last"
-
-                Last ->
-                    "se last"
-
-                First ->
-                    "se first"
-
-                Middle ->
-                    "se middle"
-    in
+render : List Int -> List (Element msg) -> Element msg -> Styled (Html msg)
+render index addedChildren el =
     case el of
         Empty ->
             Styled [] (Html.text "")
@@ -472,7 +510,7 @@ render position index addedChildren el =
 
                 renderText node =
                     Styled otherChildrenStyles <|
-                        node [ Html.Attributes.class (positionClass ++ " text") ]
+                        node [ Html.Attributes.class "se text width-fill" ]
                             (Html.text content :: renderedOtherChildren)
             in
             case decoration of
@@ -525,25 +563,25 @@ render position index addedChildren el =
                 )
 
         El name attributes child ->
-            renderStyled name index attributes positionClass SingleLayout [ child ] addedChildren "el"
+            renderStyled name index attributes [ child ] addedChildren "se el"
 
         Row name attributes children ->
-            renderStyled name index attributes positionClass RowLayout children addedChildren "row"
+            renderStyled name index attributes children addedChildren "se row"
 
         Column name attributes children ->
-            renderStyled name index attributes positionClass ColumnLayout children addedChildren "column"
+            renderStyled name index attributes children addedChildren "se column"
 
         Grid name attributes children ->
-            renderStyled name index attributes positionClass GridLayout children addedChildren "grid"
+            renderStyled name index attributes children addedChildren "se grid"
 
         Page attributes children ->
-            renderStyled "div" index attributes positionClass ColumnLayout children addedChildren "text"
+            renderStyled "div" index attributes children addedChildren "se page"
 
         Paragraph attributes children ->
-            renderStyled "p" index attributes positionClass RowLayout children addedChildren "paragraph"
+            renderStyled "p" index attributes children addedChildren "se paragraph"
 
         Nearby { anchor, nearby } ->
-            render position index (List.map positionNearby nearby) anchor
+            render index (List.map positionNearby nearby) anchor
 
         Raw html ->
             Styled [] html
@@ -553,95 +591,25 @@ positionNearby : ( Location, Element msg ) -> Element msg
 positionNearby ( location, element ) =
     case location of
         Above ->
-            El "div" [ Attr <| Html.Attributes.class "above" ] element
+            El "div" [ Attr (Html.Attributes.class "above") ] element
 
         Below ->
-            El "div" [ Attr <| Html.Attributes.class "below" ] element
+            El "div" [ Attr (Html.Attributes.class "below") ] element
 
         OnRight ->
-            El "div" [ Attr <| Html.Attributes.class "on-right" ] element
+            El "div" [ Attr (Html.Attributes.class "on-right") ] element
 
         OnLeft ->
-            El "div" [ Attr <| Html.Attributes.class "on-left" ] element
+            El "div" [ Attr (Html.Attributes.class "on-left") ] element
 
         Overlay ->
-            El "div" [ Attr <| Html.Attributes.class "overlay" ] element
-
-
-renderStyled : String -> List Int -> List (Attribute msg) -> String -> LayoutHint -> List (Element msg) -> List (Element msg) -> String -> Styled (Html msg)
-renderStyled name index attributes positionClass hint children otherChildren additionalClass =
-    let
-        ( childrenStyles, renderedChildren ) =
-            renderChildren index children
-
-        ( otherChildrenStyles, renderedOtherChildren ) =
-            renderOtherChildren (List.length children) index otherChildren
-
-        rendered =
-            renderAttributes hint attributes
-
-        self =
-            "styled-" ++ String.join "-" (List.map toString index)
-
-        myStyle =
-            Style ("#" ++ self)
-                rendered.styleProperties
-
-        others =
-            List.map (renderDependent ("#" ++ self)) rendered.otherStyles
-    in
-    Styled (myStyle :: others ++ childrenStyles ++ otherChildrenStyles)
-        (Html.node name
-            (Html.Attributes.id self :: Html.Attributes.class (additionalClass ++ " " ++ positionClass) :: rendered.attributes)
-            (renderedChildren ++ renderedOtherChildren)
-        )
-
-
-renderChildren : List Int -> List (Element msg) -> ( List Style, List (Html msg) )
-renderChildren index children =
-    let
-        place =
-            getReversePosition (List.length children)
-
-        ( _, childrenStyles, renderedChildren ) =
-            List.foldr renderStyleList ( 0, [], [] ) children
-
-        renderStyleList child ( i, renderedStyles, renderedEls ) =
-            let
-                (Styled styles el) =
-                    render (place i) (i :: index) [] child
-            in
-            ( i + 1
-            , styles ++ renderedStyles
-            , el :: renderedEls
-            )
-    in
-    ( childrenStyles, renderedChildren )
-
-
-renderOtherChildren : Int -> List Int -> List (Element msg) -> ( List Style, List (Html msg) )
-renderOtherChildren offset index children =
-    let
-        ( _, childrenStyles, renderedChildren ) =
-            List.foldr renderStyleList ( 0, [], [] ) children
-
-        renderStyleList child ( i, renderedStyles, renderedEls ) =
-            let
-                (Styled styles el) =
-                    render FirstAndLast (i + offset :: index) [] child
-            in
-            ( i + 1
-            , styles ++ renderedStyles
-            , el :: renderedEls
-            )
-    in
-    ( childrenStyles, renderedChildren )
+            El "div" [ Attr (Html.Attributes.class "overlay") ] element
 
 
 type alias Gathered msg =
     { attributes : List (Html.Attribute msg)
     , styleProperties : List Property
-    , otherStyles : List DependentStyle
+    , rules : List Style
     , filters : Maybe String
     , boxShadows : Maybe String
     , textShadows : Maybe String
@@ -665,56 +633,95 @@ type alias Gathered msg =
     }
 
 
-{-| This is a style definition that is relative to the current element.
-
-    DependentStyle selector props ->
-        ".current-element"
-
--}
-type DependentStyle
-    = Child String (List Property)
-    | Pseudo String (List Property)
-    | FollowingSibling String (List Property)
+pair =
+    (,)
 
 
-renderDependent : String -> DependentStyle -> Style
-renderDependent selector dep =
-    case dep of
-        Child name props ->
-            Style (selector ++ " > " ++ name) props
+initGathered =
+    { attributes = []
+    , styleProperties = []
+    , rules = []
+    , padding = Nothing
+    , rotation = Nothing
+    , translation = Nothing
+    , scale = Nothing
+    , filters = Nothing
+    , boxShadows = Nothing
+    , textShadows = Nothing
+    , hasWidth = False
+    , hasHeight = False
+    , hasXContentAlign = False
+    , hasYContentAlign = False
+    , hasXSelfAlign = False
+    , hasYSelfAlign = False
+    , hasSpacing = False
+    }
 
-        Pseudo name props ->
-            Style (selector ++ ":" ++ name) props
 
-        FollowingSibling name props ->
-            Style (selector ++ " + " ++ name) props
-
-
-renderAttributes : LayoutHint -> List (Attribute msg) -> Gathered msg
-renderAttributes hint attrs =
+renderStyled : String -> List Int -> List (Attribute msg) -> List (Element msg) -> List (Element msg) -> String -> Styled (Html msg)
+renderStyled name index attributes children otherChildren additionalClass =
     let
-        init =
-            { attributes = []
-            , styleProperties = []
-            , otherStyles = []
-            , padding = Nothing
-            , rotation = Nothing
-            , translation = Nothing
-            , scale = Nothing
-            , filters = Nothing
-            , boxShadows = Nothing
-            , textShadows = Nothing
-            , hasWidth = False
-            , hasHeight = False
-            , hasXContentAlign = False
-            , hasYContentAlign = False
-            , hasXSelfAlign = False
-            , hasYSelfAlign = False
-            , hasSpacing = False
-            }
+        ( childrenStyles, renderedChildren ) =
+            renderChildren index children
+
+        ( otherChildrenStyles, renderedOtherChildren ) =
+            renderOtherChildren (List.length children) index otherChildren
+
+        rendered =
+            attributes
+                |> List.foldr gatherAttributes initGathered
+                |> formatTransformations
+
+        self =
+            "styled-" ++ String.join "-" (List.map toString index)
+
+        myStyle =
+            Style ("#" ++ self)
+                rendered.styleProperties
     in
-    List.foldr (gatherAttributes hint) init attrs
-        |> formatTransformations
+    Styled (myStyle :: rendered.rules ++ childrenStyles ++ otherChildrenStyles)
+        (Html.node name
+            (Html.Attributes.id self :: Html.Attributes.class additionalClass :: rendered.attributes)
+            (renderedChildren ++ renderedOtherChildren)
+        )
+
+
+renderChildren : List Int -> List (Element msg) -> ( List Style, List (Html msg) )
+renderChildren index children =
+    let
+        ( _, childrenStyles, renderedChildren ) =
+            List.foldr renderStyleList ( 0, [], [] ) children
+
+        renderStyleList child ( i, renderedStyles, renderedEls ) =
+            let
+                (Styled styles el) =
+                    render (i :: index) [] child
+            in
+            ( i + 1
+            , styles ++ renderedStyles
+            , el :: renderedEls
+            )
+    in
+    ( childrenStyles, renderedChildren )
+
+
+renderOtherChildren : Int -> List Int -> List (Element msg) -> ( List Style, List (Html msg) )
+renderOtherChildren offset index children =
+    let
+        ( _, childrenStyles, renderedChildren ) =
+            List.foldr renderStyleList ( 0, [], [] ) children
+
+        renderStyleList child ( i, renderedStyles, renderedEls ) =
+            let
+                (Styled styles el) =
+                    render (i + offset :: index) [] child
+            in
+            ( i + 1
+            , styles ++ renderedStyles
+            , el :: renderedEls
+            )
+    in
+    ( childrenStyles, renderedChildren )
 
 
 formatTransformations gathered =
@@ -756,23 +763,81 @@ formatTransformations gathered =
                 |> List.filterMap identity
                 |> String.join " "
 
-        addPadding padding props =
-            Property "padding-top" ((toString <| Maybe.withDefault 0 padding.top) ++ "px")
-                :: Property "padding-bottom" ((toString <| Maybe.withDefault 0 padding.bottom) ++ "px")
-                :: Property "padding-left" ((toString <| Maybe.withDefault 0 padding.left) ++ "px")
-                :: Property "padding-right" ((toString <| Maybe.withDefault 0 padding.right) ++ "px")
-                :: props
+        paddingName padding =
+            "pad-"
+                ++ (toString <| Maybe.withDefault 0 padding.top)
+                ++ "-"
+                ++ (toString <| Maybe.withDefault 0 padding.right)
+                ++ "-"
+                ++ (toString <| Maybe.withDefault 0 padding.bottom)
+                ++ "-"
+                ++ (toString <| Maybe.withDefault 0 padding.left)
 
-        expandWidth padding =
-            Child ".expand-width"
-                [ Property "width" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.left + Maybe.withDefault 0 padding.right) ++ "px)")
-                , Property "margin-left" (toString (negate <| Maybe.withDefault 0 padding.left) ++ "px")
-                ]
-
-        expandHeight padding =
-            Child ".expand-height"
-                [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.left + Maybe.withDefault 0 padding.right) ++ "px)")
-                , Property "margin-top" (toString (negate <| Maybe.withDefault 0 padding.top) ++ "px")
+        expanded name padding =
+            Keyed
+                name
+                [ pair name
+                    [ Property "padding-top" ((toString <| Maybe.withDefault 0 padding.top) ++ "px")
+                    , Property "padding-bottom" ((toString <| Maybe.withDefault 0 padding.bottom) ++ "px")
+                    , Property "padding-left" ((toString <| Maybe.withDefault 0 padding.left) ++ "px")
+                    , Property "padding-right" ((toString <| Maybe.withDefault 0 padding.right) ++ "px")
+                    ]
+                , pair (name ++ ".el > .se.expand-width")
+                    [ Property "width" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.left + Maybe.withDefault 0 padding.right) ++ "px)")
+                    , Property "margin-left" (toString (negate <| Maybe.withDefault 0 padding.left) ++ "px")
+                    ]
+                , pair (name ++ ".column > .se.expand-width")
+                    [ Property "width" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.left + Maybe.withDefault 0 padding.right) ++ "px)")
+                    , Property "margin-left" (toString (negate <| Maybe.withDefault 0 padding.left) ++ "px")
+                    ]
+                , pair (name ++ ".row > .se.expand-width:first-child")
+                    [ Property "width" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.left) ++ "px)")
+                    , Property "margin-left" (toString (negate <| Maybe.withDefault 0 padding.left) ++ "px")
+                    ]
+                , pair (name ++ ".row > .se.expand-width:last-child")
+                    [ Property "width" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.right) ++ "px)")
+                    , Property "margin-right" (toString (negate <| Maybe.withDefault 0 padding.right) ++ "px")
+                    ]
+                , pair (name ++ ".row.has-nearby > .se.expand-width::nth-last-child(2)")
+                    [ Property "width" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.right) ++ "px)")
+                    , Property "margin-right" (toString (negate <| Maybe.withDefault 0 padding.right) ++ "px")
+                    ]
+                , pair (name ++ ".page > .se.expand-width:first-child")
+                    [ Property "width" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.left + Maybe.withDefault 0 padding.right) ++ "px)")
+                    , Property "margin-left" (toString (negate <| Maybe.withDefault 0 padding.left) ++ "px")
+                    ]
+                , pair (name ++ ".el > .se.expand-height")
+                    [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.top + Maybe.withDefault 0 padding.bottom) ++ "px)")
+                    , Property "margin-top" (toString (negate <| Maybe.withDefault 0 padding.top) ++ "px")
+                    ]
+                , pair (name ++ ".row > .se.expand-height")
+                    [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.top + Maybe.withDefault 0 padding.bottom) ++ "px)")
+                    , Property "margin-top" (toString (negate <| Maybe.withDefault 0 padding.top) ++ "px")
+                    ]
+                , pair (name ++ ".column > .se.expand-height:first-child")
+                    [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.top) ++ "px)")
+                    , Property "margin-top" (toString (negate <| Maybe.withDefault 0 padding.top) ++ "px")
+                    ]
+                , pair (name ++ ".column > .se.expand-height:last-child")
+                    [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.bottom) ++ "px)")
+                    , Property "margin-bottom" (toString (negate <| Maybe.withDefault 0 padding.bottom) ++ "px")
+                    ]
+                , pair (name ++ ".column.has-nearby > .se.expand-height::nth-last-child(2)")
+                    [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.bottom) ++ "px)")
+                    , Property "margin-bottom" (toString (negate <| Maybe.withDefault 0 padding.bottom) ++ "px")
+                    ]
+                , pair (name ++ ".page > .se.expand-height:first-child")
+                    [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.top) ++ "px)")
+                    , Property "margin-top" (toString (negate <| Maybe.withDefault 0 padding.top) ++ "px")
+                    ]
+                , pair (name ++ ".page > .se.expand-height:last-child")
+                    [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.bottom) ++ "px)")
+                    , Property "margin-bottom" (toString (negate <| Maybe.withDefault 0 padding.bottom) ++ "px")
+                    ]
+                , pair (name ++ ".page > .se.expand-height::nth-last-child(2)")
+                    [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.bottom) ++ "px)")
+                    , Property "margin-bottom" (toString (negate <| Maybe.withDefault 0 padding.bottom) ++ "px")
+                    ]
                 ]
 
         addFilters filters props =
@@ -820,9 +885,12 @@ formatTransformations gathered =
             let
                 style =
                     gathered.styleProperties
-                        |> addPadding pad
+                        |> addFilters gathered.filters
                         |> addBoxShadows gathered.boxShadows
                         |> addTextShadows gathered.textShadows
+
+                padCls =
+                    paddingName pad
             in
             { gathered
                 | styleProperties =
@@ -830,20 +898,14 @@ formatTransformations gathered =
                         style
                     else
                         Property "transform" transform :: style
-                , otherStyles =
-                    expandWidth pad :: expandHeight pad :: gathered.otherStyles
+                , attributes = Html.Attributes.class padCls :: gathered.attributes
+                , rules =
+                    expanded ("." ++ padCls) pad :: gathered.rules
             }
 
 
-type LayoutHint
-    = RowLayout
-    | ColumnLayout
-    | GridLayout
-    | SingleLayout
-
-
-gatherAttributes : LayoutHint -> Attribute msg -> Gathered msg -> Gathered msg
-gatherAttributes hint attr gathered =
+gatherAttributes : Attribute msg -> Gathered msg -> Gathered msg
+gatherAttributes attr gathered =
     case attr of
         StyleProperty name val ->
             { gathered | styleProperties = Property name val :: gathered.styleProperties }
@@ -909,7 +971,7 @@ gatherAttributes hint attr gathered =
                     Fill portion ->
                         -- renders as flex-grow: portion
                         { gathered
-                            | styleProperties = Property "height" "100%" :: gathered.styleProperties
+                            | attributes = Html.Attributes.class "height-fill" :: gathered.attributes
                             , hasHeight = True
                         }
 
@@ -939,7 +1001,7 @@ gatherAttributes hint attr gathered =
                     Fill portion ->
                         -- renders as flex-grow: portion
                         { gathered
-                            | styleProperties = Property "width" "100%" :: gathered.styleProperties
+                            | attributes = Html.Attributes.class "width-fill" :: gathered.attributes
                             , hasWidth = True
                         }
 
@@ -1170,71 +1232,65 @@ gatherAttributes hint attr gathered =
                 gathered
             else
                 -- Add a new style > .children
-                case hint of
-                    RowLayout ->
-                        { gathered
-                            | otherStyles =
-                                Child ".middle" [ Property "margin-left" (toString spacing ++ "px") ]
-                                    :: Child ".last" [ Property "margin-left" (toString spacing ++ "px") ]
-                                    :: gathered.otherStyles
-                            , hasSpacing = True
-                        }
+                let
+                    name =
+                        "spacing-" ++ toString spacing
 
-                    ColumnLayout ->
-                        { gathered
-                            | otherStyles =
-                                Child ".middle" [ Property "margin-top" (toString spacing ++ "px") ]
-                                    :: Child ".last" [ Property "margin-top" (toString spacing ++ "px") ]
-                                    :: gathered.otherStyles
-                            , hasSpacing = True
-                        }
-
-                    GridLayout ->
-                        { gathered
-                            | styleProperties =
-                                Property "grid-column-gap" (toString spacing ++ "px")
-                                    :: Property "grid-row-gap" (toString spacing ++ "px")
-                                    :: gathered.styleProperties
-                            , hasSpacing = True
-                        }
-
-                    SingleLayout ->
-                        gathered
+                    spaceCls =
+                        "." ++ name
+                in
+                { gathered
+                    | rules =
+                        Keyed name
+                            [ pair (spaceCls ++ ".row > .se") [ Property "margin-left" (toString spacing ++ "px") ]
+                            , pair (spaceCls ++ ".row > .se:first-child") [ Property "margin-left" "0" ]
+                            , pair (spaceCls ++ ".column > .se") [ Property "margin-top" (toString spacing ++ "px") ]
+                            , pair (spaceCls ++ ".column > .se:first-child") [ Property "margin-top" "0" ]
+                            , pair (spaceCls ++ ".page > .se") [ Property "margin-top" (toString spacing ++ "px") ]
+                            , pair (spaceCls ++ ".page > .se:first-child") [ Property "margin-top" "0" ]
+                            , pair (spaceCls ++ ".page > .self-left") [ Property "margin-right" (toString spacing ++ "px") ]
+                            , pair (spaceCls ++ ".page > .self-right") [ Property "margin-left" (toString spacing ++ "px") ]
+                            , pair (spaceCls ++ ".grid")
+                                [ Property "grid-column-gap" (toString spacing ++ "px")
+                                , Property "grid-row-gap" (toString spacing ++ "px")
+                                ]
+                            ]
+                            :: gathered.rules
+                    , attributes = Html.Attributes.class name :: gathered.attributes
+                    , hasSpacing = True
+                }
 
         SpacingXY x y ->
             if gathered.hasSpacing then
                 gathered
             else
-                case hint of
-                    RowLayout ->
-                        { gathered
-                            | otherStyles =
-                                Child ".middle" [ Property "margin-left" (toString x ++ "px") ]
-                                    :: Child ".last" [ Property "margin-left" (toString x ++ "px") ]
-                                    :: gathered.otherStyles
-                            , hasSpacing = True
-                        }
+                let
+                    name =
+                        "spacing-xy-" ++ toString x ++ "-" ++ toString y
 
-                    ColumnLayout ->
-                        { gathered
-                            | otherStyles =
-                                Child ".middle" [ Property "margin-top" (toString y ++ "px") ]
-                                    :: Child ".last" [ Property "margin-top" (toString y ++ "px") ]
-                                    :: gathered.otherStyles
-                            , hasSpacing = True
-                        }
-
-                    GridLayout ->
-                        { gathered
-                            | styleProperties =
-                                Property "grid-column-gap" (toString x ++ "px")
-                                    :: Property "grid-row-gap" (toString y ++ "px")
-                                    :: gathered.styleProperties
-                            , hasSpacing = True
-                        }
-
-                    SingleLayout ->
-                        gathered
+                    spaceCls =
+                        "." ++ name
+                in
+                { gathered
+                    | rules =
+                        Keyed name
+                            [ pair (spaceCls ++ ".row > .se") [ Property "margin-left" (toString x ++ "px") ]
+                            , pair (spaceCls ++ ".row > .se:first-child") [ Property "margin-left" "0" ]
+                            , pair (spaceCls ++ ".column > .se") [ Property "margin-top" (toString y ++ "px") ]
+                            , pair (spaceCls ++ ".column > .se:first-child") [ Property "margin-top" "0" ]
+                            , pair (spaceCls ++ ".page > .se") [ Property "margin-top" (toString y ++ "px") ]
+                            , pair (spaceCls ++ ".page > .se:first-child") [ Property "margin-top" "0" ]
+                            , pair (spaceCls ++ ".page > .self-left") [ Property "margin-right" (toString x ++ "px") ]
+                            , pair (spaceCls ++ ".page > .self-right") [ Property "margin-left" (toString x ++ "px") ]
+                            , pair (spaceCls ++ ".grid")
+                                [ Property "grid-column-gap" (toString x ++ "px")
+                                , Property "grid-row-gap" (toString y ++ "px")
+                                ]
+                            ]
+                            :: gathered.rules
+                    , attributes = Html.Attributes.class name :: gathered.attributes
+                    , hasSpacing = True
+                }
 
         Padding pad ->
             let
@@ -1295,64 +1351,6 @@ addMaybe maybeThing list =
             x :: list
 
 
-type Position
-    = First
-    | Middle
-    | Last
-    | FirstAndLast
-
-
-getPosition : Int -> Int -> Position
-getPosition total i =
-    if total <= 1 then
-        FirstAndLast
-    else if i == 0 then
-        First
-    else if i == total - 1 then
-        Last
-    else
-        Middle
-
-
-getReversePosition : Int -> Int -> Position
-getReversePosition total i =
-    if total <= 1 then
-        FirstAndLast
-    else if i == 0 then
-        Last
-    else if i == total - 1 then
-        First
-    else
-        Middle
-
-
-positionMap : (Position -> Int -> a -> b) -> List a -> List b
-positionMap fn list =
-    case list of
-        [] ->
-            []
-
-        a :: [] ->
-            [ fn FirstAndLast 0 a ]
-
-        full ->
-            let
-                len =
-                    List.length list - 1
-
-                applyFn a ( index, existing ) =
-                    if index == 0 then
-                        ( index + 1, fn Last (len - index) a :: existing )
-                    else if index == len then
-                        ( index + 1, fn First (len - index) a :: existing )
-                    else
-                        ( index + 1, fn Middle (len - index) a :: existing )
-            in
-            list
-                |> List.foldr applyFn ( 0, [] )
-                |> Tuple.second
-
-
 formatColor : Color -> String
 formatColor color =
     let
@@ -1365,6 +1363,7 @@ formatColor color =
         ++ ("," ++ toString alpha ++ ")")
 
 
+formatDropShadow : { d | blur : a, color : Color, offset : ( b, c ) } -> String
 formatDropShadow shadow =
     String.join " "
         [ toString (Tuple.first shadow.offset) ++ "px"
@@ -1374,6 +1373,7 @@ formatDropShadow shadow =
         ]
 
 
+formatTextShadow : { d | blur : a, color : Color, offset : ( b, c ) } -> String
 formatTextShadow shadow =
     String.join " "
         [ toString (Tuple.first shadow.offset) ++ "px"
@@ -1383,6 +1383,7 @@ formatTextShadow shadow =
         ]
 
 
+formatBoxShadow : { e | blur : a, color : Color, inset : Bool, offset : ( b, c ), size : d } -> String
 formatBoxShadow shadow =
     String.join " " <|
         List.filterMap identity
