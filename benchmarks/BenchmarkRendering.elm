@@ -16,6 +16,11 @@ import Element.Attributes
 import Element.Internal.Adjustments as Adjustments
 import Element.Internal.Render
 import Html
+import Html.Attributes
+import Next.Element
+import Next.Element.Position
+import Next.Internal.Slim as Slim
+import Next.Internal.Style
 import Style
 import Style.Border as Border
 import Style.Color as Color
@@ -39,21 +44,29 @@ main =
 fullRendering : Benchmark
 fullRendering =
     describe "Rendering"
-        [ Benchmark.compare "Basic Element"
-            (benchmark1 "html" html ())
-            (benchmark1 "elem" elem ())
-
-        -- , Benchmark.compare "Styled Elements"
-        --     (benchmark1 "html" html ())
-        --     (benchmark1 "elem" styled ())
-        -- , Benchmark.compare "Precompiled Styled Elements"
-        --     (benchmark1 "html" html ())
-        --     (benchmark1 "elem" precompiledStyle ())
-        , Benchmark.compare "Centered Styled Elements"
-            (benchmark1 "html" html ())
-            (benchmark1 "elem" centered ())
-
-        -- , (benchmark1 "1000 Styles" styles ())
+        [ describe "Basic"
+            [ benchmark1 "html" html ()
+            , benchmark1 "html with reset" htmlWithReset ()
+            , benchmark1 "elem" elem ()
+            , benchmark1 "next" nextElem ()
+            , benchmark1 "slim" slim ()
+            ]
+        , describe "Center one Element"
+            [ benchmark1 "html" html ()
+            , benchmark1 "elem" centered ()
+            , benchmark1 "next elem" centeredNext ()
+            ]
+        , describe "500 element test"
+            [ benchmark1 "html" manyHtml 500
+            , benchmark1 "elem" manyElem 500
+            , benchmark1 "next" manyNextElem 500
+            , benchmark1 "slim" manySlim 500
+            ]
+        , describe "500 styled element test"
+            [ benchmark1 "html" manyStyledHtml 500
+            , benchmark1 "elem" manyElem 500
+            , benchmark1 "slim - styled" manySlimStyled 500
+            ]
         ]
 
 
@@ -70,56 +83,6 @@ fullRendering =
 --         ]
 
 
-basicFns =
-    describe "Basic Techniques for Functions"
-        [ benchmark1 "Simple" simple ()
-        , benchmark1 "Fn Composition" fn ()
-        , benchmark1 "Fn Composed" composed ()
-        , benchmark1 "Fn Application" fn2 ()
-        , benchmark1 "Builder" builder ()
-        , benchmark1 "filterMap" concatMapBuilder ()
-        ]
-
-
-builder _ =
-    let
-        x xs =
-            1 :: xs
-    in
-    (x << x << x << x << x << x << x << x) []
-
-
-concatMapBuilder _ =
-    let
-        x =
-            Just 1
-
-        y =
-            Nothing
-    in
-    List.filterMap identity [ x, y, x, y, x, y, x, y ]
-
-
-composed =
-    identity << identity << identity << identity << identity << identity << identity << identity << identity
-
-
-fnPrecomposed x =
-    composed x
-
-
-simple x =
-    identity x
-
-
-fn x =
-    (identity << identity << identity << identity << identity << identity << identity << identity << identity) x
-
-
-fn2 y =
-    identity <| identity <| identity <| identity <| identity <| identity <| identity <| identity <| identity y
-
-
 deepRendering : Benchmark
 deepRendering =
     describe "Rendering"
@@ -131,15 +94,6 @@ deepRendering =
         --     (benchmark1 "html" html ())
         --     (benchmark1 "elem" styled ())
         ]
-
-
-html _ =
-    Html.div [] []
-
-
-elem _ =
-    Element.layout styleSheet <|
-        Element.el Test [] Element.empty
 
 
 htmlDepth i =
@@ -228,6 +182,78 @@ skipRenderAttributes _ =
 --         ]
 
 
+manyHtml i =
+    Html.div []
+        (List.repeat i (Html.div [] [ Html.text "hello" ]))
+
+
+manyStyledHtml i =
+    Html.div []
+        (List.repeat i
+            (Html.div
+                [ Html.Attributes.style
+                    [ ( "background-color", "red" )
+                    , ( "color", "blue" )
+                    , ( "font-size", "16px" )
+                    , ( "border-width", "1px" )
+                    , ( "border-color", "yellow" )
+                    ]
+                ]
+                [ Html.text "hello" ]
+            )
+        )
+
+
+{-| -}
+html _ =
+    Html.div []
+        []
+
+
+{-| -}
+htmlWithReset _ =
+    Html.div []
+        [ Html.node "style" [] [ Html.text Next.Internal.Style.rules ]
+        , Html.text ""
+        ]
+
+
+elem _ =
+    Element.layout styleSheet <|
+        Element.el Test [] Element.empty
+
+
+slim _ =
+    Slim.layout [] <|
+        Slim.el [] Slim.empty
+
+
+manySlim i =
+    Slim.layout [] <|
+        Slim.row
+            []
+            (List.repeat i (Slim.el [] (Slim.text "hello")))
+
+
+manyElem i =
+    Element.layout styleSheet <|
+        Element.row None
+            []
+            (List.repeat i (Element.el Test [] (Element.text "hello")))
+
+
+nextElem _ =
+    Next.Element.layout [] <|
+        Next.Element.el [] Next.Element.empty
+
+
+manyNextElem i =
+    Next.Element.layout [] <|
+        Next.Element.row
+            []
+            (List.repeat i (Next.Element.el [] (Next.Element.text "hello")))
+
+
 type Styles
     = None
     | Test
@@ -240,20 +266,10 @@ styleSheet =
             [ Color.background Color.red
             , Color.text Color.blue
             , Font.size 16
-            , Font.pre
             , Border.all 1
             , Color.border Color.yellow
             ]
         ]
-
-
-
--- precompiledStyle _ =
---     Element.layout <|
---         Element.el
---             [ myStyle
---             ]
---             Element.empty
 
 
 centered i =
@@ -263,3 +279,28 @@ centered i =
             [ Element.Attributes.center
             ]
             Element.empty
+
+
+centeredNext _ =
+    Next.Element.layout [] <|
+        Next.Element.el
+            [ Next.Element.Position.center
+            ]
+            Next.Element.empty
+
+
+manySlimStyled i =
+    Slim.layout [] <|
+        Slim.row
+            []
+            (List.repeat i
+                (Slim.el
+                    [ Slim.backgroundColor Color.red
+                    , Slim.textColor Color.blue
+                    , Slim.fontSize 16
+                    , Slim.border 1
+                    , Slim.borderColor Color.yellow
+                    ]
+                    (Slim.text "hello")
+                )
+            )
