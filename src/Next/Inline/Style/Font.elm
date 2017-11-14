@@ -52,7 +52,31 @@ import Next.Internal.Model as Internal exposing (Attribute, Font, Property)
 {-| -}
 family : List Font -> Attribute msg
 family families =
-    Internal.FontFamily families
+    let
+        renderedFonts =
+            let
+                renderFont font =
+                    case font of
+                        Internal.Serif ->
+                            "serif"
+
+                        Internal.SansSerif ->
+                            "sans-serif"
+
+                        Internal.Monospace ->
+                            "monospace"
+
+                        Internal.Typeface name ->
+                            "\"" ++ name ++ "\""
+
+                        Internal.ImportFont name url ->
+                            "\"" ++ name ++ "\""
+            in
+            families
+                |> List.map renderFont
+                |> String.join ", "
+    in
+    Internal.SingletonStyle ("font-" ++ Internal.className renderedFonts) "font-family" renderedFonts
 
 
 {-| -}
@@ -90,7 +114,7 @@ typeface =
 -}
 size : Float -> Attribute msg
 size size =
-    Internal.StyleProperty "font-size" (toString size ++ "px")
+    Internal.SingletonStyle ("font-size-" ++ Internal.floatClass size) "font-size" (toString size ++ "px")
 
 
 {-| This is the only unitless value in the library that isn't `px`.
@@ -104,87 +128,90 @@ This means the final lineHeight in px is:
 -}
 lineHeight : Float -> Attribute msg
 lineHeight height =
-    Internal.StyleProperty "line-height" (toString height)
+    Internal.SingletonStyle ("line-height-" ++ Internal.floatClass height) "line-height" (toString height)
 
 
 {-| In `px`.
 -}
 letterSpacing : Float -> Attribute msg
 letterSpacing offset =
-    Internal.StyleProperty "letter-spacing" (toString offset ++ "px")
+    Internal.SingletonStyle
+        ("letter-spacing-" ++ Internal.floatClass offset)
+        "letter-spacing"
+        (toString offset ++ "px")
 
 
 {-| In `px`.
 -}
 wordSpacing : Float -> Attribute msg
 wordSpacing offset =
-    Internal.StyleProperty "word-spacing" (toString offset ++ "px")
+    Internal.SingletonStyle ("word-spacing-" ++ Internal.floatClass offset) "word-spacing" (toString offset ++ "px")
+
+
+{-| -}
+weight : Int -> Attribute msg
+weight fontWeight =
+    Internal.SingletonStyle ("font-weight-" ++ toString fontWeight) "word-spacing" (toString fontWeight ++ "px")
 
 
 {-| Align the font to the left.
 -}
 alignLeft : Attribute msg
 alignLeft =
-    Internal.StyleProperty "text-align" "left"
+    Internal.class "text-left"
 
 
 {-| Align the font to the right.
 -}
 alignRight : Attribute msg
 alignRight =
-    Internal.StyleProperty "text-align" "right"
+    Internal.class "text-right"
 
 
 {-| Align font center.
 -}
 center : Attribute msg
 center =
-    Internal.StyleProperty "text-align" "center"
+    Internal.class "text-center"
 
 
 {-| -}
 justify : Attribute msg
 justify =
-    Internal.StyleProperty "text-align" "justify"
+    Internal.class "text-justify"
 
 
 {-| -}
 justifyAll : Attribute msg
 justifyAll =
-    Internal.StyleProperty "text-align" "justify-all"
+    Internal.class "text-justify-all"
 
 
 {-| -}
 underline : Attribute msg
 underline =
-    Internal.StyleProperty "text-decoration" "underline"
+    Internal.class "underline"
 
 
 {-| -}
 strike : Attribute msg
 strike =
-    Internal.StyleProperty "text-decoration" "line-through"
+    Internal.class "strike"
 
 
 {-| -}
 italic : Attribute msg
 italic =
-    Internal.StyleProperty "font-style" "italic"
+    Internal.class "italic"
 
 
 {-| -}
 bold : Attribute msg
 bold =
-    Internal.StyleProperty "font-weight" "700"
+    Internal.class "bold"
 
 
 {-| -}
 light : Attribute msg
 light =
-    Internal.StyleProperty "font-weight" "300"
-
-
-{-| -}
-weight : Int -> Attribute msg
-weight fontWeight =
-    Internal.StyleProperty "font-weight" (toString fontWeight)
+    Internal.class "text-light"

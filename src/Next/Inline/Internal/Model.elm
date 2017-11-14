@@ -1,12 +1,26 @@
-module Next.Internal.Model exposing (..)
+module Next.Inline.Internal.Model exposing (..)
 
 import Color exposing (Color)
 import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Attributes
 import Html.Lazy
-import Next.Internal.Style
+import Next.Inline.Internal.Style
+import Regex
 import Set
+
+
+type Styled msg
+    = Styled (List Style) (Html msg)
+
+
+type Style
+    = Style String (List Property)
+    | Keyed String (List ( String, List Property ))
+
+
+type Property
+    = Property String String
 
 
 type Element msg
@@ -29,19 +43,11 @@ type Element msg
 type Decoration
     = NoDecoration -- renders as <span>
     | RawText --renders as raw text
-    | Bold
-    | Italic
-    | Underline
-    | Strike
-    | Super
-    | Sub
 
 
 type Attribute msg
-    = StyleProperty String String
-    | FontFamily (List Font)
+    = SingletonStyle String String String
     | Opacity Float
-    | Hidden
     | Height Length
     | Width Length
     | ContentXAlign HorizontalAlign
@@ -54,10 +60,10 @@ type Attribute msg
     | Spacing Float
     | SpacingXY Float Float
     | Padding
-        { top : Maybe Float
-        , left : Maybe Float
-        , bottom : Maybe Float
-        , right : Maybe Float
+        { top : Float
+        , left : Float
+        , bottom : Float
+        , right : Float
         }
     | Attr (Html.Attribute msg)
     | Overflow Axis
@@ -76,19 +82,17 @@ type Attribute msg
     | Filter FilterType
 
 
+class =
+    Attr << Html.Attributes.class
+
+
 mapAttr fn attr =
     case attr of
-        StyleProperty name val ->
-            StyleProperty name val
-
-        FontFamily typefaces ->
-            FontFamily typefaces
+        SingletonStyle x y z ->
+            SingletonStyle x y z
 
         Opacity o ->
             Opacity o
-
-        Hidden ->
-            Hidden
 
         Height len ->
             Height len
@@ -302,49 +306,43 @@ type NamedOnGrid el
     = NamedOnGrid el
 
 
-gridPosition { start, width, height } =
-    let
-        ( x, y ) =
-            start
 
-        ( rowStart, rowEnd ) =
-            ( y + 1, y + 1 + height )
-
-        ( colStart, colEnd ) =
-            ( x + 1, x + 1 + width )
-    in
-    StyleProperty "grid-area"
-        (String.join " / "
-            [ toString rowStart
-            , toString colStart
-            , toString rowEnd
-            , toString colEnd
-            ]
-        )
-
-
-gridTemplate : { a | columns : List Length, rows : List Length } -> List (Attribute msg)
-gridTemplate { rows, columns } =
-    let
-        renderLen len =
-            case len of
-                Px x ->
-                    toString x ++ "px"
-
-                Expand ->
-                    "100%"
-
-                Content ->
-                    "auto"
-
-                Fill i ->
-                    toString i ++ "fr"
-    in
-    [ StyleProperty "grid-template-rows"
-        (String.join " " (List.map renderLen rows))
-    , StyleProperty "grid-template-columns"
-        (String.join " " (List.map renderLen columns))
-    ]
+-- gridPosition { start, width, height } =
+--     let
+--         ( x, y ) =
+--             start
+--         ( rowStart, rowEnd ) =
+--             ( y + 1, y + 1 + height )
+--         ( colStart, colEnd ) =
+--             ( x + 1, x + 1 + width )
+--     in
+--     StyleProperty "grid-area"
+--         (String.join " / "
+--             [ toString rowStart
+--             , toString colStart
+--             , toString rowEnd
+--             , toString colEnd
+--             ]
+--         )
+-- gridTemplate : { a | columns : List Length, rows : List Length } -> List (Attribute msg)
+-- gridTemplate { rows, columns } =
+--     let
+--         renderLen len =
+--             case len of
+--                 Px x ->
+--                     toString x ++ "px"
+--                 Expand ->
+--                     "100%"
+--                 Content ->
+--                     "auto"
+--                 Fill i ->
+--                     toString i ++ "fr"
+--     in
+--     [ StyleProperty "grid-template-rows"
+--         (String.join " " (List.map renderLen rows))
+--     , StyleProperty "grid-template-columns"
+--         (String.join " " (List.map renderLen columns))
+--     ]
 
 
 {-| -}
@@ -355,23 +353,22 @@ type alias GridTemplate msg =
     }
 
 
-{-| -}
-grid : List (Attribute msg) -> GridTemplate msg -> Element msg
-grid attrs template =
-    Grid "div" (gridTemplate template ++ attrs) (List.map (\(OnGrid cell) -> cell) template.cells)
 
-
-cell : GridPosition msg -> OnGrid (Element msg)
-cell box =
-    let
-        coords =
-            gridPosition
-                { start = box.start
-                , width = box.width
-                , height = box.height
-                }
-    in
-    OnGrid <| addAttrs [ coords ] box.content
+-- {-| -}
+-- grid : List (Attribute msg) -> GridTemplate msg -> Element msg
+-- grid attrs template =
+--     Grid "div" (gridTemplate template ++ attrs) (List.map (\(OnGrid cell) -> cell) template.cells)
+-- cell : GridPosition msg -> OnGrid (Element msg)
+-- cell box =
+--     let
+--         coords =
+--             gridPosition
+--                 { start = box.start
+--                 , width = box.width
+--                 , height = box.height
+--                 }
+--     in
+--     OnGrid <| addAttrs [ coords ] box.content
 
 
 nearby : Location -> Element msg -> Element msg -> Element msg
@@ -390,71 +387,14 @@ nearby position placed anchoringElement =
                 }
 
 
-
-{- Attributes that need parent -> child communication
-
-      Row/Column spacing ->
-          .parent > .child-first
-          .parent > .child-first-last
-          .parent > .child-middle
-          .parent > .child-last
-
-
-      Element w/padding ->
-          .parent > .expanded-width ++ row-first, row-last
-          .parent > .expanded-height ++ column-first, column-last
-
-
-   -- Alignment
-   Row/Column -> .alignLeft, .alignRight (overrides for individual elements)
-
-   TextLayout -> .alignLeft, .alignRight (corresponds to floats)
-
-
-   Border.between 1
-   Parent -> .child-first, .child-middle (border-bottom)
-
-
-   Respace -> .el ~ .spaced
-
-
-   -- Paragraph
-   -> .children.row
-    display: inline-flex
-
-   -> .children.el
-    display: inline
-
-
-   -- TextLayout
-    .children.el -> block
-    .children.row -> -- Don't override anything (already a block element)
-
-
--}
-
-
-type Styled thing
-    = Styled (List Style) thing
-
-
-type Style
-    = Style String (List Property)
-    | Keyed String (List ( String, List Property ))
-
-
-type Property
-    = Property String String
-
-
 toStyleSheet : List Style -> String
 toStyleSheet styles =
     let
         renderProps (Property key val) existing =
-            existing ++ "\n" ++ key ++ ": " ++ val ++ ";"
+            existing ++ "\n  " ++ key ++ ": " ++ val ++ ";"
 
         renderStyle selector props =
-            selector ++ "{" ++ List.foldl renderProps "" props ++ "}"
+            selector ++ "{" ++ List.foldl renderProps "" props ++ "\n}"
 
         combine style ( rendered, cache ) =
             case style of
@@ -488,17 +428,16 @@ viewportStylesheet =
 
 staticSheet : Html msg
 staticSheet =
-    Html.node "style" [] [ Html.text Next.Internal.Style.rules ]
+    Html.node "style" [] [ Html.text Next.Inline.Internal.Style.rules ]
 
 
 viewportSheet =
-    Html.node "style" [] [ Html.text (viewportStylesheet ++ Next.Internal.Style.rules) ]
+    Html.node "style" [] [ Html.text (viewportStylesheet ++ Next.Inline.Internal.Style.rules) ]
 
 
-{-| Classes Needed
--}
-render : List Int -> List (Element msg) -> Element msg -> Styled (Html msg)
-render index addedChildren el =
+{-| -}
+render : List (Element msg) -> Element msg -> Styled msg
+render addedChildren el =
     case el of
         Empty ->
             Styled [] (Html.text "")
@@ -506,12 +445,7 @@ render index addedChildren el =
         Text decoration content ->
             let
                 ( otherChildrenStyles, renderedOtherChildren ) =
-                    renderOtherChildren 1 index addedChildren
-
-                renderText node =
-                    Styled otherChildrenStyles <|
-                        node [ Html.Attributes.class "se text width-fill" ]
-                            (Html.text content :: renderedOtherChildren)
+                    renderChildren addedChildren
             in
             case decoration of
                 RawText ->
@@ -520,37 +454,18 @@ render index addedChildren el =
                     Styled [] (Html.text content)
 
                 NoDecoration ->
-                    renderText Html.div
-
-                Bold ->
-                    renderText Html.strong
-
-                Italic ->
-                    renderText Html.em
-
-                Underline ->
-                    renderText Html.u
-
-                Strike ->
-                    renderText Html.u
-
-                Super ->
-                    renderText Html.sup
-
-                Sub ->
-                    renderText Html.sub
+                    Styled otherChildrenStyles <|
+                        Html.div [ Html.Attributes.class "se text width-fill" ]
+                            (Html.text content :: renderedOtherChildren)
 
         Spacer pixels ->
             let
-                self =
-                    "styled-" ++ String.join "" (List.map toString index)
-
                 spacings =
-                    [ Style (".row > ." ++ self)
+                    [ Style (".row > .spacer-" ++ toString pixels)
                         [ Property "width" (toString pixels ++ "px")
                         , Property "height" "0px"
                         ]
-                    , Style (".column > ." ++ self)
+                    , Style (".column > .spacer-" ++ toString pixels)
                         [ Property "height" (toString pixels ++ "px")
                         , Property "width" "0px"
                         ]
@@ -558,30 +473,30 @@ render index addedChildren el =
             in
             Styled spacings
                 (Html.node "span"
-                    [ Html.Attributes.class (self ++ " spacer") ]
+                    [ Html.Attributes.class ("spacer-" ++ toString pixels) ]
                     []
                 )
 
         El name attributes child ->
-            renderStyled name index attributes [ child ] addedChildren "se el"
+            renderStyled name attributes [ child ] addedChildren "se el"
 
         Row name attributes children ->
-            renderStyled name index attributes children addedChildren "se row"
+            renderStyled name attributes children addedChildren "se row"
 
         Column name attributes children ->
-            renderStyled name index attributes children addedChildren "se column"
+            renderStyled name attributes children addedChildren "se column"
 
         Grid name attributes children ->
-            renderStyled name index attributes children addedChildren "se grid"
+            renderStyled name attributes children addedChildren "se grid"
 
         Page attributes children ->
-            renderStyled "div" index attributes children addedChildren "se page"
+            renderStyled "div" attributes children addedChildren "se page"
 
         Paragraph attributes children ->
-            renderStyled "p" index attributes children addedChildren "se paragraph"
+            renderStyled "p" attributes children addedChildren "se paragraph"
 
         Nearby { anchor, nearby } ->
-            render index (List.map positionNearby nearby) anchor
+            render (List.map positionNearby nearby) anchor
 
         Raw html ->
             Styled [] html
@@ -613,18 +528,12 @@ type alias Gathered msg =
     , filters : Maybe String
     , boxShadows : Maybe String
     , textShadows : Maybe String
-    , padding :
-        Maybe
-            { top : Maybe Float
-            , left : Maybe Float
-            , bottom : Maybe Float
-            , right : Maybe Float
-            }
     , rotation : Maybe String
     , translation : Maybe ( Maybe Float, Maybe Float, Maybe Float )
     , scale : Maybe ( Maybe Float, Maybe Float, Maybe Float )
     , hasWidth : Bool
     , hasHeight : Bool
+    , hasPadding : Bool
     , hasXContentAlign : Bool
     , hasYContentAlign : Bool
     , hasXSelfAlign : Bool
@@ -641,7 +550,7 @@ initGathered =
     { attributes = []
     , styleProperties = []
     , rules = []
-    , padding = Nothing
+    , hasPadding = False
     , rotation = Nothing
     , translation = Nothing
     , scale = Nothing
@@ -658,66 +567,57 @@ initGathered =
     }
 
 
-renderStyled : String -> List Int -> List (Attribute msg) -> List (Element msg) -> List (Element msg) -> String -> Styled (Html msg)
-renderStyled name index attributes children otherChildren additionalClass =
+
+-- renderStyledSlim : String -> List (Attribute msg) -> List (Element msg) -> Styled msg
+-- renderStyledSlim name attributes children =
+--     let
+--         ( childrenStyles, renderedChildren ) =
+--             renderChildren children
+--         rendered =
+--             attributes
+--                 |> List.foldr gatherAttributes initGathered
+--                 |> formatTransformations
+--     in
+--     Styled (rendered.rules ++ childrenStyles ++ otherChildrenStyles)
+--         (Html.node name
+--             (Html.Attributes.class additionalClass :: rendered.attributes)
+--             (renderedChildren ++ renderedOtherChildren)
+--         )
+
+
+renderStyled : String -> List (Attribute msg) -> List (Element msg) -> List (Element msg) -> String -> Styled msg
+renderStyled name attributes children otherChildren additionalClass =
     let
         ( childrenStyles, renderedChildren ) =
-            renderChildren index children
+            renderChildren children
 
         ( otherChildrenStyles, renderedOtherChildren ) =
-            renderOtherChildren (List.length children) index otherChildren
+            renderChildren otherChildren
 
         rendered =
             attributes
                 |> List.foldr gatherAttributes initGathered
                 |> formatTransformations
-
-        self =
-            "styled-" ++ String.join "-" (List.map toString index)
-
-        myStyle =
-            Style ("#" ++ self)
-                rendered.styleProperties
     in
-    Styled (myStyle :: rendered.rules ++ childrenStyles ++ otherChildrenStyles)
+    Styled (rendered.rules ++ childrenStyles ++ otherChildrenStyles)
         (Html.node name
-            (Html.Attributes.id self :: Html.Attributes.class additionalClass :: rendered.attributes)
+            (Html.Attributes.class additionalClass :: rendered.attributes)
             (renderedChildren ++ renderedOtherChildren)
         )
 
 
-renderChildren : List Int -> List (Element msg) -> ( List Style, List (Html msg) )
-renderChildren index children =
+renderChildren : List (Element msg) -> ( List Style, List (Html msg) )
+renderChildren children =
     let
-        ( _, childrenStyles, renderedChildren ) =
-            List.foldr renderStyleList ( 0, [], [] ) children
+        ( childrenStyles, renderedChildren ) =
+            List.foldr renderStyleList ( [], [] ) children
 
-        renderStyleList child ( i, renderedStyles, renderedEls ) =
+        renderStyleList child ( renderedStyles, renderedEls ) =
             let
                 (Styled styles el) =
-                    render (i :: index) [] child
+                    render [] child
             in
-            ( i + 1
-            , styles ++ renderedStyles
-            , el :: renderedEls
-            )
-    in
-    ( childrenStyles, renderedChildren )
-
-
-renderOtherChildren : Int -> List Int -> List (Element msg) -> ( List Style, List (Html msg) )
-renderOtherChildren offset index children =
-    let
-        ( _, childrenStyles, renderedChildren ) =
-            List.foldr renderStyleList ( 0, [], [] ) children
-
-        renderStyleList child ( i, renderedStyles, renderedEls ) =
-            let
-                (Styled styles el) =
-                    render (i + offset :: index) [] child
-            in
-            ( i + 1
-            , styles ++ renderedStyles
+            ( styles ++ renderedStyles
             , el :: renderedEls
             )
     in
@@ -758,189 +658,132 @@ formatTransformations gathered =
                             ++ "px)"
                         )
 
-        transform =
+        transformations =
             [ scale, translate, gathered.rotation ]
                 |> List.filterMap identity
-                |> String.join " "
 
-        paddingName padding =
-            "pad-"
-                ++ (toString <| Maybe.withDefault 0 padding.top)
-                ++ "-"
-                ++ (toString <| Maybe.withDefault 0 padding.right)
-                ++ "-"
-                ++ (toString <| Maybe.withDefault 0 padding.bottom)
-                ++ "-"
-                ++ (toString <| Maybe.withDefault 0 padding.left)
+        addTransform ( classes, styles ) =
+            case transformations of
+                [] ->
+                    ( classes, styles )
 
-        expanded name padding =
-            Keyed
-                name
-                [ pair name
-                    [ Property "padding-top" ((toString <| Maybe.withDefault 0 padding.top) ++ "px")
-                    , Property "padding-bottom" ((toString <| Maybe.withDefault 0 padding.bottom) ++ "px")
-                    , Property "padding-left" ((toString <| Maybe.withDefault 0 padding.left) ++ "px")
-                    , Property "padding-right" ((toString <| Maybe.withDefault 0 padding.right) ++ "px")
-                    ]
-                , pair (name ++ ".el > .se.expand-width")
-                    [ Property "width" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.left + Maybe.withDefault 0 padding.right) ++ "px)")
-                    , Property "margin-left" (toString (negate <| Maybe.withDefault 0 padding.left) ++ "px")
-                    ]
-                , pair (name ++ ".column > .se.expand-width")
-                    [ Property "width" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.left + Maybe.withDefault 0 padding.right) ++ "px)")
-                    , Property "margin-left" (toString (negate <| Maybe.withDefault 0 padding.left) ++ "px")
-                    ]
-                , pair (name ++ ".row > .se.expand-width:first-child")
-                    [ Property "width" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.left) ++ "px)")
-                    , Property "margin-left" (toString (negate <| Maybe.withDefault 0 padding.left) ++ "px")
-                    ]
-                , pair (name ++ ".row > .se.expand-width:last-child")
-                    [ Property "width" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.right) ++ "px)")
-                    , Property "margin-right" (toString (negate <| Maybe.withDefault 0 padding.right) ++ "px")
-                    ]
-                , pair (name ++ ".row.has-nearby > .se.expand-width::nth-last-child(2)")
-                    [ Property "width" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.right) ++ "px)")
-                    , Property "margin-right" (toString (negate <| Maybe.withDefault 0 padding.right) ++ "px")
-                    ]
-                , pair (name ++ ".page > .se.expand-width:first-child")
-                    [ Property "width" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.left + Maybe.withDefault 0 padding.right) ++ "px)")
-                    , Property "margin-left" (toString (negate <| Maybe.withDefault 0 padding.left) ++ "px")
-                    ]
-                , pair (name ++ ".el > .se.expand-height")
-                    [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.top + Maybe.withDefault 0 padding.bottom) ++ "px)")
-                    , Property "margin-top" (toString (negate <| Maybe.withDefault 0 padding.top) ++ "px")
-                    ]
-                , pair (name ++ ".row > .se.expand-height")
-                    [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.top + Maybe.withDefault 0 padding.bottom) ++ "px)")
-                    , Property "margin-top" (toString (negate <| Maybe.withDefault 0 padding.top) ++ "px")
-                    ]
-                , pair (name ++ ".column > .se.expand-height:first-child")
-                    [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.top) ++ "px)")
-                    , Property "margin-top" (toString (negate <| Maybe.withDefault 0 padding.top) ++ "px")
-                    ]
-                , pair (name ++ ".column > .se.expand-height:last-child")
-                    [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.bottom) ++ "px)")
-                    , Property "margin-bottom" (toString (negate <| Maybe.withDefault 0 padding.bottom) ++ "px")
-                    ]
-                , pair (name ++ ".column.has-nearby > .se.expand-height::nth-last-child(2)")
-                    [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.bottom) ++ "px)")
-                    , Property "margin-bottom" (toString (negate <| Maybe.withDefault 0 padding.bottom) ++ "px")
-                    ]
-                , pair (name ++ ".page > .se.expand-height:first-child")
-                    [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.top) ++ "px)")
-                    , Property "margin-top" (toString (negate <| Maybe.withDefault 0 padding.top) ++ "px")
-                    ]
-                , pair (name ++ ".page > .se.expand-height:last-child")
-                    [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.bottom) ++ "px)")
-                    , Property "margin-bottom" (toString (negate <| Maybe.withDefault 0 padding.bottom) ++ "px")
-                    ]
-                , pair (name ++ ".page > .se.expand-height::nth-last-child(2)")
-                    [ Property "height" ("calc(100% + " ++ toString (Maybe.withDefault 0 padding.bottom) ++ "px)")
-                    , Property "margin-bottom" (toString (negate <| Maybe.withDefault 0 padding.bottom) ++ "px")
-                    ]
-                ]
+                trans ->
+                    let
+                        transforms =
+                            String.join " " trans
 
-        addFilters filters props =
-            case filters of
+                        name =
+                            "transform-" ++ className transforms
+                    in
+                    ( name :: classes
+                    , Keyed name
+                        [ pair ("." ++ name) [ Property "transform" transforms ]
+                        ]
+                        :: styles
+                    )
+
+        addFilters ( classes, styles ) =
+            case gathered.filters of
                 Nothing ->
-                    props
+                    ( classes, styles )
 
-                Just filts ->
-                    Property "filters" filts :: props
+                Just filter ->
+                    let
+                        name =
+                            "filter-" ++ className filter
+                    in
+                    ( name :: classes
+                    , Keyed name
+                        [ pair ("." ++ name) [ Property "filter" filter ]
+                        ]
+                        :: styles
+                    )
 
-        addBoxShadows shadows props =
-            case shadows of
+        addBoxShadows ( classes, styles ) =
+            case gathered.boxShadows of
                 Nothing ->
-                    props
+                    ( classes, styles )
 
                 Just shades ->
-                    Property "box-shadow" shades :: props
+                    let
+                        name =
+                            "box-shadow-" ++ className shades
+                    in
+                    ( name :: classes
+                    , Keyed name
+                        [ pair ("." ++ name) [ Property "box-shadow" shades ]
+                        ]
+                        :: styles
+                    )
 
-        addTextShadows shadows props =
-            case shadows of
+        addTextShadows ( classes, styles ) =
+            case gathered.textShadows of
                 Nothing ->
-                    props
+                    ( classes, styles )
 
                 Just shades ->
-                    Property "text-shadow" shades :: props
+                    let
+                        name =
+                            "text-shadow-" ++ className shades
+                    in
+                    ( name :: classes
+                    , Keyed name
+                        [ pair ("." ++ name) [ Property "text-shadow" shades ]
+                        ]
+                        :: styles
+                    )
     in
-    case gathered.padding of
-        Nothing ->
-            let
-                style =
-                    gathered.styleProperties
-                        |> addFilters gathered.filters
-                        |> addBoxShadows gathered.boxShadows
-                        |> addTextShadows gathered.textShadows
-            in
-            { gathered
-                | styleProperties =
-                    if transform == "" then
-                        style
-                    else
-                        Property "transform" transform :: style
-            }
+    let
+        ( classes, styles ) =
+            ( [], gathered.rules )
+                |> addFilters
+                |> addBoxShadows
+                |> addTextShadows
+                |> addTransform
+    in
+    { gathered
+        | attributes = Html.Attributes.class (String.join " " classes) :: gathered.attributes
+        , rules =
+            styles
+    }
 
-        Just pad ->
-            let
-                style =
-                    gathered.styleProperties
-                        |> addFilters gathered.filters
-                        |> addBoxShadows gathered.boxShadows
-                        |> addTextShadows gathered.textShadows
 
-                padCls =
-                    paddingName pad
-            in
-            { gathered
-                | styleProperties =
-                    if transform == "" then
-                        style
-                    else
-                        Property "transform" transform :: style
-                , attributes = Html.Attributes.class padCls :: gathered.attributes
-                , rules =
-                    expanded ("." ++ padCls) pad :: gathered.rules
-            }
+{-| -}
+uncapitalize : String -> String
+uncapitalize str =
+    let
+        head =
+            String.left 1 str
+                |> String.toLower
+
+        tail =
+            String.dropLeft 1 str
+    in
+    head ++ tail
+
+
+{-| -}
+className : String -> String
+className x =
+    x
+        |> uncapitalize
+        |> Regex.replace Regex.All (Regex.regex "[^a-zA-Z0-9_-]") (\_ -> "")
+        |> Regex.replace Regex.All (Regex.regex "[A-Z0-9]+") (\{ match } -> " " ++ String.toLower match)
+        |> Regex.replace Regex.All (Regex.regex "[\\s+]") (\_ -> "")
 
 
 gatherAttributes : Attribute msg -> Gathered msg -> Gathered msg
 gatherAttributes attr gathered =
     case attr of
-        StyleProperty name val ->
-            { gathered | styleProperties = Property name val :: gathered.styleProperties }
-
-        FontFamily family ->
-            let
-                renderedFonts : Property
-                renderedFonts =
-                    let
-                        renderFont font =
-                            case font of
-                                Serif ->
-                                    "serif"
-
-                                SansSerif ->
-                                    "sans-serif"
-
-                                Monospace ->
-                                    "monospace"
-
-                                Typeface name ->
-                                    "\"" ++ name ++ "\""
-
-                                ImportFont name url ->
-                                    "\"" ++ name ++ "\""
-                    in
-                    family
-                        |> List.map renderFont
-                        |> String.join ", "
-                        |> Property "font-family"
-            in
-            { gathered | styleProperties = renderedFonts :: gathered.styleProperties }
-
-        Hidden ->
-            { gathered | attributes = Html.Attributes.class "hidden" :: gathered.attributes }
+        SingletonStyle class name val ->
+            { gathered
+                | attributes = Html.Attributes.class class :: gathered.attributes
+                , rules =
+                    Keyed class
+                        [ pair ("." ++ class) [ Property name val ]
+                        ]
+                        :: gathered.rules
+            }
 
         Height len ->
             if gathered.hasHeight then
@@ -948,28 +791,33 @@ gatherAttributes attr gathered =
             else
                 case len of
                     Px px ->
-                        -- add width: Xpx to current style
+                        let
+                            class =
+                                "height-px-" ++ floatClass px
+                        in
                         { gathered
-                            | styleProperties = Property "height" (toString px ++ "px") :: gathered.styleProperties
+                            | attributes = Html.Attributes.class class :: gathered.attributes
                             , hasHeight = True
+                            , rules =
+                                Keyed class
+                                    [ pair ("." ++ class) [ Property "height" (toString px ++ "px") ]
+                                    ]
+                                    :: gathered.rules
                         }
 
                     Content ->
-                        -- need to default to alignLeft
                         { gathered
                             | styleProperties = Property "height" "auto" :: gathered.styleProperties
                             , hasHeight = True
                         }
 
                     Expand ->
-                        -- add class "expand-height"
                         { gathered
                             | attributes = Html.Attributes.class "expand-height" :: gathered.attributes
                             , hasHeight = True
                         }
 
                     Fill portion ->
-                        -- renders as flex-grow: portion
                         { gathered
                             | attributes = Html.Attributes.class "height-fill" :: gathered.attributes
                             , hasHeight = True
@@ -982,24 +830,33 @@ gatherAttributes attr gathered =
                 case len of
                     Px px ->
                         -- add width: Xpx to current style
-                        { gathered | styleProperties = Property "width" (toString px ++ "px") :: gathered.styleProperties, hasWidth = True }
+                        let
+                            class =
+                                "width-px-" ++ floatClass px
+                        in
+                        { gathered
+                            | attributes = Html.Attributes.class class :: gathered.attributes
+                            , hasWidth = True
+                            , rules =
+                                Keyed class
+                                    [ pair ("." ++ class) [ Property "width" (toString px ++ "px") ]
+                                    ]
+                                    :: gathered.rules
+                        }
 
                     Content ->
-                        -- need to default to alignLeft
                         { gathered
-                            | styleProperties = Property "width" "auto" :: gathered.styleProperties
+                            | attributes = Html.Attributes.class "width-content" :: gathered.attributes
                             , hasWidth = True
                         }
 
                     Expand ->
-                        -- add class "expand-width"
                         { gathered
                             | attributes = Html.Attributes.class "expand-width" :: gathered.attributes
                             , hasWidth = True
                         }
 
                     Fill portion ->
-                        -- renders as flex-grow: portion
                         { gathered
                             | attributes = Html.Attributes.class "width-fill" :: gathered.attributes
                             , hasWidth = True
@@ -1019,8 +876,7 @@ gatherAttributes attr gathered =
                     AlignRight ->
                         { gathered
                             | attributes =
-                                Html.Attributes.class "content-right"
-                                    :: gathered.attributes
+                                Html.Attributes.class "content-right" :: gathered.attributes
                             , hasXContentAlign = True
                         }
 
@@ -1138,10 +994,7 @@ gatherAttributes attr gathered =
                     case gathered.translation of
                         Nothing ->
                             Just
-                                ( mx
-                                , my
-                                , mz
-                                )
+                                ( mx, my, mz )
 
                         Just ( existingX, existingY, existingZ ) ->
                             Just
@@ -1180,16 +1033,7 @@ gatherAttributes attr gathered =
             { gathered
                 | rotation =
                     Just
-                        ("rotate3d("
-                            ++ toString x
-                            ++ ","
-                            ++ toString y
-                            ++ ","
-                            ++ toString z
-                            ++ ","
-                            ++ toString angle
-                            ++ "rad)"
-                        )
+                        ("rotate3d(" ++ toString x ++ "," ++ toString y ++ "," ++ toString z ++ "," ++ toString angle ++ "rad)")
             }
 
         Scale mx my mz ->
@@ -1292,31 +1136,98 @@ gatherAttributes attr gathered =
                     , hasSpacing = True
                 }
 
-        Padding pad ->
+        Padding padding ->
             let
-                ifMissing x y =
-                    case x of
-                        Nothing ->
-                            y
+                padCls =
+                    "pad-"
+                        ++ toString padding.top
+                        ++ "-"
+                        ++ toString padding.right
+                        ++ "-"
+                        ++ toString padding.bottom
+                        ++ "-"
+                        ++ toString padding.left
 
-                        _ ->
-                            x
+                name =
+                    "." ++ padCls
 
-                mergePadding exist pad =
-                    case exist of
-                        Nothing ->
-                            pad
-
-                        Just existing ->
-                            { top = ifMissing existing.top pad.top
-                            , bottom = ifMissing existing.bottom pad.bottom
-                            , left = ifMissing existing.left pad.left
-                            , right = ifMissing existing.right pad.right
-                            }
+                expanded =
+                    Keyed
+                        name
+                        [ pair name
+                            [ Property "padding"
+                                (toString padding.top
+                                    ++ "px "
+                                    ++ toString padding.right
+                                    ++ "px "
+                                    ++ toString padding.bottom
+                                    ++ "px "
+                                    ++ toString padding.left
+                                    ++ "px"
+                                )
+                            ]
+                        , pair (name ++ ".el > .se.expand-width")
+                            [ Property "width" ("calc(100% + " ++ toString (padding.left + padding.right) ++ "px)")
+                            , Property "margin-left" (toString (negate padding.left) ++ "px")
+                            ]
+                        , pair (name ++ ".column > .se.expand-width")
+                            [ Property "width" ("calc(100% + " ++ toString (padding.left + padding.right) ++ "px)")
+                            , Property "margin-left" (toString (negate padding.left) ++ "px")
+                            ]
+                        , pair (name ++ ".row > .se.expand-width:first-child")
+                            [ Property "width" ("calc(100% + " ++ toString padding.left ++ "px)")
+                            , Property "margin-left" (toString (negate padding.left) ++ "px")
+                            ]
+                        , pair (name ++ ".row > .se.expand-width:last-child")
+                            [ Property "width" ("calc(100% + " ++ toString padding.right ++ "px)")
+                            , Property "margin-right" (toString (negate padding.right) ++ "px")
+                            ]
+                        , pair (name ++ ".row.has-nearby > .se.expand-width::nth-last-child(2)")
+                            [ Property "width" ("calc(100% + " ++ toString padding.right ++ "px)")
+                            , Property "margin-right" (toString (negate padding.right) ++ "px")
+                            ]
+                        , pair (name ++ ".page > .se.expand-width:first-child")
+                            [ Property "width" ("calc(100% + " ++ toString (padding.left + padding.right) ++ "px)")
+                            , Property "margin-left" (toString (negate padding.left) ++ "px")
+                            ]
+                        , pair (name ++ ".el > .se.expand-height")
+                            [ Property "height" ("calc(100% + " ++ toString (padding.top + padding.bottom) ++ "px)")
+                            , Property "margin-top" (toString (negate padding.top) ++ "px")
+                            ]
+                        , pair (name ++ ".row > .se.expand-height")
+                            [ Property "height" ("calc(100% + " ++ toString (padding.top + padding.bottom) ++ "px)")
+                            , Property "margin-top" (toString (negate padding.top) ++ "px")
+                            ]
+                        , pair (name ++ ".column > .se.expand-height:first-child")
+                            [ Property "height" ("calc(100% + " ++ toString padding.top ++ "px)")
+                            , Property "margin-top" (toString (negate padding.top) ++ "px")
+                            ]
+                        , pair (name ++ ".column > .se.expand-height:last-child")
+                            [ Property "height" ("calc(100% + " ++ toString padding.bottom ++ "px)")
+                            , Property "margin-bottom" (toString (negate padding.bottom) ++ "px")
+                            ]
+                        , pair (name ++ ".column.has-nearby > .se.expand-height::nth-last-child(2)")
+                            [ Property "height" ("calc(100% + " ++ toString padding.bottom ++ "px)")
+                            , Property "margin-bottom" (toString (negate padding.bottom) ++ "px")
+                            ]
+                        , pair (name ++ ".page > .se.expand-height:first-child")
+                            [ Property "height" ("calc(100% + " ++ toString padding.top ++ "px)")
+                            , Property "margin-top" (toString (negate padding.top) ++ "px")
+                            ]
+                        , pair (name ++ ".page > .se.expand-height:last-child")
+                            [ Property "height" ("calc(100% + " ++ toString padding.bottom ++ "px)")
+                            , Property "margin-bottom" (toString (negate padding.bottom) ++ "px")
+                            ]
+                        , pair (name ++ ".page > .se.expand-height::nth-last-child(2)")
+                            [ Property "height" ("calc(100% + " ++ toString padding.bottom ++ "px)")
+                            , Property "margin-bottom" (toString (negate padding.bottom) ++ "px")
+                            ]
+                        ]
             in
             { gathered
-                | padding =
-                    Just (mergePadding gathered.padding pad)
+                | attributes = Html.Attributes.class padCls :: gathered.attributes
+                , hasPadding = True
+                , rules = expanded :: gathered.rules
             }
 
         Overflow overflow ->
@@ -1361,6 +1272,26 @@ formatColor color =
         ++ ("," ++ toString green)
         ++ ("," ++ toString blue)
         ++ ("," ++ toString alpha ++ ")")
+
+
+formatColorClass : Color -> String
+formatColorClass color =
+    let
+        { red, green, blue, alpha } =
+            Color.toRgb color
+    in
+    toString red
+        ++ "-"
+        ++ toString green
+        ++ "-"
+        ++ toString blue
+        ++ "-"
+        ++ floatClass alpha
+
+
+floatClass : Float -> String
+floatClass x =
+    toString <| round (x * 100)
 
 
 formatDropShadow : { d | blur : a, color : Color, offset : ( b, c ) } -> String

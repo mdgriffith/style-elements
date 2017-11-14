@@ -1,4 +1,4 @@
-module Next.Element.Position
+module Next.Inline.Element.Position
     exposing
         ( alignBottom
         , alignLeft
@@ -14,7 +14,7 @@ module Next.Element.Position
 
 {- API Interface -}
 
-import Next.Internal.Model exposing (Attribute(..), HorizontalAlign(..), Length(..), Property(..), VerticalAlign(..))
+import Next.Inline.Internal.Model exposing (Attribute(..), HorizontalAlign(..), Length(..), Property(..), VerticalAlign(..))
 
 
 {-| -}

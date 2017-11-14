@@ -1,4 +1,4 @@
-module Next.Element.Content
+module Next.Inline.Element.Content
     exposing
         ( alignBottom
         , alignLeft
@@ -6,10 +6,7 @@ module Next.Element.Content
         , alignTop
         , center
         , padding
-        , paddingBottom
-        , paddingLeft
-        , paddingRight
-        , paddingTop
+        , paddingAll
         , paddingXY
         , spaceEvenly
         , spacing
@@ -20,17 +17,17 @@ module Next.Element.Content
 
 {- -}
 
-import Next.Internal.Model exposing (Attribute(..), HorizontalAlign(..), Length(..), Property(..), VerticalAlign(..))
+import Next.Inline.Internal.Model exposing (Attribute(..), HorizontalAlign(..), Length(..), Property(..), VerticalAlign(..))
 
 
 {-| -}
-padding : Float -> Attribute msg
-padding x =
+paddingAll : Float -> Attribute msg
+paddingAll x =
     Padding
-        { top = Just x
-        , left = Just x
-        , bottom = Just x
-        , right = Just x
+        { top = x
+        , left = x
+        , bottom = x
+        , right = x
         }
 
 
@@ -39,55 +36,16 @@ padding x =
 paddingXY : Float -> Float -> Attribute msg
 paddingXY x y =
     Padding
-        { top = Just y
-        , left = Just x
-        , bottom = Just y
-        , right = Just x
+        { top = y
+        , left = x
+        , bottom = y
+        , right = x
         }
 
 
-{-| -}
-paddingLeft : Float -> Attribute msg
-paddingLeft x =
+padding : { bottom : Float, left : Float, right : Float, top : Float } -> Attribute msg
+padding =
     Padding
-        { top = Nothing
-        , left = Just x
-        , bottom = Nothing
-        , right = Nothing
-        }
-
-
-{-| -}
-paddingRight : Float -> Attribute msg
-paddingRight x =
-    Padding
-        { top = Nothing
-        , left = Nothing
-        , bottom = Nothing
-        , right = Just x
-        }
-
-
-{-| -}
-paddingTop : Float -> Attribute msg
-paddingTop x =
-    Padding
-        { top = Just x
-        , left = Nothing
-        , bottom = Nothing
-        , right = Nothing
-        }
-
-
-{-| -}
-paddingBottom : Float -> Attribute msg
-paddingBottom x =
-    Padding
-        { top = Nothing
-        , left = Nothing
-        , bottom = Just x
-        , right = Nothing
-        }
 
 
 {-| -}

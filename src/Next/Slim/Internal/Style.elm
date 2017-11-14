@@ -1,4 +1,4 @@
-module Next.Internal.Style exposing (..)
+module Next.Slim.Internal.Style exposing (..)
 
 import Dict
 
@@ -267,12 +267,26 @@ render classes =
         |> String.join "\n"
 
 
+viewportRules =
+    """html, body {
+    height: 100%;
+    width: 100%;
+} """ ++ rules
+
+
 rules : String
 rules =
     render
-        [ Class (class Root)
+        [ Class "html"
+            [ Prop "height" "100%"
+            ]
+        , Class "body"
+            [ Prop "height" "100%"
+            ]
+        , Class (class Root)
             [ Prop "width" "100%"
-            , Prop "height" "100%"
+            , Prop "height" "auto"
+            , Prop "min-height" "100%"
             ]
         , Class (class Any)
             [ Prop "position" "relative"
@@ -282,6 +296,22 @@ rules =
             , Prop "margin" "0"
             , Prop "padding" "0"
             , Prop "border-width" "0"
+            , Prop "border-style" "solid"
+            , Descriptor ".width-content"
+                [ Prop "width" "auto"
+                ]
+            , Descriptor ".border-none"
+                [ Prop "border-width" "0"
+                ]
+            , Descriptor ".border-dashed"
+                [ Prop "border-style" "dashed"
+                ]
+            , Descriptor ".border-dotted"
+                [ Prop "border-style" "dotted"
+                ]
+            , Descriptor ".border-solid"
+                [ Prop "border-style" "solid"
+                ]
             , Batch <|
                 flip List.map locations <|
                     \loc ->
@@ -289,37 +319,83 @@ rules =
                             Above ->
                                 Descriptor (locationName loc)
                                     [ Prop "position" "absolute"
+                                    , Prop "display" "block"
                                     , Prop "top" "0"
                                     , Prop "height" "0"
+                                    , Prop "z-index" "10"
+                                    , Child ".height-fill"
+                                        [ Prop "height" "auto"
+                                        ]
                                     ]
 
                             Below ->
                                 Descriptor (locationName loc)
                                     [ Prop "position" "absolute"
+                                    , Prop "display" "block"
                                     , Prop "bottom" "0"
                                     , Prop "height" "0"
+                                    , Prop "z-index" "10"
+                                    , Child ".height-fill"
+                                        [ Prop "height" "auto"
+                                        ]
                                     ]
 
                             OnRight ->
                                 Descriptor (locationName loc)
                                     [ Prop "position" "absolute"
+                                    , Prop "display" "block"
                                     , Prop "left" "100%"
                                     , Prop "width" "0"
+                                    , Prop "z-index" "10"
                                     ]
 
                             OnLeft ->
                                 Descriptor (locationName loc)
                                     [ Prop "position" "absolute"
+                                    , Prop "display" "block"
                                     , Prop "right" "100%"
                                     , Prop "width" "0"
+                                    , Prop "z-index" "10"
                                     ]
 
                             Within ->
                                 Descriptor (locationName loc)
                                     [ Prop "position" "absolute"
+                                    , Prop "display" "block"
                                     , Prop "left" "0"
                                     , Prop "top" "0"
+                                    , Prop "z-index" "10"
                                     ]
+            , Descriptor ".bold"
+                [ Prop "font-weight" "700"
+                ]
+            , Descriptor ".text-light"
+                [ Prop "font-weight" "300"
+                ]
+            , Descriptor ".italic"
+                [ Prop "font-style" "italic"
+                ]
+            , Descriptor ".strike"
+                [ Prop "text-decoration" "line-through"
+                ]
+            , Descriptor ".underline"
+                [ Prop "text-decoration" "underline"
+                ]
+            , Descriptor ".text-justify"
+                [ Prop "text-align" "justify"
+                ]
+            , Descriptor ".text-justify-all"
+                [ Prop "text-align" "justify-all"
+                ]
+            , Descriptor ".text-center"
+                [ Prop "text-align" "center"
+                ]
+            , Descriptor ".text-right"
+                [ Prop "text-align" "right"
+                ]
+            , Descriptor ".text-left"
+                [ Prop "text-align" "left"
+                ]
             ]
         , Class (class Text)
             [ Prop "white-space" "pre"
@@ -358,19 +434,21 @@ rules =
                         Right ->
                             ( [ Prop "justify-content" "flex-end"
                               ]
-                            , []
+                            , [ Prop "margin-left" "auto" ]
                             )
 
                         Left ->
                             ( [ Prop "justify-content" "flex-start"
                               ]
-                            , []
+                            , [ Prop "margin-right" "auto" ]
                             )
 
                         CenterX ->
                             ( [ Prop "justify-content" "center"
                               ]
-                            , []
+                            , [ Prop "margin-left" "auto"
+                              , Prop "margin-right" "auto"
+                              ]
                             )
 
                         CenterY ->
@@ -378,6 +456,12 @@ rules =
                             , [ Prop "align-self" "center"
                               ]
                             )
+            ]
+        , Class ".nearby"
+            [ Prop "position" "absolute"
+            , Prop "width" "100%"
+            , Prop "height" "100%"
+            , Prop "pointer-events" "none"
             ]
         , Class (class Row)
             [ Prop "display" "flex"
@@ -387,6 +471,9 @@ rules =
                 ]
             , Child ".width-fill"
                 [ Prop "flex-grow" "1"
+                ]
+            , Descriptor ".space-evenly"
+                [ Prop "justify-content" "space-between"
                 ]
             , describeAlignment <|
                 \alignment ->
@@ -419,6 +506,9 @@ rules =
                             ( [ Prop "justify-content" "center"
                               ]
                             , []
+                              -- , [ Prop "margin-left" "auto"
+                              --   , Prop "margin-right" "auto"
+                              --   ]
                             )
 
                         CenterY ->

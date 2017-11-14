@@ -1,4 +1,4 @@
-module Next.Element
+module Next.Inline.Element
     exposing
         ( above
         , below
@@ -29,8 +29,8 @@ module Next.Element
 
 import Html exposing (Html)
 import Html.Attributes
-import Next.Element.Events as Events
-import Next.Internal.Model exposing (..)
+import Next.Inline.Element.Events as Events
+import Next.Inline.Internal.Model exposing (..)
 
 
 {-| -}
@@ -74,7 +74,7 @@ layout : List (Attribute msg) -> Element msg -> Html msg
 layout attrs child =
     let
         (Styled styles html) =
-            render [ 0 ] [] (el attrs child)
+            render [] (el attrs child)
     in
     Html.div [ Html.Attributes.class "style-elements" ]
         [ staticSheet
@@ -88,7 +88,7 @@ viewport : List (Attribute msg) -> Element msg -> Html msg
 viewport attrs child =
     let
         (Styled styles html) =
-            render [ 0 ] [] (el attrs child)
+            render [] (el attrs child)
     in
     Html.div [ Html.Attributes.class "style-elements" ]
         [ viewportSheet
@@ -285,3 +285,8 @@ lazy fn a =
 
 
 -- Html.lazy fn a
+
+
+hidden : Attribute msg
+hidden =
+    class "hidden"

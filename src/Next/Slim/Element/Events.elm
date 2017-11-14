@@ -1,4 +1,4 @@
-module Next.Element.Events
+module Next.Slim.Element.Events
     exposing
         ( Options
         , defaultOptions
@@ -48,7 +48,7 @@ The only difference is that the HTML.Events are turned into Element.Events
 import Html
 import Html.Events
 import Json.Decode as Json
-import Next.Internal.Model as Internal exposing (Attribute(..))
+import Next.Slim.Internal.Model as Internal exposing (Attribute(..))
 import VirtualDom
 
 
