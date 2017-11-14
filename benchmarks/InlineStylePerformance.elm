@@ -15,10 +15,11 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Lazy
 import Murmur3
-import Next.Element as Next
-import Next.Element.Content as Content
-import Next.Element.Position as Position
-import Next.Style.Color as Color
+import Next.Inline.Element as Next
+import Next.Inline.Element.Content as Content
+import Next.Inline.Element.Position as Position
+import Next.Inline.Style.Color as Color
+import Set
 import Time exposing (Time)
 import VirtualCss
 
@@ -30,6 +31,7 @@ type alias Model =
     , total : Float
     , renderer : RenderConfig
     , frameTime : Float
+    , refreshFrame : Refresh
     }
 
 
@@ -60,6 +62,12 @@ type alias RenderConfig =
     }
 
 
+type Refresh
+    = RefreshNow
+    | RefreshTime Time
+    | Continue
+
+
 type Naming
     = Hashed
     | Indexed
@@ -72,10 +80,11 @@ type Naming
 
 model : Model
 model =
-    { nodes = 200
+    { nodes = 500
     , time = 0
     , total = 0
     , skipped = 0
+    , refreshFrame = Continue
     , renderer =
         { technique = InlineStyles
         , color = True
@@ -84,8 +93,36 @@ model =
         , reducer = NoReducer
         , names = Indexed
         , lazy = False
-        , independent = False
+        , independent = True
         }
+
+    -- { technique = UsingVirtualCss
+    -- , color = True
+    -- , translate = True
+    -- , rotate = True
+    -- , reducer = NoReducer
+    -- , names = Indexed
+    -- , lazy = False
+    -- , independent = False
+    -- }
+    -- { technique = UsingVirtualCss
+    -- , color = True
+    -- , translate = True
+    -- , rotate = True
+    -- , reducer = DictReducer
+    -- , names = Encoded
+    -- , lazy = False
+    -- , independent = True
+    -- }
+    -- { technique = UsingVirtualCss
+    -- , color = True
+    -- , translate = True
+    -- , rotate = True
+    -- , reducer = DictReducer
+    -- , names = Encoded
+    -- , lazy = False
+    -- , independent = False
+    -- }
     , frameTime = 16.66
     }
 
@@ -96,7 +133,7 @@ prime model =
             VirtualCss.insert ".test { color: blue; }" 0
 
         primed =
-            List.map primeStyle (List.range 0 (model.nodes - 1))
+            List.map primeStyle (List.range 0 (model.nodes * 2))
     in
     model
 
@@ -110,10 +147,10 @@ reprime model newNodes =
             VirtualCss.insert ".test { color: blue; }" 0
 
         del =
-            List.map delete (List.range 0 (model.nodes - 1))
+            List.map delete (List.range 0 (model.nodes * 2))
 
         primed =
-            List.map primeStyle (List.range 0 (newNodes - 1))
+            List.map primeStyle (List.range 0 (newNodes * 2))
     in
     model
 
@@ -151,94 +188,11 @@ type Msg
 
 
 update msg model =
+    let
+        refreshed =
+            { model | refreshFrame = RefreshNow }
+    in
     case msg of
-        Set n ->
-            let
-                _ =
-                    reprime model n
-            in
-            ( { model | nodes = n }, Cmd.none )
-
-        ChangeRenderer n ->
-            ( { model | renderer = n }, Cmd.none )
-
-        Name naming ->
-            let
-                renderer =
-                    model.renderer
-            in
-            ( { model
-                | renderer = { renderer | names = naming }
-              }
-            , Cmd.none
-            )
-
-        SetReducer reducer ->
-            let
-                renderer =
-                    model.renderer
-            in
-            ( { model
-                | renderer = { renderer | reducer = reducer }
-              }
-            , Cmd.none
-            )
-
-        MakeLazy on ->
-            let
-                renderer =
-                    model.renderer
-            in
-            ( { model
-                | renderer = { renderer | lazy = on }
-              }
-            , Cmd.none
-            )
-
-        MakeIndependent on ->
-            let
-                renderer =
-                    model.renderer
-            in
-            ( { model
-                | renderer = { renderer | independent = on }
-              }
-            , Cmd.none
-            )
-
-        SetColor on ->
-            let
-                renderer =
-                    model.renderer
-            in
-            ( { model
-                | renderer = { renderer | color = on }
-              }
-            , Cmd.none
-            )
-
-        SetTranslate on ->
-            let
-                renderer =
-                    model.renderer
-            in
-            ( { model
-                | renderer = { renderer | translate = on }
-              }
-            , Cmd.none
-            )
-
-        SetRotate on ->
-            let
-                renderer =
-                    model.renderer
-            in
-            ( { model
-                | renderer = { renderer | rotate = on }
-              }
-            , Cmd.none
-            )
-
         Tick time ->
             let
                 filterStrength =
@@ -267,6 +221,106 @@ update msg model =
                 , total = newTotal
                 , skipped = model.skipped + newSkipped
                 , frameTime = model.frameTime + ((currentFrameTime - model.frameTime) / filterStrength)
+                , refreshFrame =
+                    case model.refreshFrame of
+                        RefreshNow ->
+                            RefreshTime (time + Time.inSeconds 0.5)
+
+                        Continue ->
+                            Continue
+
+                        RefreshTime revert ->
+                            if time > revert then
+                                Continue
+                            else
+                                model.refreshFrame
+              }
+            , Cmd.none
+            )
+
+        Set n ->
+            let
+                _ =
+                    reprime model n
+            in
+            ( { refreshed | nodes = n }, Cmd.none )
+
+        ChangeRenderer n ->
+            ( { refreshed | renderer = n }, Cmd.none )
+
+        Name naming ->
+            let
+                renderer =
+                    model.renderer
+            in
+            ( { refreshed
+                | renderer = { renderer | names = naming }
+              }
+            , Cmd.none
+            )
+
+        SetReducer reducer ->
+            let
+                renderer =
+                    model.renderer
+            in
+            ( { refreshed
+                | renderer = { renderer | reducer = reducer }
+              }
+            , Cmd.none
+            )
+
+        MakeLazy on ->
+            let
+                renderer =
+                    model.renderer
+            in
+            ( { refreshed
+                | renderer = { renderer | lazy = on }
+              }
+            , Cmd.none
+            )
+
+        MakeIndependent on ->
+            let
+                renderer =
+                    model.renderer
+            in
+            ( { refreshed
+                | renderer = { renderer | independent = on }
+              }
+            , Cmd.none
+            )
+
+        SetColor on ->
+            let
+                renderer =
+                    model.renderer
+            in
+            ( { refreshed
+                | renderer = { renderer | color = on }
+              }
+            , Cmd.none
+            )
+
+        SetTranslate on ->
+            let
+                renderer =
+                    model.renderer
+            in
+            ( { refreshed
+                | renderer = { renderer | translate = on }
+              }
+            , Cmd.none
+            )
+
+        SetRotate on ->
+            let
+                renderer =
+                    model.renderer
+            in
+            ( { refreshed
+                | renderer = { renderer | rotate = on }
               }
             , Cmd.none
             )
@@ -301,6 +355,7 @@ view model =
                     margin-right: 10px;
                     margin-bottom: 10px;
                     /*contain: strict;*/
+                    /* will-change: transform, opacity, background-color; */
                     /*will-chage: auto;*/
 
                 }
@@ -311,6 +366,7 @@ view model =
                     margin-bottom: 10px;
                     /*contain: strict;*/
                     /*will-chage: auto;*/
+                    /* will-change: transform, opacity, background-color; */
 
                 }
                 .blue {
@@ -348,24 +404,27 @@ view model =
                 }
                 """ ]
         , viewStats model
-        , case model.renderer.technique of
-            InlineStyles ->
-                inlineRenderer model.time model.nodes model.renderer
+        , if model.refreshFrame /= Continue then
+            Html.div [ Html.Attributes.style [ ( "background-color", "red" ), ( "width", "100%" ), ( "height", "100%" ) ] ] [ Html.text "REFRESH" ]
+          else
+            case model.renderer.technique of
+                InlineStyles ->
+                    inlineRenderer model.time model.nodes model.renderer
 
-            ConcreteStyleSheet ->
-                concreteStylesheet model.time model.nodes model.renderer
+                ConcreteStyleSheet ->
+                    concreteStylesheet model.time model.nodes model.renderer
 
-            CssAnimation ->
-                cssAnimationRenderer model.nodes model.renderer
+                CssAnimation ->
+                    cssAnimationRenderer model.nodes model.renderer
 
-            UsingVirtualCss ->
-                virtualCss model.time model.nodes model.renderer
+                UsingVirtualCss ->
+                    virtualCss model.time model.nodes model.renderer
 
-            VirtualCssTransformViaAnimation ->
-                virtualCssTransformViaAnimation model.time model.nodes model.renderer
+                VirtualCssTransformViaAnimation ->
+                    virtualCssTransformViaAnimation model.time model.nodes model.renderer
 
-            StyleElements ->
-                styleElements model.time model.nodes model.renderer
+                StyleElements ->
+                    styleElements model.time model.nodes model.renderer
         ]
 
 
@@ -584,7 +643,7 @@ styleElements time nodes renderer =
             in
             Next.row
                 [ Next.width (Next.px 600)
-                , Content.padding 100
+                , Content.paddingAll 100
                 , Content.spacing 10
                 ]
                 (List.map el (List.range 0 (x - 1)))
@@ -618,36 +677,9 @@ styleElements time nodes renderer =
         (fixed nodes)
 
 
+virtualCss : Float -> Int -> { a | lazy : Bool, color : Bool, independent : Bool, names : Naming, reducer : Reducer, rotate : Bool, translate : Bool } -> Html msg
 virtualCss time nodes renderer =
     let
-        props =
-            []
-                |> addColor renderer time 0
-                |> addTransform renderer time 0
-
-        cheatHash =
-            if renderer.reducer == CheatReducer then
-                props
-                    |> toString
-                    |> Murmur3.hashString 8675309
-                    |> toString
-                    |> (\x -> "style-" ++ x)
-            else
-                ""
-
-        newStyle i =
-            let
-                ( cls, properties ) =
-                    buildStyle i
-
-                _ =
-                    VirtualCss.delete i
-
-                rendered =
-                    renderStyle <| Style ("." ++ cls) properties
-            in
-            VirtualCss.insert rendered i
-
         refresh i cls props =
             let
                 _ =
@@ -655,133 +687,111 @@ virtualCss time nodes renderer =
             in
             VirtualCss.insert (renderStyle <| Style ("." ++ cls) props) i
 
+        reduceAndInsertStyles ( html, styles ) =
+            case renderer.reducer of
+                DictReducer ->
+                    let
+                        combine ( cls, props ) ( styleI, cache ) =
+                            if Set.member cls cache then
+                                ( styleI, cache )
+                            else
+                                let
+                                    _ =
+                                        refresh styleI cls props
+                                in
+                                ( styleI + 1, Set.insert cls cache )
+                    in
+                    List.foldr combine ( 0, Set.empty ) styles
+                        |> (Debug.log "total styles" << Tuple.first)
+                        |> always html
+
+                CheatReducer ->
+                    let
+                        _ =
+                            List.indexedMap (\i ( cls, props ) -> refresh i cls props) styles
+                    in
+                    html
+
+                NoReducer ->
+                    let
+                        _ =
+                            List.indexedMap (\i ( cls, props ) -> refresh i cls props) styles
+                    in
+                    html
+    in
+    if renderer.lazy && renderer.names == Indexed then
+        -- Html.Lazy.lazy2 createNodesLazy renderer nodes
+        createStyledNodes renderer nodes time
+            |> reduceAndInsertStyles
+    else
+        createStyledNodes renderer nodes time
+            |> reduceAndInsertStyles
+
+
+createStyledNodes : { a | color : Bool, names : Naming, reducer : Reducer, independent : Bool, rotate : Bool, translate : Bool } -> Int -> Float -> ( Html msg, List ( String, List ( String, String ) ) )
+createStyledNodes renderer count time =
+    let
         buildStyle i =
             case renderer.names of
                 Encoded ->
                     encodedProps renderer time (toFloat i)
 
                 Hashed ->
-                    if renderer.reducer == CheatReducer then
-                        ( cheatHash, props )
-                    else
-                        ( []
-                            |> addColor renderer time (toFloat i)
-                            |> addTransform renderer time (toFloat i)
-                            |> toString
-                            |> Murmur3.hashString 8675309
-                            |> toString
-                            |> (\x -> "style-" ++ x)
+                    let
+                        class =
+                            []
+                                |> addColor renderer time (toFloat i)
+                                |> addTransform renderer time (toFloat i)
+                                |> toString
+                                |> Murmur3.hashString 8675309
+                                |> toString
+                                |> (\x -> "style-" ++ x)
+                    in
+                    ( class
+                    , [ ( class
                         , []
                             |> addColor renderer time (toFloat i)
                             |> addTransform renderer time (toFloat i)
                         )
-
-                Indexed ->
-                    ( "virtual-css-" ++ toString i
-                    , []
-                        |> addColor renderer time (toFloat i)
-                        |> addTransform renderer time (toFloat i)
+                      ]
                     )
 
-        reduceStyles _ =
-            let
-                combine i stylesheet =
-                    let
-                        ( cls, props ) =
-                            buildStyle i
-                    in
-                    Dict.insert cls props stylesheet
-            in
-            List.foldr combine Dict.empty (List.range 0 (nodes - 1))
-                |> Dict.toList
-                |> List.indexedMap (\i ( cls, props ) -> refresh i cls props)
-
-        renderedCss =
-            case renderer.names of
-                Encoded ->
-                    if renderer.reducer == DictReducer then
-                        reduceStyles ()
-                    else
-                        List.map newStyle (List.range 0 (nodes - 1))
-
                 Indexed ->
-                    List.map newStyle (List.range 0 (nodes - 1))
-
-                Hashed ->
-                    if renderer.reducer == CheatReducer then
-                        [ newStyle 0 ]
-                    else
-                        List.map newStyle (List.range 0 (nodes - 1))
-    in
-    if renderer.lazy && renderer.names == Indexed then
-        Html.Lazy.lazy2 createNodesLazy renderer nodes
-    else
-        createNodes renderer nodes time
-
-
-createNodes renderer x time =
-    let
-        props =
-            []
-                |> addColor renderer time 0
-                |> addTransform renderer time 0
-
-        cheatHash =
-            if renderer.reducer == CheatReducer then
-                props
-                    |> toString
-                    |> Murmur3.hashString 8675309
-                    |> toString
-                    |> (\x -> "style-" ++ x)
-            else
-                ""
-
-        cls i =
-            case renderer.names of
-                Encoded ->
-                    Tuple.first <| encodedProps renderer time (toFloat i)
-
-                Hashed ->
-                    if renderer.reducer == CheatReducer && not renderer.independent then
-                        cheatHash
-                    else
-                        []
+                    let
+                        name =
+                            "virtual-css-" ++ toString i
+                    in
+                    ( name
+                    , [ ( name
+                        , []
                             |> addColor renderer time (toFloat i)
                             |> addTransform renderer time (toFloat i)
-                            |> toString
-                            |> Murmur3.hashString 8675309
-                            |> toString
-                            |> (\x -> "style-" ++ x)
+                        )
+                      ]
+                    )
 
-                Indexed ->
-                    "virtual-css-" ++ toString i
-
-        el i =
+        el myClass =
             if renderer.color then
-                div [ class ("style-no-bg test " ++ cls i) ] []
+                div [ class ("style-no-bg test " ++ myClass) ] []
             else
-                div [ class ("style test " ++ cls i) ] []
+                div [ class ("style test " ++ myClass) ] []
+
+        addElement i ( html, styles ) =
+            let
+                ( class, newStyles ) =
+                    buildStyle i
+            in
+            ( el class :: html
+            , newStyles ++ styles
+            )
+
+        ( htmls, styles ) =
+            List.foldr addElement ( [], [] ) (List.range 0 (count - 1))
     in
-    div [ class "renderer" ]
-        (List.map el (List.range 0 (x - 1)))
-
-
-createNodesLazy renderer x =
-    let
-        _ =
-            Debug.log "create nodes, lazily" "doin it"
-
-        cls i =
-            "virtual-css-" ++ toString i
-
-        el i =
-            if renderer.color then
-                div [ class ("style-no-bg test " ++ cls i) ] []
-            else
-                div [ class ("style test " ++ cls i) ] []
-    in
-    div [ class "renderer" ]
-        (List.map el (List.range 0 (x - 1)))
+    ( div [ class "renderer" ]
+        htmls
+    , styles
+    )
 
 
 virtualCssTransformViaAnimation time nodes renderer =
@@ -994,8 +1004,8 @@ animatePosSin time i =
         |> (+) 200.0
 
 
-encodedProps : { a | color : Bool, independent : Bool, translate : Bool, rotate : Bool } -> Float -> Float -> ( String, List ( String, String ) )
-encodedProps renderer time i =
+encodedPropsSingle : { a | color : Bool, independent : Bool, translate : Bool, rotate : Bool } -> Float -> Float -> ( String, List ( String, List ( String, String ) ) )
+encodedPropsSingle renderer time i =
     let
         ( r, g, b ) =
             animateColor time
@@ -1060,7 +1070,84 @@ encodedProps renderer time i =
                     Nothing
                 ]
     in
-    ( encoding, props )
+    ( encoding
+    , [ ( encoding, props ) ]
+    )
+
+
+encodedProps : { a | color : Bool, independent : Bool, translate : Bool, rotate : Bool } -> Float -> Float -> ( String, List ( String, List ( String, String ) ) )
+encodedProps renderer time i =
+    let
+        ( colorCls, colors ) =
+            if renderer.color then
+                let
+                    ( r, g, b ) =
+                        animateColor time
+                            (if renderer.independent then
+                                i
+                             else
+                                0
+                            )
+
+                    clsName =
+                        String.join "-" [ "bc", toString r, toString g, toString b ]
+                in
+                ( clsName
+                , Just <|
+                    ( clsName
+                    , [ ( "background-color", "rgb(" ++ toString r ++ ", " ++ toString g ++ ", " ++ toString b ++ ")" ) ]
+                    )
+                )
+            else
+                ( "", Nothing )
+
+        ( transformCls, transforms ) =
+            if renderer.translate || renderer.rotate then
+                let
+                    pos =
+                        animatePosSin time
+                            (if renderer.independent then
+                                i
+                             else
+                                0
+                            )
+
+                    name =
+                        String.join "-" <|
+                            [ if renderer.translate then
+                                "tr-" ++ toString (round (pos * 100)) ++ "px-0px"
+                              else
+                                ""
+                            , if renderer.rotate then
+                                "rt-" ++ toString (round (pos * 100)) ++ "d"
+                              else
+                                ""
+                            ]
+                in
+                ( name
+                , Just <|
+                    ( name
+                    , [ ( "transform"
+                        , String.join " " <|
+                            [ if renderer.translate then
+                                "translate(" ++ toString pos ++ "px, 0px)"
+                              else
+                                ""
+                            , if renderer.rotate then
+                                "rotate(" ++ toString pos ++ "deg)"
+                              else
+                                ""
+                            ]
+                        )
+                      ]
+                    )
+                )
+            else
+                ( "", Nothing )
+    in
+    ( colorCls ++ " " ++ transformCls
+    , List.filterMap identity [ colors, transforms ]
+    )
 
 
 addColor renderer time i styleAttrs =
@@ -1092,7 +1179,7 @@ addTransform renderer time i styleAttrs =
         transforms =
             List.filterMap identity
                 [ if renderer.translate then
-                    Just ("translate(" ++ toString pos ++ "px, 0px)")
+                    Just ("translate3d(" ++ toString pos ++ "px, 0px, 0px)")
                   else
                     Nothing
                 , if renderer.rotate then
