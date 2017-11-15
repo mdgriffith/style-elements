@@ -54,6 +54,7 @@ type Attribute msg
         , color : Color
         }
     | Filter FilterType
+    | NoAttribute
 
 
 type LinkType
@@ -129,6 +130,9 @@ map fn el =
 mapAttr : (msg -> msg1) -> Attribute msg -> Attribute msg1
 mapAttr fn attr =
     case attr of
+        NoAttribute ->
+            NoAttribute
+
         -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
         Class x y ->
             Class x y
@@ -284,6 +288,9 @@ locationClass location =
 gatherAttributes : Attribute msg -> Gathered msg -> Gathered msg
 gatherAttributes attr gathered =
     case attr of
+        NoAttribute ->
+            gathered
+
         Link linktype src ->
             gathered
 
@@ -414,6 +421,7 @@ type alias Gathered msg =
     { attributes : List (Html.Attribute msg)
     , rules : List Style
     , nearbys : List (Html msg)
+    , link : Maybe ( LinkType, String )
     , filters : Maybe String
     , boxShadows : Maybe String
     , textShadows : Maybe String
@@ -433,6 +441,7 @@ initGathered =
     { attributes = []
     , rules = []
     , nearbys = []
+    , link = Nothing
     , rotation = Nothing
     , translation = Nothing
     , scale = Nothing

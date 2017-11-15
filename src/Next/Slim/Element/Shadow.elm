@@ -1,4 +1,4 @@
-module Next.Slim.Style.Shadow exposing (..)
+module Next.Slim.Element.Shadow exposing (..)
 
 {-| Shadows
 
@@ -22,11 +22,11 @@ These can be used directly as properties.
 
 # Advanced Shadows
 
-You can also have more control over the paraters of the shadow, such as the `Shadow.box` shown below.
+You can also have more control over the parameters of the shadow, such as the `Shadow.box` shown below.
 
     import Color
     import Style exposing (..)
-    import Style.Shadow as Shadow
+    import Element.Shadow as Shadow
 
     style MyStyleWithShadow
         [ Shadow.box

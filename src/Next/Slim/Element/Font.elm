@@ -1,4 +1,4 @@
-module Next.Slim.Style.Font
+module Next.Slim.Element.Font
     exposing
         ( alignLeft
         , alignRight

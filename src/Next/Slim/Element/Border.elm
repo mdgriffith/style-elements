@@ -1,14 +1,11 @@
-module Next.Slim.Style.Border
+module Next.Slim.Element.Border
     exposing
         ( all
         , dashed
         , dotted
         , each
         , none
-        , roundBottomLeft
-        , roundBottomRight
-        , roundTopLeft
-        , roundTopRight
+        , roundEach
         , rounded
         , solid
         )
@@ -28,7 +25,7 @@ module Next.Slim.Style.Border
 
 # Rounded Border
 
-@docs rounded, roundTopLeft, roundTopRight, roundBottomRight, roundBottomLeft
+@docs rounded, roundEach
 
 -}
 
@@ -78,28 +75,16 @@ solid =
     Class "border" "border-solid"
 
 
-
--- StyleProperty "border-style" "solid"
-
-
 {-| -}
 dashed : Attribute msg
 dashed =
     Class "border" "border-dashed"
 
 
-
--- StyleProperty "border-style" "dashed"
-
-
 {-| -}
 dotted : Attribute msg
 dotted =
     Class "border" "border-dotted"
-
-
-
--- StyleProperty "border-style" "dotted"
 
 
 {-| Round all corners.
@@ -110,28 +95,19 @@ rounded radius =
 
 
 {-| -}
-roundTopLeft : Float -> Attribute msg
-roundTopLeft radius =
-    StyleClass (Single ("border-top-left-radius" ++ toString radius) "border-top-left-radius" (toString radius ++ "px"))
-
-
-
--- StyleProperty "border-top-left-radius" (toString x ++ "px")
-
-
-{-| -}
-roundTopRight : Float -> Attribute msg
-roundTopRight x =
-    StyleProperty "border-top-right-radius" (toString x ++ "px")
-
-
-{-| -}
-roundBottomRight : Float -> Attribute msg
-roundBottomRight x =
-    StyleProperty "border-bottom-right-radius" (toString x ++ "px")
-
-
-{-| -}
-roundBottomLeft : Float -> Attribute msg
-roundBottomLeft x =
-    StyleProperty "border-bottom-left-radius" (toString x ++ "px")
+roundEach : { topLeft : Float, topRight : Float, bottomLeft : Float, bottomRight : Float } -> Attribute msg
+roundEach { topLeft, topRight, bottomLeft, bottomRight } =
+    -- StyleClass (Single ("border-top-left-radius" ++ toString radius) "border-radius" (toString radius ++ "px"))
+    StyleClass
+        (Single ("border-radiu-" ++ toString top ++ "-" ++ toString right ++ toString bottom ++ "-" ++ toString left)
+            "border-radius"
+            (toString topLeft
+                ++ "px "
+                ++ toString topRight
+                ++ "px "
+                ++ toString bottomRight
+                ++ "px "
+                ++ toString bottomLeft
+                ++ "px"
+            )
+        )

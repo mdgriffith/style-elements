@@ -8,10 +8,10 @@ import Html.Events
 import Mouse
 import Next.Slim.Element exposing (..)
 import Next.Slim.Element.Attributes exposing (..)
+import Next.Slim.Element.Color as Color
+import Next.Slim.Element.Font as Font
+import Next.Slim.Element.Shadow as Shadow
 import Next.Slim.Internal.Style as Internal
-import Next.Slim.Style.Color as Color
-import Next.Slim.Style.Font as Font
-import Next.Slim.Style.Shadow as Shadow
 import Time exposing (Time)
 
 
@@ -54,34 +54,32 @@ update msg model =
 
 
 view model =
-    Html.div [ Html.Attributes.style [ ( "width", "300px" ), ( "height", "300px" ) ] ]
-        [ layout [] <|
-            column []
-                [ row
-                    [ height (px 100)
-                    , Color.background Color.green
-                    , Color.text Color.white
-                    , spaceEvenly
-                    ]
-                    [ el
-                        [--height (px 8000)
-                         --   alignTop
-                        ]
-                        (text "Hello World!!")
-                    , el
-                        [--height (px 8000)
-                         --   alignTop
-                        ]
-                        (text "Hello World!!")
-                    , el
-                        [--height (px 8000)
-                         --   alignTop
-                        ]
-                        (text "Hello World!! BLABLABLABLABLABLBALA")
-                    ]
-                , el [] (text "MAIN CONTENT")
+    layout [] <|
+        column []
+            [ row
+                [ height (px 100)
+                , Color.background Color.green
+                , Color.text Color.white
+                , spaceEvenly
                 ]
-        ]
+                [ el
+                    [--height (px 8000)
+                     --   alignTop
+                    ]
+                    (text "Hello World!!")
+                , el
+                    [--height (px 8000)
+                     --   alignTop
+                    ]
+                    (text "Hello World!!")
+                , el
+                    [--height (px 8000)
+                     --   alignTop
+                    ]
+                    (text "Hello World!! BLABLABLABLABLABLBALA")
+                ]
+            , el [] (text "MAIN CONTENT")
+            ]
 
 
 

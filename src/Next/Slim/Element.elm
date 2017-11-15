@@ -24,11 +24,11 @@ import Html exposing (Html)
 import Html.Attributes
 import Json.Encode as Json
 import Next.Slim.Element.Attributes as Attributes
+import Next.Slim.Element.Color as Color
 import Next.Slim.Element.Events as Events
+import Next.Slim.Element.Font as Font
 import Next.Slim.Internal.Model exposing (..)
 import Next.Slim.Internal.Style
-import Next.Slim.Style.Color as Color
-import Next.Slim.Style.Font as Font
 import VirtualDom
 
 
@@ -56,24 +56,23 @@ expand =
     Expand
 
 
-addBaseStyle : List (Attribute msg) -> List (Attribute msg)
-addBaseStyle attrs =
-    attrs
-        ++ [ Color.background Color.blue
-           , Color.text Color.white
-           , Font.size 20
-           , Font.family
+{-| -}
+layout : List (Attribute msg) -> Element msg -> Html msg
+layout attrs child =
+    renderHtml Layout
+        "div"
+        (Color.background Color.blue
+            :: Color.text Color.white
+            :: Font.size 20
+            :: Font.family
                 [ Font.typeface "Open Sans"
                 , Font.typeface "georgia"
                 , Font.serif
                 ]
-           ]
-
-
-{-| -}
-layout : List (Attribute msg) -> Element msg -> Html msg
-layout attrs child =
-    renderHtml Layout "div" (addBaseStyle <| htmlClass "style-elements se el" :: attrs) [ child ]
+            :: htmlClass "style-elements se el"
+            :: attrs
+        )
+        [ child ]
 
 
 {-| A helper function. This:
@@ -339,12 +338,6 @@ type alias Button msg =
     }
 
 
-{-| -}
-button : List (Attribute msg) -> Button msg -> Element msg
-button attrs { onClick, content } =
-    render "button" (Events.onClick onClick :: attrs) [ content ]
-
-
 {-| For images, both a source and a caption are required. The caption will serve as the alt-text.
 -}
 image : List (Attribute Never) -> { src : String, caption : String } -> Element msg
@@ -369,37 +362,114 @@ decorativeImage attrs { src } =
         []
 
 
-{-| -}
-h1 : List (Attribute msg) -> Element msg -> Element msg
-h1 attrs child =
-    render "h1" attrs [ child ]
+
+-- {-| -}
+-- h1 : List (Attribute msg) -> Element msg -> Element msg
+-- h1 attrs child =
+--     render "h1" attrs [ child ]
+-- {-| -}
+-- h2 : List (Attribute msg) -> Element msg -> Element msg
+-- h2 attrs child =
+--     render "h2" attrs [ child ]
+-- {-| -}
+-- h3 : List (Attribute msg) -> Element msg -> Element msg
+-- h3 attrs child =
+--     render "h3" attrs [ child ]
+-- {-| -}
+-- h4 : List (Attribute msg) -> Element msg -> Element msg
+-- h4 attrs child =
+--     render "h4" attrs [ child ]
+-- {-| -}
+-- h5 : List (Attribute msg) -> Element msg -> Element msg
+-- h5 attrs child =
+--     render "h5" attrs [ child ]
+-- {-| -}
+-- h6 : List (Attribute msg) -> Element msg -> Element msg
+-- h6 attrs child =
+--     render "h6" attrs [ child ]
 
 
 {-| -}
-h2 : List (Attribute msg) -> Element msg -> Element msg
-h2 attrs child =
-    render "h2" attrs [ child ]
+button : List (Attribute msg) -> Button msg -> Element msg
+button attrs { onClick, content } =
+    render "button" (Events.onClick onClick :: attrs) [ content ]
 
 
 {-| -}
-h3 : List (Attribute msg) -> Element msg -> Element msg
-h3 attrs child =
-    render "h3" attrs [ child ]
+link : List (Attribute msg) -> { url : String, element : Element msg } -> Element msg
+link attrs { url, element } =
+    render "a"
+        (htmlClass "se el"
+            :: Attr (Html.Attributes.href src)
+            :: Attr (Html.Attributes.rel "noopener noreferrer")
+            :: Attributes.width shrink
+            :: Attributes.height shrink
+            :: Attributes.centerY
+            :: Attributes.center
+            :: attrs
+        )
+        [ element ]
 
 
 {-| -}
-h4 : List (Attribute msg) -> Element msg -> Element msg
-h4 attrs child =
-    render "h4" attrs [ child ]
+newTab : List (Attribute msg) -> { url : String, element : Element msg } -> Element msg
+newTab attrs { url, element } =
+    render "a"
+        (htmlClass "se el"
+            :: Attr (Html.Attributes.href src)
+            :: Attr (Html.Attributes.rel "noopener noreferrer")
+            :: Attr (Html.Attributes.target "_blank")
+            :: Attributes.width shrink
+            :: Attributes.height shrink
+            :: Attributes.centerY
+            :: Attributes.center
+            :: attrs
+        )
+        [ element ]
 
 
-{-| -}
-h5 : List (Attribute msg) -> Element msg -> Element msg
-h5 attrs child =
-    render "h5" attrs [ child ]
+{-|
+
+    download []
+        { url = "mydownload.pdf"
+        , element = text "Download this"
+        }
+
+-}
+download : List (Attribute msg) -> { url : String, element : Element msg } -> Element msg
+download attrs { url, element } =
+    render "a"
+        (htmlClass "se el"
+            :: Attr (Html.Attributes.href url)
+            :: Attr (Html.Attributes.download True)
+            :: Attributes.width shrink
+            :: Attributes.height shrink
+            :: Attributes.centerY
+            :: Attributes.center
+            :: attrs
+        )
+        [ element ]
 
 
-{-| -}
-h6 : List (Attribute msg) -> Element msg -> Element msg
-h6 attrs child =
-    render "h6" attrs [ child ]
+{-|
+
+     downloadAs []
+        { url = "mydownload.pdf"
+        , filename "your-thing.pdf"
+        , element = text "Download this"
+        }
+
+-}
+downloadAs : List (Attribute msg) -> { element : Element msg, filename : String, url : String } -> Element msg
+downloadAs attrs { url, filename, element } =
+    render "a"
+        (htmlClass "se el"
+            :: Attr (Html.Attributes.href url)
+            :: Attr (Html.Attributes.downloadAs filename)
+            :: Attributes.width shrink
+            :: Attributes.height shrink
+            :: Attributes.centerY
+            :: Attributes.center
+            :: attrs
+        )
+        [ element ]

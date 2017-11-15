@@ -1,4 +1,4 @@
-module Next.Slim.Style.Color exposing (background, border, cursor, text)
+module Next.Slim.Element.Color exposing (background, border, cursor, text)
 
 {-| Set Colors for your style.
 

@@ -1,4 +1,4 @@
-module Next.Slim.Style.Filter exposing (blur, brightness, contrast, grayscale, hueRotate, invert, opacity, saturate, sepia, url)
+module Next.Slim.Element.Filter exposing (blur, brightness, contrast, grayscale, hueRotate, invert, opacity, saturate, sepia, url)
 
 {-| Filters that can be applied to an element.
 

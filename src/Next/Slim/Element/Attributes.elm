@@ -33,21 +33,6 @@ module Next.Slim.Element.Attributes
 import Next.Slim.Internal.Model as Internal exposing (Attribute(..), HorizontalAlign(..), Length(..), LinkType(..), Location(..), Property(..), Style(..), VerticalAlign(..))
 
 
-link : String -> Attribute msg
-link =
-    Link Direct
-
-
-download : String -> Attribute msg
-download =
-    Link Download
-
-
-downloadAs : { filename : String, src : String } -> Attribute msg
-downloadAs { src, filename } =
-    Link (DownloadAs filename) src
-
-
 below : Internal.Element msg -> Attribute msg
 below =
     Nearby Below
@@ -211,6 +196,10 @@ spacingXY x y =
     StyleClass (SpacingStyle x y)
 
 
-hidden : Attribute msg
-hidden =
-    Internal.class "hidden"
+{-| -}
+hidden : Bool -> Attribute msg
+hidden on =
+    if on then
+        Internal.class "hidden"
+    else
+        NoAttribute
