@@ -11,6 +11,7 @@ import Next.Slim.Element.Attributes exposing (..)
 import Next.Slim.Element.Color as Color
 import Next.Slim.Element.Font as Font
 import Next.Slim.Element.Shadow as Shadow
+import Next.Slim.Input as Input
 import Next.Slim.Internal.Style as Internal
 import Time exposing (Time)
 
@@ -63,8 +64,10 @@ view model =
                 , spaceEvenly
                 ]
                 [ el
-                    [--height (px 8000)
-                     --   alignTop
+                    [ link "http://zombo.com"
+
+                    --height (px 8000)
+                    --   alignTop
                     ]
                     (text "Hello World!!")
                 , el
@@ -79,6 +82,11 @@ view model =
                     (text "Hello World!! BLABLABLABLABLABLBALA")
                 ]
             , el [] (text "MAIN CONTENT")
+            , Input.text [ center, width (px 800) ]
+                { text = "Helloooooo!"
+                , onChange = always NoOp
+                , label = Input.LabelOnRight empty
+                }
             ]
 
 
@@ -170,3 +178,16 @@ view model =
 --         , el [ width fill, height (px 20), Color.background Color.blue ] empty
 --         ]
 --     ]
+-- view model =
+--     layoutWith []
+--         { modal = el [] empty
+--         , content =
+--             column []
+--         }
+-- view model =
+--     layoutWith
+--         { modal = el [] empty
+--         , attributes = []
+--         }
+--     <|
+--         column [] []

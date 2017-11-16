@@ -2,8 +2,12 @@ module Next.Slim.Input exposing (..)
 
 {-| -}
 
+import Html.Attributes
+import Html.Events
 import Next.Slim.Element as Element
+import Next.Slim.Element.Attributes as Attributes
 import Next.Slim.Internal.Model exposing (..)
+import VirtualDom
 
 
 type Error msg
@@ -17,7 +21,6 @@ type Label msg
     | LabelOnRight (Element msg)
     | LabelOnLeft (Element msg)
     | HiddenLabel String
-    | PlaceHolder String (Label msg)
 
 
 {-| -}
@@ -31,9 +34,8 @@ type Option msg
 {-| -}
 type alias Checkbox msg =
     { onChange : Bool -> msg
-    , label : Element msg
     , checked : Bool
-    , options : List (Option msg)
+    , label : Element msg
     }
 
 
@@ -45,10 +47,72 @@ type alias Checkbox msg =
         , label = text "hello!"
         }
 
+Desired Output
+
+    <label>
+        <input type="checkbox" checked/>
+        Here is my checkbox
+    </label>
+
 -}
 checkbox : List (Attribute msg) -> Checkbox msg -> Element msg
 checkbox attrs checkbox =
     Element.empty
+
+
+{-| -}
+type alias Text msg =
+    { onChange : String -> msg
+    , text : String
+    , placeholder : Maybe (Element msg)
+    , label : Label msg
+    }
+
+
+{-| -}
+text : List (Attribute msg) -> Text msg -> Element msg
+text attrs context =
+    let
+        input =
+            Unstyled <|
+                VirtualDom.node "label"
+                    [ Html.Attributes.class "se el width-fill height-fill" ]
+                    [ VirtualDom.node "input"
+                        [ Html.Attributes.class "se el width-fill height-fill"
+                        , Html.Attributes.type_ "text"
+                        , Html.Attributes.value context.text
+                        , Html.Attributes.spellcheck False
+                        , Html.Events.onInput context.onChange
+                        ]
+                        []
+                    ]
+
+        layout =
+            case context.label of
+                LabelBelow label ->
+                    column attrs [ input, label ]
+
+                LabelAbove label ->
+                    column attrs [ input, label ]
+
+                LabelOnRight label ->
+                    row attrs [ input, label ]
+
+                LabelOnLeft label ->
+                    row attrs [ input, label ]
+
+                HiddenLabel string ->
+                    el attrs input
+    in
+    render
+        (htmlClass "se el"
+            :: Attributes.width Element.shrink
+            :: Attributes.height Element.shrink
+            :: Attributes.centerY
+            :: Attributes.center
+            :: attrs
+        )
+        []
 
 
 

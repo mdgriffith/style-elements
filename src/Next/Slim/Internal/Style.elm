@@ -283,6 +283,13 @@ rules =
         , Class "body"
             [ Prop "height" "100%"
             ]
+        , Class "input"
+            [ Prop "border" "none"
+            ]
+        , Class "a"
+            [ Prop "text-decoration" "none"
+            , Prop "color" "inherit"
+            ]
         , Class (class Root)
             [ Prop "width" "100%"
             , Prop "height" "auto"
@@ -297,6 +304,7 @@ rules =
             , Prop "padding" "0"
             , Prop "border-width" "0"
             , Prop "border-style" "solid"
+            , Prop "font" "inherit"
             , Descriptor ".width-content"
                 [ Prop "width" "auto"
                 ]

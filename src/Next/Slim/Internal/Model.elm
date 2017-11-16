@@ -7,6 +7,7 @@ import Color exposing (Color)
 import Html exposing (Html)
 import Html.Attributes
 import Json.Encode as Json
+import Next.Slim.Internal.Style
 import Regex
 import Set exposing (Set)
 import VirtualDom
@@ -37,6 +38,7 @@ type Attribute msg
       -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
     | StyleClass Style
     | Link LinkType String
+    | Describe Description
     | Nearby Location (Element msg)
     | Move (Maybe Float) (Maybe Float) (Maybe Float)
     | Rotate Float Float Float Float
@@ -59,8 +61,23 @@ type Attribute msg
 
 type LinkType
     = Direct
+    | NewTab
     | Download
     | DownloadAs String
+
+
+type Description
+    = Main
+    | Navigation
+    | Search
+    | ContentInfo
+    | Complementary
+    | Log
+    | Tooltip
+    | Heading Int
+    | Label String
+    | LivePolite
+    | LiveAssertive
 
 
 type FilterType
@@ -132,6 +149,9 @@ mapAttr fn attr =
     case attr of
         NoAttribute ->
             NoAttribute
+
+        Describe description ->
+            Describe description
 
         -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
         Class x y ->
@@ -267,6 +287,7 @@ addDot style =
             PaddingStyle top right bottom left
 
 
+locationClass : Location -> String
 locationClass location =
     case location of
         Above ->
@@ -292,6 +313,14 @@ gatherAttributes attr gathered =
             gathered
 
         Link linktype src ->
+            case gathered.link of
+                Nothing ->
+                    { gathered | link = Just ( linktype, src ) }
+
+                Just _ ->
+                    gathered
+
+        Describe description ->
             gathered
 
         Nearby location elem ->
@@ -917,3 +946,166 @@ formatColorClass color =
         ++ toString blue
         ++ "-"
         ++ floatClass alpha
+
+
+nodeName maybeLink =
+    case maybeLink of
+        Nothing ->
+            "div"
+
+        Just _ ->
+            "a"
+
+
+withLink maybeLink attrs =
+    case maybeLink of
+        Nothing ->
+            attrs
+
+        Just ( linkType, src ) ->
+            case linkType of
+                Direct ->
+                    Html.Attributes.href src
+                        :: Html.Attributes.rel "noopener noreferrer"
+                        :: attrs
+
+                NewTab ->
+                    Html.Attributes.href src
+                        :: Html.Attributes.rel "noopener noreferrer"
+                        :: Html.Attributes.target "_blank"
+                        :: attrs
+
+                Download ->
+                    Html.Attributes.href src
+                        :: Html.Attributes.download True
+                        :: attrs
+
+                DownloadAs filename ->
+                    Html.Attributes.href src
+                        :: Html.Attributes.downloadAs filename
+                        :: attrs
+
+
+renderAttributes : List (Attribute msg) -> List Style -> ( String, List (Html.Attribute msg), List Style, Maybe (List (Html msg)) )
+renderAttributes attributes styleChildren =
+    case attributes of
+        [] ->
+            ( "div"
+            , []
+            , styleChildren
+            , Nothing
+            )
+
+        attrs ->
+            List.foldr gatherAttributes { initGathered | rules = styleChildren } attrs
+                |> formatTransformations
+                |> (\{ rules, attributes, nearbys, link } ->
+                        case nearbys of
+                            [] ->
+                                ( nodeName link
+                                , withLink link attributes
+                                , rules
+                                , Nothing
+                                )
+
+                            additionalChildren ->
+                                ( nodeName link
+                                , withLink link attributes
+                                , rules
+                                , Just additionalChildren
+                                )
+                   )
+
+
+render : List (Attribute msg) -> List (Element msg) -> Element msg
+render attributes children =
+    let
+        ( htmlChildren, styleChildren ) =
+            List.foldr gather ( [], [] ) children
+
+        gather child ( htmls, existingStyles ) =
+            case child of
+                Unstyled html ->
+                    ( html :: htmls, existingStyles )
+
+                Styled styles html ->
+                    ( html :: htmls, styles ++ existingStyles )
+
+        ( nodeName, renderedAttributes, renderedRules, additionalChildren ) =
+            renderAttributes attributes styleChildren
+    in
+    Styled renderedRules
+        (VirtualDom.node nodeName
+            renderedAttributes
+            (case additionalChildren of
+                Nothing ->
+                    htmlChildren
+
+                Just additional ->
+                    htmlChildren
+                        ++ [ VirtualDom.node "div" [ VirtualDom.property "className" (Json.string "se el nearby") ] additional ]
+            )
+        )
+
+
+type RenderMode
+    = Viewport
+    | Layout
+    | NoStaticStyleSheet
+
+
+{-| -}
+renderHtml : RenderMode -> List (Attribute msg) -> List (Element msg) -> Html msg
+renderHtml mode attributes children =
+    let
+        ( htmlChildren, styleChildren ) =
+            List.foldr gather ( [], [] ) children
+
+        gather child ( htmls, existingStyles ) =
+            case child of
+                Unstyled html ->
+                    ( html :: htmls, existingStyles )
+
+                Styled styles html ->
+                    ( html :: htmls, styles ++ existingStyles )
+
+        ( nodeName, renderedAttributes, renderedRules, additionalChildren ) =
+            renderAttributes attributes styleChildren
+
+        styles =
+            styleChildren ++ renderedRules
+
+        styleSheets children =
+            case mode of
+                NoStaticStyleSheet ->
+                    toStyleSheet styles :: children
+
+                Layout ->
+                    VirtualDom.node "style" [] [ Html.text Next.Slim.Internal.Style.rules ]
+                        :: toStyleSheet styles
+                        :: children
+
+                Viewport ->
+                    VirtualDom.node "style" [] [ Html.text Next.Slim.Internal.Style.viewportRules ]
+                        :: toStyleSheet styles
+                        :: children
+    in
+    VirtualDom.node nodeName
+        renderedAttributes
+        (case additionalChildren of
+            Nothing ->
+                styleSheets htmlChildren
+
+            Just additional ->
+                styleSheets <|
+                    htmlChildren
+                        ++ [ VirtualDom.node "div"
+                                [ VirtualDom.property "className" (Json.string "se el nearby") ]
+                                additional
+                           ]
+        )
+
+
+htmlClass : String -> Attribute msg
+htmlClass cls =
+    Attr <| VirtualDom.property "className" (Json.string cls)

@@ -16,6 +16,7 @@ module Next.Slim.Element.Attributes
         , moveLeft
         , moveRight
         , moveUp
+        , newTab
         , onLeft
         , onRight
         , overlay
@@ -28,9 +29,33 @@ module Next.Slim.Element.Attributes
         , width
         )
 
-{- -}
+{-| -}
 
 import Next.Slim.Internal.Model as Internal exposing (Attribute(..), HorizontalAlign(..), Length(..), LinkType(..), Location(..), Property(..), Style(..), VerticalAlign(..))
+
+
+{-| -}
+link : String -> Attribute msg
+link =
+    Link Direct
+
+
+{-| -}
+newTab : String -> Attribute msg
+newTab =
+    Link NewTab
+
+
+{-| -}
+download : String -> Attribute msg
+download =
+    Link Download
+
+
+{-| -}
+downloadAs : { filename : String, source : String } -> Attribute msg
+downloadAs { filename, source } =
+    Link (DownloadAs filename) source
 
 
 below : Internal.Element msg -> Attribute msg
