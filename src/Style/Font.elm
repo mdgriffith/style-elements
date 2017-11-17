@@ -17,6 +17,7 @@ module Style.Font
         , lineHeight
         , lowercase
         , monospace
+        , normal
         , sansSerif
         , serif
         , size
@@ -25,6 +26,7 @@ module Style.Font
         , underline
         , uppercase
         , weight
+        , weightNormal
         , wordSpacing
         )
 
@@ -47,7 +49,7 @@ Meant to be imported as:
 
 ## Font Styles
 
-@docs uppercase, capitalize, lowercase, underline, strike, italic, bold, weight, light
+@docs uppercase, capitalize, lowercase, underline, strike, italic, normal, bold, weight, weightNormal, light
 
 -}
 
@@ -189,10 +191,24 @@ italic =
     Internal.Font "font-style" "italic"
 
 
+{-| Reset font-style to normal from italic
+-}
+normal : Property class variation
+normal =
+    Internal.Font "font-style" "normal"
+
+
 {-| -}
 bold : Property class variation
 bold =
     Internal.Font "font-weight" "700"
+
+
+{-| Reset font-weight to normal (400)
+-}
+weightNormal : Property class variation
+weightNormal =
+    Internal.Font "font-weight" "400"
 
 
 {-| -}
