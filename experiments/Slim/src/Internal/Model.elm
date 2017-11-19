@@ -38,6 +38,7 @@ type Attribute msg
       -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
     | StyleClass Style
     | Link LinkType String
+      -- Descriptions will add aria attributes and if the element is not a link, may set the node type.
     | Describe Description
     | Nearby Location (Element msg)
     | Move (Maybe Float) (Maybe Float) (Maybe Float)
@@ -205,11 +206,30 @@ asHtml child =
 
 
 {-| -}
-embed : Element msg -> Html msg
-embed child =
+embed : (a -> Element msg) -> a -> Html msg
+embed fn a =
     let
         ( styles, html ) =
-            case child of
+            case fn a of
+                Unstyled html ->
+                    ( [], html )
+
+                Styled styles html ->
+                    ( styles, html )
+    in
+    VirtualDom.node "div"
+        []
+        [ toStyleSheet styles
+        , html
+        ]
+
+
+{-| -}
+embed2 : (a -> b -> Element msg) -> a -> b -> Html msg
+embed2 fn a b =
+    let
+        ( styles, html ) =
+            case fn a b of
                 Unstyled html ->
                     ( [], html )
 
@@ -1072,27 +1092,23 @@ renderHtml mode attributes children =
         ( nodeName, renderedAttributes, renderedRules, additionalChildren ) =
             renderAttributes attributes styleChildren
 
-        styles =
-            styleChildren ++ renderedRules
-
         styleSheets children =
             case mode of
                 NoStaticStyleSheet ->
-                    toStyleSheet styles :: children
+                    VirtualDom.lazy toStyleSheet renderedRules :: children
 
                 Layout ->
-                    VirtualDom.node "style" [] [ Html.text Internal.Style.rules ]
-                        :: toStyleSheet styles
+                    Internal.Style.rulesElement
+                        :: VirtualDom.lazy toStyleSheet renderedRules
                         :: children
 
                 Viewport ->
-                    VirtualDom.node "style" [] [ Html.text Internal.Style.viewportRules ]
-                        :: toStyleSheet styles
+                    Internal.Style.viewportRulesElement
+                        :: VirtualDom.lazy toStyleSheet renderedRules
                         :: children
     in
-    VirtualDom.node nodeName
-        renderedAttributes
-        (case additionalChildren of
+    VirtualDom.node nodeName renderedAttributes <|
+        case additionalChildren of
             Nothing ->
                 styleSheets htmlChildren
 
@@ -1103,7 +1119,6 @@ renderHtml mode attributes children =
                                 [ VirtualDom.property "className" (Json.string "se el nearby") ]
                                 additional
                            ]
-        )
 
 
 htmlClass : String -> Attribute msg

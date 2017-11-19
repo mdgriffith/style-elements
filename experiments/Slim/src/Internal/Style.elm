@@ -1,6 +1,7 @@
 module Internal.Style exposing (..)
 
 import Dict
+import Html
 
 
 type Class
@@ -272,6 +273,14 @@ viewportRules =
     height: 100%;
     width: 100%;
 } """ ++ rules
+
+
+rulesElement =
+    Html.node "style" [] [ Html.text rules ]
+
+
+viewportRulesElement =
+    Html.node "style" [] [ Html.text viewportRules ]
 
 
 rules : String
