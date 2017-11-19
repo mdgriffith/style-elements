@@ -7,19 +7,6 @@ import VirtualDom
 
 
 {-| -}
-lazyPassStyles : (a -> Element msg) -> a -> Element msg
-lazyPassStyles fn a =
-    case fn a of
-        Unstyled _ ->
-            Unstyled
-                (VirtualDom.lazy (asHtml << fn) a)
-
-        Styled styles _ ->
-            Styled styles
-                (VirtualDom.lazy (asHtml << fn) a)
-
-
-{-| -}
 lazy : (a -> Element msg) -> a -> Element msg
 lazy fn a =
     Unstyled <| VirtualDom.lazy2 embed fn a

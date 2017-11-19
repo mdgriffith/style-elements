@@ -117,8 +117,6 @@ view model =
                     ]
 
             StylePlease ->
-                -- layout <|
-                --     lazy viewTagged 10000
                 Element.layout []
                     (Element.Lazy.lazy viewStyle 10000)
 
@@ -138,14 +136,12 @@ viewHtml x =
 
 
 -- On 2nd render, all recalcs, layouts disappear, only Diff step.
-
-
-viewHtmlStyle x =
-    Element.layout [] <|
-        -- Element.Lazy.lazy
-        (Element.html << viewHtml)
-        <|
-            x
+-- viewHtmlStyle x =
+--     Element.layout [] <|
+--         -- Element.Lazy.lazy
+--         (Element.html << viewHtml)
+--         <|
+--             x
 
 
 viewStyle x =

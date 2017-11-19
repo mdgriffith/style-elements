@@ -14,8 +14,9 @@ import VirtualDom
 
 
 type Element msg
-    = Styled (List Style) (Html msg)
-    | Unstyled (Html msg)
+    = -- Styled (List Style) (Html msg)
+      Unstyled (Html msg)
+    | Unresolved (List Style) String (List (Html.Attribute msg)) (List (Html msg))
 
 
 type Style
@@ -138,8 +139,8 @@ type Location
 map : (msg -> msg1) -> Element msg -> Element msg1
 map fn el =
     case el of
-        Styled styles html ->
-            Styled styles (Html.map fn html)
+        Unresolved styles node attrs children ->
+            Unresolved styles node (List.map (Html.Attributes.map fn) attrs) (List.map (Html.map fn) children)
 
         Unstyled html ->
             Unstyled (Html.map fn html)
@@ -195,52 +196,29 @@ class x =
 
 
 {-| -}
-asHtml : Element msg -> Html msg
-asHtml child =
-    case child of
+embed : (a -> Element msg) -> a -> Html msg
+embed fn a =
+    case fn a of
         Unstyled html ->
             html
 
-        Styled styles html ->
-            html
-
-
-{-| -}
-embed : (a -> Element msg) -> a -> Html msg
-embed fn a =
-    let
-        ( styles, html ) =
-            case fn a of
-                Unstyled html ->
-                    ( [], html )
-
-                Styled styles html ->
-                    ( styles, html )
-    in
-    VirtualDom.node "div"
-        []
-        [ toStyleSheet styles
-        , html
-        ]
+        Unresolved styles node attrs children ->
+            VirtualDom.node node
+                attrs
+                (children ++ [ toStyleSheet styles ])
 
 
 {-| -}
 embed2 : (a -> b -> Element msg) -> a -> b -> Html msg
 embed2 fn a b =
-    let
-        ( styles, html ) =
-            case fn a b of
-                Unstyled html ->
-                    ( [], html )
+    case fn a b of
+        Unstyled html ->
+            html
 
-                Styled styles html ->
-                    ( styles, html )
-    in
-    VirtualDom.node "div"
-        []
-        [ toStyleSheet styles
-        , html
-        ]
+        Unresolved styles node attrs children ->
+            VirtualDom.node node
+                attrs
+                (children ++ [ toStyleSheet styles ])
 
 
 styleKey : Style -> String
@@ -352,11 +330,13 @@ gatherAttributes attr gathered =
                                 :: gathered.nearbys
                     }
 
-                Styled styles html ->
+                Unresolved styles node attrs children ->
                     { gathered
                         | rules = gathered.rules ++ styles
                         , nearbys =
-                            VirtualDom.node "div" [ Html.Attributes.class (locationClass location) ] [ html ]
+                            VirtualDom.node "div"
+                                [ Html.Attributes.class (locationClass location) ]
+                                [ VirtualDom.node node attrs children ]
                                 :: gathered.nearbys
                     }
 
@@ -1048,24 +1028,38 @@ render attributes children =
                 Unstyled html ->
                     ( html :: htmls, existingStyles )
 
-                Styled styles html ->
-                    ( html :: htmls, styles ++ existingStyles )
+                Unresolved styles nodeName attrs children ->
+                    ( VirtualDom.node nodeName attrs children :: htmls, styles ++ existingStyles )
 
         ( nodeName, renderedAttributes, renderedRules, additionalChildren ) =
             renderAttributes attributes styleChildren
     in
-    Styled renderedRules
-        (VirtualDom.node nodeName
-            renderedAttributes
-            (case additionalChildren of
-                Nothing ->
-                    htmlChildren
+    case renderedRules of
+        [] ->
+            Unstyled <|
+                VirtualDom.node nodeName
+                    renderedAttributes
+                    (case additionalChildren of
+                        Nothing ->
+                            htmlChildren
 
-                Just additional ->
-                    htmlChildren
-                        ++ [ VirtualDom.node "div" [ VirtualDom.property "className" (Json.string "se el nearby") ] additional ]
-            )
-        )
+                        Just additional ->
+                            htmlChildren
+                                ++ [ VirtualDom.node "div" [ VirtualDom.property "className" (Json.string "se el nearby") ] additional ]
+                    )
+
+        _ ->
+            Unresolved renderedRules
+                nodeName
+                renderedAttributes
+                (case additionalChildren of
+                    Nothing ->
+                        htmlChildren
+
+                    Just additional ->
+                        htmlChildren
+                            ++ [ VirtualDom.node "div" [ VirtualDom.property "className" (Json.string "se el nearby") ] additional ]
+                )
 
 
 type RenderMode
@@ -1086,8 +1080,8 @@ renderHtml mode attributes children =
                 Unstyled html ->
                     ( html :: htmls, existingStyles )
 
-                Styled styles html ->
-                    ( html :: htmls, styles ++ existingStyles )
+                Unresolved styles node attrs children ->
+                    ( VirtualDom.node node attrs children :: htmls, styles ++ existingStyles )
 
         ( nodeName, renderedAttributes, renderedRules, additionalChildren ) =
             renderAttributes attributes styleChildren
