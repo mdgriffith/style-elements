@@ -1,0 +1,118 @@
+<!doctype html>
+<html  lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+        .row {
+            display:flex;
+
+        }
+        .nav {
+            display:flex;
+            height: 200px;
+            background-color:#CCC;
+            align-items:center;
+        }
+
+        ul {
+            
+        }
+        li {
+            list-style-type: none;
+        }
+        .self-top {
+           align-self: flex-start;  
+        }
+        
+        </style>
+    </head>
+    <body>
+        <!-- We want to capture best practices for input annotation.
+            
+        Specifically we want something that is 100% accessible, and easy to generate by the library.
+
+        One of the challenges is that node name cannot be relied on, because it can get overridden with the `a` tag.
+
+        In this case we need to focus on aria labels.
+        -->
+
+
+        <!-- Headers 
+        
+            What is the result:
+
+            If an anchor<a> is labeled with role="heading", it will be announced as a heading and not a link
+        
+        -->
+        <a href="google.com" role="heading" aria-level="1">Accessibility Test Page</a>
+
+        <p>This page is made to test the accessibility markup that style-elements will use. </p>
+
+        <a href="google.com" role="heading" aria-level="2">The second heading</a>
+
+        <p>We want to use aria attributes, but we have to see if they have the correct effect or not. </p>
+
+        <h3>Here's a native level 3 heading</h3>
+
+
+
+        <a href="google.com"><h1>Accessibility Test Page</h1></a>
+        
+        <p>This page is made to test the accessibility markup that style-elements will use. </p>
+
+        <a href="google.com"><h2>The second heading</h2></a>
+
+        <p>We want to use aria attributes, but we have to see if they have the correct effect or not. </p>
+
+        <h3>Here's a native level 3 heading</h3>
+
+
+        <!-- Navigation 
+        
+        Are list elements required for nav or do they improve anything?
+
+        Lists add the link count, which can be nice.
+
+        -->
+        <!-- <div role="navigation">
+            <a href="zombo.com">My Profile</a>
+            <a href="zombo.com">Login</a>
+            <a href="zombo.com">About</a>
+        </div> -->
+
+        <div role="navigation">
+            <ul class="row nav">
+                <li><a href="zombo.com">My Profile</a></li>
+                <li><a href="zombo.com">Login</a></li>
+                <li><a class="self-top" href="zombo.com">About</a></li>
+            </ul>
+        </div>
+
+
+
+        <!-- Input 
+        
+        
+        -->
+<!-- 
+        <div class="row">
+            <input type="checkbox" checked id="this-is-a-checkbox-label" />
+            <label for="this-is-a-checkbox-label">This is a Checkbox Label</label>
+        </div>
+
+        <div class="column" role="radiogroup">
+            <div role="radio">Car</div>
+            <div role="radio">Train</div>
+            <div role="radio" aria-checked=true>Boat</div>
+        </div> -->
+
+
+
+
+      
+    </body>
+</html>
