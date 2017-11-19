@@ -10,7 +10,6 @@ module Element
         , px
         , row
         , shrink
-        , space
         , text
         , textPage
         , when
@@ -188,29 +187,27 @@ textPage attrs children =
     render (htmlClass "se page" :: Attributes.width (px 650) :: attrs) children
 
 
-{-| -}
-space : Float -> Element msg
-space pixels =
-    let
-        spacings =
-            [ Style (".row > .spacer-" ++ toString pixels)
-                [ Property "width" (toString pixels ++ "px")
-                , Property "height" "0px"
-                ]
-            , Style (".column > .spacer-" ++ toString pixels)
-                [ Property "height" (toString pixels ++ "px")
-                , Property "width" "0px"
-                ]
-            ]
-    in
-    Styled spacings
-        (Html.node "span"
-            [ Html.Attributes.class ("se spacer spacer-" ++ toString pixels) ]
-            []
-        )
 
-
-
+-- {-| -}
+-- space : Float -> Element msg
+-- space pixels =
+--     let
+--         spacings =
+--             [ Style (".row > .spacer-" ++ toString pixels)
+--                 [ Property "width" (toString pixels ++ "px")
+--                 , Property "height" "0px"
+--                 ]
+--             , Style (".column > .spacer-" ++ toString pixels)
+--                 [ Property "height" (toString pixels ++ "px")
+--                 , Property "width" "0px"
+--                 ]
+--             ]
+--     in
+--     Styled spacings
+--         (Html.node "span"
+--             [ Html.Attributes.class ("se spacer spacer-" ++ toString pixels) ]
+--             []
+--         )
 -- type alias Button msg =
 --     { onClick : msg
 --     , content : Element msg
