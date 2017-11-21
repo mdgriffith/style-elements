@@ -681,7 +681,7 @@ table style attrs rows =
                         List.indexedMap
                             (\col content ->
                                 cell
-                                    { start = ( row, col )
+                                    { start = ( col, row )
                                     , width = 1
                                     , height = 1
                                     , content = content
