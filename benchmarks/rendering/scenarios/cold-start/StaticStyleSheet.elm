@@ -13,17 +13,12 @@ module Main exposing (..)
 
 
 
-
-
 -}
 
-import Element
-import Element.Lazy
 import Html exposing (Html)
 import Html.Attributes
 import Html.Events
 import Html.Lazy
-import Internal.Model
 
 
 subscriptions : Model -> Sub Msg
@@ -33,7 +28,7 @@ subscriptions model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { renderAs = NothingPlease, count = 0 }, Cmd.none )
+    ( 0, Cmd.none )
 
 
 main : Program Never Model Msg
@@ -47,71 +42,33 @@ main =
 
 
 type alias Model =
-    { renderAs : Render
-    , count : Int
-    }
-
-
-type Render
-    = HtmlPlease
-    | StylePlease
-    | NothingPlease
+    Int
 
 
 type Msg
-    = RenderAs Render
+    = NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        RenderAs mode ->
-            ( { model
-                | renderAs = mode
-                , count =
-                    if mode == model.renderAs then
-                        model.count + 1
-                    else
-                        0
-              }
-            , Cmd.none
-            )
+    ( model, Cmd.none )
 
 
 view : Model -> Html Msg
 view model =
     Html.div []
-        [ Html.button [ Html.Events.onClick <| RenderAs HtmlPlease ] [ Html.text "Html, Please" ]
-        , Html.button [ Html.Events.onClick <| RenderAs StylePlease ] [ Html.text "Style, Please" ]
-        , Html.div [] [ Html.text (toString model.count) ]
-        , case model.renderAs of
-            HtmlPlease ->
-                Html.div []
-                    [ staticStyleSheet
-                    , Html.Lazy.lazy viewHtml 10000
-                    ]
-
-            StylePlease ->
-                Element.layout []
-                    (Element.Lazy.lazy viewStyle 10000)
-
-            NothingPlease ->
-                Html.text "Nothing rendered.."
+        [ staticStyleSheet
+        , Html.Lazy.lazy viewHtml 10000
         ]
-
-
-
--- on second render, js time goes down to single digit ms, small bit of updating layout, and updating layout tree.
 
 
 viewHtml x =
     Html.div [ Html.Attributes.class "se column spacing-20-20 content-top height-fill width-fill" ]
-        (List.repeat x (Html.div [ Html.Attributes.class "se el width-content height-content self-center-y self-center-x" ] [ Html.div [ Html.Attributes.class "se text width-fill" ] [ Html.text "hello!" ] ]))
-
-
-viewStyle x =
-    Element.column []
-        (List.repeat x (Element.el [] (Element.text "hello!")))
+        (List.repeat x
+            (Html.div [ Html.Attributes.class "se el width-content height-content self-center-y self-center-x" ]
+                [ Html.div [ Html.Attributes.class "se text width-fill" ] [ Html.text "hello!" ] ]
+            )
+        )
 
 
 staticStyleSheet =

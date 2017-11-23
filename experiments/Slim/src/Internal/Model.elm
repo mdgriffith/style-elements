@@ -10,6 +10,7 @@ import Internal.Style
 import Json.Encode as Json
 import Regex
 import Set exposing (Set)
+import VirtualCss
 import VirtualDom
 
 
@@ -651,6 +652,92 @@ toStyleSheetNoReduction styles =
     List.foldl combine "" styles
 
 
+toStyleSheetVirtualCss : List Style -> ()
+toStyleSheetVirtualCss stylesheet =
+    case stylesheet of
+        [] ->
+            ()
+
+        styles ->
+            let
+                renderProps (Property key val) existing =
+                    existing ++ "\n  " ++ key ++ ": " ++ val ++ ";"
+
+                renderStyle selector props =
+                    selector ++ "{" ++ List.foldl renderProps "" props ++ "\n}"
+
+                _ =
+                    VirtualCss.clear ()
+
+                combine style cache =
+                    case style of
+                        Style selector props ->
+                            let
+                                _ =
+                                    VirtualCss.insert (renderStyle selector props) 0
+                            in
+                            cache
+
+                        Single class prop val ->
+                            if Set.member class cache then
+                                cache
+                            else
+                                let
+                                    _ =
+                                        VirtualCss.insert (class ++ "{" ++ prop ++ ":" ++ val ++ "}") 0
+                                in
+                                Set.insert class cache
+
+                        Colored class prop color ->
+                            if Set.member class cache then
+                                cache
+                            else
+                                let
+                                    _ =
+                                        VirtualCss.insert (class ++ "{" ++ prop ++ ":" ++ formatColor color ++ "}") 0
+                                in
+                                Set.insert class cache
+
+                        SpacingStyle x y ->
+                            let
+                                class =
+                                    ".spacing-" ++ toString x ++ "-" ++ toString y
+                            in
+                            if Set.member class cache then
+                                cache
+                            else
+                                -- TODO!
+                                cache
+
+                        -- ( rendered ++ spacingClasses class x y
+                        -- , Set.insert class cache
+                        -- )
+                        PaddingStyle top right bottom left ->
+                            let
+                                class =
+                                    ".pad-"
+                                        ++ toString top
+                                        ++ "-"
+                                        ++ toString right
+                                        ++ "-"
+                                        ++ toString bottom
+                                        ++ "-"
+                                        ++ toString left
+                            in
+                            if Set.member class cache then
+                                cache
+                            else
+                                -- TODO!
+                                cache
+
+                -- ( rendered ++ paddingClasses class top right bottom left
+                -- , Set.insert class cache
+                -- )
+            in
+            List.foldl combine Set.empty styles
+                |> always ()
+
+
 toStyleSheet : List Style -> VirtualDom.Node msg
 toStyleSheet stylesheet =
     case stylesheet of
@@ -1066,6 +1153,7 @@ type RenderMode
     = Viewport
     | Layout
     | NoStaticStyleSheet
+    | WithVirtualCss
 
 
 {-| -}
@@ -1089,16 +1177,24 @@ renderHtml mode attributes children =
         styleSheets children =
             case mode of
                 NoStaticStyleSheet ->
-                    VirtualDom.lazy toStyleSheet renderedRules :: children
+                    toStyleSheet renderedRules :: children
 
                 Layout ->
                     Internal.Style.rulesElement
-                        :: VirtualDom.lazy toStyleSheet renderedRules
+                        :: toStyleSheet renderedRules
                         :: children
 
                 Viewport ->
                     Internal.Style.viewportRulesElement
-                        :: VirtualDom.lazy toStyleSheet renderedRules
+                        :: toStyleSheet renderedRules
+                        :: children
+
+                WithVirtualCss ->
+                    let
+                        _ =
+                            toStyleSheetVirtualCss renderedRules
+                    in
+                    Internal.Style.rulesElement
                         :: children
     in
     VirtualDom.node nodeName renderedAttributes <|

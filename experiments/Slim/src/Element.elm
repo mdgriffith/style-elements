@@ -56,9 +56,14 @@ expand =
 
 
 {-| -}
-layout : List (Attribute msg) -> Element msg -> Html msg
-layout attrs child =
-    renderHtml Layout
+
+
+
+-- layout : List (Attribute msg) -> Element msg -> Html msg
+
+
+layout mode attrs child =
+    renderHtml mode
         (Color.background Color.blue
             :: Color.text Color.white
             :: Font.size 20

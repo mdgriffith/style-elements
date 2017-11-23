@@ -1,0 +1,156 @@
+[
+    {
+        "implementation": "ElmStyle", 
+        "results": {
+            "recalc_styles": 202827.0, 
+            "total_time": 610785.0, 
+            "layout": 227257.0, 
+            "updateLayerTree": 67345, 
+            "js": 86017.0, 
+            "paint": 12189, 
+            "gc": [
+                {
+                    "duration": 1210.0, 
+                    "reclaimed_bytes": 628760
+                }, 
+                {
+                    "duration": 925.0, 
+                    "reclaimed_bytes": 612472
+                }, 
+                {
+                    "duration": 653.0, 
+                    "reclaimed_bytes": 590736
+                }, 
+                {
+                    "duration": 1115.0, 
+                    "reclaimed_bytes": 221968
+                }, 
+                {
+                    "duration": 1193.0, 
+                    "reclaimed_bytes": 1155784
+                }, 
+                {
+                    "duration": 2361.0, 
+                    "reclaimed_bytes": 1495120
+                }
+            ], 
+            "parse_css": 15150.0
+        }, 
+        "scenario": "cold-start"
+    }, 
+    {
+        "implementation": "ElmStyleVirtual", 
+        "results": {
+            "recalc_styles": 215588.0, 
+            "total_time": 631555.0, 
+            "layout": 234721.0, 
+            "updateLayerTree": 71757, 
+            "js": 85954.0, 
+            "paint": 9760, 
+            "gc": [
+                {
+                    "duration": 960.0, 
+                    "reclaimed_bytes": 628760
+                }, 
+                {
+                    "duration": 776.0, 
+                    "reclaimed_bytes": 612472
+                }, 
+                {
+                    "duration": 670.0, 
+                    "reclaimed_bytes": 592768
+                }, 
+                {
+                    "duration": 1184.0, 
+                    "reclaimed_bytes": 254584
+                }, 
+                {
+                    "duration": 1139.0, 
+                    "reclaimed_bytes": 1140232
+                }, 
+                {
+                    "duration": 2150.0, 
+                    "reclaimed_bytes": 1493992
+                }
+            ], 
+            "parse_css": 13775.0
+        }, 
+        "scenario": "cold-start"
+    }, 
+    {
+        "implementation": "InlineStyles", 
+        "results": {
+            "recalc_styles": 333030.0, 
+            "total_time": 1166026.0, 
+            "layout": 319318.0, 
+            "updateLayerTree": 62954, 
+            "js": 426673.0, 
+            "paint": 10878, 
+            "gc": [
+                {
+                    "duration": 1009.0, 
+                    "reclaimed_bytes": 628784
+                }, 
+                {
+                    "duration": 785.0, 
+                    "reclaimed_bytes": 612456
+                }, 
+                {
+                    "duration": 640.0, 
+                    "reclaimed_bytes": 549512
+                }, 
+                {
+                    "duration": 657.0, 
+                    "reclaimed_bytes": 687608
+                }, 
+                {
+                    "duration": 3383.0, 
+                    "reclaimed_bytes": 1163816
+                }
+            ], 
+            "parse_css": 13173.0
+        }, 
+        "scenario": "cold-start"
+    }, 
+    {
+        "implementation": "StaticStyleSheet", 
+        "results": {
+            "recalc_styles": 198403.0, 
+            "total_time": 588120.0, 
+            "layout": 236036.0, 
+            "updateLayerTree": 68150, 
+            "js": 61401.0, 
+            "paint": 10800, 
+            "gc": [
+                {
+                    "duration": 1384.0, 
+                    "reclaimed_bytes": 440608
+                }, 
+                {
+                    "duration": 1433.0, 
+                    "reclaimed_bytes": 130392
+                }, 
+                {
+                    "duration": 1066.0, 
+                    "reclaimed_bytes": 918120
+                }
+            ], 
+            "parse_css": 13330.0
+        }, 
+        "scenario": "cold-start"
+    }, 
+    {
+        "implementation": "trulyStatic", 
+        "results": {
+            "recalc_styles": 199122.0, 
+            "total_time": 639857.0, 
+            "layout": 267006.0, 
+            "updateLayerTree": 130260, 
+            "js": 0, 
+            "paint": 30172, 
+            "gc": [], 
+            "parse_css": 13297.0
+        }, 
+        "scenario": "cold-start"
+    }
+]

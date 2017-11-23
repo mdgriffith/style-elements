@@ -3,6 +3,7 @@ module Element.Input
         ( Checkbox
         , Choice
         , ChoiceState(..)
+        , Label
         , Option
         , Radio
         , Select
@@ -78,7 +79,7 @@ The following text inputs give hints to the browser so they can be autofilled.
 
 ## Labels
 
-@docs labelAbove, labelBelow, labelLeft, labelRight, placeholder, hiddenLabel
+@docs Label, labelAbove, labelBelow, labelLeft, labelRight, placeholder, hiddenLabel
 
 
 ## Options
