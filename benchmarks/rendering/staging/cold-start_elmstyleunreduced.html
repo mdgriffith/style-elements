@@ -10808,7 +10808,7 @@ var _mdgriffith$style_elements$Internal_Model$skip = F2(
 	});
 var _mdgriffith$style_elements$Internal_Model$renderNode = F3(
 	function (node, attrs, children) {
-		var _p22 = node;
+		var _p22 = A2(_elm_lang$core$Debug$log, 'nodes', node);
 		switch (_p22.ctor) {
 			case 'Generic':
 				return A3(_elm_lang$virtual_dom$VirtualDom$node, 'div', attrs, children);
@@ -12771,6 +12771,16 @@ var _mdgriffith$style_elements$Internal_Model$renderHtml = F3(
 							_1: children
 						}
 					};
+				case 'Unreduced':
+					return {
+						ctor: '::',
+						_0: _mdgriffith$style_elements$Internal_Style$rulesElement,
+						_1: {
+							ctor: '::',
+							_0: _mdgriffith$style_elements$Internal_Model$toStyleSheetNoReduction(renderedRules),
+							_1: children
+						}
+					};
 				default:
 					var _p136 = _mdgriffith$style_elements$Internal_Model$toStyleSheetVirtualCss(renderedRules);
 					return {ctor: '::', _0: _mdgriffith$style_elements$Internal_Style$rulesElement, _1: children};
@@ -12952,6 +12962,7 @@ var _mdgriffith$style_elements$Internal_Model$OnLeft = {ctor: 'OnLeft'};
 var _mdgriffith$style_elements$Internal_Model$OnRight = {ctor: 'OnRight'};
 var _mdgriffith$style_elements$Internal_Model$Below = {ctor: 'Below'};
 var _mdgriffith$style_elements$Internal_Model$Above = {ctor: 'Above'};
+var _mdgriffith$style_elements$Internal_Model$Unreduced = {ctor: 'Unreduced'};
 var _mdgriffith$style_elements$Internal_Model$WithVirtualCss = {ctor: 'WithVirtualCss'};
 var _mdgriffith$style_elements$Internal_Model$NoStaticStyleSheet = {ctor: 'NoStaticStyleSheet'};
 var _mdgriffith$style_elements$Internal_Model$Layout = {ctor: 'Layout'};
@@ -13996,9 +14007,9 @@ var _mdgriffith$style_elements$Main$viewStyle = function (x) {
 var _mdgriffith$style_elements$Main$view = function (model) {
 	return A3(
 		_mdgriffith$style_elements$Element$layoutMode,
-		_mdgriffith$style_elements$Internal_Model$WithVirtualCss,
+		_mdgriffith$style_elements$Internal_Model$Unreduced,
 		{ctor: '[]'},
-		A2(_mdgriffith$style_elements$Element_Lazy$lazy, _mdgriffith$style_elements$Main$viewStyle, 10000));
+		_mdgriffith$style_elements$Main$viewStyle(10000));
 };
 var _mdgriffith$style_elements$Main$update = F2(
 	function (msg, model) {

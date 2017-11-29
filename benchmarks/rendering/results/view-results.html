@@ -1,0 +1,23 @@
+<html>
+    <head>
+      <title>Rendering Benchmark Viewer</title>
+      <script src="elm.js"></script>
+    </head>
+    <style>
+        svg {
+            overflow: visible;
+        }
+    </style>
+    
+    <body id="embed-elm"></body>
+    
+    <script type="text/javascript">
+
+        var data = [{"implementation": "ElmStyle", "scenario": "cold-start", "results": {"layout": 248516, "paint": 10790, "gc": [{"duration": 1100, "reclaimed_bytes": 628704}, {"duration": 1356, "reclaimed_bytes": 609648}, {"duration": 931, "reclaimed_bytes": 598408}, {"duration": 1302, "reclaimed_bytes": 201776}, {"duration": 2115, "reclaimed_bytes": 591320}, {"duration": 3226, "reclaimed_bytes": 371520}, {"duration": 5493, "reclaimed_bytes": 1128992}, {"duration": 6516, "reclaimed_bytes": 567992}, {"duration": 10192, "reclaimed_bytes": 1915872}, {"duration": 12799, "reclaimed_bytes": 1514784}], "recalc_styles": 298116, "updateLayerTree": 76279, "js": 214730, "parse_css": 15181, "total_time": 863612}}, {"implementation": "ElmStyleNoStyles", "scenario": "cold-start", "results": {"layout": 216488, "paint": 9717, "gc": [{"duration": 1080, "reclaimed_bytes": 628776}, {"duration": 984, "reclaimed_bytes": 609624}, {"duration": 646, "reclaimed_bytes": 589544}, {"duration": 1438, "reclaimed_bytes": 219792}, {"duration": 1148, "reclaimed_bytes": 1162920}, {"duration": 2179, "reclaimed_bytes": 1493176}], "recalc_styles": 218649, "updateLayerTree": 67952, "js": 91874, "parse_css": 13560, "total_time": 618240}}, {"implementation": "ElmStyleVirtual", "scenario": "cold-start", "results": {"layout": 251465, "paint": 13738, "gc": [{"duration": 1027, "reclaimed_bytes": 628704}, {"duration": 778, "reclaimed_bytes": 609640}, {"duration": 574, "reclaimed_bytes": 600400}, {"duration": 1288, "reclaimed_bytes": 201960}, {"duration": 2048, "reclaimed_bytes": 591040}, {"duration": 2720, "reclaimed_bytes": 371648}, {"duration": 4717, "reclaimed_bytes": 1095760}, {"duration": 6511, "reclaimed_bytes": 590392}, {"duration": 9494, "reclaimed_bytes": 1922608}, {"duration": 14138, "reclaimed_bytes": 1491056}, {"duration": 3473, "reclaimed_bytes": 8235336}], "recalc_styles": 319773, "updateLayerTree": 67805, "js": 196317, "parse_css": 14032, "total_time": 863130}}, {"implementation": "firstOfTypeSelector", "scenario": "cold-start", "results": {"layout": 258013, "paint": 22487, "gc": [], "recalc_styles": 192749, "updateLayerTree": 114607, "js": 0, "parse_css": 13970, "total_time": 601826}}, {"implementation": "InlineStyles", "scenario": "cold-start", "results": {"layout": 365712, "paint": 11095, "gc": [{"duration": 1123, "reclaimed_bytes": 628768}, {"duration": 1017, "reclaimed_bytes": 611216}, {"duration": 635, "reclaimed_bytes": 548600}, {"duration": 488, "reclaimed_bytes": 685008}, {"duration": 3319, "reclaimed_bytes": 1165096}], "recalc_styles": 360249, "updateLayerTree": 76564, "js": 420431, "parse_css": 12903, "total_time": 1246954}}, {"implementation": "StaticStyleSheet", "scenario": "cold-start", "results": {"layout": 239304, "paint": 11235, "gc": [{"duration": 1288, "reclaimed_bytes": 440608}, {"duration": 1640, "reclaimed_bytes": 130392}, {"duration": 810, "reclaimed_bytes": 918120}], "recalc_styles": 189996, "updateLayerTree": 71164, "js": 60216, "parse_css": 13600, "total_time": 585515}}, {"implementation": "trulyStatic", "scenario": "cold-start", "results": {"layout": 271377, "paint": 29310, "gc": [], "recalc_styles": 185528, "updateLayerTree": 135911, "js": 0, "parse_css": 13470, "total_time": 635596}}];
+
+        var app = Elm.ViewResults.fullscreen();
+       
+        app.ports.results.send(data);
+       
+    </script>
+</html>

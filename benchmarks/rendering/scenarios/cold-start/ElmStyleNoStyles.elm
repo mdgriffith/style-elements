@@ -12,9 +12,6 @@ module Main exposing (..)
 
 
 
-
-
-
 -}
 
 import Color exposing (..)
@@ -68,4 +65,4 @@ view model =
 
 viewStyle x =
     Element.column []
-        (List.repeat x (Element.el [ Color.text blue, Color.background red, Color.border yellow, Border.all 2 ] (Element.text "hello!")))
+        (List.repeat x (Element.el [] (Element.text "hello!")))

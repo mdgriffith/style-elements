@@ -32,6 +32,23 @@ type Option msg
 
 
 {-| -}
+type alias Button msg =
+    { onPress : msg
+    , label : Element msg
+    }
+
+
+{-| Create a button
+
+The onPress handler is
+
+-}
+button : List (Attribute msg) -> Button msg -> Element msg
+button attrs { onPress, label } =
+    Element.empty
+
+
+{-| -}
 type alias Checkbox msg =
     { onChange : Bool -> msg
     , checked : Bool
@@ -104,7 +121,7 @@ text attrs context =
                 HiddenLabel string ->
                     Element.el attrs input
     in
-    render
+    render Nothing
         (htmlClass "se el"
             :: Attributes.width Element.shrink
             :: Attributes.height Element.shrink

@@ -13974,29 +13974,12 @@ var _mdgriffith$style_elements$Main$viewStyle = function (x) {
 			x,
 			A2(
 				_mdgriffith$style_elements$Element$el,
-				{
-					ctor: '::',
-					_0: _mdgriffith$style_elements$Element_Color$text(_elm_lang$core$Color$blue),
-					_1: {
-						ctor: '::',
-						_0: _mdgriffith$style_elements$Element_Color$background(_elm_lang$core$Color$red),
-						_1: {
-							ctor: '::',
-							_0: _mdgriffith$style_elements$Element_Color$border(_elm_lang$core$Color$yellow),
-							_1: {
-								ctor: '::',
-								_0: _mdgriffith$style_elements$Element_Border$all(2),
-								_1: {ctor: '[]'}
-							}
-						}
-					}
-				},
+				{ctor: '[]'},
 				_mdgriffith$style_elements$Element$text('hello!'))));
 };
 var _mdgriffith$style_elements$Main$view = function (model) {
-	return A3(
-		_mdgriffith$style_elements$Element$layoutMode,
-		_mdgriffith$style_elements$Internal_Model$WithVirtualCss,
+	return A2(
+		_mdgriffith$style_elements$Element$layout,
 		{ctor: '[]'},
 		A2(_mdgriffith$style_elements$Element_Lazy$lazy, _mdgriffith$style_elements$Main$viewStyle, 10000));
 };

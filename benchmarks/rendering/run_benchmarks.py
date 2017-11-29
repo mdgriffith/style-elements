@@ -302,6 +302,14 @@ if __name__ == "__main__":
         # results.append({"description": description, "results":sorted(logs, key=by_duration) })
         driver.close()
 
+
+    # Compile the results viewer
+    subprocess.call("elm-make ViewResults.elm --yes --output results/elm.js", shell=True)
+
     
-    with open('results/logs.json', 'w') as RESULTS:
-        RESULTS.write(json.dumps(results, indent=4))
+    with open('view-template.html') as TEMPLATE:
+        with open('results/view-results.html', 'w') as RESULTS:
+            
+            rendered = TEMPLATE.read().format(benchmark_data=json.dumps(results))
+
+            RESULTS.write(rendered)

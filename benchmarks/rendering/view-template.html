@@ -1,0 +1,23 @@
+<html>
+    <head>
+      <title>Rendering Benchmark Viewer</title>
+      <script src="elm.js"></script>
+    </head>
+    <style>
+        svg {{
+            overflow: visible;
+        }}
+    </style>
+    
+    <body id="embed-elm"></body>
+    
+    <script type="text/javascript">
+
+        var data = {benchmark_data};
+
+        var app = Elm.ViewResults.fullscreen();
+       
+        app.ports.results.send(data);
+       
+    </script>
+</html>

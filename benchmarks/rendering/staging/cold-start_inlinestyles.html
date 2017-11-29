@@ -8117,6 +8117,136 @@ var _elm_lang$html$Html_Attributes$classList = function (list) {
 				A2(_elm_lang$core$List$filter, _elm_lang$core$Tuple$second, list))));
 };
 var _elm_lang$html$Html_Attributes$style = _elm_lang$virtual_dom$VirtualDom$style;
+var _elm_lang$core$Set$foldr = F3(
+	function (f, b, _p0) {
+		var _p1 = _p0;
+		return A3(
+			_elm_lang$core$Dict$foldr,
+			F3(
+				function (k, _p2, b) {
+					return A2(f, k, b);
+				}),
+			b,
+			_p1._0);
+	});
+var _elm_lang$core$Set$foldl = F3(
+	function (f, b, _p3) {
+		var _p4 = _p3;
+		return A3(
+			_elm_lang$core$Dict$foldl,
+			F3(
+				function (k, _p5, b) {
+					return A2(f, k, b);
+				}),
+			b,
+			_p4._0);
+	});
+var _elm_lang$core$Set$toList = function (_p6) {
+	var _p7 = _p6;
+	return _elm_lang$core$Dict$keys(_p7._0);
+};
+var _elm_lang$core$Set$size = function (_p8) {
+	var _p9 = _p8;
+	return _elm_lang$core$Dict$size(_p9._0);
+};
+var _elm_lang$core$Set$member = F2(
+	function (k, _p10) {
+		var _p11 = _p10;
+		return A2(_elm_lang$core$Dict$member, k, _p11._0);
+	});
+var _elm_lang$core$Set$isEmpty = function (_p12) {
+	var _p13 = _p12;
+	return _elm_lang$core$Dict$isEmpty(_p13._0);
+};
+var _elm_lang$core$Set$Set_elm_builtin = function (a) {
+	return {ctor: 'Set_elm_builtin', _0: a};
+};
+var _elm_lang$core$Set$empty = _elm_lang$core$Set$Set_elm_builtin(_elm_lang$core$Dict$empty);
+var _elm_lang$core$Set$singleton = function (k) {
+	return _elm_lang$core$Set$Set_elm_builtin(
+		A2(
+			_elm_lang$core$Dict$singleton,
+			k,
+			{ctor: '_Tuple0'}));
+};
+var _elm_lang$core$Set$insert = F2(
+	function (k, _p14) {
+		var _p15 = _p14;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A3(
+				_elm_lang$core$Dict$insert,
+				k,
+				{ctor: '_Tuple0'},
+				_p15._0));
+	});
+var _elm_lang$core$Set$fromList = function (xs) {
+	return A3(_elm_lang$core$List$foldl, _elm_lang$core$Set$insert, _elm_lang$core$Set$empty, xs);
+};
+var _elm_lang$core$Set$map = F2(
+	function (f, s) {
+		return _elm_lang$core$Set$fromList(
+			A2(
+				_elm_lang$core$List$map,
+				f,
+				_elm_lang$core$Set$toList(s)));
+	});
+var _elm_lang$core$Set$remove = F2(
+	function (k, _p16) {
+		var _p17 = _p16;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A2(_elm_lang$core$Dict$remove, k, _p17._0));
+	});
+var _elm_lang$core$Set$union = F2(
+	function (_p19, _p18) {
+		var _p20 = _p19;
+		var _p21 = _p18;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A2(_elm_lang$core$Dict$union, _p20._0, _p21._0));
+	});
+var _elm_lang$core$Set$intersect = F2(
+	function (_p23, _p22) {
+		var _p24 = _p23;
+		var _p25 = _p22;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A2(_elm_lang$core$Dict$intersect, _p24._0, _p25._0));
+	});
+var _elm_lang$core$Set$diff = F2(
+	function (_p27, _p26) {
+		var _p28 = _p27;
+		var _p29 = _p26;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A2(_elm_lang$core$Dict$diff, _p28._0, _p29._0));
+	});
+var _elm_lang$core$Set$filter = F2(
+	function (p, _p30) {
+		var _p31 = _p30;
+		return _elm_lang$core$Set$Set_elm_builtin(
+			A2(
+				_elm_lang$core$Dict$filter,
+				F2(
+					function (k, _p32) {
+						return p(k);
+					}),
+				_p31._0));
+	});
+var _elm_lang$core$Set$partition = F2(
+	function (p, _p33) {
+		var _p34 = _p33;
+		var _p35 = A2(
+			_elm_lang$core$Dict$partition,
+			F2(
+				function (k, _p36) {
+					return p(k);
+				}),
+			_p34._0);
+		var p1 = _p35._0;
+		var p2 = _p35._1;
+		return {
+			ctor: '_Tuple2',
+			_0: _elm_lang$core$Set$Set_elm_builtin(p1),
+			_1: _elm_lang$core$Set$Set_elm_builtin(p2)
+		};
+	});
 var _elm_lang$core$Color$fmod = F2(
 	function (f, n) {
 		var integer = _elm_lang$core$Basics$floor(f);
@@ -8417,136 +8547,6 @@ var _elm_lang$core$Regex$AtMost = function (a) {
 	return {ctor: 'AtMost', _0: a};
 };
 var _elm_lang$core$Regex$All = {ctor: 'All'};
-var _elm_lang$core$Set$foldr = F3(
-	function (f, b, _p0) {
-		var _p1 = _p0;
-		return A3(
-			_elm_lang$core$Dict$foldr,
-			F3(
-				function (k, _p2, b) {
-					return A2(f, k, b);
-				}),
-			b,
-			_p1._0);
-	});
-var _elm_lang$core$Set$foldl = F3(
-	function (f, b, _p3) {
-		var _p4 = _p3;
-		return A3(
-			_elm_lang$core$Dict$foldl,
-			F3(
-				function (k, _p5, b) {
-					return A2(f, k, b);
-				}),
-			b,
-			_p4._0);
-	});
-var _elm_lang$core$Set$toList = function (_p6) {
-	var _p7 = _p6;
-	return _elm_lang$core$Dict$keys(_p7._0);
-};
-var _elm_lang$core$Set$size = function (_p8) {
-	var _p9 = _p8;
-	return _elm_lang$core$Dict$size(_p9._0);
-};
-var _elm_lang$core$Set$member = F2(
-	function (k, _p10) {
-		var _p11 = _p10;
-		return A2(_elm_lang$core$Dict$member, k, _p11._0);
-	});
-var _elm_lang$core$Set$isEmpty = function (_p12) {
-	var _p13 = _p12;
-	return _elm_lang$core$Dict$isEmpty(_p13._0);
-};
-var _elm_lang$core$Set$Set_elm_builtin = function (a) {
-	return {ctor: 'Set_elm_builtin', _0: a};
-};
-var _elm_lang$core$Set$empty = _elm_lang$core$Set$Set_elm_builtin(_elm_lang$core$Dict$empty);
-var _elm_lang$core$Set$singleton = function (k) {
-	return _elm_lang$core$Set$Set_elm_builtin(
-		A2(
-			_elm_lang$core$Dict$singleton,
-			k,
-			{ctor: '_Tuple0'}));
-};
-var _elm_lang$core$Set$insert = F2(
-	function (k, _p14) {
-		var _p15 = _p14;
-		return _elm_lang$core$Set$Set_elm_builtin(
-			A3(
-				_elm_lang$core$Dict$insert,
-				k,
-				{ctor: '_Tuple0'},
-				_p15._0));
-	});
-var _elm_lang$core$Set$fromList = function (xs) {
-	return A3(_elm_lang$core$List$foldl, _elm_lang$core$Set$insert, _elm_lang$core$Set$empty, xs);
-};
-var _elm_lang$core$Set$map = F2(
-	function (f, s) {
-		return _elm_lang$core$Set$fromList(
-			A2(
-				_elm_lang$core$List$map,
-				f,
-				_elm_lang$core$Set$toList(s)));
-	});
-var _elm_lang$core$Set$remove = F2(
-	function (k, _p16) {
-		var _p17 = _p16;
-		return _elm_lang$core$Set$Set_elm_builtin(
-			A2(_elm_lang$core$Dict$remove, k, _p17._0));
-	});
-var _elm_lang$core$Set$union = F2(
-	function (_p19, _p18) {
-		var _p20 = _p19;
-		var _p21 = _p18;
-		return _elm_lang$core$Set$Set_elm_builtin(
-			A2(_elm_lang$core$Dict$union, _p20._0, _p21._0));
-	});
-var _elm_lang$core$Set$intersect = F2(
-	function (_p23, _p22) {
-		var _p24 = _p23;
-		var _p25 = _p22;
-		return _elm_lang$core$Set$Set_elm_builtin(
-			A2(_elm_lang$core$Dict$intersect, _p24._0, _p25._0));
-	});
-var _elm_lang$core$Set$diff = F2(
-	function (_p27, _p26) {
-		var _p28 = _p27;
-		var _p29 = _p26;
-		return _elm_lang$core$Set$Set_elm_builtin(
-			A2(_elm_lang$core$Dict$diff, _p28._0, _p29._0));
-	});
-var _elm_lang$core$Set$filter = F2(
-	function (p, _p30) {
-		var _p31 = _p30;
-		return _elm_lang$core$Set$Set_elm_builtin(
-			A2(
-				_elm_lang$core$Dict$filter,
-				F2(
-					function (k, _p32) {
-						return p(k);
-					}),
-				_p31._0));
-	});
-var _elm_lang$core$Set$partition = F2(
-	function (p, _p33) {
-		var _p34 = _p33;
-		var _p35 = A2(
-			_elm_lang$core$Dict$partition,
-			F2(
-				function (k, _p36) {
-					return p(k);
-				}),
-			_p34._0);
-		var p1 = _p35._0;
-		var p2 = _p35._1;
-		return {
-			ctor: '_Tuple2',
-			_0: _elm_lang$core$Set$Set_elm_builtin(p1),
-			_1: _elm_lang$core$Set$Set_elm_builtin(p2)
-		};
-	});
 var _elm_lang$html$Html_Events$keyCode = A2(_elm_lang$core$Json_Decode$field, 'keyCode', _elm_lang$core$Json_Decode$int);
 var _elm_lang$html$Html_Events$targetChecked = A2(
 	_elm_lang$core$Json_Decode$at,
@@ -10238,76 +10238,12 @@ var _mdgriffith$style_elements$VirtualCss$clear = _mdgriffith$style_elements$Nat
 var _mdgriffith$style_elements$VirtualCss$delete = _mdgriffith$style_elements$Native_VirtualCss.delete;
 var _mdgriffith$style_elements$VirtualCss$insert = _mdgriffith$style_elements$Native_VirtualCss.insert;
 var _mdgriffith$style_elements$VirtualCss$StyleSheet = {ctor: 'StyleSheet'};
-var _mdgriffith$style_elements$Internal_Model$withLink = F2(
-	function (maybeLink, attrs) {
-		var _p0 = maybeLink;
-		if (_p0.ctor === 'Nothing') {
-			return attrs;
-		} else {
-			var _p2 = _p0._0._1;
-			var _p1 = _p0._0._0;
-			switch (_p1.ctor) {
-				case 'Direct':
-					return {
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$href(_p2),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$rel('noopener noreferrer'),
-							_1: attrs
-						}
-					};
-				case 'NewTab':
-					return {
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$href(_p2),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$rel('noopener noreferrer'),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$target('_blank'),
-								_1: attrs
-							}
-						}
-					};
-				case 'Download':
-					return {
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$href(_p2),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$download(true),
-							_1: attrs
-						}
-					};
-				default:
-					return {
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$href(_p2),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$downloadAs(_p1._0),
-							_1: attrs
-						}
-					};
-			}
-		}
-	});
-var _mdgriffith$style_elements$Internal_Model$nodeName = function (maybeLink) {
-	var _p3 = maybeLink;
-	if (_p3.ctor === 'Nothing') {
-		return 'div';
-	} else {
-		return 'a';
-	}
-};
 var _mdgriffith$style_elements$Internal_Model$formatColor = function (color) {
-	var _p4 = _elm_lang$core$Color$toRgb(color);
-	var red = _p4.red;
-	var green = _p4.green;
-	var blue = _p4.blue;
-	var alpha = _p4.alpha;
+	var _p0 = _elm_lang$core$Color$toRgb(color);
+	var red = _p0.red;
+	var green = _p0.green;
+	var blue = _p0.blue;
+	var alpha = _p0.alpha;
 	return A2(
 		_elm_lang$core$Basics_ops['++'],
 		A2(
@@ -10339,11 +10275,11 @@ var _mdgriffith$style_elements$Internal_Model$floatClass = function (x) {
 		_elm_lang$core$Basics$round(x * 100));
 };
 var _mdgriffith$style_elements$Internal_Model$formatColorClass = function (color) {
-	var _p5 = _elm_lang$core$Color$toRgb(color);
-	var red = _p5.red;
-	var green = _p5.green;
-	var blue = _p5.blue;
-	var alpha = _p5.alpha;
+	var _p1 = _elm_lang$core$Color$toRgb(color);
+	var red = _p1.red;
+	var green = _p1.green;
+	var blue = _p1.blue;
+	var alpha = _p1.alpha;
 	return A2(
 		_elm_lang$core$Basics_ops['++'],
 		_elm_lang$core$Basics$toString(red),
@@ -10483,20 +10419,20 @@ var _mdgriffith$style_elements$Internal_Model$formatDropShadow = function (shado
 		});
 };
 var _mdgriffith$style_elements$Internal_Model$filterName = function (filtr) {
-	var _p6 = filtr;
-	switch (_p6.ctor) {
+	var _p2 = filtr;
+	switch (_p2.ctor) {
 		case 'FilterUrl':
 			return A2(
 				_elm_lang$core$Basics_ops['++'],
 				'url(',
-				A2(_elm_lang$core$Basics_ops['++'], _p6._0, ')'));
+				A2(_elm_lang$core$Basics_ops['++'], _p2._0, ')'));
 		case 'Blur':
 			return A2(
 				_elm_lang$core$Basics_ops['++'],
 				'blur(',
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(_p6._0),
+					_elm_lang$core$Basics$toString(_p2._0),
 					'px)'));
 		case 'Brightness':
 			return A2(
@@ -10504,7 +10440,7 @@ var _mdgriffith$style_elements$Internal_Model$filterName = function (filtr) {
 				'brightness(',
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(_p6._0),
+					_elm_lang$core$Basics$toString(_p2._0),
 					'%)'));
 		case 'Contrast':
 			return A2(
@@ -10512,7 +10448,7 @@ var _mdgriffith$style_elements$Internal_Model$filterName = function (filtr) {
 				'contrast(',
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(_p6._0),
+					_elm_lang$core$Basics$toString(_p2._0),
 					'%)'));
 		case 'Grayscale':
 			return A2(
@@ -10520,7 +10456,7 @@ var _mdgriffith$style_elements$Internal_Model$filterName = function (filtr) {
 				'grayscale(',
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(_p6._0),
+					_elm_lang$core$Basics$toString(_p2._0),
 					'%)'));
 		case 'HueRotate':
 			return A2(
@@ -10528,7 +10464,7 @@ var _mdgriffith$style_elements$Internal_Model$filterName = function (filtr) {
 				'hueRotate(',
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(_p6._0),
+					_elm_lang$core$Basics$toString(_p2._0),
 					'deg)'));
 		case 'Invert':
 			return A2(
@@ -10536,7 +10472,7 @@ var _mdgriffith$style_elements$Internal_Model$filterName = function (filtr) {
 				'invert(',
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(_p6._0),
+					_elm_lang$core$Basics$toString(_p2._0),
 					'%)'));
 		case 'OpacityFilter':
 			return A2(
@@ -10544,7 +10480,7 @@ var _mdgriffith$style_elements$Internal_Model$filterName = function (filtr) {
 				'opacity(',
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(_p6._0),
+					_elm_lang$core$Basics$toString(_p2._0),
 					'%)'));
 		case 'Saturate':
 			return A2(
@@ -10552,7 +10488,7 @@ var _mdgriffith$style_elements$Internal_Model$filterName = function (filtr) {
 				'saturate(',
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(_p6._0),
+					_elm_lang$core$Basics$toString(_p2._0),
 					'%)'));
 		case 'Sepia':
 			return A2(
@@ -10560,11 +10496,11 @@ var _mdgriffith$style_elements$Internal_Model$filterName = function (filtr) {
 				'sepia(',
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(_p6._0),
+					_elm_lang$core$Basics$toString(_p2._0),
 					'%)'));
 		default:
-			var _p7 = _p6._0;
-			var shadowModel = {offset: _p7.offset, size: _p7.size, blur: _p7.blur, color: _p7.color};
+			var _p3 = _p2._0;
+			var shadowModel = {offset: _p3.offset, size: _p3.size, blur: _p3.blur, color: _p3.color};
 			return A2(
 				_elm_lang$core$Basics_ops['++'],
 				'drop-shadow(',
@@ -10575,15 +10511,15 @@ var _mdgriffith$style_elements$Internal_Model$filterName = function (filtr) {
 	}
 };
 var _mdgriffith$style_elements$Internal_Model$toStyleSheetVirtualCss = function (stylesheet) {
-	var _p8 = stylesheet;
-	if (_p8.ctor === '[]') {
+	var _p4 = stylesheet;
+	if (_p4.ctor === '[]') {
 		return {ctor: '_Tuple0'};
 	} else {
-		var _p9 = _mdgriffith$style_elements$VirtualCss$clear(
+		var _p5 = _mdgriffith$style_elements$VirtualCss$clear(
 			{ctor: '_Tuple0'});
 		var renderProps = F2(
-			function (_p10, existing) {
-				var _p11 = _p10;
+			function (_p6, existing) {
+				var _p7 = _p6;
 				return A2(
 					_elm_lang$core$Basics_ops['++'],
 					existing,
@@ -10592,11 +10528,11 @@ var _mdgriffith$style_elements$Internal_Model$toStyleSheetVirtualCss = function 
 						'\n  ',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							_p11._0,
+							_p7._0,
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								': ',
-								A2(_elm_lang$core$Basics_ops['++'], _p11._1, ';')))));
+								A2(_elm_lang$core$Basics_ops['++'], _p7._1, ';')))));
 			});
 		var renderStyle = F2(
 			function (selector, props) {
@@ -10613,62 +10549,62 @@ var _mdgriffith$style_elements$Internal_Model$toStyleSheetVirtualCss = function 
 			});
 		var combine = F2(
 			function (style, cache) {
-				var _p12 = style;
-				switch (_p12.ctor) {
+				var _p8 = style;
+				switch (_p8.ctor) {
 					case 'Style':
-						var _p13 = A2(
+						var _p9 = A2(
 							_mdgriffith$style_elements$VirtualCss$insert,
-							A2(renderStyle, _p12._0, _p12._1),
+							A2(renderStyle, _p8._0, _p8._1),
 							0);
 						return cache;
 					case 'Single':
-						var _p15 = _p12._0;
-						if (A2(_elm_lang$core$Set$member, _p15, cache)) {
+						var _p11 = _p8._0;
+						if (A2(_elm_lang$core$Set$member, _p11, cache)) {
 							return cache;
 						} else {
-							var _p14 = A2(
+							var _p10 = A2(
 								_mdgriffith$style_elements$VirtualCss$insert,
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									_p15,
+									_p11,
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										'{',
 										A2(
 											_elm_lang$core$Basics_ops['++'],
-											_p12._1,
+											_p8._1,
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												':',
-												A2(_elm_lang$core$Basics_ops['++'], _p12._2, '}'))))),
+												A2(_elm_lang$core$Basics_ops['++'], _p8._2, '}'))))),
 								0);
-							return A2(_elm_lang$core$Set$insert, _p15, cache);
+							return A2(_elm_lang$core$Set$insert, _p11, cache);
 						}
 					case 'Colored':
-						var _p17 = _p12._0;
-						if (A2(_elm_lang$core$Set$member, _p17, cache)) {
+						var _p13 = _p8._0;
+						if (A2(_elm_lang$core$Set$member, _p13, cache)) {
 							return cache;
 						} else {
-							var _p16 = A2(
+							var _p12 = A2(
 								_mdgriffith$style_elements$VirtualCss$insert,
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									_p17,
+									_p13,
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										'{',
 										A2(
 											_elm_lang$core$Basics_ops['++'],
-											_p12._1,
+											_p8._1,
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												':',
 												A2(
 													_elm_lang$core$Basics_ops['++'],
-													_mdgriffith$style_elements$Internal_Model$formatColor(_p12._2),
+													_mdgriffith$style_elements$Internal_Model$formatColor(_p8._2),
 													'}'))))),
 								0);
-							return A2(_elm_lang$core$Set$insert, _p17, cache);
+							return A2(_elm_lang$core$Set$insert, _p13, cache);
 						}
 					case 'SpacingStyle':
 						var $class = A2(
@@ -10676,11 +10612,11 @@ var _mdgriffith$style_elements$Internal_Model$toStyleSheetVirtualCss = function 
 							'.spacing-',
 							A2(
 								_elm_lang$core$Basics_ops['++'],
-								_elm_lang$core$Basics$toString(_p12._0),
+								_elm_lang$core$Basics$toString(_p8._0),
 								A2(
 									_elm_lang$core$Basics_ops['++'],
 									'-',
-									_elm_lang$core$Basics$toString(_p12._1))));
+									_elm_lang$core$Basics$toString(_p8._1))));
 						return A2(_elm_lang$core$Set$member, $class, cache) ? cache : cache;
 					default:
 						var $class = A2(
@@ -10688,36 +10624,36 @@ var _mdgriffith$style_elements$Internal_Model$toStyleSheetVirtualCss = function 
 							'.pad-',
 							A2(
 								_elm_lang$core$Basics_ops['++'],
-								_elm_lang$core$Basics$toString(_p12._0),
+								_elm_lang$core$Basics$toString(_p8._0),
 								A2(
 									_elm_lang$core$Basics_ops['++'],
 									'-',
 									A2(
 										_elm_lang$core$Basics_ops['++'],
-										_elm_lang$core$Basics$toString(_p12._1),
+										_elm_lang$core$Basics$toString(_p8._1),
 										A2(
 											_elm_lang$core$Basics_ops['++'],
 											'-',
 											A2(
 												_elm_lang$core$Basics_ops['++'],
-												_elm_lang$core$Basics$toString(_p12._2),
+												_elm_lang$core$Basics$toString(_p8._2),
 												A2(
 													_elm_lang$core$Basics_ops['++'],
 													'-',
-													_elm_lang$core$Basics$toString(_p12._3))))))));
+													_elm_lang$core$Basics$toString(_p8._3))))))));
 						return A2(_elm_lang$core$Set$member, $class, cache) ? cache : cache;
 				}
 			});
 		return A2(
 			_elm_lang$core$Basics$always,
 			{ctor: '_Tuple0'},
-			A3(_elm_lang$core$List$foldl, combine, _elm_lang$core$Set$empty, _p8));
+			A3(_elm_lang$core$List$foldl, combine, _elm_lang$core$Set$empty, _p4));
 	}
 };
 var _mdgriffith$style_elements$Internal_Model$toStyleSheetNoReduction = function (styles) {
 	var renderProps = F2(
-		function (_p18, existing) {
-			var _p19 = _p18;
+		function (_p14, existing) {
+			var _p15 = _p14;
 			return A2(
 				_elm_lang$core$Basics_ops['++'],
 				existing,
@@ -10726,11 +10662,11 @@ var _mdgriffith$style_elements$Internal_Model$toStyleSheetNoReduction = function
 					'\n  ',
 					A2(
 						_elm_lang$core$Basics_ops['++'],
-						_p19._0,
+						_p15._0,
 						A2(
 							_elm_lang$core$Basics_ops['++'],
 							': ',
-							A2(_elm_lang$core$Basics_ops['++'], _p19._1, ';')))));
+							A2(_elm_lang$core$Basics_ops['++'], _p15._1, ';')))));
 		});
 	var renderStyle = F2(
 		function (selector, props) {
@@ -10747,8 +10683,8 @@ var _mdgriffith$style_elements$Internal_Model$toStyleSheetNoReduction = function
 		});
 	var combine = F2(
 		function (style, rendered) {
-			var _p20 = style;
-			switch (_p20.ctor) {
+			var _p16 = style;
+			switch (_p16.ctor) {
 				case 'Style':
 					return A2(
 						_elm_lang$core$Basics_ops['++'],
@@ -10756,43 +10692,43 @@ var _mdgriffith$style_elements$Internal_Model$toStyleSheetNoReduction = function
 						A2(
 							_elm_lang$core$Basics_ops['++'],
 							'\n',
-							A2(renderStyle, _p20._0, _p20._1)));
+							A2(renderStyle, _p16._0, _p16._1)));
 				case 'Single':
 					return A2(
 						_elm_lang$core$Basics_ops['++'],
 						rendered,
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							_p20._0,
+							_p16._0,
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								'{',
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									_p20._1,
+									_p16._1,
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										':',
-										A2(_elm_lang$core$Basics_ops['++'], _p20._2, '}\n'))))));
+										A2(_elm_lang$core$Basics_ops['++'], _p16._2, '}\n'))))));
 				case 'Colored':
 					return A2(
 						_elm_lang$core$Basics_ops['++'],
 						rendered,
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							_p20._0,
+							_p16._0,
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								'{',
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									_p20._1,
+									_p16._1,
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										':',
 										A2(
 											_elm_lang$core$Basics_ops['++'],
-											_mdgriffith$style_elements$Internal_Model$formatColor(_p20._2),
+											_mdgriffith$style_elements$Internal_Model$formatColor(_p16._2),
 											'}\n'))))));
 				case 'SpacingStyle':
 					return '';
@@ -10800,7 +10736,18 @@ var _mdgriffith$style_elements$Internal_Model$toStyleSheetNoReduction = function
 					return '';
 			}
 		});
-	return A3(_elm_lang$core$List$foldl, combine, '', styles);
+	return function (rendered) {
+		return A3(
+			_elm_lang$virtual_dom$VirtualDom$node,
+			'style',
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text(rendered),
+				_1: {ctor: '[]'}
+			});
+	}(
+		A3(_elm_lang$core$List$foldl, combine, '', styles));
 };
 var _mdgriffith$style_elements$Internal_Model$uncapitalize = function (str) {
 	var tail = A2(_elm_lang$core$String$dropLeft, 1, str);
@@ -10813,25 +10760,25 @@ var _mdgriffith$style_elements$Internal_Model$className = function (x) {
 		_elm_lang$core$Regex$replace,
 		_elm_lang$core$Regex$All,
 		_elm_lang$core$Regex$regex('[\\s+]'),
-		function (_p21) {
+		function (_p17) {
 			return '';
 		},
 		A4(
 			_elm_lang$core$Regex$replace,
 			_elm_lang$core$Regex$All,
 			_elm_lang$core$Regex$regex('[A-Z0-9]+'),
-			function (_p22) {
-				var _p23 = _p22;
+			function (_p18) {
+				var _p19 = _p18;
 				return A2(
 					_elm_lang$core$Basics_ops['++'],
 					' ',
-					_elm_lang$core$String$toLower(_p23.match));
+					_elm_lang$core$String$toLower(_p19.match));
 			},
 			A4(
 				_elm_lang$core$Regex$replace,
 				_elm_lang$core$Regex$All,
 				_elm_lang$core$Regex$regex('[^a-zA-Z0-9_-]'),
-				function (_p24) {
+				function (_p20) {
 					return '';
 				},
 				_mdgriffith$style_elements$Internal_Model$uncapitalize(x))));
@@ -10839,8 +10786,8 @@ var _mdgriffith$style_elements$Internal_Model$className = function (x) {
 var _mdgriffith$style_elements$Internal_Model$initGathered = {
 	attributes: {ctor: '[]'},
 	rules: {ctor: '[]'},
+	node: _elm_lang$core$Maybe$Nothing,
 	nearbys: {ctor: '[]'},
-	link: _elm_lang$core$Maybe$Nothing,
 	rotation: _elm_lang$core$Maybe$Nothing,
 	translation: _elm_lang$core$Maybe$Nothing,
 	scale: _elm_lang$core$Maybe$Nothing,
@@ -10853,9 +10800,46 @@ var _mdgriffith$style_elements$Internal_Model$pair = F2(
 	function (v0, v1) {
 		return {ctor: '_Tuple2', _0: v0, _1: v1};
 	});
+var _mdgriffith$style_elements$Internal_Model$skip = F2(
+	function (newValue, old) {
+		var _p21 = old;
+		if (_p21.ctor === 'Nothing') {
+			return _elm_lang$core$Maybe$Just(newValue);
+		} else {
+			return _p21;
+		}
+	});
+var _mdgriffith$style_elements$Internal_Model$renderNode = F3(
+	function (node, attrs, children) {
+		var _p22 = node;
+		switch (_p22.ctor) {
+			case 'Generic':
+				return A3(_elm_lang$virtual_dom$VirtualDom$node, 'div', attrs, children);
+			case 'NodeName':
+				return A3(_elm_lang$virtual_dom$VirtualDom$node, _p22._0, attrs, children);
+			default:
+				return A3(
+					_elm_lang$virtual_dom$VirtualDom$node,
+					_p22._0,
+					attrs,
+					{
+						ctor: '::',
+						_0: A3(
+							_elm_lang$virtual_dom$VirtualDom$node,
+							_p22._1,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('se el'),
+								_1: {ctor: '[]'}
+							},
+							children),
+						_1: {ctor: '[]'}
+					});
+		}
+	});
 var _mdgriffith$style_elements$Internal_Model$locationClass = function (location) {
-	var _p25 = location;
-	switch (_p25.ctor) {
+	var _p23 = location;
+	switch (_p23.ctor) {
 		case 'Above':
 			return 'se el above';
 		case 'Below':
@@ -10869,64 +10853,67 @@ var _mdgriffith$style_elements$Internal_Model$locationClass = function (location
 	}
 };
 var _mdgriffith$style_elements$Internal_Model$styleName = function (style) {
-	var _p26 = style;
-	switch (_p26.ctor) {
+	var _p24 = style;
+	switch (_p24.ctor) {
 		case 'Style':
-			return _p26._0;
+			return _p24._0;
 		case 'Single':
-			return _p26._0;
+			return _p24._0;
 		case 'Colored':
-			return _p26._0;
+			return _p24._0;
 		case 'SpacingStyle':
 			return A2(
 				_elm_lang$core$Basics_ops['++'],
 				'spacing-',
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(_p26._0),
+					_elm_lang$core$Basics$toString(_p24._0),
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						'-',
-						_elm_lang$core$Basics$toString(_p26._1))));
+						_elm_lang$core$Basics$toString(_p24._1))));
 		default:
 			return A2(
 				_elm_lang$core$Basics_ops['++'],
 				'pad-',
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(_p26._0),
+					_elm_lang$core$Basics$toString(_p24._0),
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						'-',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							_elm_lang$core$Basics$toString(_p26._1),
+							_elm_lang$core$Basics$toString(_p24._1),
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								'-',
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									_elm_lang$core$Basics$toString(_p26._2),
+									_elm_lang$core$Basics$toString(_p24._2),
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										'-',
-										_elm_lang$core$Basics$toString(_p26._3))))))));
+										_elm_lang$core$Basics$toString(_p24._3))))))));
 	}
 };
 var _mdgriffith$style_elements$Internal_Model$styleKey = function (style) {
-	var _p27 = style;
-	switch (_p27.ctor) {
+	var _p25 = style;
+	switch (_p25.ctor) {
 		case 'Style':
-			return _p27._0;
+			return _p25._0;
 		case 'Single':
-			return _p27._1;
+			return _p25._1;
 		case 'Colored':
-			return _p27._1;
+			return _p25._1;
 		case 'SpacingStyle':
 			return 'spacing';
 		default:
 			return 'padding';
 	}
+};
+var _mdgriffith$style_elements$Internal_Model$Position = function (a) {
+	return {alignment: a};
 };
 var _mdgriffith$style_elements$Internal_Model$Gathered = function (a) {
 	return function (b) {
@@ -10939,7 +10926,7 @@ var _mdgriffith$style_elements$Internal_Model$Gathered = function (a) {
 								return function (i) {
 									return function (j) {
 										return function (k) {
-											return {attributes: a, rules: b, nearbys: c, link: d, filters: e, boxShadows: f, textShadows: g, rotation: h, translation: i, scale: j, has: k};
+											return {attributes: a, rules: b, nearbys: c, node: d, filters: e, boxShadows: f, textShadows: g, rotation: h, translation: i, scale: j, has: k};
 										};
 									};
 								};
@@ -10960,25 +10947,46 @@ var _mdgriffith$style_elements$Internal_Model$Unstyled = function (a) {
 };
 var _mdgriffith$style_elements$Internal_Model$map = F2(
 	function (fn, el) {
-		var _p28 = el;
-		if (_p28.ctor === 'Unresolved') {
+		var _p26 = el;
+		if (_p26.ctor === 'Unresolved') {
 			return A4(
 				_mdgriffith$style_elements$Internal_Model$Unresolved,
-				_p28._0,
-				_p28._1,
+				_p26._0,
+				_p26._1,
 				A2(
 					_elm_lang$core$List$map,
 					_elm_lang$html$Html_Attributes$map(fn),
-					_p28._2),
+					_p26._2),
 				A2(
 					_elm_lang$core$List$map,
 					_elm_lang$html$Html$map(fn),
-					_p28._3));
+					_p26._3));
 		} else {
 			return _mdgriffith$style_elements$Internal_Model$Unstyled(
-				A2(_elm_lang$html$Html$map, fn, _p28._0));
+				A2(_elm_lang$html$Html$map, fn, _p26._0));
 		}
 	});
+var _mdgriffith$style_elements$Internal_Model$Embedded = F2(
+	function (a, b) {
+		return {ctor: 'Embedded', _0: a, _1: b};
+	});
+var _mdgriffith$style_elements$Internal_Model$NodeName = function (a) {
+	return {ctor: 'NodeName', _0: a};
+};
+var _mdgriffith$style_elements$Internal_Model$Generic = {ctor: 'Generic'};
+var _mdgriffith$style_elements$Internal_Model$OnRow = function (a) {
+	return {ctor: 'OnRow', _0: a};
+};
+var _mdgriffith$style_elements$Internal_Model$OnColumn = function (a) {
+	return {ctor: 'OnColumn', _0: a};
+};
+var _mdgriffith$style_elements$Internal_Model$NoAlignment = {ctor: 'NoAlignment'};
+var _mdgriffith$style_elements$Internal_Model$CenterX = {ctor: 'CenterX'};
+var _mdgriffith$style_elements$Internal_Model$AlignRight = {ctor: 'AlignRight'};
+var _mdgriffith$style_elements$Internal_Model$AlignLeft = {ctor: 'AlignLeft'};
+var _mdgriffith$style_elements$Internal_Model$CenterY = {ctor: 'CenterY'};
+var _mdgriffith$style_elements$Internal_Model$AlignBottom = {ctor: 'AlignBottom'};
+var _mdgriffith$style_elements$Internal_Model$AlignTop = {ctor: 'AlignTop'};
 var _mdgriffith$style_elements$Internal_Model$PaddingStyle = F4(
 	function (a, b, c, d) {
 		return {ctor: 'PaddingStyle', _0: a, _1: b, _2: c, _3: d};
@@ -10996,93 +11004,93 @@ var _mdgriffith$style_elements$Internal_Model$Single = F3(
 		return {ctor: 'Single', _0: a, _1: b, _2: c};
 	});
 var _mdgriffith$style_elements$Internal_Model$formatTransformations = function (gathered) {
-	var addTextShadows = function (_p29) {
-		var _p30 = _p29;
-		var _p34 = _p30._1;
-		var _p33 = _p30._0;
-		var _p31 = gathered.textShadows;
-		if (_p31.ctor === 'Nothing') {
-			return {ctor: '_Tuple2', _0: _p33, _1: _p34};
+	var addTextShadows = function (_p27) {
+		var _p28 = _p27;
+		var _p32 = _p28._1;
+		var _p31 = _p28._0;
+		var _p29 = gathered.textShadows;
+		if (_p29.ctor === 'Nothing') {
+			return {ctor: '_Tuple2', _0: _p31, _1: _p32};
 		} else {
-			var _p32 = _p31._0;
+			var _p30 = _p29._0;
 			var name = A2(
 				_elm_lang$core$Basics_ops['++'],
 				'text-shadow-',
-				_mdgriffith$style_elements$Internal_Model$className(_p32));
+				_mdgriffith$style_elements$Internal_Model$className(_p30));
 			return {
 				ctor: '_Tuple2',
-				_0: {ctor: '::', _0: name, _1: _p33},
+				_0: {ctor: '::', _0: name, _1: _p31},
 				_1: {
 					ctor: '::',
 					_0: A3(
 						_mdgriffith$style_elements$Internal_Model$Single,
 						A2(_elm_lang$core$Basics_ops['++'], '.', name),
 						'text-shadow',
-						_p32),
-					_1: _p34
+						_p30),
+					_1: _p32
 				}
 			};
 		}
 	};
-	var addBoxShadows = function (_p35) {
-		var _p36 = _p35;
-		var _p40 = _p36._1;
-		var _p39 = _p36._0;
-		var _p37 = gathered.boxShadows;
-		if (_p37.ctor === 'Nothing') {
-			return {ctor: '_Tuple2', _0: _p39, _1: _p40};
+	var addBoxShadows = function (_p33) {
+		var _p34 = _p33;
+		var _p38 = _p34._1;
+		var _p37 = _p34._0;
+		var _p35 = gathered.boxShadows;
+		if (_p35.ctor === 'Nothing') {
+			return {ctor: '_Tuple2', _0: _p37, _1: _p38};
 		} else {
-			var _p38 = _p37._0;
+			var _p36 = _p35._0;
 			var name = A2(
 				_elm_lang$core$Basics_ops['++'],
 				'box-shadow-',
-				_mdgriffith$style_elements$Internal_Model$className(_p38));
+				_mdgriffith$style_elements$Internal_Model$className(_p36));
 			return {
 				ctor: '_Tuple2',
-				_0: {ctor: '::', _0: name, _1: _p39},
+				_0: {ctor: '::', _0: name, _1: _p37},
 				_1: {
 					ctor: '::',
 					_0: A3(
 						_mdgriffith$style_elements$Internal_Model$Single,
 						A2(_elm_lang$core$Basics_ops['++'], '.', name),
 						'box-shadow',
-						_p38),
-					_1: _p40
+						_p36),
+					_1: _p38
 				}
 			};
 		}
 	};
-	var addFilters = function (_p41) {
-		var _p42 = _p41;
-		var _p46 = _p42._1;
-		var _p45 = _p42._0;
-		var _p43 = gathered.filters;
-		if (_p43.ctor === 'Nothing') {
-			return {ctor: '_Tuple2', _0: _p45, _1: _p46};
+	var addFilters = function (_p39) {
+		var _p40 = _p39;
+		var _p44 = _p40._1;
+		var _p43 = _p40._0;
+		var _p41 = gathered.filters;
+		if (_p41.ctor === 'Nothing') {
+			return {ctor: '_Tuple2', _0: _p43, _1: _p44};
 		} else {
-			var _p44 = _p43._0;
+			var _p42 = _p41._0;
 			var name = A2(
 				_elm_lang$core$Basics_ops['++'],
 				'filter-',
-				_mdgriffith$style_elements$Internal_Model$className(_p44));
+				_mdgriffith$style_elements$Internal_Model$className(_p42));
 			return {
 				ctor: '_Tuple2',
-				_0: {ctor: '::', _0: name, _1: _p45},
+				_0: {ctor: '::', _0: name, _1: _p43},
 				_1: {
 					ctor: '::',
 					_0: A3(
 						_mdgriffith$style_elements$Internal_Model$Single,
 						A2(_elm_lang$core$Basics_ops['++'], '.', name),
 						'filter',
-						_p44),
-					_1: _p46
+						_p42),
+					_1: _p44
 				}
 			};
 		}
 	};
 	var scale = function () {
-		var _p47 = gathered.scale;
-		if (_p47.ctor === 'Nothing') {
+		var _p45 = gathered.scale;
+		if (_p45.ctor === 'Nothing') {
 			return _elm_lang$core$Maybe$Nothing;
 		} else {
 			return _elm_lang$core$Maybe$Just(
@@ -11092,27 +11100,27 @@ var _mdgriffith$style_elements$Internal_Model$formatTransformations = function (
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						_elm_lang$core$Basics$toString(
-							A2(_elm_lang$core$Maybe$withDefault, 0, _p47._0._0)),
+							A2(_elm_lang$core$Maybe$withDefault, 0, _p45._0._0)),
 						A2(
 							_elm_lang$core$Basics_ops['++'],
 							'px, ',
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								_elm_lang$core$Basics$toString(
-									A2(_elm_lang$core$Maybe$withDefault, 0, _p47._0._1)),
+									A2(_elm_lang$core$Maybe$withDefault, 0, _p45._0._1)),
 								A2(
 									_elm_lang$core$Basics_ops['++'],
 									'px, ',
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										_elm_lang$core$Basics$toString(
-											A2(_elm_lang$core$Maybe$withDefault, 0, _p47._0._2)),
+											A2(_elm_lang$core$Maybe$withDefault, 0, _p45._0._2)),
 										'px)')))))));
 		}
 	}();
 	var translate = function () {
-		var _p48 = gathered.translation;
-		if (_p48.ctor === 'Nothing') {
+		var _p46 = gathered.translation;
+		if (_p46.ctor === 'Nothing') {
 			return _elm_lang$core$Maybe$Nothing;
 		} else {
 			return _elm_lang$core$Maybe$Just(
@@ -11122,21 +11130,21 @@ var _mdgriffith$style_elements$Internal_Model$formatTransformations = function (
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						_elm_lang$core$Basics$toString(
-							A2(_elm_lang$core$Maybe$withDefault, 0, _p48._0._0)),
+							A2(_elm_lang$core$Maybe$withDefault, 0, _p46._0._0)),
 						A2(
 							_elm_lang$core$Basics_ops['++'],
 							'px, ',
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								_elm_lang$core$Basics$toString(
-									A2(_elm_lang$core$Maybe$withDefault, 0, _p48._0._1)),
+									A2(_elm_lang$core$Maybe$withDefault, 0, _p46._0._1)),
 								A2(
 									_elm_lang$core$Basics_ops['++'],
 									'px, ',
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										_elm_lang$core$Basics$toString(
-											A2(_elm_lang$core$Maybe$withDefault, 0, _p48._0._2)),
+											A2(_elm_lang$core$Maybe$withDefault, 0, _p46._0._2)),
 										'px)')))))));
 		}
 	}();
@@ -11156,22 +11164,22 @@ var _mdgriffith$style_elements$Internal_Model$formatTransformations = function (
 				}
 			}
 		});
-	var addTransform = function (_p49) {
-		var _p50 = _p49;
-		var _p53 = _p50._1;
-		var _p52 = _p50._0;
-		var _p51 = transformations;
-		if (_p51.ctor === '[]') {
-			return {ctor: '_Tuple2', _0: _p52, _1: _p53};
+	var addTransform = function (_p47) {
+		var _p48 = _p47;
+		var _p51 = _p48._1;
+		var _p50 = _p48._0;
+		var _p49 = transformations;
+		if (_p49.ctor === '[]') {
+			return {ctor: '_Tuple2', _0: _p50, _1: _p51};
 		} else {
-			var transforms = A2(_elm_lang$core$String$join, ' ', _p51);
+			var transforms = A2(_elm_lang$core$String$join, ' ', _p49);
 			var name = A2(
 				_elm_lang$core$Basics_ops['++'],
 				'transform-',
 				_mdgriffith$style_elements$Internal_Model$className(transforms));
 			return {
 				ctor: '_Tuple2',
-				_0: {ctor: '::', _0: name, _1: _p52},
+				_0: {ctor: '::', _0: name, _1: _p50},
 				_1: {
 					ctor: '::',
 					_0: A3(
@@ -11179,12 +11187,12 @@ var _mdgriffith$style_elements$Internal_Model$formatTransformations = function (
 						A2(_elm_lang$core$Basics_ops['++'], '.', name),
 						'transform',
 						transforms),
-					_1: _p53
+					_1: _p51
 				}
 			};
 		}
 	};
-	var _p54 = addTransform(
+	var _p52 = addTransform(
 		addTextShadows(
 			addBoxShadows(
 				addFilters(
@@ -11193,8 +11201,8 @@ var _mdgriffith$style_elements$Internal_Model$formatTransformations = function (
 						_0: {ctor: '[]'},
 						_1: gathered.rules
 					}))));
-	var classes = _p54._0;
-	var styles = _p54._1;
+	var classes = _p52._0;
+	var styles = _p52._1;
 	return _elm_lang$core$Native_Utils.update(
 		gathered,
 		{
@@ -11212,55 +11220,120 @@ var _mdgriffith$style_elements$Internal_Model$Style = F2(
 		return {ctor: 'Style', _0: a, _1: b};
 	});
 var _mdgriffith$style_elements$Internal_Model$addDot = function (style) {
-	var _p55 = style;
-	switch (_p55.ctor) {
+	var _p53 = style;
+	switch (_p53.ctor) {
 		case 'Style':
 			return A2(
 				_mdgriffith$style_elements$Internal_Model$Style,
-				A2(_elm_lang$core$Basics_ops['++'], '.', _p55._0),
-				_p55._1);
+				A2(_elm_lang$core$Basics_ops['++'], '.', _p53._0),
+				_p53._1);
 		case 'Single':
 			return A3(
 				_mdgriffith$style_elements$Internal_Model$Single,
-				A2(_elm_lang$core$Basics_ops['++'], '.', _p55._0),
-				_p55._1,
-				_p55._2);
+				A2(_elm_lang$core$Basics_ops['++'], '.', _p53._0),
+				_p53._1,
+				_p53._2);
 		case 'Colored':
 			return A3(
 				_mdgriffith$style_elements$Internal_Model$Colored,
-				A2(_elm_lang$core$Basics_ops['++'], '.', _p55._0),
-				_p55._1,
-				_p55._2);
+				A2(_elm_lang$core$Basics_ops['++'], '.', _p53._0),
+				_p53._1,
+				_p53._2);
 		case 'SpacingStyle':
-			return A2(_mdgriffith$style_elements$Internal_Model$SpacingStyle, _p55._0, _p55._1);
+			return A2(_mdgriffith$style_elements$Internal_Model$SpacingStyle, _p53._0, _p53._1);
 		default:
-			return A4(_mdgriffith$style_elements$Internal_Model$PaddingStyle, _p55._0, _p55._1, _p55._2, _p55._3);
+			return A4(_mdgriffith$style_elements$Internal_Model$PaddingStyle, _p53._0, _p53._1, _p53._2, _p53._3);
 	}
 };
 var _mdgriffith$style_elements$Internal_Model$gatherAttributes = F2(
 	function (attr, gathered) {
-		var _p56 = attr;
-		switch (_p56.ctor) {
+		var _p54 = attr;
+		switch (_p54.ctor) {
 			case 'NoAttribute':
 				return gathered;
-			case 'Link':
-				var _p57 = gathered.link;
-				if (_p57.ctor === 'Nothing') {
-					return _elm_lang$core$Native_Utils.update(
-						gathered,
-						{
-							link: _elm_lang$core$Maybe$Just(
-								{ctor: '_Tuple2', _0: _p56._0, _1: _p56._1})
-						});
-				} else {
-					return gathered;
-				}
 			case 'Describe':
-				return gathered;
+				var _p55 = _p54._0;
+				switch (_p55.ctor) {
+					case 'Main':
+						return _elm_lang$core$Native_Utils.update(
+							gathered,
+							{
+								node: A2(_mdgriffith$style_elements$Internal_Model$skip, 'main', gathered.node)
+							});
+					case 'Navigation':
+						return _elm_lang$core$Native_Utils.update(
+							gathered,
+							{
+								node: A2(_mdgriffith$style_elements$Internal_Model$skip, 'nav', gathered.node)
+							});
+					case 'ContentInfo':
+						return _elm_lang$core$Native_Utils.update(
+							gathered,
+							{
+								node: A2(_mdgriffith$style_elements$Internal_Model$skip, 'footer', gathered.node)
+							});
+					case 'Complementary':
+						return _elm_lang$core$Native_Utils.update(
+							gathered,
+							{
+								node: A2(_mdgriffith$style_elements$Internal_Model$skip, 'aside', gathered.node)
+							});
+					case 'Heading':
+						var _p56 = _p55._0;
+						return (_elm_lang$core$Native_Utils.cmp(_p56, 1) < 0) ? _elm_lang$core$Native_Utils.update(
+							gathered,
+							{
+								node: A2(_mdgriffith$style_elements$Internal_Model$skip, 'h1', gathered.node)
+							}) : ((_elm_lang$core$Native_Utils.cmp(_p56, 7) < 0) ? _elm_lang$core$Native_Utils.update(
+							gathered,
+							{
+								node: A2(
+									_mdgriffith$style_elements$Internal_Model$skip,
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										'h',
+										_elm_lang$core$Basics$toString(_p56)),
+									gathered.node)
+							}) : _elm_lang$core$Native_Utils.update(
+							gathered,
+							{
+								node: A2(_mdgriffith$style_elements$Internal_Model$skip, 'h6', gathered.node)
+							}));
+					case 'Label':
+						return _elm_lang$core$Native_Utils.update(
+							gathered,
+							{
+								attributes: {
+									ctor: '::',
+									_0: A2(_elm_lang$html$Html_Attributes$attribute, 'aria-label', _p55._0),
+									_1: gathered.attributes
+								}
+							});
+					case 'LivePolite':
+						return _elm_lang$core$Native_Utils.update(
+							gathered,
+							{
+								attributes: {
+									ctor: '::',
+									_0: A2(_elm_lang$html$Html_Attributes$attribute, 'aria-live', 'polite'),
+									_1: gathered.attributes
+								}
+							});
+					default:
+						return _elm_lang$core$Native_Utils.update(
+							gathered,
+							{
+								attributes: {
+									ctor: '::',
+									_0: A2(_elm_lang$html$Html_Attributes$attribute, 'aria-live', 'assertive'),
+									_1: gathered.attributes
+								}
+							});
+				}
 			case 'Nearby':
-				var _p59 = _p56._0;
-				var _p58 = _p56._1;
-				if (_p58.ctor === 'Unstyled') {
+				var _p58 = _p54._0;
+				var _p57 = _p54._1;
+				if (_p57.ctor === 'Unstyled') {
 					return _elm_lang$core$Native_Utils.update(
 						gathered,
 						{
@@ -11272,12 +11345,12 @@ var _mdgriffith$style_elements$Internal_Model$gatherAttributes = F2(
 									{
 										ctor: '::',
 										_0: _elm_lang$html$Html_Attributes$class(
-											_mdgriffith$style_elements$Internal_Model$locationClass(_p59)),
+											_mdgriffith$style_elements$Internal_Model$locationClass(_p58)),
 										_1: {ctor: '[]'}
 									},
 									{
 										ctor: '::',
-										_0: _p58._0,
+										_0: _p57._0,
 										_1: {ctor: '[]'}
 									}),
 								_1: gathered.nearbys
@@ -11287,7 +11360,7 @@ var _mdgriffith$style_elements$Internal_Model$gatherAttributes = F2(
 					return _elm_lang$core$Native_Utils.update(
 						gathered,
 						{
-							rules: A2(_elm_lang$core$Basics_ops['++'], gathered.rules, _p58._0),
+							rules: A2(_elm_lang$core$Basics_ops['++'], gathered.rules, _p57._0),
 							nearbys: {
 								ctor: '::',
 								_0: A3(
@@ -11296,12 +11369,12 @@ var _mdgriffith$style_elements$Internal_Model$gatherAttributes = F2(
 									{
 										ctor: '::',
 										_0: _elm_lang$html$Html_Attributes$class(
-											_mdgriffith$style_elements$Internal_Model$locationClass(_p59)),
+											_mdgriffith$style_elements$Internal_Model$locationClass(_p58)),
 										_1: {ctor: '[]'}
 									},
 									{
 										ctor: '::',
-										_0: A3(_elm_lang$virtual_dom$VirtualDom$node, _p58._1, _p58._2, _p58._3),
+										_0: A3(_mdgriffith$style_elements$Internal_Model$renderNode, _p57._1, _p57._2, _p57._3),
 										_1: {ctor: '[]'}
 									}),
 								_1: gathered.nearbys
@@ -11309,7 +11382,7 @@ var _mdgriffith$style_elements$Internal_Model$gatherAttributes = F2(
 						});
 				}
 			case 'StyleClass':
-				var _p60 = _p56._0;
+				var _p59 = _p54._0;
 				return _elm_lang$core$Native_Utils.update(
 					gathered,
 					{
@@ -11319,22 +11392,22 @@ var _mdgriffith$style_elements$Internal_Model$gatherAttributes = F2(
 								_elm_lang$virtual_dom$VirtualDom$property,
 								'className',
 								_elm_lang$core$Json_Encode$string(
-									_mdgriffith$style_elements$Internal_Model$styleName(_p60))),
+									_mdgriffith$style_elements$Internal_Model$styleName(_p59))),
 							_1: gathered.attributes
 						},
 						rules: {
 							ctor: '::',
-							_0: _mdgriffith$style_elements$Internal_Model$addDot(_p60),
+							_0: _mdgriffith$style_elements$Internal_Model$addDot(_p59),
 							_1: gathered.rules
 						},
 						has: A2(
 							_elm_lang$core$Set$insert,
-							_mdgriffith$style_elements$Internal_Model$styleKey(_p60),
+							_mdgriffith$style_elements$Internal_Model$styleKey(_p59),
 							gathered.has)
 					});
 			case 'Class':
-				var _p61 = _p56._0;
-				return A2(_elm_lang$core$Set$member, _p61, gathered.has) ? gathered : _elm_lang$core$Native_Utils.update(
+				var _p60 = _p54._0;
+				return A2(_elm_lang$core$Set$member, _p60, gathered.has) ? gathered : _elm_lang$core$Native_Utils.update(
 					gathered,
 					{
 						attributes: {
@@ -11342,42 +11415,42 @@ var _mdgriffith$style_elements$Internal_Model$gatherAttributes = F2(
 							_0: A2(
 								_elm_lang$virtual_dom$VirtualDom$property,
 								'className',
-								_elm_lang$core$Json_Encode$string(_p56._1)),
+								_elm_lang$core$Json_Encode$string(_p54._1)),
 							_1: gathered.attributes
 						},
-						has: A2(_elm_lang$core$Set$insert, _p61, gathered.has)
+						has: A2(_elm_lang$core$Set$insert, _p60, gathered.has)
 					});
 			case 'Attr':
 				return _elm_lang$core$Native_Utils.update(
 					gathered,
 					{
-						attributes: {ctor: '::', _0: _p56._0, _1: gathered.attributes}
+						attributes: {ctor: '::', _0: _p54._0, _1: gathered.attributes}
 					});
 			case 'Move':
-				var _p66 = _p56._2;
-				var _p65 = _p56._1;
-				var _p64 = _p56._0;
+				var _p65 = _p54._2;
+				var _p64 = _p54._1;
+				var _p63 = _p54._0;
 				var addIfNothing = F2(
 					function (val, existing) {
-						var _p62 = existing;
-						if (_p62.ctor === 'Nothing') {
+						var _p61 = existing;
+						if (_p61.ctor === 'Nothing') {
 							return val;
 						} else {
-							return _p62;
+							return _p61;
 						}
 					});
 				var translate = function () {
-					var _p63 = gathered.translation;
-					if (_p63.ctor === 'Nothing') {
+					var _p62 = gathered.translation;
+					if (_p62.ctor === 'Nothing') {
 						return _elm_lang$core$Maybe$Just(
-							{ctor: '_Tuple3', _0: _p64, _1: _p65, _2: _p66});
+							{ctor: '_Tuple3', _0: _p63, _1: _p64, _2: _p65});
 					} else {
 						return _elm_lang$core$Maybe$Just(
 							{
 								ctor: '_Tuple3',
-								_0: A2(addIfNothing, _p64, _p63._0._0),
-								_1: A2(addIfNothing, _p65, _p63._0._1),
-								_2: A2(addIfNothing, _p66, _p63._0._2)
+								_0: A2(addIfNothing, _p63, _p62._0._0),
+								_1: A2(addIfNothing, _p64, _p62._0._1),
+								_2: A2(addIfNothing, _p65, _p62._0._2)
 							});
 					}
 				}();
@@ -11385,14 +11458,14 @@ var _mdgriffith$style_elements$Internal_Model$gatherAttributes = F2(
 					gathered,
 					{translation: translate});
 			case 'Filter':
-				var _p68 = _p56._0;
-				var _p67 = gathered.filters;
-				if (_p67.ctor === 'Nothing') {
+				var _p67 = _p54._0;
+				var _p66 = gathered.filters;
+				if (_p66.ctor === 'Nothing') {
 					return _elm_lang$core$Native_Utils.update(
 						gathered,
 						{
 							filters: _elm_lang$core$Maybe$Just(
-								_mdgriffith$style_elements$Internal_Model$filterName(_p68))
+								_mdgriffith$style_elements$Internal_Model$filterName(_p67))
 						});
 				} else {
 					return _elm_lang$core$Native_Utils.update(
@@ -11401,19 +11474,19 @@ var _mdgriffith$style_elements$Internal_Model$gatherAttributes = F2(
 							filters: _elm_lang$core$Maybe$Just(
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									_mdgriffith$style_elements$Internal_Model$filterName(_p68),
-									A2(_elm_lang$core$Basics_ops['++'], ' ', _p67._0)))
+									_mdgriffith$style_elements$Internal_Model$filterName(_p67),
+									A2(_elm_lang$core$Basics_ops['++'], ' ', _p66._0)))
 						});
 				}
 			case 'BoxShadow':
-				var _p70 = _p56._0;
-				var _p69 = gathered.boxShadows;
-				if (_p69.ctor === 'Nothing') {
+				var _p69 = _p54._0;
+				var _p68 = gathered.boxShadows;
+				if (_p68.ctor === 'Nothing') {
 					return _elm_lang$core$Native_Utils.update(
 						gathered,
 						{
 							boxShadows: _elm_lang$core$Maybe$Just(
-								_mdgriffith$style_elements$Internal_Model$formatBoxShadow(_p70))
+								_mdgriffith$style_elements$Internal_Model$formatBoxShadow(_p69))
 						});
 				} else {
 					return _elm_lang$core$Native_Utils.update(
@@ -11422,19 +11495,19 @@ var _mdgriffith$style_elements$Internal_Model$gatherAttributes = F2(
 							boxShadows: _elm_lang$core$Maybe$Just(
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									_mdgriffith$style_elements$Internal_Model$formatBoxShadow(_p70),
-									A2(_elm_lang$core$Basics_ops['++'], ', ', _p69._0)))
+									_mdgriffith$style_elements$Internal_Model$formatBoxShadow(_p69),
+									A2(_elm_lang$core$Basics_ops['++'], ', ', _p68._0)))
 						});
 				}
 			case 'TextShadow':
-				var _p72 = _p56._0;
-				var _p71 = gathered.textShadows;
-				if (_p71.ctor === 'Nothing') {
+				var _p71 = _p54._0;
+				var _p70 = gathered.textShadows;
+				if (_p70.ctor === 'Nothing') {
 					return _elm_lang$core$Native_Utils.update(
 						gathered,
 						{
 							textShadows: _elm_lang$core$Maybe$Just(
-								_mdgriffith$style_elements$Internal_Model$formatTextShadow(_p72))
+								_mdgriffith$style_elements$Internal_Model$formatTextShadow(_p71))
 						});
 				} else {
 					return _elm_lang$core$Native_Utils.update(
@@ -11443,8 +11516,8 @@ var _mdgriffith$style_elements$Internal_Model$gatherAttributes = F2(
 							textShadows: _elm_lang$core$Maybe$Just(
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									_mdgriffith$style_elements$Internal_Model$formatTextShadow(_p72),
-									A2(_elm_lang$core$Basics_ops['++'], ', ', _p71._0)))
+									_mdgriffith$style_elements$Internal_Model$formatTextShadow(_p71),
+									A2(_elm_lang$core$Basics_ops['++'], ', ', _p70._0)))
 						});
 				}
 			case 'Rotate':
@@ -11457,52 +11530,52 @@ var _mdgriffith$style_elements$Internal_Model$gatherAttributes = F2(
 								'rotate3d(',
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									_elm_lang$core$Basics$toString(_p56._0),
+									_elm_lang$core$Basics$toString(_p54._0),
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										',',
 										A2(
 											_elm_lang$core$Basics_ops['++'],
-											_elm_lang$core$Basics$toString(_p56._1),
+											_elm_lang$core$Basics$toString(_p54._1),
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												',',
 												A2(
 													_elm_lang$core$Basics_ops['++'],
-													_elm_lang$core$Basics$toString(_p56._2),
+													_elm_lang$core$Basics$toString(_p54._2),
 													A2(
 														_elm_lang$core$Basics_ops['++'],
 														',',
 														A2(
 															_elm_lang$core$Basics_ops['++'],
-															_elm_lang$core$Basics$toString(_p56._3),
+															_elm_lang$core$Basics$toString(_p54._3),
 															'rad)')))))))))
 					});
 			default:
-				var _p77 = _p56._2;
-				var _p76 = _p56._1;
-				var _p75 = _p56._0;
+				var _p76 = _p54._2;
+				var _p75 = _p54._1;
+				var _p74 = _p54._0;
 				var addIfNothing = F2(
 					function (val, existing) {
-						var _p73 = existing;
-						if (_p73.ctor === 'Nothing') {
+						var _p72 = existing;
+						if (_p72.ctor === 'Nothing') {
 							return val;
 						} else {
-							return _p73;
+							return _p72;
 						}
 					});
 				var scale = function () {
-					var _p74 = gathered.scale;
-					if (_p74.ctor === 'Nothing') {
+					var _p73 = gathered.scale;
+					if (_p73.ctor === 'Nothing') {
 						return _elm_lang$core$Maybe$Just(
-							{ctor: '_Tuple3', _0: _p75, _1: _p76, _2: _p77});
+							{ctor: '_Tuple3', _0: _p74, _1: _p75, _2: _p76});
 					} else {
 						return _elm_lang$core$Maybe$Just(
 							{
 								ctor: '_Tuple3',
-								_0: A2(addIfNothing, _p75, _p74._0._0),
-								_1: A2(addIfNothing, _p76, _p74._0._1),
-								_2: A2(addIfNothing, _p77, _p74._0._2)
+								_0: A2(addIfNothing, _p74, _p73._0._0),
+								_1: A2(addIfNothing, _p75, _p73._0._1),
+								_2: A2(addIfNothing, _p76, _p73._0._2)
 							});
 					}
 				}();
@@ -11513,37 +11586,31 @@ var _mdgriffith$style_elements$Internal_Model$gatherAttributes = F2(
 	});
 var _mdgriffith$style_elements$Internal_Model$renderAttributes = F2(
 	function (attributes, styleChildren) {
-		var _p78 = attributes;
-		if (_p78.ctor === '[]') {
+		var _p77 = attributes;
+		if (_p77.ctor === '[]') {
 			return {
 				ctor: '_Tuple4',
-				_0: 'div',
+				_0: _elm_lang$core$Maybe$Nothing,
 				_1: {ctor: '[]'},
 				_2: styleChildren,
 				_3: _elm_lang$core$Maybe$Nothing
 			};
 		} else {
-			return function (_p79) {
-				var _p80 = _p79;
-				var _p84 = _p80.rules;
-				var _p83 = _p80.link;
-				var _p82 = _p80.attributes;
-				var _p81 = _p80.nearbys;
-				if (_p81.ctor === '[]') {
-					return {
-						ctor: '_Tuple4',
-						_0: _mdgriffith$style_elements$Internal_Model$nodeName(_p83),
-						_1: A2(_mdgriffith$style_elements$Internal_Model$withLink, _p83, _p82),
-						_2: _p84,
-						_3: _elm_lang$core$Maybe$Nothing
-					};
+			return function (_p78) {
+				var _p79 = _p78;
+				var _p83 = _p79.rules;
+				var _p82 = _p79.node;
+				var _p81 = _p79.attributes;
+				var _p80 = _p79.nearbys;
+				if (_p80.ctor === '[]') {
+					return {ctor: '_Tuple4', _0: _p82, _1: _p81, _2: _p83, _3: _elm_lang$core$Maybe$Nothing};
 				} else {
 					return {
 						ctor: '_Tuple4',
-						_0: _mdgriffith$style_elements$Internal_Model$nodeName(_p83),
-						_1: A2(_mdgriffith$style_elements$Internal_Model$withLink, _p83, _p82),
-						_2: _p84,
-						_3: _elm_lang$core$Maybe$Just(_p81)
+						_0: _p82,
+						_1: _p81,
+						_2: _p83,
+						_3: _elm_lang$core$Maybe$Just(_p80)
 					};
 				}
 			}(
@@ -11554,36 +11621,36 @@ var _mdgriffith$style_elements$Internal_Model$renderAttributes = F2(
 						_elm_lang$core$Native_Utils.update(
 							_mdgriffith$style_elements$Internal_Model$initGathered,
 							{rules: styleChildren}),
-						_p78)));
+						_p77)));
 		}
 	});
-var _mdgriffith$style_elements$Internal_Model$render = F2(
-	function (attributes, children) {
+var _mdgriffith$style_elements$Internal_Model$render = F3(
+	function (nodeName, attributes, children) {
 		var gather = F2(
-			function (child, _p85) {
-				var _p86 = _p85;
-				var _p89 = _p86._0;
-				var _p88 = _p86._1;
-				var _p87 = child;
-				if (_p87.ctor === 'Unstyled') {
+			function (child, _p84) {
+				var _p85 = _p84;
+				var _p88 = _p85._0;
+				var _p87 = _p85._1;
+				var _p86 = child;
+				if (_p86.ctor === 'Unstyled') {
 					return {
 						ctor: '_Tuple2',
-						_0: {ctor: '::', _0: _p87._0, _1: _p89},
-						_1: _p88
+						_0: {ctor: '::', _0: _p86._0, _1: _p88},
+						_1: _p87
 					};
 				} else {
 					return {
 						ctor: '_Tuple2',
 						_0: {
 							ctor: '::',
-							_0: A3(_elm_lang$virtual_dom$VirtualDom$node, _p87._1, _p87._2, _p87._3),
-							_1: _p89
+							_0: A3(_mdgriffith$style_elements$Internal_Model$renderNode, _p86._1, _p86._2, _p86._3),
+							_1: _p88
 						},
-						_1: A2(_elm_lang$core$Basics_ops['++'], _p87._0, _p88)
+						_1: A2(_elm_lang$core$Basics_ops['++'], _p86._0, _p87)
 					};
 				}
 			});
-		var _p90 = A3(
+		var _p89 = A3(
 			_elm_lang$core$List$foldr,
 			gather,
 			{
@@ -11592,23 +11659,41 @@ var _mdgriffith$style_elements$Internal_Model$render = F2(
 				_1: {ctor: '[]'}
 			},
 			children);
-		var htmlChildren = _p90._0;
-		var styleChildren = _p90._1;
-		var _p91 = A2(_mdgriffith$style_elements$Internal_Model$renderAttributes, attributes, styleChildren);
-		var nodeName = _p91._0;
-		var renderedAttributes = _p91._1;
-		var renderedRules = _p91._2;
-		var additionalChildren = _p91._3;
-		var _p92 = renderedRules;
-		if (_p92.ctor === '[]') {
+		var htmlChildren = _p89._0;
+		var styleChildren = _p89._1;
+		var _p90 = A2(_mdgriffith$style_elements$Internal_Model$renderAttributes, attributes, styleChildren);
+		var nodeNameOverride = _p90._0;
+		var renderedAttributes = _p90._1;
+		var renderedRules = _p90._2;
+		var additionalChildren = _p90._3;
+		var _p91 = renderedRules;
+		if (_p91.ctor === '[]') {
 			return _mdgriffith$style_elements$Internal_Model$Unstyled(
 				A3(
-					_elm_lang$virtual_dom$VirtualDom$node,
-					nodeName,
+					_mdgriffith$style_elements$Internal_Model$renderNode,
+					function () {
+						var _p92 = nodeName;
+						if (_p92.ctor === 'Nothing') {
+							var _p93 = nodeNameOverride;
+							if (_p93.ctor === 'Nothing') {
+								return _mdgriffith$style_elements$Internal_Model$Generic;
+							} else {
+								return _mdgriffith$style_elements$Internal_Model$NodeName(_p93._0);
+							}
+						} else {
+							var _p95 = _p92._0;
+							var _p94 = nodeNameOverride;
+							if (_p94.ctor === 'Nothing') {
+								return _mdgriffith$style_elements$Internal_Model$NodeName(_p95);
+							} else {
+								return A2(_mdgriffith$style_elements$Internal_Model$Embedded, _p95, _p94._0);
+							}
+						}
+					}(),
 					renderedAttributes,
 					function () {
-						var _p93 = additionalChildren;
-						if (_p93.ctor === 'Nothing') {
+						var _p96 = additionalChildren;
+						if (_p96.ctor === 'Nothing') {
 							return htmlChildren;
 						} else {
 							return A2(
@@ -11627,7 +11712,7 @@ var _mdgriffith$style_elements$Internal_Model$render = F2(
 												_elm_lang$core$Json_Encode$string('se el nearby')),
 											_1: {ctor: '[]'}
 										},
-										_p93._0),
+										_p96._0),
 									_1: {ctor: '[]'}
 								});
 						}
@@ -11636,11 +11721,29 @@ var _mdgriffith$style_elements$Internal_Model$render = F2(
 			return A4(
 				_mdgriffith$style_elements$Internal_Model$Unresolved,
 				renderedRules,
-				nodeName,
+				function () {
+					var _p97 = nodeName;
+					if (_p97.ctor === 'Nothing') {
+						var _p98 = nodeNameOverride;
+						if (_p98.ctor === 'Nothing') {
+							return _mdgriffith$style_elements$Internal_Model$Generic;
+						} else {
+							return _mdgriffith$style_elements$Internal_Model$NodeName(_p98._0);
+						}
+					} else {
+						var _p100 = _p97._0;
+						var _p99 = nodeNameOverride;
+						if (_p99.ctor === 'Nothing') {
+							return _mdgriffith$style_elements$Internal_Model$NodeName(_p100);
+						} else {
+							return A2(_mdgriffith$style_elements$Internal_Model$Embedded, _p100, _p99._0);
+						}
+					}
+				}(),
 				renderedAttributes,
 				function () {
-					var _p94 = additionalChildren;
-					if (_p94.ctor === 'Nothing') {
+					var _p101 = additionalChildren;
+					if (_p101.ctor === 'Nothing') {
 						return htmlChildren;
 					} else {
 						return A2(
@@ -11659,7 +11762,7 @@ var _mdgriffith$style_elements$Internal_Model$render = F2(
 											_elm_lang$core$Json_Encode$string('se el nearby')),
 										_1: {ctor: '[]'}
 									},
-									_p94._0),
+									_p101._0),
 								_1: {ctor: '[]'}
 							});
 					}
@@ -11673,8 +11776,8 @@ var _mdgriffith$style_elements$Internal_Model$Property = F2(
 var _mdgriffith$style_elements$Internal_Model$spacingClasses = F3(
 	function ($class, x, y) {
 		var renderProps = F2(
-			function (_p95, existing) {
-				var _p96 = _p95;
+			function (_p102, existing) {
+				var _p103 = _p102;
 				return A2(
 					_elm_lang$core$Basics_ops['++'],
 					existing,
@@ -11683,11 +11786,11 @@ var _mdgriffith$style_elements$Internal_Model$spacingClasses = F3(
 						'\n  ',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							_p96._0,
+							_p103._0,
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								': ',
-								A2(_elm_lang$core$Basics_ops['++'], _p96._1, ';')))));
+								A2(_elm_lang$core$Basics_ops['++'], _p103._1, ';')))));
 			});
 		var renderStyle = F2(
 			function (selector, props) {
@@ -11703,15 +11806,15 @@ var _mdgriffith$style_elements$Internal_Model$spacingClasses = F3(
 							'\n}')));
 			});
 		var merge = F2(
-			function (_p97, existing) {
-				var _p98 = _p97;
+			function (_p104, existing) {
+				var _p105 = _p104;
 				return A2(
 					_elm_lang$core$Basics_ops['++'],
 					existing,
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						'\n',
-						A2(renderStyle, _p98._0, _p98._1)));
+						A2(renderStyle, _p105._0, _p105._1)));
 			});
 		return A3(
 			_elm_lang$core$List$foldl,
@@ -11867,8 +11970,8 @@ var _mdgriffith$style_elements$Internal_Model$spacingClasses = F3(
 var _mdgriffith$style_elements$Internal_Model$paddingClasses = F5(
 	function ($class, top, right, bottom, left) {
 		var renderProps = F2(
-			function (_p99, existing) {
-				var _p100 = _p99;
+			function (_p106, existing) {
+				var _p107 = _p106;
 				return A2(
 					_elm_lang$core$Basics_ops['++'],
 					existing,
@@ -11877,11 +11980,11 @@ var _mdgriffith$style_elements$Internal_Model$paddingClasses = F5(
 						'\n  ',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							_p100._0,
+							_p107._0,
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								': ',
-								A2(_elm_lang$core$Basics_ops['++'], _p100._1, ';')))));
+								A2(_elm_lang$core$Basics_ops['++'], _p107._1, ';')))));
 			});
 		var renderStyle = F2(
 			function (selector, props) {
@@ -11897,15 +12000,15 @@ var _mdgriffith$style_elements$Internal_Model$paddingClasses = F5(
 							'\n}')));
 			});
 		var merge = F2(
-			function (_p101, existing) {
-				var _p102 = _p101;
+			function (_p108, existing) {
+				var _p109 = _p108;
 				return A2(
 					_elm_lang$core$Basics_ops['++'],
 					existing,
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						'\n',
-						A2(renderStyle, _p102._0, _p102._1)));
+						A2(renderStyle, _p109._0, _p109._1)));
 			});
 		return A3(
 			_elm_lang$core$List$foldl,
@@ -12383,13 +12486,13 @@ var _mdgriffith$style_elements$Internal_Model$paddingClasses = F5(
 			});
 	});
 var _mdgriffith$style_elements$Internal_Model$toStyleSheet = function (stylesheet) {
-	var _p103 = stylesheet;
-	if (_p103.ctor === '[]') {
+	var _p110 = stylesheet;
+	if (_p110.ctor === '[]') {
 		return _elm_lang$html$Html$text('');
 	} else {
 		var renderProps = F2(
-			function (_p104, existing) {
-				var _p105 = _p104;
+			function (_p111, existing) {
+				var _p112 = _p111;
 				return A2(
 					_elm_lang$core$Basics_ops['++'],
 					existing,
@@ -12398,11 +12501,11 @@ var _mdgriffith$style_elements$Internal_Model$toStyleSheet = function (styleshee
 						'\n  ',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							_p105._0,
+							_p112._0,
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								': ',
-								A2(_elm_lang$core$Basics_ops['++'], _p105._1, ';')))));
+								A2(_elm_lang$core$Basics_ops['++'], _p112._1, ';')))));
 			});
 		var renderStyle = F2(
 			function (selector, props) {
@@ -12418,126 +12521,126 @@ var _mdgriffith$style_elements$Internal_Model$toStyleSheet = function (styleshee
 							'\n}')));
 			});
 		var combine = F2(
-			function (style, _p106) {
-				var _p107 = _p106;
-				var _p118 = _p107._0;
-				var _p117 = _p107._1;
-				var _p108 = style;
-				switch (_p108.ctor) {
+			function (style, _p113) {
+				var _p114 = _p113;
+				var _p125 = _p114._0;
+				var _p124 = _p114._1;
+				var _p115 = style;
+				switch (_p115.ctor) {
 					case 'Style':
 						return {
 							ctor: '_Tuple2',
 							_0: A2(
 								_elm_lang$core$Basics_ops['++'],
-								_p118,
+								_p125,
 								A2(
 									_elm_lang$core$Basics_ops['++'],
 									'\n',
-									A2(renderStyle, _p108._0, _p108._1))),
-							_1: _p117
+									A2(renderStyle, _p115._0, _p115._1))),
+							_1: _p124
 						};
 					case 'Single':
-						var _p109 = _p108._0;
-						return A2(_elm_lang$core$Set$member, _p109, _p117) ? {ctor: '_Tuple2', _0: _p118, _1: _p117} : {
+						var _p116 = _p115._0;
+						return A2(_elm_lang$core$Set$member, _p116, _p124) ? {ctor: '_Tuple2', _0: _p125, _1: _p124} : {
 							ctor: '_Tuple2',
 							_0: A2(
 								_elm_lang$core$Basics_ops['++'],
-								_p118,
+								_p125,
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									_p109,
+									_p116,
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										'{',
 										A2(
 											_elm_lang$core$Basics_ops['++'],
-											_p108._1,
+											_p115._1,
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												':',
-												A2(_elm_lang$core$Basics_ops['++'], _p108._2, '}\n')))))),
-							_1: A2(_elm_lang$core$Set$insert, _p109, _p117)
+												A2(_elm_lang$core$Basics_ops['++'], _p115._2, '}\n')))))),
+							_1: A2(_elm_lang$core$Set$insert, _p116, _p124)
 						};
 					case 'Colored':
-						var _p110 = _p108._0;
-						return A2(_elm_lang$core$Set$member, _p110, _p117) ? {ctor: '_Tuple2', _0: _p118, _1: _p117} : {
+						var _p117 = _p115._0;
+						return A2(_elm_lang$core$Set$member, _p117, _p124) ? {ctor: '_Tuple2', _0: _p125, _1: _p124} : {
 							ctor: '_Tuple2',
 							_0: A2(
 								_elm_lang$core$Basics_ops['++'],
-								_p118,
+								_p125,
 								A2(
 									_elm_lang$core$Basics_ops['++'],
-									_p110,
+									_p117,
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										'{',
 										A2(
 											_elm_lang$core$Basics_ops['++'],
-											_p108._1,
+											_p115._1,
 											A2(
 												_elm_lang$core$Basics_ops['++'],
 												':',
 												A2(
 													_elm_lang$core$Basics_ops['++'],
-													_mdgriffith$style_elements$Internal_Model$formatColor(_p108._2),
+													_mdgriffith$style_elements$Internal_Model$formatColor(_p115._2),
 													'}\n')))))),
-							_1: A2(_elm_lang$core$Set$insert, _p110, _p117)
+							_1: A2(_elm_lang$core$Set$insert, _p117, _p124)
 						};
 					case 'SpacingStyle':
-						var _p112 = _p108._1;
-						var _p111 = _p108._0;
+						var _p119 = _p115._1;
+						var _p118 = _p115._0;
 						var $class = A2(
 							_elm_lang$core$Basics_ops['++'],
 							'.spacing-',
 							A2(
 								_elm_lang$core$Basics_ops['++'],
-								_elm_lang$core$Basics$toString(_p111),
+								_elm_lang$core$Basics$toString(_p118),
 								A2(
 									_elm_lang$core$Basics_ops['++'],
 									'-',
-									_elm_lang$core$Basics$toString(_p112))));
-						return A2(_elm_lang$core$Set$member, $class, _p117) ? {ctor: '_Tuple2', _0: _p118, _1: _p117} : {
+									_elm_lang$core$Basics$toString(_p119))));
+						return A2(_elm_lang$core$Set$member, $class, _p124) ? {ctor: '_Tuple2', _0: _p125, _1: _p124} : {
 							ctor: '_Tuple2',
 							_0: A2(
 								_elm_lang$core$Basics_ops['++'],
-								_p118,
-								A3(_mdgriffith$style_elements$Internal_Model$spacingClasses, $class, _p111, _p112)),
-							_1: A2(_elm_lang$core$Set$insert, $class, _p117)
+								_p125,
+								A3(_mdgriffith$style_elements$Internal_Model$spacingClasses, $class, _p118, _p119)),
+							_1: A2(_elm_lang$core$Set$insert, $class, _p124)
 						};
 					default:
-						var _p116 = _p108._0;
-						var _p115 = _p108._1;
-						var _p114 = _p108._3;
-						var _p113 = _p108._2;
+						var _p123 = _p115._0;
+						var _p122 = _p115._1;
+						var _p121 = _p115._3;
+						var _p120 = _p115._2;
 						var $class = A2(
 							_elm_lang$core$Basics_ops['++'],
 							'.pad-',
 							A2(
 								_elm_lang$core$Basics_ops['++'],
-								_elm_lang$core$Basics$toString(_p116),
+								_elm_lang$core$Basics$toString(_p123),
 								A2(
 									_elm_lang$core$Basics_ops['++'],
 									'-',
 									A2(
 										_elm_lang$core$Basics_ops['++'],
-										_elm_lang$core$Basics$toString(_p115),
+										_elm_lang$core$Basics$toString(_p122),
 										A2(
 											_elm_lang$core$Basics_ops['++'],
 											'-',
 											A2(
 												_elm_lang$core$Basics_ops['++'],
-												_elm_lang$core$Basics$toString(_p113),
+												_elm_lang$core$Basics$toString(_p120),
 												A2(
 													_elm_lang$core$Basics_ops['++'],
 													'-',
-													_elm_lang$core$Basics$toString(_p114))))))));
-						return A2(_elm_lang$core$Set$member, $class, _p117) ? {ctor: '_Tuple2', _0: _p118, _1: _p117} : {
+													_elm_lang$core$Basics$toString(_p121))))))));
+						return A2(_elm_lang$core$Set$member, $class, _p124) ? {ctor: '_Tuple2', _0: _p125, _1: _p124} : {
 							ctor: '_Tuple2',
 							_0: A2(
 								_elm_lang$core$Basics_ops['++'],
-								_p118,
-								A5(_mdgriffith$style_elements$Internal_Model$paddingClasses, $class, _p116, _p115, _p113, _p114)),
-							_1: A2(_elm_lang$core$Set$insert, $class, _p117)
+								_p125,
+								A5(_mdgriffith$style_elements$Internal_Model$paddingClasses, $class, _p123, _p122, _p120, _p121)),
+							_1: A2(_elm_lang$core$Set$insert, $class, _p124)
 						};
 				}
 			});
@@ -12557,45 +12660,45 @@ var _mdgriffith$style_elements$Internal_Model$toStyleSheet = function (styleshee
 					_elm_lang$core$List$foldl,
 					combine,
 					{ctor: '_Tuple2', _0: '', _1: _elm_lang$core$Set$empty},
-					_p103)));
+					_p110)));
 	}
 };
 var _mdgriffith$style_elements$Internal_Model$embed = F2(
 	function (fn, a) {
-		var _p119 = fn(a);
-		if (_p119.ctor === 'Unstyled') {
-			return _p119._0;
+		var _p126 = fn(a);
+		if (_p126.ctor === 'Unstyled') {
+			return _p126._0;
 		} else {
 			return A3(
-				_elm_lang$virtual_dom$VirtualDom$node,
-				_p119._1,
-				_p119._2,
+				_mdgriffith$style_elements$Internal_Model$renderNode,
+				_p126._1,
+				_p126._2,
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_p119._3,
+					_p126._3,
 					{
 						ctor: '::',
-						_0: _mdgriffith$style_elements$Internal_Model$toStyleSheet(_p119._0),
+						_0: _mdgriffith$style_elements$Internal_Model$toStyleSheet(_p126._0),
 						_1: {ctor: '[]'}
 					}));
 		}
 	});
 var _mdgriffith$style_elements$Internal_Model$embed2 = F3(
 	function (fn, a, b) {
-		var _p120 = A2(fn, a, b);
-		if (_p120.ctor === 'Unstyled') {
-			return _p120._0;
+		var _p127 = A2(fn, a, b);
+		if (_p127.ctor === 'Unstyled') {
+			return _p127._0;
 		} else {
 			return A3(
-				_elm_lang$virtual_dom$VirtualDom$node,
-				_p120._1,
-				_p120._2,
+				_mdgriffith$style_elements$Internal_Model$renderNode,
+				_p127._1,
+				_p127._2,
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_p120._3,
+					_p127._3,
 					{
 						ctor: '::',
-						_0: _mdgriffith$style_elements$Internal_Model$toStyleSheet(_p120._0),
+						_0: _mdgriffith$style_elements$Internal_Model$toStyleSheet(_p127._0),
 						_1: {ctor: '[]'}
 					}));
 		}
@@ -12603,30 +12706,30 @@ var _mdgriffith$style_elements$Internal_Model$embed2 = F3(
 var _mdgriffith$style_elements$Internal_Model$renderHtml = F3(
 	function (mode, attributes, children) {
 		var gather = F2(
-			function (child, _p121) {
-				var _p122 = _p121;
-				var _p125 = _p122._0;
-				var _p124 = _p122._1;
-				var _p123 = child;
-				if (_p123.ctor === 'Unstyled') {
+			function (child, _p128) {
+				var _p129 = _p128;
+				var _p132 = _p129._0;
+				var _p131 = _p129._1;
+				var _p130 = child;
+				if (_p130.ctor === 'Unstyled') {
 					return {
 						ctor: '_Tuple2',
-						_0: {ctor: '::', _0: _p123._0, _1: _p125},
-						_1: _p124
+						_0: {ctor: '::', _0: _p130._0, _1: _p132},
+						_1: _p131
 					};
 				} else {
 					return {
 						ctor: '_Tuple2',
 						_0: {
 							ctor: '::',
-							_0: A3(_elm_lang$virtual_dom$VirtualDom$node, _p123._1, _p123._2, _p123._3),
-							_1: _p125
+							_0: A3(_mdgriffith$style_elements$Internal_Model$renderNode, _p130._1, _p130._2, _p130._3),
+							_1: _p132
 						},
-						_1: A2(_elm_lang$core$Basics_ops['++'], _p123._0, _p124)
+						_1: A2(_elm_lang$core$Basics_ops['++'], _p130._0, _p131)
 					};
 				}
 			});
-		var _p126 = A3(
+		var _p133 = A3(
 			_elm_lang$core$List$foldr,
 			gather,
 			{
@@ -12635,16 +12738,16 @@ var _mdgriffith$style_elements$Internal_Model$renderHtml = F3(
 				_1: {ctor: '[]'}
 			},
 			children);
-		var htmlChildren = _p126._0;
-		var styleChildren = _p126._1;
-		var _p127 = A2(_mdgriffith$style_elements$Internal_Model$renderAttributes, attributes, styleChildren);
-		var nodeName = _p127._0;
-		var renderedAttributes = _p127._1;
-		var renderedRules = _p127._2;
-		var additionalChildren = _p127._3;
+		var htmlChildren = _p133._0;
+		var styleChildren = _p133._1;
+		var _p134 = A2(_mdgriffith$style_elements$Internal_Model$renderAttributes, attributes, styleChildren);
+		var nodeName = _p134._0;
+		var renderedAttributes = _p134._1;
+		var renderedRules = _p134._2;
+		var additionalChildren = _p134._3;
 		var styleSheets = function (children) {
-			var _p128 = mode;
-			switch (_p128.ctor) {
+			var _p135 = mode;
+			switch (_p135.ctor) {
 				case 'NoStaticStyleSheet':
 					return {
 						ctor: '::',
@@ -12672,17 +12775,17 @@ var _mdgriffith$style_elements$Internal_Model$renderHtml = F3(
 						}
 					};
 				default:
-					var _p129 = _mdgriffith$style_elements$Internal_Model$toStyleSheetVirtualCss(renderedRules);
+					var _p136 = _mdgriffith$style_elements$Internal_Model$toStyleSheetVirtualCss(renderedRules);
 					return {ctor: '::', _0: _mdgriffith$style_elements$Internal_Style$rulesElement, _1: children};
 			}
 		};
 		return A3(
 			_elm_lang$virtual_dom$VirtualDom$node,
-			nodeName,
+			A2(_elm_lang$core$Maybe$withDefault, 'div', nodeName),
 			renderedAttributes,
 			function () {
-				var _p130 = additionalChildren;
-				if (_p130.ctor === 'Nothing') {
+				var _p137 = additionalChildren;
+				if (_p137.ctor === 'Nothing') {
 					return styleSheets(htmlChildren);
 				} else {
 					return styleSheets(
@@ -12702,7 +12805,7 @@ var _mdgriffith$style_elements$Internal_Model$renderHtml = F3(
 											_elm_lang$core$Json_Encode$string('se el nearby')),
 										_1: {ctor: '[]'}
 									},
-									_p130._0),
+									_p137._0),
 								_1: {ctor: '[]'}
 							}));
 				}
@@ -12737,10 +12840,6 @@ var _mdgriffith$style_elements$Internal_Model$Nearby = F2(
 var _mdgriffith$style_elements$Internal_Model$Describe = function (a) {
 	return {ctor: 'Describe', _0: a};
 };
-var _mdgriffith$style_elements$Internal_Model$Link = F2(
-	function (a, b) {
-		return {ctor: 'Link', _0: a, _1: b};
-	});
 var _mdgriffith$style_elements$Internal_Model$StyleClass = function (a) {
 	return {ctor: 'StyleClass', _0: a};
 };
@@ -12756,38 +12855,36 @@ var _mdgriffith$style_elements$Internal_Model$Attr = function (a) {
 };
 var _mdgriffith$style_elements$Internal_Model$mapAttr = F2(
 	function (fn, attr) {
-		var _p131 = attr;
-		switch (_p131.ctor) {
+		var _p138 = attr;
+		switch (_p138.ctor) {
 			case 'NoAttribute':
 				return _mdgriffith$style_elements$Internal_Model$NoAttribute;
 			case 'Describe':
-				return _mdgriffith$style_elements$Internal_Model$Describe(_p131._0);
+				return _mdgriffith$style_elements$Internal_Model$Describe(_p138._0);
 			case 'Class':
-				return A2(_mdgriffith$style_elements$Internal_Model$Class, _p131._0, _p131._1);
+				return A2(_mdgriffith$style_elements$Internal_Model$Class, _p138._0, _p138._1);
 			case 'StyleClass':
-				return _mdgriffith$style_elements$Internal_Model$StyleClass(_p131._0);
-			case 'Link':
-				return A2(_mdgriffith$style_elements$Internal_Model$Link, _p131._0, _p131._1);
+				return _mdgriffith$style_elements$Internal_Model$StyleClass(_p138._0);
 			case 'Nearby':
 				return A2(
 					_mdgriffith$style_elements$Internal_Model$Nearby,
-					_p131._0,
-					A2(_mdgriffith$style_elements$Internal_Model$map, fn, _p131._1));
+					_p138._0,
+					A2(_mdgriffith$style_elements$Internal_Model$map, fn, _p138._1));
 			case 'Move':
-				return A3(_mdgriffith$style_elements$Internal_Model$Move, _p131._0, _p131._1, _p131._2);
+				return A3(_mdgriffith$style_elements$Internal_Model$Move, _p138._0, _p138._1, _p138._2);
 			case 'Rotate':
-				return A4(_mdgriffith$style_elements$Internal_Model$Rotate, _p131._0, _p131._1, _p131._2, _p131._3);
+				return A4(_mdgriffith$style_elements$Internal_Model$Rotate, _p138._0, _p138._1, _p138._2, _p138._3);
 			case 'Scale':
-				return A3(_mdgriffith$style_elements$Internal_Model$Scale, _p131._0, _p131._1, _p131._2);
+				return A3(_mdgriffith$style_elements$Internal_Model$Scale, _p138._0, _p138._1, _p138._2);
 			case 'Attr':
 				return _mdgriffith$style_elements$Internal_Model$Attr(
-					A2(_elm_lang$html$Html_Attributes$map, fn, _p131._0));
+					A2(_elm_lang$html$Html_Attributes$map, fn, _p138._0));
 			case 'TextShadow':
-				return _mdgriffith$style_elements$Internal_Model$TextShadow(_p131._0);
+				return _mdgriffith$style_elements$Internal_Model$TextShadow(_p138._0);
 			case 'BoxShadow':
-				return _mdgriffith$style_elements$Internal_Model$BoxShadow(_p131._0);
+				return _mdgriffith$style_elements$Internal_Model$BoxShadow(_p138._0);
 			default:
-				return _mdgriffith$style_elements$Internal_Model$Filter(_p131._0);
+				return _mdgriffith$style_elements$Internal_Model$Filter(_p138._0);
 		}
 	});
 var _mdgriffith$style_elements$Internal_Model$htmlClass = function (cls) {
@@ -12797,12 +12894,6 @@ var _mdgriffith$style_elements$Internal_Model$htmlClass = function (cls) {
 			'className',
 			_elm_lang$core$Json_Encode$string(cls)));
 };
-var _mdgriffith$style_elements$Internal_Model$DownloadAs = function (a) {
-	return {ctor: 'DownloadAs', _0: a};
-};
-var _mdgriffith$style_elements$Internal_Model$Download = {ctor: 'Download'};
-var _mdgriffith$style_elements$Internal_Model$NewTab = {ctor: 'NewTab'};
-var _mdgriffith$style_elements$Internal_Model$Direct = {ctor: 'Direct'};
 var _mdgriffith$style_elements$Internal_Model$LiveAssertive = {ctor: 'LiveAssertive'};
 var _mdgriffith$style_elements$Internal_Model$LivePolite = {ctor: 'LivePolite'};
 var _mdgriffith$style_elements$Internal_Model$Label = function (a) {
@@ -12811,11 +12902,8 @@ var _mdgriffith$style_elements$Internal_Model$Label = function (a) {
 var _mdgriffith$style_elements$Internal_Model$Heading = function (a) {
 	return {ctor: 'Heading', _0: a};
 };
-var _mdgriffith$style_elements$Internal_Model$Tooltip = {ctor: 'Tooltip'};
-var _mdgriffith$style_elements$Internal_Model$Log = {ctor: 'Log'};
 var _mdgriffith$style_elements$Internal_Model$Complementary = {ctor: 'Complementary'};
 var _mdgriffith$style_elements$Internal_Model$ContentInfo = {ctor: 'ContentInfo'};
-var _mdgriffith$style_elements$Internal_Model$Search = {ctor: 'Search'};
 var _mdgriffith$style_elements$Internal_Model$Navigation = {ctor: 'Navigation'};
 var _mdgriffith$style_elements$Internal_Model$Main = {ctor: 'Main'};
 var _mdgriffith$style_elements$Internal_Model$DropShadow = function (a) {
@@ -12859,14 +12947,6 @@ var _mdgriffith$style_elements$Internal_Model$Content = {ctor: 'Content'};
 var _mdgriffith$style_elements$Internal_Model$Px = function (a) {
 	return {ctor: 'Px', _0: a};
 };
-var _mdgriffith$style_elements$Internal_Model$Spread = {ctor: 'Spread'};
-var _mdgriffith$style_elements$Internal_Model$XCenter = {ctor: 'XCenter'};
-var _mdgriffith$style_elements$Internal_Model$AlignRight = {ctor: 'AlignRight'};
-var _mdgriffith$style_elements$Internal_Model$AlignLeft = {ctor: 'AlignLeft'};
-var _mdgriffith$style_elements$Internal_Model$VerticalJustify = {ctor: 'VerticalJustify'};
-var _mdgriffith$style_elements$Internal_Model$YCenter = {ctor: 'YCenter'};
-var _mdgriffith$style_elements$Internal_Model$AlignBottom = {ctor: 'AlignBottom'};
-var _mdgriffith$style_elements$Internal_Model$AlignTop = {ctor: 'AlignTop'};
 var _mdgriffith$style_elements$Internal_Model$AllAxis = {ctor: 'AllAxis'};
 var _mdgriffith$style_elements$Internal_Model$YAxis = {ctor: 'YAxis'};
 var _mdgriffith$style_elements$Internal_Model$XAxis = {ctor: 'XAxis'};
@@ -13000,16 +13080,10 @@ var _mdgriffith$style_elements$Element_Attributes$onLeft = _mdgriffith$style_ele
 var _mdgriffith$style_elements$Element_Attributes$onRight = _mdgriffith$style_elements$Internal_Model$Nearby(_mdgriffith$style_elements$Internal_Model$OnRight);
 var _mdgriffith$style_elements$Element_Attributes$above = _mdgriffith$style_elements$Internal_Model$Nearby(_mdgriffith$style_elements$Internal_Model$Above);
 var _mdgriffith$style_elements$Element_Attributes$below = _mdgriffith$style_elements$Internal_Model$Nearby(_mdgriffith$style_elements$Internal_Model$Below);
-var _mdgriffith$style_elements$Element_Attributes$downloadAs = function (_p6) {
-	var _p7 = _p6;
-	return A2(
-		_mdgriffith$style_elements$Internal_Model$Link,
-		_mdgriffith$style_elements$Internal_Model$DownloadAs(_p7.filename),
-		_p7.source);
+var _mdgriffith$style_elements$Element_Attributes$description = function (_p6) {
+	return _mdgriffith$style_elements$Internal_Model$Describe(
+		_mdgriffith$style_elements$Internal_Model$Label(_p6));
 };
-var _mdgriffith$style_elements$Element_Attributes$download = _mdgriffith$style_elements$Internal_Model$Link(_mdgriffith$style_elements$Internal_Model$Download);
-var _mdgriffith$style_elements$Element_Attributes$newTab = _mdgriffith$style_elements$Internal_Model$Link(_mdgriffith$style_elements$Internal_Model$NewTab);
-var _mdgriffith$style_elements$Element_Attributes$link = _mdgriffith$style_elements$Internal_Model$Link(_mdgriffith$style_elements$Internal_Model$Direct);
 var _mdgriffith$style_elements$Element_Color$cursor = function (clr) {
 	return _mdgriffith$style_elements$Internal_Model$StyleClass(
 		A3(
@@ -13266,8 +13340,9 @@ var _mdgriffith$style_elements$Element_Font$serif = _mdgriffith$style_elements$E
 var _mdgriffith$style_elements$Element$decorativeImage = F2(
 	function (attrs, _p0) {
 		var _p1 = _p0;
-		return A2(
+		return A3(
 			_mdgriffith$style_elements$Internal_Model$render,
+			_elm_lang$core$Maybe$Nothing,
 			attrs,
 			{
 				ctor: '::',
@@ -13291,8 +13366,9 @@ var _mdgriffith$style_elements$Element$decorativeImage = F2(
 var _mdgriffith$style_elements$Element$image = F2(
 	function (attrs, _p2) {
 		var _p3 = _p2;
-		return A2(
+		return A3(
 			_mdgriffith$style_elements$Internal_Model$render,
+			_elm_lang$core$Maybe$Nothing,
 			attrs,
 			{
 				ctor: '::',
@@ -13347,7 +13423,52 @@ var _mdgriffith$style_elements$Element$when = F2(
 	function (bool, elm) {
 		return bool ? elm : _mdgriffith$style_elements$Element$empty;
 	});
-var _mdgriffith$style_elements$Element$layout = F3(
+var _mdgriffith$style_elements$Element$layout = F2(
+	function (attrs, child) {
+		return A3(
+			_mdgriffith$style_elements$Internal_Model$renderHtml,
+			_mdgriffith$style_elements$Internal_Model$Layout,
+			{
+				ctor: '::',
+				_0: _mdgriffith$style_elements$Element_Color$background(_elm_lang$core$Color$blue),
+				_1: {
+					ctor: '::',
+					_0: _mdgriffith$style_elements$Element_Color$text(_elm_lang$core$Color$white),
+					_1: {
+						ctor: '::',
+						_0: _mdgriffith$style_elements$Element_Font$size(20),
+						_1: {
+							ctor: '::',
+							_0: _mdgriffith$style_elements$Element_Font$family(
+								{
+									ctor: '::',
+									_0: _mdgriffith$style_elements$Element_Font$typeface('Open Sans'),
+									_1: {
+										ctor: '::',
+										_0: _mdgriffith$style_elements$Element_Font$typeface('georgia'),
+										_1: {
+											ctor: '::',
+											_0: _mdgriffith$style_elements$Element_Font$serif,
+											_1: {ctor: '[]'}
+										}
+									}
+								}),
+							_1: {
+								ctor: '::',
+								_0: _mdgriffith$style_elements$Internal_Model$htmlClass('style-elements se el'),
+								_1: attrs
+							}
+						}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: child,
+				_1: {ctor: '[]'}
+			});
+	});
+var _mdgriffith$style_elements$Element$layoutMode = F3(
 	function (mode, attrs, child) {
 		return A3(
 			_mdgriffith$style_elements$Internal_Model$renderHtml,
@@ -13396,8 +13517,9 @@ var _mdgriffith$style_elements$Element$expand = _mdgriffith$style_elements$Inter
 var _mdgriffith$style_elements$Element$fill = _mdgriffith$style_elements$Internal_Model$Fill(1);
 var _mdgriffith$style_elements$Element$row = F2(
 	function (attrs, children) {
-		return A2(
+		return A3(
 			_mdgriffith$style_elements$Internal_Model$render,
+			_elm_lang$core$Maybe$Nothing,
 			{
 				ctor: '::',
 				_0: _mdgriffith$style_elements$Internal_Model$htmlClass('se row'),
@@ -13423,8 +13545,9 @@ var _mdgriffith$style_elements$Element$row = F2(
 	});
 var _mdgriffith$style_elements$Element$column = F2(
 	function (attrs, children) {
-		return A2(
+		return A3(
 			_mdgriffith$style_elements$Internal_Model$render,
+			_elm_lang$core$Maybe$Nothing,
 			{
 				ctor: '::',
 				_0: _mdgriffith$style_elements$Internal_Model$htmlClass('se column'),
@@ -13450,8 +13573,9 @@ var _mdgriffith$style_elements$Element$column = F2(
 	});
 var _mdgriffith$style_elements$Element$paragraph = F2(
 	function (attrs, children) {
-		return A2(
+		return A3(
 			_mdgriffith$style_elements$Internal_Model$render,
+			_elm_lang$core$Maybe$Just('p'),
 			{
 				ctor: '::',
 				_0: _mdgriffith$style_elements$Internal_Model$htmlClass('se paragraph'),
@@ -13466,8 +13590,9 @@ var _mdgriffith$style_elements$Element$paragraph = F2(
 var _mdgriffith$style_elements$Element$shrink = _mdgriffith$style_elements$Internal_Model$Content;
 var _mdgriffith$style_elements$Element$el = F2(
 	function (attrs, child) {
-		return A2(
+		return A3(
 			_mdgriffith$style_elements$Internal_Model$render,
+			_elm_lang$core$Maybe$Nothing,
 			{
 				ctor: '::',
 				_0: _mdgriffith$style_elements$Internal_Model$htmlClass('se el'),
@@ -13491,11 +13616,173 @@ var _mdgriffith$style_elements$Element$el = F2(
 				_1: {ctor: '[]'}
 			});
 	});
+var _mdgriffith$style_elements$Element$link = F2(
+	function (attrs, _p5) {
+		var _p6 = _p5;
+		return A3(
+			_mdgriffith$style_elements$Internal_Model$render,
+			_elm_lang$core$Maybe$Just('a'),
+			{
+				ctor: '::',
+				_0: _mdgriffith$style_elements$Internal_Model$htmlClass('se el'),
+				_1: {
+					ctor: '::',
+					_0: _mdgriffith$style_elements$Internal_Model$Attr(
+						_elm_lang$html$Html_Attributes$href(_p6.url)),
+					_1: {
+						ctor: '::',
+						_0: _mdgriffith$style_elements$Internal_Model$Attr(
+							_elm_lang$html$Html_Attributes$rel('noopener noreferrer')),
+						_1: {
+							ctor: '::',
+							_0: _mdgriffith$style_elements$Element_Attributes$width(_mdgriffith$style_elements$Element$shrink),
+							_1: {
+								ctor: '::',
+								_0: _mdgriffith$style_elements$Element_Attributes$height(_mdgriffith$style_elements$Element$shrink),
+								_1: {
+									ctor: '::',
+									_0: _mdgriffith$style_elements$Element_Attributes$centerY,
+									_1: {ctor: '::', _0: _mdgriffith$style_elements$Element_Attributes$center, _1: attrs}
+								}
+							}
+						}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: _p6.label,
+				_1: {ctor: '[]'}
+			});
+	});
+var _mdgriffith$style_elements$Element$newTabLink = F2(
+	function (attrs, _p7) {
+		var _p8 = _p7;
+		return A3(
+			_mdgriffith$style_elements$Internal_Model$render,
+			_elm_lang$core$Maybe$Just('a'),
+			{
+				ctor: '::',
+				_0: _mdgriffith$style_elements$Internal_Model$htmlClass('se el'),
+				_1: {
+					ctor: '::',
+					_0: _mdgriffith$style_elements$Internal_Model$Attr(
+						_elm_lang$html$Html_Attributes$href(_p8.url)),
+					_1: {
+						ctor: '::',
+						_0: _mdgriffith$style_elements$Internal_Model$Attr(
+							_elm_lang$html$Html_Attributes$rel('noopener noreferrer')),
+						_1: {
+							ctor: '::',
+							_0: _mdgriffith$style_elements$Internal_Model$Attr(
+								_elm_lang$html$Html_Attributes$target('_blank')),
+							_1: {
+								ctor: '::',
+								_0: _mdgriffith$style_elements$Element_Attributes$width(_mdgriffith$style_elements$Element$shrink),
+								_1: {
+									ctor: '::',
+									_0: _mdgriffith$style_elements$Element_Attributes$height(_mdgriffith$style_elements$Element$shrink),
+									_1: {
+										ctor: '::',
+										_0: _mdgriffith$style_elements$Element_Attributes$centerY,
+										_1: {ctor: '::', _0: _mdgriffith$style_elements$Element_Attributes$center, _1: attrs}
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: _p8.label,
+				_1: {ctor: '[]'}
+			});
+	});
+var _mdgriffith$style_elements$Element$download = F2(
+	function (attrs, _p9) {
+		var _p10 = _p9;
+		return A3(
+			_mdgriffith$style_elements$Internal_Model$render,
+			_elm_lang$core$Maybe$Just('a'),
+			{
+				ctor: '::',
+				_0: _mdgriffith$style_elements$Internal_Model$htmlClass('se el'),
+				_1: {
+					ctor: '::',
+					_0: _mdgriffith$style_elements$Internal_Model$Attr(
+						_elm_lang$html$Html_Attributes$href(_p10.url)),
+					_1: {
+						ctor: '::',
+						_0: _mdgriffith$style_elements$Internal_Model$Attr(
+							_elm_lang$html$Html_Attributes$download(true)),
+						_1: {
+							ctor: '::',
+							_0: _mdgriffith$style_elements$Element_Attributes$width(_mdgriffith$style_elements$Element$shrink),
+							_1: {
+								ctor: '::',
+								_0: _mdgriffith$style_elements$Element_Attributes$height(_mdgriffith$style_elements$Element$shrink),
+								_1: {
+									ctor: '::',
+									_0: _mdgriffith$style_elements$Element_Attributes$centerY,
+									_1: {ctor: '::', _0: _mdgriffith$style_elements$Element_Attributes$center, _1: attrs}
+								}
+							}
+						}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: _p10.label,
+				_1: {ctor: '[]'}
+			});
+	});
+var _mdgriffith$style_elements$Element$downloadAs = F2(
+	function (attrs, _p11) {
+		var _p12 = _p11;
+		return A3(
+			_mdgriffith$style_elements$Internal_Model$render,
+			_elm_lang$core$Maybe$Just('a'),
+			{
+				ctor: '::',
+				_0: _mdgriffith$style_elements$Internal_Model$htmlClass('se el'),
+				_1: {
+					ctor: '::',
+					_0: _mdgriffith$style_elements$Internal_Model$Attr(
+						_elm_lang$html$Html_Attributes$href(_p12.url)),
+					_1: {
+						ctor: '::',
+						_0: _mdgriffith$style_elements$Internal_Model$Attr(
+							_elm_lang$html$Html_Attributes$downloadAs(_p12.filename)),
+						_1: {
+							ctor: '::',
+							_0: _mdgriffith$style_elements$Element_Attributes$width(_mdgriffith$style_elements$Element$shrink),
+							_1: {
+								ctor: '::',
+								_0: _mdgriffith$style_elements$Element_Attributes$height(_mdgriffith$style_elements$Element$shrink),
+								_1: {
+									ctor: '::',
+									_0: _mdgriffith$style_elements$Element_Attributes$centerY,
+									_1: {ctor: '::', _0: _mdgriffith$style_elements$Element_Attributes$center, _1: attrs}
+								}
+							}
+						}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: _p12.label,
+				_1: {ctor: '[]'}
+			});
+	});
 var _mdgriffith$style_elements$Element$px = _mdgriffith$style_elements$Internal_Model$Px;
 var _mdgriffith$style_elements$Element$textPage = F2(
 	function (attrs, children) {
-		return A2(
+		return A3(
 			_mdgriffith$style_elements$Internal_Model$render,
+			_elm_lang$core$Maybe$Nothing,
 			{
 				ctor: '::',
 				_0: _mdgriffith$style_elements$Internal_Model$htmlClass('se page'),

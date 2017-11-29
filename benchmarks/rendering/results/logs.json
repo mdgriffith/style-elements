@@ -2,154 +2,168 @@
     {
         "implementation": "ElmStyle", 
         "results": {
-            "recalc_styles": 202827.0, 
-            "total_time": 610785.0, 
-            "layout": 227257.0, 
-            "updateLayerTree": 67345, 
-            "js": 86017.0, 
-            "paint": 12189, 
+            "recalc_styles": 229239.0, 
+            "total_time": 657534.0, 
+            "layout": 240564.0, 
+            "updateLayerTree": 71530, 
+            "js": 89030.0, 
+            "paint": 10917, 
             "gc": [
                 {
-                    "duration": 1210.0, 
-                    "reclaimed_bytes": 628760
+                    "duration": 997.0, 
+                    "reclaimed_bytes": 628688
                 }, 
                 {
-                    "duration": 925.0, 
-                    "reclaimed_bytes": 612472
+                    "duration": 879.0, 
+                    "reclaimed_bytes": 611240
                 }, 
                 {
-                    "duration": 653.0, 
-                    "reclaimed_bytes": 590736
+                    "duration": 658.0, 
+                    "reclaimed_bytes": 590320
                 }, 
                 {
-                    "duration": 1115.0, 
-                    "reclaimed_bytes": 221968
+                    "duration": 1098.0, 
+                    "reclaimed_bytes": 253736
                 }, 
                 {
-                    "duration": 1193.0, 
-                    "reclaimed_bytes": 1155784
+                    "duration": 1240.0, 
+                    "reclaimed_bytes": 1127848
                 }, 
                 {
-                    "duration": 2361.0, 
-                    "reclaimed_bytes": 1495120
+                    "duration": 2804.0, 
+                    "reclaimed_bytes": 1494352
                 }
             ], 
-            "parse_css": 15150.0
+            "parse_css": 16254.0
         }, 
         "scenario": "cold-start"
     }, 
     {
         "implementation": "ElmStyleVirtual", 
         "results": {
-            "recalc_styles": 215588.0, 
-            "total_time": 631555.0, 
-            "layout": 234721.0, 
-            "updateLayerTree": 71757, 
-            "js": 85954.0, 
-            "paint": 9760, 
+            "recalc_styles": 234584.0, 
+            "total_time": 667426.0, 
+            "layout": 245963.0, 
+            "updateLayerTree": 70692, 
+            "js": 90854.0, 
+            "paint": 10324, 
             "gc": [
                 {
-                    "duration": 960.0, 
-                    "reclaimed_bytes": 628760
+                    "duration": 1200.0, 
+                    "reclaimed_bytes": 628752
                 }, 
                 {
-                    "duration": 776.0, 
-                    "reclaimed_bytes": 612472
+                    "duration": 818.0, 
+                    "reclaimed_bytes": 611232
                 }, 
                 {
-                    "duration": 670.0, 
-                    "reclaimed_bytes": 592768
+                    "duration": 718.0, 
+                    "reclaimed_bytes": 592304
                 }, 
                 {
-                    "duration": 1184.0, 
-                    "reclaimed_bytes": 254584
+                    "duration": 1197.0, 
+                    "reclaimed_bytes": 253688
                 }, 
                 {
-                    "duration": 1139.0, 
-                    "reclaimed_bytes": 1140232
+                    "duration": 1143.0, 
+                    "reclaimed_bytes": 1138600
                 }, 
                 {
-                    "duration": 2150.0, 
-                    "reclaimed_bytes": 1493992
+                    "duration": 2461.0, 
+                    "reclaimed_bytes": 1493224
                 }
             ], 
-            "parse_css": 13775.0
+            "parse_css": 15009.0
+        }, 
+        "scenario": "cold-start"
+    }, 
+    {
+        "implementation": "firstOfTypeSelector", 
+        "results": {
+            "recalc_styles": 195527.0, 
+            "total_time": 648907.0, 
+            "layout": 276708.0, 
+            "updateLayerTree": 132209, 
+            "js": 0, 
+            "paint": 29271, 
+            "gc": [], 
+            "parse_css": 15192.0
         }, 
         "scenario": "cold-start"
     }, 
     {
         "implementation": "InlineStyles", 
         "results": {
-            "recalc_styles": 333030.0, 
-            "total_time": 1166026.0, 
-            "layout": 319318.0, 
-            "updateLayerTree": 62954, 
-            "js": 426673.0, 
-            "paint": 10878, 
+            "recalc_styles": 362971.0, 
+            "total_time": 1228609.0, 
+            "layout": 338600.0, 
+            "updateLayerTree": 70371, 
+            "js": 429505.0, 
+            "paint": 13705, 
             "gc": [
                 {
-                    "duration": 1009.0, 
-                    "reclaimed_bytes": 628784
+                    "duration": 1314.0, 
+                    "reclaimed_bytes": 628704
                 }, 
                 {
-                    "duration": 785.0, 
-                    "reclaimed_bytes": 612456
+                    "duration": 873.0, 
+                    "reclaimed_bytes": 611256
                 }, 
                 {
-                    "duration": 640.0, 
-                    "reclaimed_bytes": 549512
+                    "duration": 616.0, 
+                    "reclaimed_bytes": 549096
                 }, 
                 {
-                    "duration": 657.0, 
-                    "reclaimed_bytes": 687608
+                    "duration": 568.0, 
+                    "reclaimed_bytes": 685904
                 }, 
                 {
-                    "duration": 3383.0, 
-                    "reclaimed_bytes": 1163816
+                    "duration": 3466.0, 
+                    "reclaimed_bytes": 1164656
                 }
             ], 
-            "parse_css": 13173.0
+            "parse_css": 13457.0
         }, 
         "scenario": "cold-start"
     }, 
     {
         "implementation": "StaticStyleSheet", 
         "results": {
-            "recalc_styles": 198403.0, 
-            "total_time": 588120.0, 
-            "layout": 236036.0, 
-            "updateLayerTree": 68150, 
-            "js": 61401.0, 
-            "paint": 10800, 
+            "recalc_styles": 190695.0, 
+            "total_time": 584630.0, 
+            "layout": 241306.0, 
+            "updateLayerTree": 69415, 
+            "js": 58556.0, 
+            "paint": 10997, 
             "gc": [
                 {
-                    "duration": 1384.0, 
+                    "duration": 1285.0, 
                     "reclaimed_bytes": 440608
                 }, 
                 {
-                    "duration": 1433.0, 
+                    "duration": 1591.0, 
                     "reclaimed_bytes": 130392
                 }, 
                 {
-                    "duration": 1066.0, 
+                    "duration": 819.0, 
                     "reclaimed_bytes": 918120
                 }
             ], 
-            "parse_css": 13330.0
+            "parse_css": 13661.0
         }, 
         "scenario": "cold-start"
     }, 
     {
         "implementation": "trulyStatic", 
         "results": {
-            "recalc_styles": 199122.0, 
-            "total_time": 639857.0, 
-            "layout": 267006.0, 
-            "updateLayerTree": 130260, 
+            "recalc_styles": 196790.0, 
+            "total_time": 628011.0, 
+            "layout": 266409.0, 
+            "updateLayerTree": 119944, 
             "js": 0, 
-            "paint": 30172, 
+            "paint": 29538, 
             "gc": [], 
-            "parse_css": 13297.0
+            "parse_css": 15330.0
         }, 
         "scenario": "cold-start"
     }

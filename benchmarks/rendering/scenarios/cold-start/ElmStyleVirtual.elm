@@ -17,7 +17,10 @@ module Main exposing (..)
 
 -}
 
+import Color exposing (..)
 import Element
+import Element.Border as Border
+import Element.Color as Color
 import Element.Lazy
 import Html exposing (Html)
 import Internal.Model as Internal
@@ -58,11 +61,11 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    Element.layout Internal.WithVirtualCss
+    Element.layoutMode Internal.WithVirtualCss
         []
         (Element.Lazy.lazy viewStyle 10000)
 
 
 viewStyle x =
     Element.column []
-        (List.repeat x (Element.el [] (Element.text "hello!")))
+        (List.repeat x (Element.el [ Color.text blue, Color.background red, Color.border yellow, Border.all 2 ] (Element.text "hello!")))
