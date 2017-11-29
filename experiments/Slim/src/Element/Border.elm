@@ -99,7 +99,7 @@ roundEach : { topLeft : Float, topRight : Float, bottomLeft : Float, bottomRight
 roundEach { topLeft, topRight, bottomLeft, bottomRight } =
     -- StyleClass (Single ("border-top-left-radius" ++ toString radius) "border-radius" (toString radius ++ "px"))
     StyleClass
-        (Single ("border-radiu-" ++ toString top ++ "-" ++ toString right ++ toString bottom ++ "-" ++ toString left)
+        (Single ("border-radius-" ++ toString topLeft ++ "-" ++ toString topRight ++ toString bottomLeft ++ "-" ++ toString bottomRight)
             "border-radius"
             (toString topLeft
                 ++ "px "
