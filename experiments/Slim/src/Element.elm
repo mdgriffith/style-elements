@@ -1,11 +1,16 @@
 module Element
     exposing
         ( column
+        , download
+        , downloadAs
         , el
         , empty
         , expand
         , fill
         , layout
+        , layoutMode
+        , link
+        , newTabLink
         , paragraph
         , px
         , row
@@ -56,14 +61,26 @@ expand =
 
 
 {-| -}
-
-
-
--- layout : List (Attribute msg) -> Element msg -> Html msg
-
-
-layout mode attrs child =
+layoutMode : RenderMode -> List (Attribute msg) -> Element msg -> Html msg
+layoutMode mode attrs child =
     renderHtml mode
+        (Color.background Color.blue
+            :: Color.text Color.white
+            :: Font.size 20
+            :: Font.family
+                [ Font.typeface "Open Sans"
+                , Font.typeface "georgia"
+                , Font.serif
+                ]
+            :: htmlClass "style-elements se el"
+            :: attrs
+        )
+        [ child ]
+
+
+layout : List (Attribute msg) -> Element msg -> Html msg
+layout attrs child =
+    renderHtml Layout
         (Color.background Color.blue
             :: Color.text Color.white
             :: Font.size 20
@@ -140,7 +157,7 @@ text content =
 {-| -}
 el : List (Attribute msg) -> Element msg -> Element msg
 el attrs child =
-    render
+    render Nothing
         (htmlClass "se el"
             :: Attributes.width shrink
             :: Attributes.height shrink
@@ -154,7 +171,7 @@ el attrs child =
 {-| -}
 row : List (Attribute msg) -> List (Element msg) -> Element msg
 row attrs children =
-    render
+    render Nothing
         (htmlClass "se row"
             :: Class "y-content-align" "content-top"
             :: Class "x-content-align" "content-center-x"
@@ -168,7 +185,7 @@ row attrs children =
 {-| -}
 column : List (Attribute msg) -> List (Element msg) -> Element msg
 column attrs children =
-    render
+    render Nothing
         (htmlClass "se column"
             :: Attributes.spacing 20
             :: Class "y-content-align" "content-top"
@@ -183,13 +200,13 @@ column attrs children =
 -}
 paragraph : List (Attribute msg) -> List (Element msg) -> Element msg
 paragraph attrs children =
-    render (htmlClass "se paragraph" :: Attributes.width fill :: attrs) children
+    render (Just "p") (htmlClass "se paragraph" :: Attributes.width fill :: attrs) children
 
 
 {-| -}
 textPage : List (Attribute msg) -> List (Element msg) -> Element msg
 textPage attrs children =
-    render (htmlClass "se page" :: Attributes.width (px 650) :: attrs) children
+    render Nothing (htmlClass "se page" :: Attributes.width (px 650) :: attrs) children
 
 
 
@@ -223,7 +240,8 @@ textPage attrs children =
 -}
 image : List (Attribute msg) -> { src : String, description : String } -> Element msg
 image attrs { src, description } =
-    render attrs
+    render Nothing
+        attrs
         [ Unstyled <|
             VirtualDom.node "img"
                 [ Html.Attributes.src src
@@ -237,7 +255,8 @@ image attrs { src, description } =
 -}
 decorativeImage : List (Attribute msg) -> { src : String } -> Element msg
 decorativeImage attrs { src } =
-    render attrs
+    render Nothing
+        attrs
         [ Unstyled <|
             VirtualDom.node "img"
                 [ Html.Attributes.src src
@@ -247,100 +266,95 @@ decorativeImage attrs { src } =
         ]
 
 
+{-|
 
--- {-| -}
--- h1 : List (Attribute msg) -> Element msg -> Element msg
--- h1 attrs child =
---     render "h1" attrs [ child ]
--- {-| -}
--- h2 : List (Attribute msg) -> Element msg -> Element msg
--- h2 attrs child =
---     render "h2" attrs [ child ]
--- {-| -}
--- h3 : List (Attribute msg) -> Element msg -> Element msg
--- h3 attrs child =
---     render "h3" attrs [ child ]
--- {-| -}
--- h4 : List (Attribute msg) -> Element msg -> Element msg
--- h4 attrs child =
---     render "h4" attrs [ child ]
--- {-| -}
--- h5 : List (Attribute msg) -> Element msg -> Element msg
--- h5 attrs child =
---     render "h5" attrs [ child ]
--- {-| -}
--- h6 : List (Attribute msg) -> Element msg -> Element msg
--- h6 attrs child =
---     render "h6" attrs [ child ]
--- {-| -}
--- button : List (Attribute msg) -> Button msg -> Element msg
--- button attrs { onClick, content } =
---     render "button" (Events.onClick onClick :: attrs) [ content ]
--- {-| -}
--- link : List (Attribute msg) -> { url : String, element : Element msg } -> Element msg
--- link attrs { url, element } =
---     render "a"
---         (htmlClass "se el"
---             :: Attr (Html.Attributes.href src)
---             :: Attr (Html.Attributes.rel "noopener noreferrer")
---             :: Attributes.width shrink
---             :: Attributes.height shrink
---             :: Attributes.centerY
---             :: Attributes.center
---             :: attrs
---         )
---         [ element ]
--- {-| -}
--- newTab : List (Attribute msg) -> { url : String, element : Element msg } -> Element msg
--- newTab attrs { url, element } =
---     render "a"
---         (htmlClass "se el"
---             :: Attr (Html.Attributes.href src)
---             :: Attr (Html.Attributes.rel "noopener noreferrer")
---             :: Attr (Html.Attributes.target "_blank")
---             :: Attributes.width shrink
---             :: Attributes.height shrink
---             :: Attributes.centerY
---             :: Attributes.center
---             :: attrs
---         )
---         [ element ]
--- {-|
---     download []
---         { url = "mydownload.pdf"
---         , element = text "Download this"
---         }
--- -}
--- download : List (Attribute msg) -> { url : String, element : Element msg } -> Element msg
--- download attrs { url, element } =
---     render "a"
---         (htmlClass "se el"
---             :: Attr (Html.Attributes.href url)
---             :: Attr (Html.Attributes.download True)
---             :: Attributes.width shrink
---             :: Attributes.height shrink
---             :: Attributes.centerY
---             :: Attributes.center
---             :: attrs
---         )
---         [ element ]
--- {-|
---      downloadAs []
---         { url = "mydownload.pdf"
---         , filename "your-thing.pdf"
---         , element = text "Download this"
---         }
--- -}
--- downloadAs : List (Attribute msg) -> { element : Element msg, filename : String, url : String } -> Element msg
--- downloadAs attrs { url, filename, element } =
---     render "a"
---         (htmlClass "se el"
---             :: Attr (Html.Attributes.href url)
---             :: Attr (Html.Attributes.downloadAs filename)
---             :: Attributes.width shrink
---             :: Attributes.height shrink
---             :: Attributes.centerY
---             :: Attributes.center
---             :: attrs
---         )
---         [ element ]
+    link "google.com" []
+        (text "My link to Google")
+
+    link []
+        { url = "google.com"
+        , label = text "My Link to Google"
+        }
+
+-}
+link : List (Attribute msg) -> { url : String, label : Element msg } -> Element msg
+link attrs { url, label } =
+    render
+        (Just "a")
+        (htmlClass "se el"
+            :: Attr (Html.Attributes.href url)
+            :: Attr (Html.Attributes.rel "noopener noreferrer")
+            :: Attributes.width shrink
+            :: Attributes.height shrink
+            :: Attributes.centerY
+            :: Attributes.center
+            :: attrs
+        )
+        [ label ]
+
+
+{-| -}
+newTabLink : List (Attribute msg) -> { url : String, label : Element msg } -> Element msg
+newTabLink attrs { url, label } =
+    render
+        (Just "a")
+        (htmlClass "se el"
+            :: Attr (Html.Attributes.href url)
+            :: Attr (Html.Attributes.rel "noopener noreferrer")
+            :: Attr (Html.Attributes.target "_blank")
+            :: Attributes.width shrink
+            :: Attributes.height shrink
+            :: Attributes.centerY
+            :: Attributes.center
+            :: attrs
+        )
+        [ label ]
+
+
+{-|
+
+    download []
+        { url = "mydownload.pdf"
+        , label = text "Download this"
+        }
+
+-}
+download : List (Attribute msg) -> { url : String, label : Element msg } -> Element msg
+download attrs { url, label } =
+    render
+        (Just "a")
+        (htmlClass "se el"
+            :: Attr (Html.Attributes.href url)
+            :: Attr (Html.Attributes.download True)
+            :: Attributes.width shrink
+            :: Attributes.height shrink
+            :: Attributes.centerY
+            :: Attributes.center
+            :: attrs
+        )
+        [ label ]
+
+
+{-|
+
+     downloadAs []
+        { url = "mydownload.pdf"
+        , filename "your-thing.pdf"
+        , label = text "Download this"
+        }
+
+-}
+downloadAs : List (Attribute msg) -> { label : Element msg, filename : String, url : String } -> Element msg
+downloadAs attrs { url, filename, label } =
+    render
+        (Just "a")
+        (htmlClass "se el"
+            :: Attr (Html.Attributes.href url)
+            :: Attr (Html.Attributes.downloadAs filename)
+            :: Attributes.width shrink
+            :: Attributes.height shrink
+            :: Attributes.centerY
+            :: Attributes.center
+            :: attrs
+        )
+        [ label ]

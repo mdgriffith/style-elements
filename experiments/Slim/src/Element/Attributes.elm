@@ -8,15 +8,12 @@ module Element.Attributes
         , below
         , center
         , centerY
-        , download
-        , downloadAs
+        , description
         , height
-        , link
         , moveDown
         , moveLeft
         , moveRight
         , moveUp
-        , newTab
         , onLeft
         , onRight
         , overlay
@@ -31,31 +28,12 @@ module Element.Attributes
 
 {-| -}
 
-import Internal.Model as Internal exposing (Attribute(..), HorizontalAlign(..), Length(..), LinkType(..), Location(..), Property(..), Style(..), VerticalAlign(..))
+import Internal.Model as Internal exposing (..)
 
 
-{-| -}
-link : String -> Attribute msg
-link =
-    Link Direct
-
-
-{-| -}
-newTab : String -> Attribute msg
-newTab =
-    Link NewTab
-
-
-{-| -}
-download : String -> Attribute msg
-download =
-    Link Download
-
-
-{-| -}
-downloadAs : { filename : String, source : String } -> Attribute msg
-downloadAs { filename, source } =
-    Link (DownloadAs filename) source
+description : String -> Attribute msg
+description =
+    Describe << Label
 
 
 below : Internal.Element msg -> Attribute msg

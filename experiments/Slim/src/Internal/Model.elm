@@ -15,9 +15,42 @@ import VirtualDom
 
 
 type Element msg
-    = -- Styled (List Style) (Html msg)
-      Unstyled (Html msg)
-    | Unresolved (List Style) String (List (Html.Attribute msg)) (List (Html msg))
+    = Unstyled (Html msg)
+    | Unresolved (List Style) NodeName (List (Html.Attribute msg)) (List (Html msg))
+
+
+type NodeName
+    = Generic
+    | NodeName String
+    | Embedded String String
+
+
+
+-- In order to gain laziness, only constant position values can be passed to Html
+-- | Almost (Position -> Html msg)
+
+
+type alias Position =
+    { alignment : SameAxisAlignment
+    }
+
+
+type SameAxisAlignment
+    = NoAlignment
+    | OnColumn HAlign
+    | OnRow VAlign
+
+
+type HAlign
+    = AlignLeft
+    | AlignRight
+    | CenterX
+
+
+type VAlign
+    = AlignTop
+    | AlignBottom
+    | CenterY
 
 
 type Style
@@ -39,7 +72,6 @@ type Attribute msg
     | Class String String
       -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
     | StyleClass Style
-    | Link LinkType String
       -- Descriptions will add aria attributes and if the element is not a link, may set the node type.
     | Describe Description
     | Nearby Location (Element msg)
@@ -62,21 +94,12 @@ type Attribute msg
     | NoAttribute
 
 
-type LinkType
-    = Direct
-    | NewTab
-    | Download
-    | DownloadAs String
-
-
 type Description
     = Main
     | Navigation
-    | Search
+      -- | Search
     | ContentInfo
     | Complementary
-    | Log
-    | Tooltip
     | Heading Int
     | Label String
     | LivePolite
@@ -107,20 +130,6 @@ type Length
     | Content
     | Expand
     | Fill Float
-
-
-type HorizontalAlign
-    = AlignLeft
-    | AlignRight
-    | XCenter
-    | Spread
-
-
-type VerticalAlign
-    = AlignTop
-    | AlignBottom
-    | YCenter
-    | VerticalJustify
 
 
 type Axis
@@ -163,9 +172,6 @@ mapAttr fn attr =
         StyleClass style ->
             StyleClass style
 
-        Link linkeType src ->
-            Link linkeType src
-
         Nearby location element ->
             Nearby location (map fn element)
 
@@ -204,7 +210,7 @@ embed fn a =
             html
 
         Unresolved styles node attrs children ->
-            VirtualDom.node node
+            renderNode node
                 attrs
                 (children ++ [ toStyleSheet styles ])
 
@@ -217,7 +223,7 @@ embed2 fn a b =
             html
 
         Unresolved styles node attrs children ->
-            VirtualDom.node node
+            renderNode node
                 attrs
                 (children ++ [ toStyleSheet styles ])
 
@@ -305,22 +311,67 @@ locationClass location =
             "se el overlay"
 
 
+renderNode node attrs children =
+    case node of
+        Generic ->
+            VirtualDom.node "div" attrs children
+
+        NodeName nodeName ->
+            VirtualDom.node nodeName attrs children
+
+        Embedded nodeName internal ->
+            VirtualDom.node nodeName
+                attrs
+                [ VirtualDom.node internal [ Html.Attributes.class "se el" ] children ]
+
+
+skip newValue old =
+    case old of
+        Nothing ->
+            Just newValue
+
+        x ->
+            x
+
+
 gatherAttributes : Attribute msg -> Gathered msg -> Gathered msg
 gatherAttributes attr gathered =
     case attr of
         NoAttribute ->
             gathered
 
-        Link linktype src ->
-            case gathered.link of
-                Nothing ->
-                    { gathered | link = Just ( linktype, src ) }
-
-                Just _ ->
-                    gathered
-
         Describe description ->
-            gathered
+            case description of
+                Main ->
+                    { gathered | node = skip "main" gathered.node }
+
+                Navigation ->
+                    { gathered | node = skip "nav" gathered.node }
+
+                -- Search ->
+                --     { gathered | node = skip "main" gathered.node }
+                ContentInfo ->
+                    { gathered | node = skip "footer" gathered.node }
+
+                Complementary ->
+                    { gathered | node = skip "aside" gathered.node }
+
+                Heading i ->
+                    if i < 1 then
+                        { gathered | node = skip "h1" gathered.node }
+                    else if i < 7 then
+                        { gathered | node = skip ("h" ++ toString i) gathered.node }
+                    else
+                        { gathered | node = skip "h6" gathered.node }
+
+                Label label ->
+                    { gathered | attributes = Html.Attributes.attribute "aria-label" label :: gathered.attributes }
+
+                LivePolite ->
+                    { gathered | attributes = Html.Attributes.attribute "aria-live" "polite" :: gathered.attributes }
+
+                LiveAssertive ->
+                    { gathered | attributes = Html.Attributes.attribute "aria-live" "assertive" :: gathered.attributes }
 
         Nearby location elem ->
             case elem of
@@ -337,7 +388,8 @@ gatherAttributes attr gathered =
                         , nearbys =
                             VirtualDom.node "div"
                                 [ Html.Attributes.class (locationClass location) ]
-                                [ VirtualDom.node node attrs children ]
+                                [ renderNode node attrs children
+                                ]
                                 :: gathered.nearbys
                     }
 
@@ -451,7 +503,7 @@ type alias Gathered msg =
     { attributes : List (Html.Attribute msg)
     , rules : List Style
     , nearbys : List (Html msg)
-    , link : Maybe ( LinkType, String )
+    , node : Maybe String
     , filters : Maybe String
     , boxShadows : Maybe String
     , textShadows : Maybe String
@@ -470,8 +522,8 @@ initGathered : Gathered msg
 initGathered =
     { attributes = []
     , rules = []
+    , node = Nothing
     , nearbys = []
-    , link = Nothing
     , rotation = Nothing
     , translation = Nothing
     , scale = Nothing
@@ -623,7 +675,7 @@ formatTransformations gathered =
     }
 
 
-toStyleSheetNoReduction : List Style -> String
+toStyleSheetNoReduction : List Style -> VirtualDom.Node msg
 toStyleSheetNoReduction styles =
     let
         renderProps (Property key val) existing =
@@ -650,6 +702,7 @@ toStyleSheetNoReduction styles =
                     ""
     in
     List.foldl combine "" styles
+        |> (\rendered -> VirtualDom.node "style" [] [ Html.text rendered ])
 
 
 toStyleSheetVirtualCss : List Style -> ()
@@ -1035,49 +1088,11 @@ formatColorClass color =
         ++ floatClass alpha
 
 
-nodeName maybeLink =
-    case maybeLink of
-        Nothing ->
-            "div"
-
-        Just _ ->
-            "a"
-
-
-withLink maybeLink attrs =
-    case maybeLink of
-        Nothing ->
-            attrs
-
-        Just ( linkType, src ) ->
-            case linkType of
-                Direct ->
-                    Html.Attributes.href src
-                        :: Html.Attributes.rel "noopener noreferrer"
-                        :: attrs
-
-                NewTab ->
-                    Html.Attributes.href src
-                        :: Html.Attributes.rel "noopener noreferrer"
-                        :: Html.Attributes.target "_blank"
-                        :: attrs
-
-                Download ->
-                    Html.Attributes.href src
-                        :: Html.Attributes.download True
-                        :: attrs
-
-                DownloadAs filename ->
-                    Html.Attributes.href src
-                        :: Html.Attributes.downloadAs filename
-                        :: attrs
-
-
-renderAttributes : List (Attribute msg) -> List Style -> ( String, List (Html.Attribute msg), List Style, Maybe (List (Html msg)) )
+renderAttributes : List (Attribute msg) -> List Style -> ( Maybe String, List (Html.Attribute msg), List Style, Maybe (List (Html msg)) )
 renderAttributes attributes styleChildren =
     case attributes of
         [] ->
-            ( "div"
+            ( Nothing
             , []
             , styleChildren
             , Nothing
@@ -1086,26 +1101,26 @@ renderAttributes attributes styleChildren =
         attrs ->
             List.foldr gatherAttributes { initGathered | rules = styleChildren } attrs
                 |> formatTransformations
-                |> (\{ rules, attributes, nearbys, link } ->
+                |> (\{ rules, attributes, nearbys, node } ->
                         case nearbys of
                             [] ->
-                                ( nodeName link
-                                , withLink link attributes
+                                ( node
+                                , attributes
                                 , rules
                                 , Nothing
                                 )
 
                             additionalChildren ->
-                                ( nodeName link
-                                , withLink link attributes
+                                ( node
+                                , attributes
                                 , rules
                                 , Just additionalChildren
                                 )
                    )
 
 
-render : List (Attribute msg) -> List (Element msg) -> Element msg
-render attributes children =
+render : Maybe String -> List (Attribute msg) -> List (Element msg) -> Element msg
+render nodeName attributes children =
     let
         ( htmlChildren, styleChildren ) =
             List.foldr gather ( [], [] ) children
@@ -1115,16 +1130,35 @@ render attributes children =
                 Unstyled html ->
                     ( html :: htmls, existingStyles )
 
-                Unresolved styles nodeName attrs children ->
-                    ( VirtualDom.node nodeName attrs children :: htmls, styles ++ existingStyles )
+                Unresolved styles node attrs children ->
+                    ( renderNode node attrs children :: htmls
+                    , styles ++ existingStyles
+                    )
 
-        ( nodeName, renderedAttributes, renderedRules, additionalChildren ) =
+        ( nodeNameOverride, renderedAttributes, renderedRules, additionalChildren ) =
             renderAttributes attributes styleChildren
     in
     case renderedRules of
         [] ->
             Unstyled <|
-                VirtualDom.node nodeName
+                renderNode
+                    (case nodeName of
+                        Nothing ->
+                            case nodeNameOverride of
+                                Nothing ->
+                                    Generic
+
+                                Just override ->
+                                    NodeName override
+
+                        Just node ->
+                            case nodeNameOverride of
+                                Nothing ->
+                                    NodeName node
+
+                                Just override ->
+                                    Embedded node override
+                    )
                     renderedAttributes
                     (case additionalChildren of
                         Nothing ->
@@ -1137,7 +1171,23 @@ render attributes children =
 
         _ ->
             Unresolved renderedRules
-                nodeName
+                (case nodeName of
+                    Nothing ->
+                        case nodeNameOverride of
+                            Nothing ->
+                                Generic
+
+                            Just override ->
+                                NodeName override
+
+                    Just node ->
+                        case nodeNameOverride of
+                            Nothing ->
+                                NodeName node
+
+                            Just override ->
+                                Embedded node override
+                )
                 renderedAttributes
                 (case additionalChildren of
                     Nothing ->
@@ -1154,6 +1204,7 @@ type RenderMode
     | Layout
     | NoStaticStyleSheet
     | WithVirtualCss
+    | Unreduced
 
 
 {-| -}
@@ -1169,7 +1220,9 @@ renderHtml mode attributes children =
                     ( html :: htmls, existingStyles )
 
                 Unresolved styles node attrs children ->
-                    ( VirtualDom.node node attrs children :: htmls, styles ++ existingStyles )
+                    ( renderNode node attrs children :: htmls
+                    , styles ++ existingStyles
+                    )
 
         ( nodeName, renderedAttributes, renderedRules, additionalChildren ) =
             renderAttributes attributes styleChildren
@@ -1189,6 +1242,11 @@ renderHtml mode attributes children =
                         :: toStyleSheet renderedRules
                         :: children
 
+                Unreduced ->
+                    Internal.Style.rulesElement
+                        :: toStyleSheetNoReduction renderedRules
+                        :: children
+
                 WithVirtualCss ->
                     let
                         _ =
@@ -1197,7 +1255,7 @@ renderHtml mode attributes children =
                     Internal.Style.rulesElement
                         :: children
     in
-    VirtualDom.node nodeName renderedAttributes <|
+    VirtualDom.node (Maybe.withDefault "div" nodeName) renderedAttributes <|
         case additionalChildren of
             Nothing ->
                 styleSheets htmlChildren
