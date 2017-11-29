@@ -16,13 +16,16 @@ suite : Benchmark
 suite =
     describe "Stylesheet Hashing - 10k dicts of size ~2, with 3k potential keys"
         [ benchmark1 "merge dicts via foldr Dict.union" merge dicts
-        , benchmark1 "check key Set when rendering, skip if found" reduceAndRenderList list
+        , benchmark1 "list check key Set when rendering, skip if found" reduceAndRenderList list
+        , benchmark1 "Convert tree, then reduce" (reduceAndRenderList << treeToList) shallowTree
+        , benchmark1 "tree reduce and render" reduceAndRenderTree shallowTree
         , benchmark1 "1render everything" renderList list
         , benchmark1 "maybe dicts, skip union if a maybe" mergeMaybeDict maybeDicts
         , benchmark1 "dict insert ten things" insert10Things ()
         , benchmark1 "dict union 2 dicts of 5 things" union25 ()
         , benchmark1 "formatting color" formatColor Color.red
         , benchmark1 "color tuple lookup" (\color -> Dict.get (colorToTuple color) colorNameDict) Color.red
+        , benchmark1 "tree to list conversion" treeToList shallowTree
         ]
 
 
@@ -278,13 +281,71 @@ renderList ls =
     List.foldr gather "" ls
 
 
-listMaybe =
-    List.foldr addToList [] range
-
-
 list : List ( String, List ( String, String ) )
 list =
-    List.foldr addToList [] range
+    List.foldr (\i xs -> createClass i 5 :: xs) [] range
+
+
+type Tree leaf
+    = Leaf leaf
+    | Branch (List (Tree leaf))
+
+
+shallowTree =
+    let
+        leaf i =
+            Branch (List.map (\x -> Leaf (createClass x 5)) (List.range 1 10))
+
+        branch i =
+            Branch
+                --(List.repeat 10 leaf)
+                (List.map leaf (List.range (i + 1) (i + 10)))
+    in
+    Branch (List.map branch (List.range 1 100))
+
+
+treeToList tree =
+    case tree of
+        Leaf leaf ->
+            [ leaf ]
+
+        Branch branch ->
+            List.concatMap treeToList branch
+
+
+treeFoldr : (a -> b -> b) -> b -> Tree a -> b
+treeFoldr fn init tree =
+    case tree of
+        Leaf leaf ->
+            fn leaf init
+
+        Branch branches ->
+            List.foldr (\branch accum -> treeFoldr fn accum branch) init branches
+
+
+reduceAndRenderTree : Tree ( comparable, List ( String, String ) ) -> ( String, Set.Set comparable )
+reduceAndRenderTree branch =
+    let
+        renderProp ( name, val ) =
+            name ++ ":" ++ val
+
+        render ( key, vals ) =
+            List.map renderProp vals
+                |> String.join ";"
+
+        reduceNRender ( key, vals ) ( rendered, cache ) =
+            if Set.member key cache then
+                ( rendered, cache )
+            else
+                ( (List.map renderProp vals
+                    |> String.join ";"
+                  )
+                    ++ "\n"
+                    ++ rendered
+                , Set.insert key cache
+                )
+    in
+    treeFoldr reduceNRender ( "", Set.empty ) branch
 
 
 addToList : Int -> List ( String, List ( String, String ) ) -> List ( String, List ( String, String ) )
@@ -336,6 +397,23 @@ addToList i ls =
             ]
 
 
+createClass i variation =
+    let
+        val x =
+            x % 20
+
+        name x =
+            x % 150
+
+        key x =
+            x % keySize
+    in
+    ( toString (key variation)
+    , [ ( toString (name variation), toString (val (i * variation)) )
+      ]
+    )
+
+
 merge : List (Dict.Dict comparable (List ( String, String ))) -> String
 merge ds =
     List.foldr Dict.union Dict.empty ds
@@ -346,6 +424,7 @@ reduceList ls =
     renderList
 
 
+reduceAndRenderList : List ( comparable, List ( String, String ) ) -> ( String, Set.Set comparable )
 reduceAndRenderList ls =
     let
         renderProp ( name, val ) =
