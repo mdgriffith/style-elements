@@ -27,6 +27,11 @@
         .self-top {
            align-self: flex-start;  
         }
+        textarea {
+            width:200px;
+            /* white-space:nowrap; */
+            resize:none;
+        }
         
         </style>
     </head>
@@ -60,11 +65,11 @@
 
 
 
-        <a href="google.com"><h1>Accessibility Test Page</h1></a>
+        <a href="google.com"><h1>Nested Accessibility Test Page</h1></a>
         
         <p>This page is made to test the accessibility markup that style-elements will use. </p>
 
-        <a href="google.com"><h2>The second heading</h2></a>
+        <a href="google.com"><h2>Nested second heading</h2></a>
 
         <p>We want to use aria attributes, but we have to see if they have the correct effect or not. </p>
 
@@ -113,6 +118,61 @@
 
 
 
+
+        <form action="" method="get">
+            <label for="GET-name">Name:</label>
+            <input id="GET-name" type="text" name="name">
+            <input type="submit" value="Save">
+        </form>
+
+        <label for="otherName">Name:</label>
+        <input id="otherName" type="text" name="other-name">
+        <button>Press me!</button>
+
+        <fieldset>
+            <label for="otherName">FieldsetName</label>
+            <input id="otherName" type="text" name="other-name">
+            <button>Press me!</button>
+        </fieldset>
+
+        <fieldset>
+            <label for="otherName">Other Fieldset Name</label>
+            <input id="otherName" type="text" name="other-name">
+            <button>Press me!</button>
+        </fieldset>
+
+        <input id="GET-name" type="text" name="name">
+        <input type="submit" value="Save">
+
+
+        <label>
+            <input type="checkbox" checked/>
+            Here is my checkbox
+        </label>
+    
+        <textarea rows="3">HEre is my text
+
+            It is multiple rows
+        </textarea>
+
+
+        <form action="" method="get" aria-role="form">
+            <label for="GET-name">Name:</label>
+            <input id="GET-name" type="text" name="name">
+            <input type="submit" value="Save">
+        </form>
+
+        <form action="" method="get" aria-role="region">
+            <label for="GET-name">Name:</label>
+            <input id="GET-name" type="text" name="name">
+            <input type="submit" value="Save">
+        </form>
+
+        <div aria-role="region" aria-label="Here's my special Region">
+            <label for="Special">Name:</label>
+            <input id="Special" type="text" name="name">
+            <button>Yay, go!</button>
+        </div>
       
     </body>
 </html>
