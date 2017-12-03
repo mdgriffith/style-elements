@@ -78,7 +78,7 @@ Styles can have variations. Here's what it looks like to have a button style wit
 
     type Styles = Button
 
-    -- You need to create a new type to capture vartiations.
+    -- You need to create a new type to capture variations.
     type Variations
         = Disabled
 
