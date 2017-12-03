@@ -16,16 +16,23 @@ suite : Benchmark
 suite =
     describe "Stylesheet Hashing - 10k dicts of size ~2, with 3k potential keys"
         [ benchmark1 "merge dicts via foldr Dict.union" merge dicts
-        , benchmark1 "list check key Set when rendering, skip if found" reduceAndRenderList list
-        , benchmark1 "Convert tree, then reduce" (reduceAndRenderList << treeToList) shallowTree
-        , benchmark1 "tree reduce and render" reduceAndRenderTree shallowTree
-        , benchmark1 "1render everything" renderList list
-        , benchmark1 "maybe dicts, skip union if a maybe" mergeMaybeDict maybeDicts
         , benchmark1 "dict insert ten things" insert10Things ()
-        , benchmark1 "dict union 2 dicts of 5 things" union25 ()
-        , benchmark1 "formatting color" formatColor Color.red
-        , benchmark1 "color tuple lookup" (\color -> Dict.get (colorToTuple color) colorNameDict) Color.red
-        , benchmark1 "tree to list conversion" treeToList shallowTree
+
+        -- , benchmark1 "list check key Set when rendering, skip if found" reduceAndRenderList list
+        -- , benchmark1 "tree reduce and render" reduceAndRenderTree shallowTree
+        -- -- , benchmark1 "render everything" renderList list
+        -- , benchmark1 "maybe dicts, skip union if a maybe" mergeMaybeDict maybeDicts
+        -- , benchmark1 "10k list to dict" Dict.fromList list
+        -- , benchmark1 "dict union 2 dicts of 5 things" union25 ()
+        -- , benchmark1 "formatting color" formatColor Color.red
+        -- , benchmark1 "color tuple lookup" (\color -> Dict.get (colorToTuple color) colorNameDict) Color.red
+        , benchmark1 "tree to list conversion" (treeToList []) shallowTree
+        , describe "Tree based rendering"
+            [ benchmark1 "Tree reduce and render" reduceAndRenderTree shallowTree
+            , benchmark1 "Convert tree to list, then reduce and render" (reduceAndRenderList << treeToList []) shallowTree
+            , benchmark1 "Reduce and Render List" reduceAndRenderList (treeToList [] shallowTree)
+            , benchmark1 "Render List" renderList (treeToList [] shallowTree)
+            ]
         ]
 
 
@@ -304,13 +311,13 @@ shallowTree =
     Branch (List.map branch (List.range 1 100))
 
 
-treeToList tree =
+treeToList ls tree =
     case tree of
         Leaf leaf ->
-            [ leaf ]
+            leaf :: ls
 
         Branch branch ->
-            List.concatMap treeToList branch
+            List.foldr (\node list -> treeToList list node) ls branch
 
 
 treeFoldr : (a -> b -> b) -> b -> Tree a -> b
