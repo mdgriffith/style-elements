@@ -37,6 +37,8 @@ import os
 from os import listdir
 from os.path import isfile, join, isdir
 
+import argparse
+
 
 
 # enabled = ','.join([
@@ -246,35 +248,62 @@ def format_results(logs):
     return results
 
 
-def compile(elm_file, scenario, implementation):
+# os.getcwd()
+# '/home/user'
+# >>> os.chdir("/tmp/")
+# >>> os.getcwd()
+
+def compile(elm_file, scenario, implementation, directory=None):
     """
     Compile an elm file and return the path to the resulting html
     """
+    cwd = os.getcwd()
     print("compiling {file}".format(file=elm_file))
     description = scenario + "_" + implementation
-
     output = join('staging', description.lower() + ".html")
+
+    if directory is not None:
+        os.chdir(directory)
+    print("elm-make {elm_file} --yes --output {output}".format(elm_file=elm_file, output=output))
     code = subprocess.call("elm-make {elm_file} --yes --output {output}".format(elm_file=elm_file, output=output), shell=True)
+    if directory is not None:
+        os.chdir(cwd)
     return (output, scenario, implementation)
+
+
+
+def handle_file(filepath, scenario, implementation, directory=None ):
+    if isfile(filepath) and filepath.endswith('.elm'):
+        return compile(filepath, scenario, implementation[:-4], directory=directory)
+    elif isfile(filepath) and filepath.endswith(".html"):
+
+        description = scenario + "_" + implementation[:-5]
+        output = join(cwd , join('staging', description.lower() + ".html"))
+        copyfile(filepath, output)
+
+        return (output, scenario, implementation[:-5])
 
 def prepare_scenarios(directory):
     compiled_files = []
     cwd = os.getcwd()
 
-    for node in listdir(scenario_directory):
-        if isdir(join(scenario_directory, node)):
-            concrete_scenario_dir = join(scenario_directory, node)
-            for child_node in listdir(concrete_scenario_dir):
-                name = join(concrete_scenario_dir, child_node)
-                if isfile(name) and name.endswith('.elm'):
-                    compiled_files.append(compile(name, node, child_node[:-4]))
-                elif name.endswith(".html"):
+    for scenario in listdir(scenario_directory):
+        if isdir(join(scenario_directory, scenario)):
+            concrete_scenario_dir = join(scenario_directory, scenario)
+            for implementation in listdir(concrete_scenario_dir):
+                filepath = join(concrete_scenario_dir, implementation)
 
-                    description = node + "_" + child_node[:-5]
-                    output = join(cwd , join('staging', description.lower() + ".html"))
-                    copyfile(name, output)
-
-                    compiled_files.append((output, node, child_node[:-5]))
+                if isdir(filepath):
+                    for detail in listdir(filepath):
+                        detail_filepath = join(filepath, detail)
+                        if isfile(detail_filepath):
+                            handled = handle_file(detail_filepath, scenario, implementation + "-" + detail)
+                            if handled is not None:
+                                compiled_files.append(handled)
+                else:
+                    handled = handle_file(filepath, scenario, implementation)
+                    if handled is not None:
+                        compiled_files.append(handled)
 
     return compiled_files
 
@@ -285,22 +314,35 @@ def by_duration(record):
     else:
         return 0
 
-def sort_logs(logs):
-    sorted(student_tuples, key=lambda student: student[2]) 
+
+
+
+parser = argparse.ArgumentParser(description='Run Browser Rendering Benchmarks')
+parser.add_argument('--save', dest='save', action='store', default=None, help='Save the run with this tag')
+parser.add_argument('--runs', dest='runs', type=int, action='store', default=None, help='Run the scnario this many times')
+
+
 
 if __name__ == "__main__":
+
+    args = parser.parse_args()
+    pprint(args)
+
+    runs = 1
+    if args.runs is not None and args.runs > 1:
+        runs = args.runs
 
     cwd = os.getcwd()
     scenario_directory = 'scenarios'
     results = []
-    for scenario_url, scenario, implementation in prepare_scenarios(scenario_directory):
 
-        driver = run_benchmark("file://" + join(cwd, scenario_url))
-        logs = retrieve_logs(driver)
-        results.append({"implementation": implementation, "scenario":scenario, "results":format_results(logs) })
-
-        # results.append({"description": description, "results":sorted(logs, key=by_duration) })
-        driver.close()
+    for run in range(1, runs + 1):
+        for scenario_url, scenario, implementation in prepare_scenarios(scenario_directory):
+            print("Running {scenario} with {implementation}".format(scenario=scenario, implementation=implementation))
+            driver = run_benchmark("file://" + join(cwd, scenario_url))
+            logs = retrieve_logs(driver)
+            results.append({"implementation": implementation, "scenario":scenario, "results":format_results(logs), "run": run })
+            driver.close()
 
 
     # Compile the results viewer
@@ -308,8 +350,10 @@ if __name__ == "__main__":
 
     
     with open('view-template.html') as TEMPLATE:
-        with open('results/view-results.html', 'w') as RESULTS:
-            
-            rendered = TEMPLATE.read().format(benchmark_data=json.dumps(results))
+        target = 'results/view-results.html'
+        if args.save is not None:
+            target = 'results/' + args.save + '.html'
 
+        with open(target, 'w') as RESULTS:
+            rendered = TEMPLATE.read().format(benchmark_data=json.dumps(results))
             RESULTS.write(rendered)
