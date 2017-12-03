@@ -43,6 +43,7 @@ type alias Benched =
     { implementation : String
     , scenario : String
     , results : BenchmarkResult
+    , run : Int
     }
 
 
@@ -63,7 +64,7 @@ type alias GC =
 
 
 type alias Bytes =
-    Int
+    Float
 
 
 update msg model =
@@ -88,30 +89,36 @@ update msg model =
 
 benchmarkResults : Json.Decoder Benched
 benchmarkResults =
-    Json.map3 Benched
+    Json.map4 Benched
         (Json.field "implementation" Json.string)
         (Json.field "scenario" Json.string)
         (Json.field "results" benchmarkTimes)
+        (Json.field "run" Json.int)
 
 
 benchmarkTimes : Json.Decoder BenchmarkResult
 benchmarkTimes =
     Json.map8 BenchmarkResult
-        (Json.field "recalc_styles" Json.float)
-        (Json.field "total_time" Json.float)
-        (Json.field "layout" Json.float)
-        (Json.field "updateLayerTree" Json.float)
-        (Json.field "paint" Json.float)
-        (Json.field "js" Json.float)
+        (Json.field "recalc_styles" timeInMs)
+        (Json.field "total_time" timeInMs)
+        (Json.field "layout" timeInMs)
+        (Json.field "updateLayerTree" timeInMs)
+        (Json.field "paint" timeInMs)
+        (Json.field "js" timeInMs)
         (Json.field "gc" (Json.list garbageCollectionDecoder))
-        (Json.field "parse_css" Json.float)
+        (Json.field "parse_css" timeInMs)
+
+
+timeInMs =
+    Json.float
+        |> Json.map (\x -> x / 1000)
 
 
 garbageCollectionDecoder : Json.Decoder GC
 garbageCollectionDecoder =
     Json.map2 GC
         (Json.field "duration" Json.float)
-        (Json.field "reclaimed_bytes" Json.int)
+        (Json.field "reclaimed_bytes" Json.float)
 
 
 view : Model -> Html.Html Msg
@@ -135,6 +142,8 @@ renderGroups toGroups =
         , [ fill (formatColor Color.red) ]
         , [ fill (formatColor Color.purple) ]
         , [ fill (formatColor Color.blue) ]
+        , [ fill (formatColor Color.yellow) ]
+        , [ fill (formatColor Color.orange) ]
         ]
     , maxWidth = Plot.Percentage 65
     }
@@ -196,6 +205,8 @@ groupData benched =
                             :: ( "updateLayerTree", bench.results.updateLayerTree )
                             :: ( "paint", bench.results.paint )
                             :: ( "total", bench.results.total )
+                            :: ( "gc - size", gcSize bench.results.garbageCollection )
+                            -- :: ( "gc - time", gcTime bench.results.garbageCollection )
                             :: existing
                     )
                     []
@@ -213,6 +224,31 @@ groupData benched =
         --    )
         |> List.Extra.groupWhile (\one two -> one.implementation == two.implementation)
         |> List.map toValues
+
+
+type alias Aggregated =
+    { label : String
+    , values : List Value
+    , runCount : Int
+    }
+
+
+type alias Value =
+    { name : String
+    , standardDeviation : Float
+    , mean : Float
+    }
+
+
+gcTime : List { duration : Time, reclaimed : Bytes } -> Time
+gcTime ls =
+    List.foldr ((+) << .duration) 0 ls
+
+
+gcSize : List { duration : Time, reclaimed : Bytes } -> Bytes
+gcSize ls =
+    List.foldr ((+) << .reclaimed) 0 ls
+        |> (\x -> x / 100000)
 
 
 

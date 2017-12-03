@@ -13792,6 +13792,39 @@ var _terezka$elm_plot$Plot$axisAtMax = _terezka$elm_plot$Plot$customAxis(
 		};
 	});
 
+var _mdgriffith$style_elements$ViewResults$gcSize = function (ls) {
+	return function (x) {
+		return x / 100000;
+	}(
+		A3(
+			_elm_lang$core$List$foldr,
+			function (_p0) {
+				return F2(
+					function (x, y) {
+						return x + y;
+					})(
+					function (_) {
+						return _.reclaimed;
+					}(_p0));
+			},
+			0,
+			ls));
+};
+var _mdgriffith$style_elements$ViewResults$gcTime = function (ls) {
+	return A3(
+		_elm_lang$core$List$foldr,
+		function (_p1) {
+			return F2(
+				function (x, y) {
+					return x + y;
+				})(
+				function (_) {
+					return _.duration;
+				}(_p1));
+		},
+		0,
+		ls);
+};
 var _mdgriffith$style_elements$ViewResults$groupData = function (benched) {
 	var toValues = function (benches) {
 		return {
@@ -13829,7 +13862,15 @@ var _mdgriffith$style_elements$ViewResults$groupData = function (benched) {
 												_1: {
 													ctor: '::',
 													_0: {ctor: '_Tuple2', _0: 'total', _1: bench.results.total},
-													_1: existing
+													_1: {
+														ctor: '::',
+														_0: {
+															ctor: '_Tuple2',
+															_0: 'gc - size',
+															_1: _mdgriffith$style_elements$ViewResults$gcSize(bench.results.garbageCollection)
+														},
+														_1: existing
+													}
 												}
 											}
 										}
@@ -13854,11 +13895,11 @@ var _mdgriffith$style_elements$ViewResults$groupData = function (benched) {
 			benched));
 };
 var _mdgriffith$style_elements$ViewResults$formatColor = function (color) {
-	var _p0 = _elm_lang$core$Color$toRgb(color);
-	var red = _p0.red;
-	var green = _p0.green;
-	var blue = _p0.blue;
-	var alpha = _p0.alpha;
+	var _p2 = _elm_lang$core$Color$toRgb(color);
+	var red = _p2.red;
+	var green = _p2.green;
+	var blue = _p2.blue;
+	var alpha = _p2.alpha;
 	return A2(
 		_elm_lang$core$Basics_ops['++'],
 		A2(
@@ -13965,12 +14006,12 @@ var _mdgriffith$style_elements$ViewResults$barGroup = function (data) {
 		verticalLine: _elm_lang$core$Basics$always(_elm_lang$core$Maybe$Nothing),
 		bars: A2(
 			_elm_lang$core$List$map,
-			function (_p1) {
-				var _p2 = _p1;
+			function (_p3) {
+				var _p4 = _p3;
 				return {
-					height: _p2._1,
+					height: _p4._1,
 					label: _elm_lang$core$Maybe$Just(
-						_mdgriffith$style_elements$ViewResults$viewVerticalLabel(_p2._0))
+						_mdgriffith$style_elements$ViewResults$viewVerticalLabel(_p4._0))
 				};
 			},
 			data.values)
@@ -14036,7 +14077,25 @@ var _mdgriffith$style_elements$ViewResults$renderGroups = function (toGroups) {
 											_mdgriffith$style_elements$ViewResults$formatColor(_elm_lang$core$Color$blue)),
 										_1: {ctor: '[]'}
 									},
-									_1: {ctor: '[]'}
+									_1: {
+										ctor: '::',
+										_0: {
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$fill(
+												_mdgriffith$style_elements$ViewResults$formatColor(_elm_lang$core$Color$yellow)),
+											_1: {ctor: '[]'}
+										},
+										_1: {
+											ctor: '::',
+											_0: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$fill(
+													_mdgriffith$style_elements$ViewResults$formatColor(_elm_lang$core$Color$orange)),
+												_1: {ctor: '[]'}
+											},
+											_1: {ctor: '[]'}
+										}
+									}
 								}
 							}
 						}
@@ -14047,8 +14106,8 @@ var _mdgriffith$style_elements$ViewResults$renderGroups = function (toGroups) {
 		maxWidth: _terezka$elm_plot$Plot$Percentage(65)
 	};
 };
-var _mdgriffith$style_elements$ViewResults$view = function (_p3) {
-	var _p4 = _p3;
+var _mdgriffith$style_elements$ViewResults$view = function (_p5) {
+	var _p6 = _p5;
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -14071,17 +14130,23 @@ var _mdgriffith$style_elements$ViewResults$view = function (_p3) {
 				_terezka$elm_plot$Plot$viewBars,
 				_mdgriffith$style_elements$ViewResults$renderGroups(
 					_elm_lang$core$List$map(_mdgriffith$style_elements$ViewResults$barGroup)),
-				_mdgriffith$style_elements$ViewResults$groupData(_p4.benchmarks)),
+				_mdgriffith$style_elements$ViewResults$groupData(_p6.benchmarks)),
 			_1: {ctor: '[]'}
 		});
 };
+var _mdgriffith$style_elements$ViewResults$timeInMs = A2(
+	_elm_lang$core$Json_Decode$map,
+	function (x) {
+		return x / 1000;
+	},
+	_elm_lang$core$Json_Decode$float);
 var _mdgriffith$style_elements$ViewResults$results = _elm_lang$core$Native_Platform.incomingPort('results', _elm_lang$core$Json_Decode$value);
 var _mdgriffith$style_elements$ViewResults$Model = function (a) {
 	return {benchmarks: a};
 };
-var _mdgriffith$style_elements$ViewResults$Benched = F3(
-	function (a, b, c) {
-		return {implementation: a, scenario: b, results: c};
+var _mdgriffith$style_elements$ViewResults$Benched = F4(
+	function (a, b, c, d) {
+		return {implementation: a, scenario: b, results: c, run: d};
 	});
 var _mdgriffith$style_elements$ViewResults$BenchmarkResult = F8(
 	function (a, b, c, d, e, f, g, h) {
@@ -14095,50 +14160,59 @@ var _mdgriffith$style_elements$ViewResults$garbageCollectionDecoder = A3(
 	_elm_lang$core$Json_Decode$map2,
 	_mdgriffith$style_elements$ViewResults$GC,
 	A2(_elm_lang$core$Json_Decode$field, 'duration', _elm_lang$core$Json_Decode$float),
-	A2(_elm_lang$core$Json_Decode$field, 'reclaimed_bytes', _elm_lang$core$Json_Decode$int));
+	A2(_elm_lang$core$Json_Decode$field, 'reclaimed_bytes', _elm_lang$core$Json_Decode$float));
 var _mdgriffith$style_elements$ViewResults$benchmarkTimes = A9(
 	_elm_lang$core$Json_Decode$map8,
 	_mdgriffith$style_elements$ViewResults$BenchmarkResult,
-	A2(_elm_lang$core$Json_Decode$field, 'recalc_styles', _elm_lang$core$Json_Decode$float),
-	A2(_elm_lang$core$Json_Decode$field, 'total_time', _elm_lang$core$Json_Decode$float),
-	A2(_elm_lang$core$Json_Decode$field, 'layout', _elm_lang$core$Json_Decode$float),
-	A2(_elm_lang$core$Json_Decode$field, 'updateLayerTree', _elm_lang$core$Json_Decode$float),
-	A2(_elm_lang$core$Json_Decode$field, 'paint', _elm_lang$core$Json_Decode$float),
-	A2(_elm_lang$core$Json_Decode$field, 'js', _elm_lang$core$Json_Decode$float),
+	A2(_elm_lang$core$Json_Decode$field, 'recalc_styles', _mdgriffith$style_elements$ViewResults$timeInMs),
+	A2(_elm_lang$core$Json_Decode$field, 'total_time', _mdgriffith$style_elements$ViewResults$timeInMs),
+	A2(_elm_lang$core$Json_Decode$field, 'layout', _mdgriffith$style_elements$ViewResults$timeInMs),
+	A2(_elm_lang$core$Json_Decode$field, 'updateLayerTree', _mdgriffith$style_elements$ViewResults$timeInMs),
+	A2(_elm_lang$core$Json_Decode$field, 'paint', _mdgriffith$style_elements$ViewResults$timeInMs),
+	A2(_elm_lang$core$Json_Decode$field, 'js', _mdgriffith$style_elements$ViewResults$timeInMs),
 	A2(
 		_elm_lang$core$Json_Decode$field,
 		'gc',
 		_elm_lang$core$Json_Decode$list(_mdgriffith$style_elements$ViewResults$garbageCollectionDecoder)),
-	A2(_elm_lang$core$Json_Decode$field, 'parse_css', _elm_lang$core$Json_Decode$float));
-var _mdgriffith$style_elements$ViewResults$benchmarkResults = A4(
-	_elm_lang$core$Json_Decode$map3,
+	A2(_elm_lang$core$Json_Decode$field, 'parse_css', _mdgriffith$style_elements$ViewResults$timeInMs));
+var _mdgriffith$style_elements$ViewResults$benchmarkResults = A5(
+	_elm_lang$core$Json_Decode$map4,
 	_mdgriffith$style_elements$ViewResults$Benched,
 	A2(_elm_lang$core$Json_Decode$field, 'implementation', _elm_lang$core$Json_Decode$string),
 	A2(_elm_lang$core$Json_Decode$field, 'scenario', _elm_lang$core$Json_Decode$string),
-	A2(_elm_lang$core$Json_Decode$field, 'results', _mdgriffith$style_elements$ViewResults$benchmarkTimes));
+	A2(_elm_lang$core$Json_Decode$field, 'results', _mdgriffith$style_elements$ViewResults$benchmarkTimes),
+	A2(_elm_lang$core$Json_Decode$field, 'run', _elm_lang$core$Json_Decode$int));
 var _mdgriffith$style_elements$ViewResults$update = F2(
 	function (msg, model) {
-		var _p5 = msg;
-		if (_p5.ctor === 'NoOp') {
+		var _p7 = msg;
+		if (_p7.ctor === 'NoOp') {
 			return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 		} else {
-			var _p6 = A2(
+			var _p8 = A2(
 				_elm_lang$core$Json_Decode$decodeValue,
 				_elm_lang$core$Json_Decode$list(_mdgriffith$style_elements$ViewResults$benchmarkResults),
-				_p5._0);
-			if (_p6.ctor === 'Ok') {
+				_p7._0);
+			if (_p8.ctor === 'Ok') {
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{benchmarks: _p6._0}),
+						{benchmarks: _p8._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			} else {
-				var _p7 = A2(_elm_lang$core$Debug$log, 'malformed results!', _p6._0);
+				var _p9 = A2(_elm_lang$core$Debug$log, 'malformed results!', _p8._0);
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 			}
 		}
+	});
+var _mdgriffith$style_elements$ViewResults$Aggregated = F3(
+	function (a, b, c) {
+		return {label: a, values: b, runCount: c};
+	});
+var _mdgriffith$style_elements$ViewResults$Value = F3(
+	function (a, b, c) {
+		return {name: a, standardDeviation: b, mean: c};
 	});
 var _mdgriffith$style_elements$ViewResults$Parse = function (a) {
 	return {ctor: 'Parse', _0: a};
