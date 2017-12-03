@@ -10909,9 +10909,6 @@ var _mdgriffith$style_elements$Internal_Model$styleKey = function (style) {
 			return 'padding';
 	}
 };
-var _mdgriffith$style_elements$Internal_Model$Position = function (a) {
-	return {alignment: a};
-};
 var _mdgriffith$style_elements$Internal_Model$Gathered = function (a) {
 	return function (b) {
 		return function (c) {
@@ -10963,6 +10960,12 @@ var _mdgriffith$style_elements$Internal_Model$map = F2(
 				A2(_elm_lang$html$Html$map, fn, _p26._0));
 		}
 	});
+var _mdgriffith$style_elements$Internal_Model$AsEl = {ctor: 'AsEl'};
+var _mdgriffith$style_elements$Internal_Model$asEl = _mdgriffith$style_elements$Internal_Model$AsEl;
+var _mdgriffith$style_elements$Internal_Model$AsColumn = {ctor: 'AsColumn'};
+var _mdgriffith$style_elements$Internal_Model$asColumn = _mdgriffith$style_elements$Internal_Model$AsColumn;
+var _mdgriffith$style_elements$Internal_Model$AsRow = {ctor: 'AsRow'};
+var _mdgriffith$style_elements$Internal_Model$asRow = _mdgriffith$style_elements$Internal_Model$AsRow;
 var _mdgriffith$style_elements$Internal_Model$Embedded = F2(
 	function (a, b) {
 		return {ctor: 'Embedded', _0: a, _1: b};
@@ -10971,19 +10974,6 @@ var _mdgriffith$style_elements$Internal_Model$NodeName = function (a) {
 	return {ctor: 'NodeName', _0: a};
 };
 var _mdgriffith$style_elements$Internal_Model$Generic = {ctor: 'Generic'};
-var _mdgriffith$style_elements$Internal_Model$OnRow = function (a) {
-	return {ctor: 'OnRow', _0: a};
-};
-var _mdgriffith$style_elements$Internal_Model$OnColumn = function (a) {
-	return {ctor: 'OnColumn', _0: a};
-};
-var _mdgriffith$style_elements$Internal_Model$NoAlignment = {ctor: 'NoAlignment'};
-var _mdgriffith$style_elements$Internal_Model$CenterX = {ctor: 'CenterX'};
-var _mdgriffith$style_elements$Internal_Model$AlignRight = {ctor: 'AlignRight'};
-var _mdgriffith$style_elements$Internal_Model$AlignLeft = {ctor: 'AlignLeft'};
-var _mdgriffith$style_elements$Internal_Model$CenterY = {ctor: 'CenterY'};
-var _mdgriffith$style_elements$Internal_Model$AlignBottom = {ctor: 'AlignBottom'};
-var _mdgriffith$style_elements$Internal_Model$AlignTop = {ctor: 'AlignTop'};
 var _mdgriffith$style_elements$Internal_Model$PaddingStyle = F4(
 	function (a, b, c, d) {
 		return {ctor: 'PaddingStyle', _0: a, _1: b, _2: c, _3: d};
@@ -13985,30 +13975,14 @@ var _mdgriffith$style_elements$Main$viewStyle = function (x) {
 			x,
 			A2(
 				_mdgriffith$style_elements$Element$el,
-				{
-					ctor: '::',
-					_0: _mdgriffith$style_elements$Element_Color$text(_elm_lang$core$Color$blue),
-					_1: {
-						ctor: '::',
-						_0: _mdgriffith$style_elements$Element_Color$background(_elm_lang$core$Color$red),
-						_1: {
-							ctor: '::',
-							_0: _mdgriffith$style_elements$Element_Color$border(_elm_lang$core$Color$yellow),
-							_1: {
-								ctor: '::',
-								_0: _mdgriffith$style_elements$Element_Border$all(2),
-								_1: {ctor: '[]'}
-							}
-						}
-					}
-				},
+				{ctor: '[]'},
 				_mdgriffith$style_elements$Element$text('hello!'))));
 };
 var _mdgriffith$style_elements$Main$view = function (model) {
 	return A2(
 		_mdgriffith$style_elements$Element$layout,
 		{ctor: '[]'},
-		A2(_mdgriffith$style_elements$Element_Lazy$lazy, _mdgriffith$style_elements$Main$viewStyle, 10000));
+		_mdgriffith$style_elements$Main$viewStyle(10000));
 };
 var _mdgriffith$style_elements$Main$update = F2(
 	function (msg, model) {

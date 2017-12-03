@@ -12,9 +12,6 @@ module Main exposing (..)
 
 
 
-
-
-
 -}
 
 import Color exposing (..)
@@ -61,11 +58,11 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    Element.layoutMode Internal.WithVirtualCss
+    Element.layout
         []
-        (Element.Lazy.lazy viewStyle 10000)
+        (viewStyle 10000)
 
 
 viewStyle x =
     Element.column []
-        (List.repeat x (Element.el [ Color.text blue, Color.background red, Color.border yellow, Border.all 2 ] (Element.text "hello!")))
+        (List.repeat x (Element.el [] (Element.text "hello!")))

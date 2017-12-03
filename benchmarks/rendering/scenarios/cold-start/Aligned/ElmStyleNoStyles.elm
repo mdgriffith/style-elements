@@ -60,7 +60,7 @@ view : Model -> Html Msg
 view model =
     Element.layout
         []
-        (Element.Lazy.lazy viewStyle 10000)
+        (viewStyle 10000)
 
 
 viewStyle x =
