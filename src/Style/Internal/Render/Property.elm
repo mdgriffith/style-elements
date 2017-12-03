@@ -296,7 +296,7 @@ background prop =
             , ( "background-size"
               , case size of
                     Contain ->
-                        "container"
+                        "contain"
 
                     Cover ->
                         "cover"
