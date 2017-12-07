@@ -1,0 +1,92 @@
+<!doctype html>
+<html  lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+        .row {
+            display:flex;
+
+        }
+        .nav {
+            display:flex;
+            height: 200px;
+            background-color:#CCC;
+            align-items:center;
+        }
+
+        ul {
+            
+        }
+        li {
+            list-style-type: none;
+        }
+        .self-top {
+           align-self: flex-start;  
+        }
+        textarea {
+            width:200px;
+            /* white-space:nowrap; */
+            resize:none;
+        }
+        .warning {
+            color: red;
+        }
+
+        .input-container {
+            margin-bottom: 80px;
+        }
+
+        label {
+            display:block;
+        
+        }
+
+        .row {
+            display:flex;
+            flex-direction:row;
+        }
+
+        .column {
+            display:flex;
+            flex-direction:column;
+        }
+        
+        </style>
+    </head>
+    <body>
+        <label class="input-container column">
+            <div class="container row">
+                <!-- <input type="checkbox" checked aria-invalid="true"/> -->
+                <input type="text" aria-invalid="true"/> 
+                <div class="label-text">Terms and Conditions</div>
+            </div>
+            <div class="warning">Do it right</div>
+        </label>
+
+        <label class="input-container column">
+            
+            <!-- <input type="checkbox" checked aria-invalid="true"/> -->
+            <input type="text" aria-invalid="true"/> 
+            <div class="label-text">Terms and Conditions</div>
+           
+            <div class="warning">Do it right</div>
+        </label>
+
+        <label class="input-container column">
+            <div class="label-text">Terms and Conditions</div>
+            <!-- <input type="checkbox" checked aria-invalid="true"/> -->
+            <input type="text" aria-invalid="true"/> 
+            
+           
+            <div class="warning">Do it right</div>
+        </label>
+
+        
+
+      
+    </body>
+</html>
