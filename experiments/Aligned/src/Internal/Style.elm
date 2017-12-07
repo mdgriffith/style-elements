@@ -377,7 +377,10 @@ rules =
                             Within ->
                                 Descriptor (locationName loc)
                                     [ Prop "position" "absolute"
-                                    , Prop "display" "block"
+
+                                    -- , Prop "display" "block"
+                                    , Prop "width" "100%"
+                                    , Prop "height" "100%"
                                     , Prop "left" "0"
                                     , Prop "top" "0"
                                     , Prop "z-index" "10"
@@ -471,6 +474,14 @@ rules =
             ]
         , Class ".nearby"
             [ Prop "position" "absolute"
+            , Prop "width" "100%"
+            , Prop "height" "100%"
+            , Prop "pointer-events" "none"
+            ]
+        , Class ".modal"
+            [ Prop "position" "fixed"
+            , Prop "left" "0"
+            , Prop "top" "0"
             , Prop "width" "100%"
             , Prop "height" "100%"
             , Prop "pointer-events" "none"

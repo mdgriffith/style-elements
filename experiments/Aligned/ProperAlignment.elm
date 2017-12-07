@@ -20,6 +20,7 @@ main =
             ( Debug.log "init"
                 { timeline = 0
                 , trackingMouse = False
+                , checked = False
                 }
             , Cmd.none
             )
@@ -32,12 +33,16 @@ main =
 
 type Msg
     = NoOp
+    | Check Bool
 
 
 update msg model =
-    case msg of
+    case Debug.log "msg!" msg of
         NoOp ->
             ( model, Cmd.none )
+
+        Check checked ->
+            ( { model | checked = checked }, Cmd.none )
 
 
 
@@ -199,7 +204,18 @@ update msg model =
 
 
 view model =
-    layout [] <|
+    layout
+        [-- (overlay << when True) <|
+         -- el
+         --     [ width fill
+         --     , height fill
+         --     , Color.background (Color.rgba 0 0 0 0.3)
+         --     ]
+         -- <|
+         --     el [ Color.text Color.white ]
+         --         (text "Welcome!")
+        ]
+    <|
         column [ height fill ]
             [ row
                 [ height (px 100)
@@ -226,19 +242,34 @@ view model =
                     (text "Hello World!! BLABLABLABLABLABLBALA")
                 ]
             , el
-                [ --height (px 1000)
-                  centerY
+                [ height (px 1000)
+                , centerY
 
                 -- , alignLeft
                 ]
                 (text "MAIN CONTENT")
-
-            -- , Input.text [ center, width (px 800) ]
-            --     { text = "Helloooooo!"
-            --     , onChange = always NoOp
-            --     , placeholder = Nothing
-            --     , label = Input.LabelOnRight empty
-            --     }
+            , Input.button []
+                { onPress = Just NoOp
+                , label = text "Press Me!"
+                }
+            , Input.checkbox [ spacing 20 ]
+                { onChange = Just Check
+                , checked = model.checked
+                , icon = Nothing
+                , label = Input.labelRight [] (text "hello!")
+                , notice =
+                    Just <|
+                        Input.warningAbove [] (text "wut?")
+                }
+            , Input.text [ center, width (px 800) ]
+                { text = "Helloooooo!"
+                , onChange = Just <| always NoOp
+                , placeholder = Nothing
+                , label = Input.labelAbove [] (text "hello!")
+                , notice =
+                    Just <|
+                        Input.warningAbove [ alignLeft ] (text "wut?")
+                }
             , row
                 [ height (px 100)
                 , Color.background Color.green
@@ -256,11 +287,10 @@ view model =
                     []
                     (text "Hello World!!")
                 , el
-                    [ --height (px 8000)
-                      --   alignTop
-                      alignRight
+                    [ alignRight
                     ]
-                    (text "Hello World!! BLABLABLABLABLABLBALA")
+                  <|
+                    text "Hello World!! BLABLABLABLABLABLBALA"
                 ]
             , row
                 [ height (px 100)
@@ -286,6 +316,19 @@ view model =
                     (text "Hello World!! BLABLABLABLABLABLBALA")
                 ]
             ]
+
+
+test =
+    [ height (px 100)
+    , Color.background Color.green
+    , Color.text Color.white
+    , alignBottom
+    ]
+        == [ height (px 100)
+           , Color.background Color.green
+           , Color.text Color.white
+           , alignBottom
+           ]
 
 
 
