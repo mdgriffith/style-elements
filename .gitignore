@@ -9,3 +9,4 @@ index.html
 env
 test/html-generation/rendered/*.html
 benchmarks/rendering/staging
+ohno.png
