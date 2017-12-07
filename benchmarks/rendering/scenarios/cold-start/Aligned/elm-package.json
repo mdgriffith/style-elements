@@ -4,7 +4,7 @@
     "repository": "https://github.com/mdgriffith/style-elements.git",
     "license": "BSD3",
     "source-directories": [
-        "../../../experiments/Aligned/src",
+        "../../../../../experiments/Aligned/src",
         "."
     ],
     "exposed-modules": [],
