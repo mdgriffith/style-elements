@@ -135,68 +135,56 @@ whenJust maybe view =
 {-| -}
 empty : Element msg
 empty =
-    Internal.unstyled <| VirtualDom.text ""
+    -- Internal.unstyled <| VirtualDom.text ""
+    Empty
 
 
 {-| -}
 text : String -> Element msg
 text content =
-    Internal.unstyled <|
-        VirtualDom.node "div"
-            [ VirtualDom.property "className" (Json.string "se text width-fill") ]
-            [ VirtualDom.text content ]
+    Text content
+
+
+
+-- Internal.unstyled <|
+--     VirtualDom.node "div"
+--         [ VirtualDom.property "className" (Json.string "se text width-fill") ]
+--         [ VirtualDom.text content ]
 
 
 {-| -}
 el : List (Attribute msg) -> Element msg -> Element msg
 el attrs child =
-    element Internal.asEl
+    Internal.el
         Nothing
-        (htmlClass "se el"
-            :: Attributes.width shrink
+        (Attributes.width shrink
             :: Attributes.height shrink
             :: Attributes.centerY
             :: Attributes.center
             :: attrs
         )
-        [ child ]
+        child
 
 
 {-| -}
 row : List (Attribute msg) -> List (Element msg) -> Element msg
 row attrs children =
-    element Internal.asRow
-        Nothing
-        (htmlClass "se row"
-            :: Class "y-content-align" "content-top"
+    Internal.row
+        (Class "y-content-align" "content-top"
             :: Class "x-content-align" "content-center-x"
             -- :: Attributes.spacing 20
             :: Attributes.width fill
             :: attrs
         )
-        (unstyled
-            (VirtualDom.node "alignLeft"
-                [ Html.Attributes.class "se container align-container-left spacer" ]
-                []
-            )
-            :: children
-            ++ [ unstyled
-                    (VirtualDom.node "alignRight"
-                        [ Html.Attributes.class "se container align-container-right spacer" ]
-                        []
-                    )
-               ]
-        )
+        (rowEdgeFillers children)
 
 
 {-| -}
 column : List (Attribute msg) -> List (Element msg) -> Element msg
 column attrs children =
-    element Internal.asColumn
-        Nothing
-        (htmlClass "se column"
+    Internal.column
+        (Class "y-content-align" "content-top"
             -- :: Attributes.spacing 20
-            :: Class "y-content-align" "content-top"
             :: Attributes.height fill
             :: Attributes.width fill
             :: attrs
@@ -208,45 +196,45 @@ column attrs children =
 -}
 paragraph : List (Attribute msg) -> List (Element msg) -> Element msg
 paragraph attrs children =
-    element Internal.asEl (Just "p") (htmlClass "se paragraph" :: Attributes.width fill :: attrs) children
+    Internal.paragraph (htmlClass "se paragraph" :: Attributes.width fill :: attrs) children
 
 
 {-| -}
 textPage : List (Attribute msg) -> List (Element msg) -> Element msg
 textPage attrs children =
-    element Internal.asEl Nothing (htmlClass "se page" :: Attributes.width (px 650) :: attrs) children
+    Internal.textPage (Attributes.width (px 650) :: attrs) children
 
 
 {-| For images, both a source and a description are required. The description will serve as the alt-text.
 -}
 image : List (Attribute msg) -> { src : String, description : String } -> Element msg
 image attrs { src, description } =
-    element Internal.asEl
+    Internal.el
         Nothing
         attrs
-        [ Internal.unstyled <|
+        (Internal.unstyled <|
             VirtualDom.node "img"
                 [ Html.Attributes.src src
                 , Html.Attributes.alt description
                 ]
                 []
-        ]
+        )
 
 
 {-| If an image is purely decorative, you can skip the caption.
 -}
 decorativeImage : List (Attribute msg) -> { src : String } -> Element msg
 decorativeImage attrs { src } =
-    element Internal.asEl
+    Internal.el
         Nothing
         attrs
-        [ Internal.unstyled <|
+        (Internal.unstyled <|
             VirtualDom.node "img"
                 [ Html.Attributes.src src
                 , Html.Attributes.alt ""
                 ]
                 []
-        ]
+        )
 
 
 {-|
@@ -262,10 +250,9 @@ decorativeImage attrs { src } =
 -}
 link : List (Attribute msg) -> { url : String, label : Element msg } -> Element msg
 link attrs { url, label } =
-    element Internal.asEl
+    Internal.el
         (Just "a")
-        (htmlClass "se el"
-            :: Attr (Html.Attributes.href url)
+        (Attr (Html.Attributes.href url)
             :: Attr (Html.Attributes.rel "noopener noreferrer")
             :: Attributes.width shrink
             :: Attributes.height shrink
@@ -273,16 +260,15 @@ link attrs { url, label } =
             :: Attributes.center
             :: attrs
         )
-        [ label ]
+        label
 
 
 {-| -}
 newTabLink : List (Attribute msg) -> { url : String, label : Element msg } -> Element msg
 newTabLink attrs { url, label } =
-    element Internal.asEl
+    Internal.el
         (Just "a")
-        (htmlClass "se el"
-            :: Attr (Html.Attributes.href url)
+        (Attr (Html.Attributes.href url)
             :: Attr (Html.Attributes.rel "noopener noreferrer")
             :: Attr (Html.Attributes.target "_blank")
             :: Attributes.width shrink
@@ -291,7 +277,7 @@ newTabLink attrs { url, label } =
             :: Attributes.center
             :: attrs
         )
-        [ label ]
+        label
 
 
 {-|
@@ -304,10 +290,9 @@ newTabLink attrs { url, label } =
 -}
 download : List (Attribute msg) -> { url : String, label : Element msg } -> Element msg
 download attrs { url, label } =
-    element Internal.asEl
+    Internal.el
         (Just "a")
-        (htmlClass "se el"
-            :: Attr (Html.Attributes.href url)
+        (Attr (Html.Attributes.href url)
             :: Attr (Html.Attributes.download True)
             :: Attributes.width shrink
             :: Attributes.height shrink
@@ -315,7 +300,7 @@ download attrs { url, label } =
             :: Attributes.center
             :: attrs
         )
-        [ label ]
+        label
 
 
 {-|
@@ -329,10 +314,9 @@ download attrs { url, label } =
 -}
 downloadAs : List (Attribute msg) -> { label : Element msg, filename : String, url : String } -> Element msg
 downloadAs attrs { url, filename, label } =
-    element Internal.asEl
+    Internal.el
         (Just "a")
-        (htmlClass "se el"
-            :: Attr (Html.Attributes.href url)
+        (Attr (Html.Attributes.href url)
             :: Attr (Html.Attributes.downloadAs filename)
             :: Attributes.width shrink
             :: Attributes.height shrink
@@ -340,4 +324,4 @@ downloadAs attrs { url, filename, label } =
             :: Attributes.center
             :: attrs
         )
-        [ label ]
+        label

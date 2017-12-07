@@ -31,31 +31,147 @@ module Element.Attributes
 import Internal.Model as Internal exposing (..)
 
 
+{-| If we have this construct, it makes it easier to change states for something like a button.
+
+    el
+        [ Color.background blue
+        , onClick Send
+        , mixIf model.disabled
+            [ Color.background grey
+            , onClick NoOp
+            ]
+        ]
+
+Does it allow elimination of event handlers? Would have to rely on html behavior for that if it's true.
+
+People could implement systems that involve multiple properties being set together.
+
+Example of a disabled button
+
+    Input.button
+        [ Color.background
+            ( if disabled then
+                grey
+             else
+                blue
+            )
+        , Color.border
+            ( if disabled then
+                grey
+             else
+                blue
+            )
+        ]
+        { onPress = switch model.disabled Send
+        , label = text "Press me"
+        }
+
+Advantages: no new constructs(!)
+
+Disadvantages: could get verbose in the case of many properties set.
+
+  - How many properties would likely vary in this way?
+
+  - Would a `Color.palette {text, background, border}` go help?
+
+    Input.button
+    [ Color.palette
+    ( if disabled then
+    { background = grey
+    , text = darkGrey
+    , border = grey
+    }
+    else
+    { background = blue
+    , text = black
+    , border = blue
+    }
+    )
+    ]
+    { onPress = switch model.disabled Send
+    , label = text "Press me"
+    }
+
+-- with mixIf
+
+    Input.button
+        [ Color.background blue
+        , mixIf model.disabled
+            [ Color.background grey
+            ]
+        ]
+        { onPress = (if model.disabled then Nothing else Just Send )
+        , label = text "Press me"
+        }
+
+Advantages:
+
+  - Any properties can be set together.
+  - Would allow `above`/`below` type elements to be triggered manually.
+
+Disadvantages:
+
+  - Does binding certain properties together lead to a good experience?
+
+-}
+mixIf : Bool -> List (Attribute msg) -> List (Attribute msg)
+mixIf on attrs =
+    if on then
+        attrs
+    else
+        []
+
+
+{-| For the hover pseudoclass, the considerations:
+
+1.  What happens on mobile/touch devices?
+      - Let the platform handle it
+
+2.  We can make the hover event show a 'nearby', like 'below' or something.
+      - what happens on mobile? Do first clicks now perform that action?
+
+-}
+hover : List (Attribute msg) -> Attribute msg
+hover x =
+    hidden True
+
+
+{-| -}
+focus : List (Attribute msg) -> Attribute msg
+focus x =
+    hidden True
+
+
 description : String -> Attribute msg
 description =
     Describe << Label
 
 
+{-| -}
 below : Internal.Element msg -> Attribute msg
 below =
     Nearby Below
 
 
+{-| -}
 above : Internal.Element msg -> Attribute msg
 above =
     Nearby Above
 
 
+{-| -}
 onRight : Internal.Element msg -> Attribute msg
 onRight =
     Nearby OnRight
 
 
+{-| -}
 onLeft : Internal.Element msg -> Attribute msg
 onLeft =
     Nearby OnLeft
 
 
+{-| -}
 overlay : Internal.Element msg -> Attribute msg
 overlay =
     Nearby Overlay
@@ -63,32 +179,36 @@ overlay =
 
 {-| -}
 width : Length -> Attribute msg
-width len =
-    case len of
-        Px px ->
-            StyleClass (Single ("width-px-" ++ Internal.floatClass px) "width" (toString px ++ "px"))
+width =
+    Width
 
-        Content ->
-            Class "width" "width-content"
 
-        Fill portion ->
-            -- TODO: account for fill /= 1
-            Class "width" "width-fill"
+
+-- case len of
+--     Px px ->
+--         StyleClass (Single ("width-px-" ++ Internal.floatClass px) "width" (toString px ++ "px"))
+--     Content ->
+--         Class "width" "width-content"
+--     Fill portion ->
+--         -- TODO: account for fill /= 1
+--         Class "width" "width-fill"
 
 
 {-| -}
 height : Length -> Attribute msg
-height len =
-    case len of
-        Px px ->
-            StyleClass (Single ("height-px-" ++ Internal.floatClass px) "height" (toString px ++ "px"))
+height =
+    Height
 
-        Content ->
-            Class "height" "height-content"
 
-        Fill portion ->
-            -- TODO: account for fill /= 1
-            Class "height" "height-fill"
+
+-- case len of
+--     Px px ->
+--         StyleClass (Single ("height-px-" ++ Internal.floatClass px) "height" (toString px ++ "px"))
+--     Content ->
+--         Class "height" "height-content"
+--     Fill portion ->
+--         -- TODO: account for fill /= 1
+--         Class "height" "height-fill"
 
 
 {-| -}
@@ -134,6 +254,7 @@ paddingXY x y =
     StyleClass (PaddingStyle y x y x)
 
 
+{-| -}
 paddingEach : { bottom : Int, left : Int, right : Int, top : Int } -> Attribute msg
 paddingEach { top, right, bottom, left } =
     StyleClass (PaddingStyle top right bottom left)
@@ -142,7 +263,6 @@ paddingEach { top, right, bottom, left } =
 {-| -}
 center : Attribute msg
 center =
-    -- Class "x-align" "self-center-x"
     AlignX CenterX
 
 
@@ -152,14 +272,9 @@ centerY =
     AlignY CenterY
 
 
-
--- Class "y-align" "self-center-y"
-
-
 {-| -}
 alignTop : Attribute msg
 alignTop =
-    -- Class "y-align" "self-top"
     AlignY Top
 
 
@@ -169,21 +284,15 @@ alignBottom =
     AlignY Bottom
 
 
-
--- Class "y-align" "self-bottom"
-
-
 {-| -}
 alignLeft : Attribute msg
 alignLeft =
-    -- Class "x-align" "self-left"
     AlignX Left
 
 
 {-| -}
 alignRight : Attribute msg
 alignRight =
-    -- Class "x-align" "self-right"
     AlignX Right
 
 

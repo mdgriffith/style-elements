@@ -24,6 +24,8 @@ type Element msg
         -- , attributes : List (Html.Attribute msg)
         -- , children : List (Element msg)
         }
+    | Text String
+    | Empty
 
 
 
@@ -87,6 +89,8 @@ type Attribute msg
       -- Descriptions will add aria attributes and if the element is not a link, may set the node type.
     | AlignY VAlign
     | AlignX HAlign
+    | Width Length
+    | Height Length
     | Describe Description
     | Nearby Location (Element msg)
     | Move (Maybe Float) (Maybe Float) (Maybe Float)
@@ -118,6 +122,7 @@ type Description
     | Label String
     | LivePolite
     | LiveAssertive
+    | Button
 
 
 type FilterType
@@ -175,6 +180,12 @@ map fn el =
         Unstyled html ->
             Unstyled (Html.map fn << html)
 
+        Text str ->
+            Text str
+
+        Empty ->
+            Empty
+
 
 mapAttr : (msg -> msg1) -> Attribute msg -> Attribute msg1
 mapAttr fn attr =
@@ -190,6 +201,12 @@ mapAttr fn attr =
 
         AlignY y ->
             AlignY y
+
+        Width x ->
+            Width x
+
+        Height x ->
+            Height x
 
         -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
         Class x y ->
@@ -237,6 +254,12 @@ embed fn a =
 
         Styled styled ->
             styled.html (Just (toStyleSheetString styled.styles))
+
+        Text text ->
+            always (Html.text text)
+
+        Empty ->
+            always (Html.text "")
 
 
 {-| -}
@@ -340,6 +363,7 @@ addNodeName newNode old =
             Embedded x y
 
 
+alignXName : HAlign -> String
 alignXName align =
     case align of
         Left ->
@@ -352,6 +376,7 @@ alignXName align =
             "self-center-x"
 
 
+alignYName : VAlign -> String
 alignYName align =
     case align of
         Top ->
@@ -369,6 +394,56 @@ gatherAttributes attr gathered =
     case attr of
         NoAttribute ->
             gathered
+
+        Width width ->
+            if gathered.width == Nothing then
+                case width of
+                    Px px ->
+                        { gathered
+                            | width = Just width
+                            , attributes = VirtualDom.property "className" (Json.string ("width-px-" ++ floatClass px)) :: gathered.attributes
+                            , styles = Single (".width-px-" ++ floatClass px) "width" (toString px ++ "px") :: gathered.styles
+                        }
+
+                    Content ->
+                        { gathered
+                            | width = Just width
+                            , attributes = VirtualDom.property "className" (Json.string "width-content") :: gathered.attributes
+                        }
+
+                    Fill portion ->
+                        -- TODO: account for fill /= 1
+                        { gathered
+                            | width = Just width
+                            , attributes = VirtualDom.property "className" (Json.string "width-fill") :: gathered.attributes
+                        }
+            else
+                gathered
+
+        Height height ->
+            if gathered.height == Nothing then
+                case height of
+                    Px px ->
+                        { gathered
+                            | height = Just height
+                            , attributes = VirtualDom.property "className" (Json.string ("height-px-" ++ floatClass px)) :: gathered.attributes
+                            , styles = Single (".height-px-" ++ floatClass px) "height" (toString px ++ "px") :: gathered.styles
+                        }
+
+                    Content ->
+                        { gathered
+                            | height = Just height
+                            , attributes = VirtualDom.property "className" (Json.string "height-content") :: gathered.attributes
+                        }
+
+                    Fill portion ->
+                        -- TODO: account for fill /= 1
+                        { gathered
+                            | height = Just height
+                            , attributes = VirtualDom.property "className" (Json.string "height-fill") :: gathered.attributes
+                        }
+            else
+                gathered
 
         Describe description ->
             case description of
@@ -394,6 +469,9 @@ gatherAttributes attr gathered =
                     else
                         { gathered | node = addNodeName "h6" gathered.node }
 
+                Button ->
+                    { gathered | attributes = Html.Attributes.attribute "aria-role" "button" :: gathered.attributes }
+
                 Label label ->
                     { gathered | attributes = Html.Attributes.attribute "aria-label" label :: gathered.attributes }
 
@@ -405,22 +483,161 @@ gatherAttributes attr gathered =
 
         Nearby location elem ->
             case elem of
+                Empty ->
+                    gathered
+
+                Text str ->
+                    { gathered
+                        | nearbys =
+                            Just <|
+                                let
+                                    nearbyGroup =
+                                        case gathered.nearbys of
+                                            Nothing ->
+                                                { above = []
+                                                , below = []
+                                                , right = []
+                                                , left = []
+                                                , overlay = []
+                                                }
+
+                                            Just x ->
+                                                x
+                                in
+                                case location of
+                                    Above ->
+                                        { nearbyGroup
+                                            | above =
+                                                -- VirtualDom.node "div" [ Html.Attributes.class (locationClass location) ] [ html asEl ]
+                                                textElement str :: nearbyGroup.above
+                                        }
+
+                                    Below ->
+                                        { nearbyGroup
+                                            | below =
+                                                textElement str :: nearbyGroup.below
+                                        }
+
+                                    OnRight ->
+                                        { nearbyGroup
+                                            | right =
+                                                textElement str :: nearbyGroup.right
+                                        }
+
+                                    OnLeft ->
+                                        { nearbyGroup
+                                            | left =
+                                                textElement str :: nearbyGroup.left
+                                        }
+
+                                    Overlay ->
+                                        { nearbyGroup
+                                            | overlay =
+                                                textElement str :: nearbyGroup.overlay
+                                        }
+                    }
+
                 Unstyled html ->
                     { gathered
                         | nearbys =
-                            VirtualDom.node "div" [ Html.Attributes.class (locationClass location) ] [ html asEl ]
-                                :: gathered.nearbys
+                            Just <|
+                                let
+                                    nearbyGroup =
+                                        case gathered.nearbys of
+                                            Nothing ->
+                                                { above = []
+                                                , below = []
+                                                , right = []
+                                                , left = []
+                                                , overlay = []
+                                                }
+
+                                            Just x ->
+                                                x
+                                in
+                                case location of
+                                    Above ->
+                                        { nearbyGroup
+                                            | above =
+                                                -- VirtualDom.node "div" [ Html.Attributes.class (locationClass location) ] [ html asEl ]
+                                                html asEl :: nearbyGroup.above
+                                        }
+
+                                    Below ->
+                                        { nearbyGroup
+                                            | below =
+                                                html asEl :: nearbyGroup.below
+                                        }
+
+                                    OnRight ->
+                                        { nearbyGroup
+                                            | right =
+                                                html asEl :: nearbyGroup.right
+                                        }
+
+                                    OnLeft ->
+                                        { nearbyGroup
+                                            | left =
+                                                html asEl :: nearbyGroup.left
+                                        }
+
+                                    Overlay ->
+                                        { nearbyGroup
+                                            | overlay =
+                                                html asEl :: nearbyGroup.overlay
+                                        }
                     }
 
                 Styled styled ->
                     { gathered
                         | styles = gathered.styles ++ styled.styles
                         , nearbys =
-                            VirtualDom.node "div"
-                                [ Html.Attributes.class (locationClass location) ]
-                                [ styled.html Nothing asEl
-                                ]
-                                :: gathered.nearbys
+                            Just <|
+                                let
+                                    nearbyGroup =
+                                        case gathered.nearbys of
+                                            Nothing ->
+                                                { above = []
+                                                , below = []
+                                                , right = []
+                                                , left = []
+                                                , overlay = []
+                                                }
+
+                                            Just x ->
+                                                x
+                                in
+                                case location of
+                                    Above ->
+                                        { nearbyGroup
+                                            | above =
+                                                -- VirtualDom.node "div" [ Html.Attributes.class (locationClass location) ] [ html asEl ]
+                                                styled.html Nothing asEl :: nearbyGroup.above
+                                        }
+
+                                    Below ->
+                                        { nearbyGroup
+                                            | below =
+                                                styled.html Nothing asEl :: nearbyGroup.below
+                                        }
+
+                                    OnRight ->
+                                        { nearbyGroup
+                                            | right =
+                                                styled.html Nothing asEl :: nearbyGroup.right
+                                        }
+
+                                    OnLeft ->
+                                        { nearbyGroup
+                                            | left =
+                                                styled.html Nothing asEl :: nearbyGroup.left
+                                        }
+
+                                    Overlay ->
+                                        { nearbyGroup
+                                            | overlay =
+                                                styled.html Nothing asEl :: nearbyGroup.overlay
+                                        }
                     }
 
         StyleClass style ->
@@ -585,11 +802,22 @@ type NodeName
     | Embedded String String
 
 
+type alias NearbyGroup msg =
+    { above : List (Html msg)
+    , below : List (Html msg)
+    , right : List (Html msg)
+    , left : List (Html msg)
+    , overlay : List (Html msg)
+    }
+
+
 type alias Gathered msg =
     { attributes : List (Html.Attribute msg)
     , styles : List Style
     , alignment : Aligned
-    , nearbys : List (Html msg)
+    , width : Maybe Length
+    , height : Maybe Length
+    , nearbys : Maybe (NearbyGroup msg)
     , node : NodeName
     , filters : Maybe String
     , boxShadows : Maybe String
@@ -605,10 +833,37 @@ pair =
     (,)
 
 
+{-| Because of how it's constructed, we know that NearbyGroup is nonempty
+-}
+renderNearbyGroupAbsolute : NearbyGroup msg -> Html msg
+renderNearbyGroupAbsolute nearby =
+    let
+        create ( location, nodes ) =
+            case nodes of
+                [] ->
+                    Nothing
+
+                elements ->
+                    Just <|
+                        Html.div [ Html.Attributes.class (locationClass location) ] elements
+    in
+    Html.div [ Html.Attributes.class "se el nearby" ]
+        (List.filterMap create
+            [ ( Above, nearby.above )
+            , ( Below, nearby.below )
+            , ( OnLeft, nearby.left )
+            , ( OnRight, nearby.right )
+            , ( Overlay, nearby.overlay )
+            ]
+        )
+
+
 initGathered : Maybe String -> List Style -> Gathered msg
 initGathered maybeNodeName styles =
     { attributes = []
     , styles = styles
+    , width = Nothing
+    , height = Nothing
     , alignment = Unaligned
     , node =
         case maybeNodeName of
@@ -617,7 +872,7 @@ initGathered maybeNodeName styles =
 
             Just name ->
                 NodeName name
-    , nearbys = []
+    , nearbys = Nothing
     , rotation = Nothing
     , translation = Nothing
     , scale = Nothing
@@ -780,21 +1035,96 @@ renderAttributes node styles attributes =
                 |> formatTransformations
 
 
+rowEdgeFillers children =
+    unstyled
+        (VirtualDom.node "alignLeft"
+            [ Html.Attributes.class "se container align-container-left spacer" ]
+            []
+        )
+        :: children
+        ++ [ unstyled
+                (VirtualDom.node "alignRight"
+                    [ Html.Attributes.class "se container align-container-right spacer" ]
+                    []
+                )
+           ]
+
+
+getSpacing : List (Attribute msg) -> ( Int, Int ) -> Attribute msg
+getSpacing attrs default =
+    attrs
+        |> List.foldr
+            (\x acc ->
+                case acc of
+                    Just x ->
+                        Just x
+
+                    Nothing ->
+                        case x of
+                            StyleClass (SpacingStyle x y) ->
+                                Just ( x, y )
+
+                            _ ->
+                                Nothing
+            )
+            Nothing
+        |> Maybe.withDefault default
+        |> (\( x, y ) -> StyleClass (SpacingStyle x y))
+
+
+row : List (Attribute msg) -> List (Element msg) -> Element msg
+row attrs children =
+    element asRow Nothing (htmlClass "se row" :: attrs) children
+
+
+column : List (Attribute msg) -> List (Element msg) -> Element msg
+column attrs children =
+    element asColumn Nothing (htmlClass "se column" :: attrs) children
+
+
+el : Maybe String -> List (Attribute msg) -> Element msg -> Element msg
+el node attrs child =
+    element asEl node (htmlClass "se el" :: attrs) [ child ]
+
+
+paragraph : List (Attribute msg) -> List (Element msg) -> Element msg
+paragraph attrs children =
+    element asEl (Just "p") (htmlClass "se paragraph" :: attrs) children
+
+
+textPage : List (Attribute msg) -> List (Element msg) -> Element msg
+textPage attrs children =
+    element asEl Nothing (htmlClass "se page" :: attrs) children
+
+
+textElement : String -> VirtualDom.Node msg
+textElement str =
+    VirtualDom.node "div"
+        [ VirtualDom.property "className" (Json.string "se text width-fill") ]
+        [ VirtualDom.text str ]
+
+
+isOne ls =
+    case ls of
+        [] ->
+            True
+
+        x :: [] ->
+            True
+
+        _ ->
+            False
+
+
 element : LayoutContext -> Maybe String -> List (Attribute msg) -> List (Element msg) -> Element msg
 element context nodeName attributes children =
     let
-        -- htmlChildren =
-        --     List.foldr gather [] children
-        -- gather child htmls =
-        --     case child of
-        --         Unstyled html ->
-        --             html context :: htmls
-        --         Styled styled ->
-        --             styled.html Nothing context :: htmls
-        -- rendered =
-        --     renderAttributes nodeName [] attributes
+        rendered =
+            -- renderAttributes nodeName styleChildren attributes
+            renderAttributes nodeName [] attributes
+
         ( htmlChildren, styleChildren ) =
-            List.foldr gather ( [], [] ) children
+            List.foldr gather ( [], rendered.styles ) children
 
         gather child ( htmls, existingStyles ) =
             case child of
@@ -808,19 +1138,40 @@ element context nodeName attributes children =
                     , styled.styles ++ existingStyles
                     )
 
-        rendered =
-            renderAttributes nodeName styleChildren attributes
+                Text str ->
+                    -- TODO: TEXT OPTIMIZATION
+                    -- You can have raw text if the element is an el, and has `width-content` and `height-content`
+                    -- Same if it's a column or row with one child and width-content, height-content
+                    if rendered.width == Just Content && rendered.height == Just Content && isOne children then
+                        ( Html.text str
+                            :: htmls
+                        , existingStyles
+                        )
+                    else
+                        ( textElement str
+                            :: htmls
+                        , existingStyles
+                        )
+
+                Empty ->
+                    ( htmls, existingStyles )
+
+        renderedChildren =
+            case Maybe.map renderNearbyGroupAbsolute rendered.nearbys of
+                Nothing ->
+                    htmlChildren
+
+                Just nearby ->
+                    nearby :: htmlChildren
     in
-    case rendered.styles of
+    case styleChildren of
         [] ->
-            Unstyled <| renderNode rendered.alignment rendered.node rendered.attributes htmlChildren Nothing
+            Unstyled <| renderNode rendered.alignment rendered.node rendered.attributes renderedChildren Nothing
 
         _ ->
             Styled
-                { styles = rendered.styles
-                , html = renderNode rendered.alignment rendered.node rendered.attributes htmlChildren
-
-                -- , children = children
+                { styles = styleChildren
+                , html = renderNode rendered.alignment rendered.node rendered.attributes renderedChildren
                 }
 
 
@@ -857,6 +1208,16 @@ renderRoot mode attributes child =
 
                 Styled styled ->
                     ( styled.html Nothing asEl, styled.styles )
+
+                Text str ->
+                    ( VirtualDom.node "div"
+                        [ VirtualDom.property "className" (Json.string "se text width-fill") ]
+                        [ VirtualDom.text str ]
+                    , []
+                    )
+
+                Empty ->
+                    ( Html.text "", [] )
 
         rendered =
             renderAttributes Nothing styleChildren attributes
@@ -896,17 +1257,12 @@ renderRoot mode attributes child =
                         :: children
 
         children =
-            case rendered.nearbys of
-                [] ->
+            case Maybe.map renderNearbyGroupAbsolute rendered.nearbys of
+                Nothing ->
                     styleSheets [ htmlChildren ]
 
-                additional ->
-                    styleSheets <|
-                        htmlChildren
-                            :: [ VirtualDom.node "div"
-                                    [ VirtualDom.property "className" (Json.string "se el nearby") ]
-                                    additional
-                               ]
+                Just nearby ->
+                    styleSheets [ nearby, htmlChildren ]
     in
     renderNode rendered.alignment rendered.node rendered.attributes children Nothing asEl
 
@@ -920,7 +1276,7 @@ reduceStyles : Style -> ( Set String, List Style ) -> ( Set String, List Style )
 reduceStyles style ( cache, existing ) =
     case style of
         Style selector props ->
-            ( cache, existing )
+            ( cache, style :: existing )
 
         Single class prop val ->
             if Set.member class cache then
