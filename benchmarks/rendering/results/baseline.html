@@ -1,0 +1,44 @@
+<html>
+    <head>
+      <title>Rendering Benchmark Viewer</title>
+      <script src="elm.js"></script>
+    </head>
+    <style>
+        svg {
+            overflow: visible;
+        }
+        .ohno {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            opacity: 0;
+            transition: opacity 300ms;
+        }
+        .ohno:hover {
+            opacity:1;
+            
+        }
+        
+    </style>
+    
+    <body id="embed-elm">
+        <div id="elm"></div>
+        <img class="ohno" src="ohno.png" />
+    </body>
+    
+    <script type="text/javascript">
+
+        var node = document.getElementById('elm');
+
+        var data = [{"implementation": "InlineStyles", "scenario": "cold-start", "results": {"layout": 365382.0, "paint": 10447, "gc": [{"duration": 949.0, "reclaimed_bytes": 628768}, {"duration": 840.0, "reclaimed_bytes": 611208}, {"duration": 635.0, "reclaimed_bytes": 548584}, {"duration": 547.0, "reclaimed_bytes": 684872}, {"duration": 3625.0, "reclaimed_bytes": 1165136}], "recalc_styles": 358072.0, "updateLayerTree": 75943, "js": 471894.0, "parse_css": 13759.0, "total_time": 1295497.0}, "run": 1}, {"implementation": "StaticStyleSheet", "scenario": "cold-start", "results": {"layout": 237047.0, "paint": 14879, "gc": [{"duration": 1280.0, "reclaimed_bytes": 440608}, {"duration": 1506.0, "reclaimed_bytes": 130392}, {"duration": 811.0, "reclaimed_bytes": 918120}], "recalc_styles": 192886.0, "updateLayerTree": 66708, "js": 58682.0, "parse_css": 13551.0, "total_time": 583753.0}, "run": 1}, {"implementation": "trulyStatic", "scenario": "cold-start", "results": {"layout": 264609.0, "paint": 21286, "gc": [], "recalc_styles": 187388.0, "updateLayerTree": 118846, "js": 0, "parse_css": 13194.0, "total_time": 605323.0}, "run": 1}, {"implementation": "v4-StyleElements", "scenario": "cold-start", "results": {"layout": 265282.0, "paint": 13361, "gc": [{"duration": 1179.0, "reclaimed_bytes": 460992}, {"duration": 2224.0, "reclaimed_bytes": 126264}, {"duration": 994.0, "reclaimed_bytes": 461288}, {"duration": 647.0, "reclaimed_bytes": 1762632}, {"duration": 424.0, "reclaimed_bytes": 1903920}, {"duration": 547.0, "reclaimed_bytes": 1898096}, {"duration": 548.0, "reclaimed_bytes": 1897552}, {"duration": 396.0, "reclaimed_bytes": 1895056}, {"duration": 405.0, "reclaimed_bytes": 1893560}, {"duration": 425.0, "reclaimed_bytes": 1893872}, {"duration": 455.0, "reclaimed_bytes": 1894096}, {"duration": 385.0, "reclaimed_bytes": 1894080}, {"duration": 490.0, "reclaimed_bytes": 1892720}, {"duration": 620.0, "reclaimed_bytes": 3865528}, {"duration": 844.0, "reclaimed_bytes": 3779512}, {"duration": 862.0, "reclaimed_bytes": 3783808}, {"duration": 786.0, "reclaimed_bytes": 3784488}, {"duration": 888.0, "reclaimed_bytes": 3781504}, {"duration": 1434.0, "reclaimed_bytes": 3380072}, {"duration": 1589.0, "reclaimed_bytes": 3092296}, {"duration": 1157.0, "reclaimed_bytes": 3337832}, {"duration": 1095.0, "reclaimed_bytes": 3356072}, {"duration": 1682.0, "reclaimed_bytes": 7023200}, {"duration": 1766.0, "reclaimed_bytes": 6738976}, {"duration": 1902.0, "reclaimed_bytes": 6702128}, {"duration": 1999.0, "reclaimed_bytes": 6647920}, {"duration": 1880.0, "reclaimed_bytes": 6675520}, {"duration": 2012.0, "reclaimed_bytes": 6625296}, {"duration": 3283.0, "reclaimed_bytes": 14646584}, {"duration": 3673.0, "reclaimed_bytes": 13331224}, {"duration": 4784.0, "reclaimed_bytes": 13117784}], "recalc_styles": 413707.0, "updateLayerTree": 96618, "js": 2018781.0, "parse_css": 14113.0, "total_time": 2821862.0}, "run": 1}];
+
+        var app = Elm.ViewResults.embed(node);
+        // var app = Elm.ViewResults.fullscreen();
+       
+        app.ports.results.send(data);
+
+
+       
+    </script>
+</html>

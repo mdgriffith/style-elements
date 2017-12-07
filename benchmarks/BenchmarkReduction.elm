@@ -17,6 +17,7 @@ suite =
     describe "Stylesheet Hashing - 10k dicts of size ~2, with 3k potential keys"
         [ benchmark1 "merge dicts via foldr Dict.union" merge dicts
         , benchmark1 "dict insert ten things" insert10Things ()
+        , benchmark1 "list insert ten things" insert10ThingsList ()
 
         -- , benchmark1 "list check key Set when rendering, skip if found" reduceAndRenderList list
         -- , benchmark1 "tree reduce and render" reduceAndRenderTree shallowTree
@@ -66,17 +67,33 @@ formatColor color =
 
 
 insert10Things _ =
-    Dict.empty
-        |> Dict.insert 1 1
-        |> Dict.insert 2 2
-        |> Dict.insert 3 3
-        |> Dict.insert 4 4
-        |> Dict.insert 5 5
-        |> Dict.insert 6 6
-        |> Dict.insert 7 7
-        |> Dict.insert 8 8
-        |> Dict.insert 9 9
-        |> Dict.insert 10 10
+    Set.empty
+        |> Set.insert 1
+        |> Set.insert 2
+        |> Set.insert 3
+        |> Set.insert 4
+        |> Set.insert 5
+        |> Set.insert 6
+        |> Set.insert 7
+        |> Set.insert 8
+        |> Set.insert 9
+        |> Set.insert 10
+
+
+insert10ThingsList _ =
+    (1
+        :: 2
+        :: 3
+        :: 4
+        :: 5
+        :: 6
+        :: 7
+        :: 8
+        :: 9
+        :: 10
+        :: []
+    )
+        |> Set.fromList
 
 
 dictOne =
