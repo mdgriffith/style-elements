@@ -260,9 +260,10 @@ def compile(elm_file, scenario, implementation, directory=None):
     cwd = os.getcwd()
     print("compiling {file}".format(file=elm_file))
     description = scenario + "_" + implementation
-    output = join('staging', description.lower() + ".html")
+    output = join(cwd, 'staging', description.lower() + ".html")
 
     if directory is not None:
+        print("Moving to {directory}".format(directory=directory))
         os.chdir(directory)
     print("elm-make {elm_file} --yes --output {output}".format(elm_file=elm_file, output=output))
     code = subprocess.call("elm-make {elm_file} --yes --output {output}".format(elm_file=elm_file, output=output), shell=True)
@@ -273,9 +274,16 @@ def compile(elm_file, scenario, implementation, directory=None):
 
 
 def handle_file(filepath, scenario, implementation, directory=None ):
-    if isfile(filepath) and filepath.endswith('.elm'):
+
+    true_file = filepath
+    if directory is not None:
+        true_file = join(directory, filepath)
+
+
+    if isfile(true_file) and filepath.endswith('.elm'):
         return compile(filepath, scenario, implementation[:-4], directory=directory)
-    elif isfile(filepath) and filepath.endswith(".html"):
+    elif isfile(true_file) and filepath.endswith(".html"):
+        print("handled {file}".format(file=filepath))
 
         description = scenario + "_" + implementation[:-5]
         output = join(cwd , join('staging', description.lower() + ".html"))
@@ -293,11 +301,14 @@ def prepare_scenarios(directory):
             for implementation in listdir(concrete_scenario_dir):
                 filepath = join(concrete_scenario_dir, implementation)
 
+                print("    checking {impl}".format(impl=implementation))
+
                 if isdir(filepath):
                     for detail in listdir(filepath):
                         detail_filepath = join(filepath, detail)
                         if isfile(detail_filepath):
-                            handled = handle_file(detail_filepath, scenario, implementation + "-" + detail)
+                            print("   handling {file}".format(file=detail))
+                            handled = handle_file(detail, scenario, implementation + "-" + detail, directory=filepath)
                             if handled is not None:
                                 compiled_files.append(handled)
                 else:
