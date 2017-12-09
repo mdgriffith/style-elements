@@ -2,8 +2,9 @@ module Input exposing (..)
 
 {-| -}
 
+-- import Element.Attributes as Attributes
+
 import Element
-import Element.Attributes as Attributes
 import Element.Events as Events
 import Html
 import Html.Attributes
@@ -186,10 +187,10 @@ button attrs { onPress, label } =
         -- Because we have no way to disable keydown, though our messages get doubled.
         Nothing
         (htmlClass "se el"
-            :: Attributes.width Element.shrink
-            :: Attributes.height Element.shrink
-            :: Attributes.centerY
-            :: Attributes.center
+            :: Element.width Element.shrink
+            :: Element.height Element.shrink
+            :: Element.centerY
+            :: Element.center
             :: Describe Internal.Button
             :: Attr (Html.Attributes.tabindex 0)
             :: (case onPress of
@@ -239,7 +240,7 @@ checkbox attrs { label, icon, checked, onChange, notice } =
                 (Just "input")
                 [ Internal.Attr <| Html.Attributes.type_ "checkbox"
                 , Internal.Attr <| Html.Attributes.checked checked
-                , Attributes.centerY
+                , Element.centerY
                 ]
                 Element.empty
 
@@ -254,150 +255,6 @@ checkbox attrs { label, icon, checked, onChange, notice } =
                 :: attrs
     in
     positionLabels attributes label notice input
-
-
-positionLabels : List (Attribute msg) -> Label msg -> Maybe (Notice msg) -> Element msg -> Element msg
-positionLabels attributes label notice input =
-    let
-        spacing =
-            Internal.getSpacing attributes ( 5, 5 )
-
-        row children =
-            case children of
-                [] ->
-                    Nothing
-
-                el :: [] ->
-                    Just <| el
-
-                childs ->
-                    Just <| Element.row [ Attributes.width Element.fill, spacing ] childs
-
-        column children =
-            case children of
-                [] ->
-                    Nothing
-
-                el :: [] ->
-                    Just <| el
-
-                childs ->
-                    Just <| Element.column [ Attributes.width Element.fill, spacing ] childs
-
-        addToPosition position el group =
-            case position of
-                Above ->
-                    { group | above = el :: group.above }
-
-                Below ->
-                    { group | below = el :: group.below }
-
-                OnRight ->
-                    { group | right = el :: group.right }
-
-                OnLeft ->
-                    { group | left = el :: group.left }
-
-                Overlay ->
-                    { group | overlay = el :: group.overlay }
-
-        nearbyGroup =
-            case label of
-                Label position labelAttrs child ->
-                    { above = []
-                    , below = []
-                    , right = []
-                    , left = []
-                    , overlay = []
-                    }
-                        |> (\group ->
-                                case notice of
-                                    Nothing ->
-                                        group
-
-                                    Just (Notice position noticeAttrs child) ->
-                                        addToPosition position (Element.el (Attributes.alignLeft :: noticeAttrs) child) group
-                           )
-                        -- This step comes after the above because order matters for the layout
-                        |> addToPosition position (Element.el labelAttrs child)
-    in
-    if nearbyGroup.left == [] && nearbyGroup.right == [] then
-        Internal.element Internal.asColumn
-            (Just "label")
-            (htmlClass "se column"
-                :: Attributes.width Element.shrink
-                :: Attributes.height Element.shrink
-                :: Attributes.centerY
-                :: Attributes.center
-                :: attributes
-            )
-            (List.filterMap identity
-                [ row nearbyGroup.above
-                , Just input
-                , row nearbyGroup.below
-                ]
-            )
-    else if nearbyGroup.above == [] && nearbyGroup.below == [] then
-        Internal.element Internal.asRow
-            (Just "label")
-            (htmlClass "se row"
-                :: Attributes.width Element.shrink
-                :: Attributes.height Element.shrink
-                :: Attributes.centerY
-                :: Attributes.center
-                :: attributes
-            )
-            (rowEdgeFillers <|
-                List.filterMap identity
-                    [ column nearbyGroup.left
-                    , Just input
-                    , column nearbyGroup.right
-                    ]
-            )
-    else
-        Internal.element Internal.asColumn
-            (Just "label")
-            (htmlClass "se column"
-                :: Attributes.width Element.shrink
-                :: Attributes.height Element.shrink
-                :: Attributes.centerY
-                :: Attributes.center
-                :: attributes
-            )
-            (List.filterMap identity
-                [ row nearbyGroup.above
-                , row <|
-                    List.filterMap identity
-                        [ column nearbyGroup.left
-                        , Just input
-                        , column nearbyGroup.right
-                        ]
-                , row nearbyGroup.below
-                ]
-            )
-
-
-
--- text : List (Attribute msg) -> Text msg -> Element msg
--- text attrs { label, text, onChange, notice, placeholder } =
---     let
---         input =
---             Internal.el
---                 (Just "input")
---                 (Internal.Attr (Html.Attributes.type_ "text")
---                     :: attributes
---                 )
---                 Element.empty
---         attributes =
---             (case onChange of
---                 Nothing ->
---                     Attr (Html.Attributes.disabled True)
---                 Just checkMsg ->
---                     Attr (Html.Events.onInput checkMsg)
---             )
---                 :: attrs
---     in
---     positionLabels [] label notice input
 
 
 type TextType
@@ -420,12 +277,31 @@ type alias Text msg =
 
 
 textHelper : TextType -> List (Attribute msg) -> Text msg -> Element msg
-textHelper textType attrs { label, text, onChange, notice, placeholder } =
+textHelper textType attributes textOptions =
     let
-        textAttributes =
+        placeholder =
+            case textOptions.placeholder of
+                Nothing ->
+                    []
+
+                Just placeholder ->
+                    [ Element.overlay <|
+                        Element.when (textOptions.text == "") placeholder
+                    ]
+
+        behavior =
+            case textOptions.onChange of
+                Nothing ->
+                    [ Attr (Html.Attributes.disabled True) ]
+
+                Just checkMsg ->
+                    [ Attr (Html.Events.onInput checkMsg) ]
+
+        textTypeAttr =
             case textType of
                 Plain ->
-                    [ Internal.Attr (Html.Attributes.type_ "text") ]
+                    [ Internal.Attr (Html.Attributes.type_ "text")
+                    ]
 
                 Username ->
                     [ Internal.Attr (Html.Attributes.type_ "text")
@@ -454,22 +330,17 @@ textHelper textType attrs { label, text, onChange, notice, placeholder } =
         input =
             Internal.el
                 (Just "input")
-                (textAttributes
-                    ++ attributes
+                (List.concat
+                    [ [ value textOptions.text ]
+                    , textTypeAttr
+                    , behavior
+                    , placeholder
+                    , attributes
+                    ]
                 )
                 Element.empty
-
-        attributes =
-            (case onChange of
-                Nothing ->
-                    Attr (Html.Attributes.disabled True)
-
-                Just checkMsg ->
-                    Attr (Html.Events.onInput checkMsg)
-            )
-                :: attrs
     in
-    positionLabels [] label notice input
+    positionLabels [] textOptions.label textOptions.notice input
 
 
 {-| -}
@@ -485,7 +356,9 @@ search =
 
 
 {-| A password input that allows the browser to autofill.
+
 It's `newPassword` instead of just `password` because it gives the browser a hint on what type of password input it is.
+
 -}
 newPassword : List (Attribute msg) -> Text msg -> Element msg
 newPassword =
@@ -709,3 +582,124 @@ autofill =
 autofocus : Bool -> Attribute msg
 autofocus =
     Attr << Html.Attributes.autofocus
+
+
+positionLabels : List (Attribute msg) -> Label msg -> Maybe (Notice msg) -> Element msg -> Element msg
+positionLabels attributes label notice input =
+    let
+        spacing =
+            Internal.getSpacing attributes ( 5, 5 )
+
+        row children =
+            case children of
+                [] ->
+                    Nothing
+
+                el :: [] ->
+                    Just <| el
+
+                childs ->
+                    Just <| Element.row [ Element.width Element.fill, spacing ] childs
+
+        column children =
+            case children of
+                [] ->
+                    Nothing
+
+                el :: [] ->
+                    Just <| el
+
+                childs ->
+                    Just <| Element.column [ Element.width Element.fill, spacing ] childs
+
+        addToPosition position el group =
+            case position of
+                Above ->
+                    { group | above = el :: group.above }
+
+                Below ->
+                    { group | below = el :: group.below }
+
+                OnRight ->
+                    { group | right = el :: group.right }
+
+                OnLeft ->
+                    { group | left = el :: group.left }
+
+                Overlay ->
+                    { group | overlay = el :: group.overlay }
+
+        nearbyGroup =
+            case label of
+                Label position labelAttrs child ->
+                    { above = []
+                    , below = []
+                    , right = []
+                    , left = []
+                    , overlay = []
+                    }
+                        |> (\group ->
+                                case notice of
+                                    Nothing ->
+                                        group
+
+                                    Just (Notice position noticeAttrs child) ->
+                                        addToPosition position (Element.el (Element.alignLeft :: noticeAttrs) child) group
+                           )
+                        -- This step comes after the above because order matters for the layout
+                        |> addToPosition position (Element.el labelAttrs child)
+    in
+    if nearbyGroup.left == [] && nearbyGroup.right == [] then
+        Internal.element Internal.asColumn
+            (Just "label")
+            (htmlClass "se column"
+                :: Element.width Element.shrink
+                :: Element.height Element.shrink
+                :: Element.centerY
+                :: Element.center
+                :: attributes
+            )
+            (List.filterMap identity
+                [ row nearbyGroup.above
+                , Just input
+                , row nearbyGroup.below
+                ]
+            )
+    else if nearbyGroup.above == [] && nearbyGroup.below == [] then
+        Internal.element Internal.asRow
+            (Just "label")
+            (htmlClass "se row"
+                :: Element.width Element.shrink
+                :: Element.height Element.shrink
+                :: Element.centerY
+                :: Element.center
+                :: attributes
+            )
+            (rowEdgeFillers <|
+                List.filterMap identity
+                    [ column nearbyGroup.left
+                    , Just input
+                    , column nearbyGroup.right
+                    ]
+            )
+    else
+        Internal.element Internal.asColumn
+            (Just "label")
+            (htmlClass "se column"
+                :: Element.width Element.shrink
+                :: Element.height Element.shrink
+                :: Element.centerY
+                :: Element.center
+                :: attributes
+            )
+            (List.filterMap identity
+                [ row nearbyGroup.above
+                , row <|
+                    List.filterMap identity
+                        [ column nearbyGroup.left
+                        , Just input
+                        , column nearbyGroup.right
+                        ]
+                , row nearbyGroup.below
+                ]
+            )
