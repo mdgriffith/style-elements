@@ -429,6 +429,7 @@ rules =
         , Class (class Single)
             [ Prop "display" "flex"
             , Prop "flex-direction" "column"
+            , Prop "white-space" "pre"
             , Child ".height-fill"
                 [ Prop "flex-grow" "100000"
                 ]
@@ -703,12 +704,14 @@ rules =
             ]
         , Class (class Paragraph)
             [ Prop "display" "block"
+            , Prop "white-space" "normal"
             , Child (class Text)
                 [ Prop "display" "inline"
                 , Prop "white-space" "normal"
                 ]
             , Child (class Single)
                 [ Prop "display" "inline-flex"
+                , Prop "white-space" "normal"
                 , Child (class Text)
                     [ Prop "display" "inline"
                     , Prop "white-space" "normal"
