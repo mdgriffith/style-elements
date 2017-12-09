@@ -4,6 +4,7 @@ module Element.Font
         , alignRight
         , bold
         , center
+        , color
         , family
           -- , importUrl
         , italic
@@ -32,7 +33,7 @@ Meant to be imported as:
 
 ## Typefaces
 
-@docs typeface, font, serif, sansSerif, cursive, fantasy, monospace, importUrl
+@docs color, typeface, font, serif, sansSerif, cursive, fantasy, monospace, importUrl
 
 
 ## Properties
@@ -46,6 +47,7 @@ Meant to be imported as:
 
 -}
 
+import Color exposing (Color)
 import Internal.Model as Internal exposing (Attribute(..), Style(..))
 
 
@@ -55,6 +57,24 @@ type Font
     | Monospace
     | Typeface String
     | ImportFont String String
+
+
+
+-- {-| Text decoration color.
+-- -}
+-- decoration : Color -> Property
+-- decoration clr =
+--     Internal.Exact "text-decoration-color" (formatColor clr)
+-- {-| -}
+-- selection : Color -> Property
+-- selection clr =
+--     Internal.SelectionColor clr
+
+
+{-| -}
+color : Color -> Attribute msg
+color clr =
+    StyleClass (Colored ("text-color-" ++ Internal.formatColorClass clr) "color" clr)
 
 
 {-| -}
@@ -117,11 +137,6 @@ typeface =
 -- importUrl : { url : String, name : String } -> Font
 -- importUrl { url, name } =
 --     Internal.ImportFont name url
--- {-| Font size as `px`
--- -}
--- size : Float -> Attribute msg
--- size size =
---     Internal.SingletonStyle ("font-size-" ++ Internal.floatClass size) "font-size" (toString size ++ "px")
 
 
 {-| Font size as `px`
@@ -232,3 +247,28 @@ bold =
 light : Attribute msg
 light =
     Internal.class "text-light"
+
+
+{-| -}
+shadow :
+    { offset : ( Float, Float )
+    , blur : Float
+    , color : Color
+    }
+    -> Internal.Attribute msg
+shadow { offset, blur, color } =
+    Internal.TextShadow
+        { offset = offset
+        , blur = blur
+        , color = color
+        }
+
+
+{-| -}
+glow : Color -> Float -> Internal.Attribute msg
+glow color size =
+    Internal.TextShadow
+        { offset = ( 0, 0 )
+        , blur = size * 2
+        , color = color
+        }

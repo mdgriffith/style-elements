@@ -1,12 +1,17 @@
 module Element.Border
     exposing
         ( all
+        , color
         , dashed
         , dotted
         , each
+        , glow
+        , innerGlow
+        , innerShadow
         , none
         , roundEach
         , rounded
+        , shadow
         , solid
         )
 
@@ -29,7 +34,14 @@ module Element.Border
 
 -}
 
+import Color exposing (Color)
 import Internal.Model exposing (..)
+
+
+{-| -}
+color : Color -> Attribute msg
+color clr =
+    StyleClass (Colored ("border-color-" ++ formatColorClass clr) "border-color" clr)
 
 
 {-| -}
@@ -111,3 +123,81 @@ roundEach { topLeft, topRight, bottomLeft, bottomRight } =
                 ++ "px"
             )
         )
+
+
+{-| A simple glow by specifying the color and size.
+-}
+glow : Color -> Float -> Attribute msg
+glow color size =
+    box
+        { offset = ( 0, 0 )
+        , size = size
+        , blur = size * 2
+        , color = color
+        }
+
+
+{-| -}
+innerGlow : Color -> Float -> Attribute msg
+innerGlow color size =
+    innerShadow
+        { offset = ( 0, 0 )
+        , size = size
+        , blur = size * 2
+        , color = color
+        }
+
+
+{-| -}
+box :
+    { offset : ( Float, Float )
+    , size : Float
+    , blur : Float
+    , color : Color
+    }
+    -> Attribute msg
+box { offset, blur, color, size } =
+    BoxShadow
+        { inset = False
+        , offset = offset
+        , size = size
+        , blur = blur
+        , color = color
+        }
+
+
+{-| -}
+innerShadow :
+    { offset : ( Float, Float )
+    , size : Float
+    , blur : Float
+    , color : Color
+    }
+    -> Attribute msg
+innerShadow { offset, blur, color, size } =
+    BoxShadow
+        { inset = True
+        , offset = offset
+        , size = size
+        , blur = blur
+        , color = color
+        }
+
+
+{-| A drop shadow will add a shadow to whatever shape you give it.
+So, if you apply a drop shadow to an image with an alpha channel, the shadow will appear around the eges.
+-}
+shadow :
+    { offset : ( Float, Float )
+    , blur : Float
+    , color : Color
+    }
+    -> Attribute msg
+shadow { offset, blur, color } =
+    Filter <|
+        DropShadow
+            { offset = offset
+            , size = 0
+            , blur = blur
+            , color = color
+            }
