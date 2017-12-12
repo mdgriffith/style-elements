@@ -1,10 +1,13 @@
 module Main exposing (..)
 
-import Color exposing (Color)
+-- import Element.Attributes exposing (..)
+
+import Color exposing (..)
 import Element exposing (..)
 import Element.Area
-import Element.Attributes exposing (..)
-import Element.Color as Color
+import Element.Background as Background
+import Element.Events as Events
+import Element.Font as Font
 import Html exposing (Html)
 import Input as Input
 import Internal.Style as Internal
@@ -34,6 +37,7 @@ main =
 type Msg
     = NoOp
     | Check Bool
+    | Coords { x : Int, y : Int }
 
 
 update msg model =
@@ -43,6 +47,9 @@ update msg model =
 
         Check checked ->
             ( { model | checked = checked }, Cmd.none )
+
+        Coords coords ->
+            ( model, Cmd.none )
 
 
 
@@ -201,137 +208,158 @@ update msg model =
 
 
 -}
+-- view model =
+--     layout
+--         [ Background.color white
+--         , Font.color black
+--         ]
+--     <|
+--         el
+--             [ width (px 200)
+--             , height (px 200)
+--             , padding 10
+--             , Events.onMouseCoords Coords
+--             -- , Events.onMouseScreenCoords Coords
+--             , Background.color blue
+--             , Font.color white
+--             ]
+--             (text "Hello stylish friend!")
 
 
 view model =
     layout
-        [-- (overlay << when True) <|
-         -- el
-         --     [ width fill
-         --     , height fill
-         --     , Color.background (Color.rgba 0 0 0 0.3)
-         --     ]
-         -- <|
-         --     el [ Color.text Color.white ]
-         --         (text "Welcome!")
+        [ -- Modal logic.
+          -- Only shown when checked
+          inFront <|
+            el
+                [ width fill
+                , height fill
+                , behind <|
+                    el
+                        [ width fill
+                        , height fill
+                        , Background.color (Color.rgba 0 0 0 0.3)
+                        , Events.onClick (Check False)
+                        ]
+                        empty
+                ]
+            <|
+                el
+                    [ center
+                    , centerY
+                    , width (px 200)
+                    , height (px 200)
+                    , Font.color white
+                    , paddingXY 10 5
+                    , Background.color green
+                    , inFront <|
+                        el [] (text "wut?")
+                    ]
+                    (text "Welcome!")
         ]
     <|
-        column [ height fill ]
-            [ row
-                [ height (px 100)
-                , Color.background Color.green
-                , Color.text Color.white
-
-                -- , spaceEvenly
-                ]
-                [ link
-                    [ alignLeft
-                    , Element.Area.heading 1
-                    ]
-                    { url = "www.zombo.com"
-                    , label = text "Hello World!!"
-                    }
-                , el
-                    []
-                    (text "Hello World!!")
-                , el
-                    [ --height (px 8000)
-                      --   alignTop
-                      alignRight
-                    ]
-                    (text "Hello World!! BLABLABLABLABLABLBALA")
-                ]
-            , el
-                [ height (px 1000)
-                , centerY
-
-                -- , alignLeft
-                ]
-                (text "MAIN CONTENT")
-            , Input.button []
-                { onPress = Just NoOp
-                , label = text "Press Me!"
-                }
-            , Input.checkbox [ spacing 20 ]
-                { onChange = Just Check
-                , checked = model.checked
-                , icon = Nothing
-                , label = Input.labelRight [] (text "hello!")
-                , notice =
-                    Just <|
-                        Input.warningAbove [] (text "wut?")
-                }
-            , Input.text [ center, width (px 800) ]
-                { text = "Helloooooo!"
-                , onChange = Just <| always NoOp
-                , placeholder = Nothing
-                , label = Input.labelAbove [] (text "hello!")
-                , notice =
-                    Just <|
-                        Input.warningAbove [ alignLeft ] (text "wut?")
-                }
-            , row
-                [ height (px 100)
-                , Color.background Color.green
-                , Color.text Color.white
-                , alignBottom
-                ]
-                [ link
-                    [ alignLeft
-                    , Element.Area.heading 1
-                    ]
-                    { url = "www.zombo.com"
-                    , label = text "Hello World!!"
-                    }
-                , el
-                    []
-                    (text "Hello World!!")
-                , el
-                    [ alignRight
-                    ]
-                  <|
-                    text "Hello World!! BLABLABLABLABLABLBALA"
-                ]
-            , row
-                [ height (px 100)
-                , Color.background Color.green
-                , Color.text Color.white
-                , alignBottom
-                ]
-                [ link
-                    [ alignLeft
-                    , Element.Area.heading 1
-                    ]
-                    { url = "www.zombo.com"
-                    , label = text "Hello World!!"
-                    }
-                , el
-                    []
-                    (text "Hello World!!")
-                , el
-                    [ --height (px 8000)
-                      --   alignTop
-                      alignRight
-                    ]
-                    (text "Hello World!! BLABLABLABLABLABLBALA")
-                ]
-            ]
-
-
-test =
-    [ height (px 100)
-    , Color.background Color.green
-    , Color.text Color.white
-    , alignBottom
-    ]
-        == [ height (px 100)
-           , Color.background Color.green
-           , Color.text Color.white
-           , alignBottom
-           ]
+        text "I am the main page, damnit"
 
 
 
+-- column [ height fill ]
+--     [ row
+--         [ height (px 100)
+--         , Color.background Color.green
+--         , Color.text Color.white
+--         -- , spaceEvenly
+--         ]
+--         [ link
+--             [ alignLeft
+--             , Element.Area.heading 1
+--             ]
+--             { url = "www.zombo.com"
+--             , label = text "Hello World!!"
+--             }
+--         , el
+--             []
+--             (text "Hello World!!")
+--         , el
+--             [ --height (px 8000)
+--               --   alignTop
+--               alignRight
+--             ]
+--             (text "Hello World!! BLABLABLABLABLABLBALA")
+--         ]
+--     , el
+--         [ height (px 1000)
+--         , centerY
+--         -- , alignLeft
+--         ]
+--         (text "MAIN CONTENT")
+--     , Input.button []
+--         { onPress = Just NoOp
+--         , label = text "Press Me!"
+--         }
+--     , Input.checkbox [ spacing 20 ]
+--         { onChange = Just Check
+--         , checked = model.checked
+--         , icon = Nothing
+--         , label = Input.labelRight [] (text "hello!")
+--         , notice =
+--             Just <|
+--                 Input.warningAbove [] (text "wut?")
+--         }
+--     , Input.text [ center, width (px 800) ]
+--         { text = "Helloooooo!"
+--         , onChange = Just <| always NoOp
+--         , placeholder = Nothing
+--         , label = Input.labelAbove [] (text "hello!")
+--         , notice =
+--             Just <|
+--                 Input.warningAbove [ alignLeft ] (text "wut?")
+--         }
+--     , row
+--         [ height (px 100)
+--         , Color.background Color.green
+--         , Color.text Color.white
+--         , alignBottom
+--         ]
+--         [ link
+--             [ alignLeft
+--             , Element.Area.heading 1
+--             ]
+--             { url = "www.zombo.com"
+--             , label = text "Hello World!!"
+--             }
+--         , el
+--             []
+--             (text "Hello World!!")
+--         , el
+--             [ alignRight
+--             ]
+--           <|
+--             text "Hello World!! BLABLABLABLABLABLBALA"
+--         ]
+--     , row
+--         [ height (px 100)
+--         , Color.background Color.green
+--         , Color.text Color.white
+--         , alignBottom
+--         ]
+--         [ link
+--             [ alignLeft
+--             , Element.Area.heading 1
+--             ]
+--             { url = "www.zombo.com"
+--             , label = text "Hello World!!"
+--             }
+--         , el
+--             []
+--             (text "Hello World!!")
+--         , el
+--             [ --height (px 8000)
+--               --   alignTop
+--               alignRight
+--             ]
+--             (text "Hello World!! BLABLABLABLABLABLBALA")
+--         ]
+--     ]
 {-
    Needed in post-creation modification:
       - Layouttype for alignment
