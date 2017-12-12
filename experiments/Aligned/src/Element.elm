@@ -1,10 +1,14 @@
 module Element
     exposing
-        ( above
+        ( Attribute
+        , Element
+        , Length
+        , above
         , alignBottom
         , alignLeft
         , alignRight
         , alignTop
+        , behind
         , below
         , blur
         , center
@@ -18,6 +22,7 @@ module Element
         , fill
         , grayscale
         , height
+        , inFront
         , layout
         , layoutMode
         , link
@@ -28,7 +33,6 @@ module Element
         , newTabLink
         , onLeft
         , onRight
-        , overlay
         , padding
         , paddingEach
         , paddingXY
@@ -53,32 +57,44 @@ import Element.Background as Background
 import Element.Font as Font
 import Html exposing (Html)
 import Html.Attributes
-import Internal.Model as Internal exposing (..)
+import Internal.Model as Internal
 import VirtualDom
+
+
+type alias Element msg =
+    Internal.Element msg
+
+
+type alias Attribute msg =
+    Internal.Attribute msg
+
+
+type alias Length =
+    Internal.Length
 
 
 {-| -}
 px : Float -> Length
 px =
-    Px
+    Internal.Px
 
 
 {-| -}
 shrink : Length
 shrink =
-    Content
+    Internal.Content
 
 
 {-| -}
 fill : Length
 fill =
-    Fill 1
+    Internal.Fill 1
 
 
 {-| -}
-layoutMode : RenderMode -> List (Attribute msg) -> Element msg -> Html msg
+layoutMode : Internal.RenderMode -> List (Attribute msg) -> Element msg -> Html msg
 layoutMode mode attrs child =
-    renderRoot mode
+    Internal.renderRoot mode
         (Background.color Color.blue
             :: Font.color Color.white
             :: Font.size 20
@@ -87,7 +103,7 @@ layoutMode mode attrs child =
                 , Font.typeface "georgia"
                 , Font.serif
                 ]
-            :: htmlClass "style-elements se el"
+            :: Internal.htmlClass "style-elements se el"
             :: attrs
         )
         child
@@ -95,7 +111,7 @@ layoutMode mode attrs child =
 
 layout : List (Attribute msg) -> Element msg -> Html msg
 layout attrs child =
-    renderRoot Layout
+    Internal.renderRoot Internal.Layout
         (Background.color Color.blue
             :: Font.color Color.white
             :: Font.size 20
@@ -104,7 +120,7 @@ layout attrs child =
                 , Font.typeface "georgia"
                 , Font.serif
                 ]
-            :: htmlClass "style-elements se el"
+            :: Internal.htmlClass "style-elements se el"
             :: attrs
         )
         child
@@ -157,13 +173,13 @@ whenJust maybe view =
 {-| -}
 empty : Element msg
 empty =
-    Empty
+    Internal.Empty
 
 
 {-| -}
 text : String -> Element msg
 text content =
-    Text content
+    Internal.Text content
 
 
 {-| -}
@@ -185,19 +201,19 @@ row : List (Attribute msg) -> List (Element msg) -> Element msg
 row attrs children =
     Internal.row
         (--Class "y-content-align" "content-top"
-         Class "x-content-align" "content-center-x"
+         Internal.Class "x-content-align" "content-center-x"
             -- :: Attributes.spacing 20
             :: width fill
             :: attrs
         )
-        (rowEdgeFillers children)
+        (Internal.rowEdgeFillers children)
 
 
 {-| -}
 column : List (Attribute msg) -> List (Element msg) -> Element msg
 column attrs children =
     Internal.column
-        (Class "y-content-align" "content-top"
+        (Internal.Class "y-content-align" "content-top"
             -- :: Attributes.spacing 20
             :: height fill
             :: width fill
@@ -209,7 +225,7 @@ column attrs children =
 {-| -}
 paragraph : List (Attribute msg) -> List (Element msg) -> Element msg
 paragraph attrs children =
-    Internal.paragraph (htmlClass "se paragraph" :: width fill :: attrs) children
+    Internal.paragraph (Internal.htmlClass "se paragraph" :: width fill :: attrs) children
 
 
 {-| -}
@@ -262,8 +278,8 @@ link : List (Attribute msg) -> { url : String, label : Element msg } -> Element 
 link attrs { url, label } =
     Internal.el
         (Just "a")
-        (Attr (Html.Attributes.href url)
-            :: Attr (Html.Attributes.rel "noopener noreferrer")
+        (Internal.Attr (Html.Attributes.href url)
+            :: Internal.Attr (Html.Attributes.rel "noopener noreferrer")
             :: width shrink
             :: height shrink
             :: centerY
@@ -278,9 +294,9 @@ newTabLink : List (Attribute msg) -> { url : String, label : Element msg } -> El
 newTabLink attrs { url, label } =
     Internal.el
         (Just "a")
-        (Attr (Html.Attributes.href url)
-            :: Attr (Html.Attributes.rel "noopener noreferrer")
-            :: Attr (Html.Attributes.target "_blank")
+        (Internal.Attr (Html.Attributes.href url)
+            :: Internal.Attr (Html.Attributes.rel "noopener noreferrer")
+            :: Internal.Attr (Html.Attributes.target "_blank")
             :: width shrink
             :: height shrink
             :: centerY
@@ -302,8 +318,8 @@ download : List (Attribute msg) -> { url : String, label : Element msg } -> Elem
 download attrs { url, label } =
     Internal.el
         (Just "a")
-        (Attr (Html.Attributes.href url)
-            :: Attr (Html.Attributes.download True)
+        (Internal.Attr (Html.Attributes.href url)
+            :: Internal.Attr (Html.Attributes.download True)
             :: width shrink
             :: height shrink
             :: centerY
@@ -326,8 +342,8 @@ downloadAs : List (Attribute msg) -> { label : Element msg, filename : String, u
 downloadAs attrs { url, filename, label } =
     Internal.el
         (Just "a")
-        (Attr (Html.Attributes.href url)
-            :: Attr (Html.Attributes.downloadAs filename)
+        (Internal.Attr (Html.Attributes.href url)
+            :: Internal.Attr (Html.Attributes.downloadAs filename)
             :: width shrink
             :: height shrink
             :: centerY
@@ -339,43 +355,49 @@ downloadAs attrs { url, filename, label } =
 
 description : String -> Attribute msg
 description =
-    Describe << Label
+    Internal.Describe << Internal.Label
 
 
 {-| -}
 below : Internal.Element msg -> Attribute msg
 below =
-    Nearby Below
+    Internal.Nearby Internal.Below
 
 
 {-| -}
 above : Internal.Element msg -> Attribute msg
 above =
-    Nearby Above
+    Internal.Nearby Internal.Above
 
 
 {-| -}
 onRight : Internal.Element msg -> Attribute msg
 onRight =
-    Nearby OnRight
+    Internal.Nearby Internal.OnRight
 
 
 {-| -}
 onLeft : Internal.Element msg -> Attribute msg
 onLeft =
-    Nearby OnLeft
+    Internal.Nearby Internal.OnLeft
 
 
 {-| -}
-overlay : Internal.Element msg -> Attribute msg
-overlay =
-    Nearby Overlay
+inFront : Internal.Element msg -> Attribute msg
+inFront =
+    Internal.Nearby Internal.InFront
+
+
+{-| -}
+behind : Internal.Element msg -> Attribute msg
+behind =
+    Internal.Nearby Internal.Behind
 
 
 {-| -}
 width : Length -> Attribute msg
 width =
-    Width
+    Internal.Width
 
 
 
@@ -392,7 +414,7 @@ width =
 {-| -}
 height : Length -> Attribute msg
 height =
-    Height
+    Internal.Height
 
 
 
@@ -409,104 +431,104 @@ height =
 {-| -}
 moveUp : Float -> Attribute msg
 moveUp y =
-    Move Nothing (Just (negate y)) Nothing
+    Internal.Move Nothing (Just (negate y)) Nothing
 
 
 {-| -}
 moveDown : Float -> Attribute msg
 moveDown y =
-    Move Nothing (Just y) Nothing
+    Internal.Move Nothing (Just y) Nothing
 
 
 {-| -}
 moveRight : Float -> Attribute msg
 moveRight x =
-    Move (Just x) Nothing Nothing
+    Internal.Move (Just x) Nothing Nothing
 
 
 {-| -}
 moveLeft : Float -> Attribute msg
 moveLeft x =
-    Move (Just (negate x)) Nothing Nothing
+    Internal.Move (Just (negate x)) Nothing Nothing
 
 
 {-| -}
 rotate : Float -> Attribute msg
 rotate angle =
-    Rotate 0 0 1 angle
+    Internal.Rotate 0 0 1 angle
 
 
 {-| -}
 padding : Int -> Attribute msg
 padding x =
-    StyleClass (PaddingStyle x x x x)
+    Internal.StyleClass (Internal.PaddingStyle x x x x)
 
 
 {-| Set horizontal and vertical padding.
 -}
 paddingXY : Int -> Int -> Attribute msg
 paddingXY x y =
-    StyleClass (PaddingStyle y x y x)
+    Internal.StyleClass (Internal.PaddingStyle y x y x)
 
 
 {-| -}
 paddingEach : { bottom : Int, left : Int, right : Int, top : Int } -> Attribute msg
 paddingEach { top, right, bottom, left } =
-    StyleClass (PaddingStyle top right bottom left)
+    Internal.StyleClass (Internal.PaddingStyle top right bottom left)
 
 
 {-| -}
 center : Attribute msg
 center =
-    AlignX CenterX
+    Internal.AlignX Internal.CenterX
 
 
 {-| -}
 centerY : Attribute msg
 centerY =
-    AlignY CenterY
+    Internal.AlignY Internal.CenterY
 
 
 {-| -}
 alignTop : Attribute msg
 alignTop =
-    AlignY Top
+    Internal.AlignY Internal.Top
 
 
 {-| -}
 alignBottom : Attribute msg
 alignBottom =
-    AlignY Bottom
+    Internal.AlignY Internal.Bottom
 
 
 {-| -}
 alignLeft : Attribute msg
 alignLeft =
-    AlignX Left
+    Internal.AlignX Internal.Left
 
 
 {-| -}
 alignRight : Attribute msg
 alignRight =
-    AlignX Right
+    Internal.AlignX Internal.Right
 
 
 {-| -}
 spaceEvenly : Attribute msg
 spaceEvenly =
-    Class "x-align" "space-evenly"
+    Internal.Class "x-align" "space-evenly"
 
 
 {-| -}
 spacing : Int -> Attribute msg
 spacing x =
-    StyleClass (SpacingStyle x x)
+    Internal.StyleClass (Internal.SpacingStyle x x)
 
 
 {-| -}
 spacingXY : Int -> Int -> Attribute msg
 spacingXY x y =
-    StyleClass (SpacingStyle x y)
+    Internal.StyleClass (Internal.SpacingStyle x y)
 
 
 {-| -}
@@ -515,7 +537,7 @@ hidden on =
     if on then
         Internal.class "hidden"
     else
-        NoAttribute
+        Internal.NoAttribute
 
 
 
@@ -616,10 +638,10 @@ hidden on =
 {-| -}
 blur : Float -> Attribute msg
 blur x =
-    Filter (Blur x)
+    Internal.Filter (Internal.Blur x)
 
 
 {-| -}
 grayscale : Float -> Attribute msg
 grayscale x =
-    Filter (Grayscale x)
+    Internal.Filter (Internal.Grayscale x)
