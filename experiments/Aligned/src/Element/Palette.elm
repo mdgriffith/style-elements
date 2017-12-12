@@ -9,19 +9,7 @@ module Element.Palette exposing (..)
 -}
 
 import Color exposing (Color)
-
-
-{-| -}
-type Element palette msg
-    = Element
-
-
-{-| A way of protecting values so that the user can't construct them.
--}
-type Protected thing
-    = Protected thing
-    | Dynamic thing
-
+import Html exposing (Html)
 
 
 {- A General example using Color.background
@@ -57,41 +45,126 @@ type Element color msg
     = Element msg
 
 
-repaint : Palette -> Element color msg -> Element color msg
-repaint palette el =
-    el
+{-| A way of protecting values so that the user can't construct them.
+-}
+type Protected thing
+    = Protected thing
+    | Dynamic thing
 
 
-type Attribute color msg
-    = ColorStyle color
+dynamic : a -> b -> Protected a
+dynamic value palette =
+    Dynamic value
 
 
-type Palette
+
+-- repaint : Palette -> Element color msg -> Element color msg
+-- repaint palette el =
+--     el
+
+
+type Palette colors
     = Palette
-        { colors : ColorPalette
-        , spacing : SpacingPalette
+        { colors : colors
+
+        -- , colorName : colors -> Protected Color
+        , rendered : String
         }
 
 
 type SpacingPalette
-    = SpacingPalette
-
-
-type alias Attr msg =
-    Attribute Color msg
-
-
-type alias PaletteAttribute msg =
-    Attribute (ColorPalette -> Protected Color) msg
+    = SpacingPalette (List Int)
 
 
 type alias ColorPalette =
     { primary : Protected Color }
 
 
-dynamic : a -> b -> Protected a
-dynamic value palette =
-    Dynamic value
+formatColor : Color -> String
+formatColor color =
+    let
+        { red, green, blue, alpha } =
+            Color.toRgb color
+    in
+    ("rgba(" ++ toString red)
+        ++ ("," ++ toString green)
+        ++ ("," ++ toString blue)
+        ++ ("," ++ toString alpha ++ ")")
+
+
+
+-- myPalette : Palette { primary : Color }
+-- myPalette =
+--     Palette
+--         { colors =
+--             { primary = Color.blue
+--             , secondary = Color.red
+--             }
+--         , renderColors =
+--             \colors ->
+--                 formatColor colors.primary
+--                     ++ formatColor colors.secondary
+--         }
+
+
+colorsPalette =
+    { primary = Color.blue
+    , secondary = Color.red
+    }
+
+
+makePalette : a -> (a -> List Color) -> Palette a
+makePalette colors get =
+    Palette
+        { colors =
+            colors
+        , rendered =
+            get colors
+                |> List.foldr (\color acc -> formatColor color ++ acc) ""
+        }
+
+
+layout : Palette color -> Element color msg -> Html msg
+layout palette el =
+    Html.div []
+        [ Html.node "style" [] [ Html.text <| paletteToStyle palette ]
+        , renderEl palette el
+        ]
+
+
+paletteToStyle : Palette color -> String
+paletteToStyle (Palette { colors, rendered }) =
+    rendered
+
+
+renderEl palette el =
+    Html.text ""
+
+
+
+{-
+
+
+
+
+
+-}
+
+
+type Attribute color msg
+    = ColorStyle color
+
+
+{-| Concrete Values
+-}
+type alias Attr msg =
+    Attribute Color msg
+
+
+{-| Palette based attributes
+-}
+type alias PaletteAttribute msg =
+    Attribute (ColorPalette -> Protected Color) msg
 
 
 background : color -> Attribute color msg

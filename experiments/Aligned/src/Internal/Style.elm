@@ -45,6 +45,7 @@ type Location
     | OnRight
     | OnLeft
     | Within
+    | Behind
 
 
 locations =
@@ -68,12 +69,16 @@ locations =
 
                 Within ->
                     ()
+
+                Behind ->
+                    ()
     in
     [ Above
     , Below
     , OnRight
     , OnLeft
     , Within
+    , Behind
     ]
 
 
@@ -134,7 +139,10 @@ locationName loc =
             ".on-left"
 
         Within ->
-            ".overlay"
+            ".infront"
+
+        Behind ->
+            ".behind"
 
 
 describeAlignment values =
@@ -385,6 +393,18 @@ rules =
                                     , Prop "top" "0"
                                     , Prop "z-index" "10"
                                     ]
+
+                            Behind ->
+                                Descriptor (locationName loc)
+                                    [ Prop "position" "absolute"
+
+                                    -- , Prop "display" "block"
+                                    , Prop "width" "100%"
+                                    , Prop "height" "100%"
+                                    , Prop "left" "0"
+                                    , Prop "top" "0"
+                                    , Prop "z-index" "0"
+                                    ]
             , Descriptor ".bold"
                 [ Prop "font-weight" "700"
                 ]
@@ -475,6 +495,8 @@ rules =
             ]
         , Class ".nearby"
             [ Prop "position" "absolute"
+            , Prop "top" "0"
+            , Prop "left" "0"
             , Prop "width" "100%"
             , Prop "height" "100%"
             , Prop "pointer-events" "none"
