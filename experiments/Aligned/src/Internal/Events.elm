@@ -1,19 +1,10 @@
-module Element.Events
+module Internal.Events
     exposing
-        ( onClick
-        , onClickCoords
-        , onClickPageCoords
-        , onClickScreenCoords
-        , onDoubleClick
-        , onFocus
-        , onLoseFocus
-        , onMouseCoords
-        , onMouseDown
-        , onMouseEnter
-        , onMouseLeave
-        , onMousePageCoords
-        , onMouseScreenCoords
-        , onMouseUp
+        ( Options
+        , defaultOptions
+        , keyCode
+        , on
+        , onWithOptions
         )
 
 {-|
@@ -22,10 +13,6 @@ module Element.Events
 # Mouse Helpers
 
 @docs onClick, onDoubleClick, onMouseDown, onMouseUp, onMouseEnter, onMouseLeave
-
-@docs onClickCoords, onClickPageCoords, onClickScreenCoords
-
-@docs onMouseCoords, nMousePageCoords, onMouseScreenCoords
 
 
 # Focus Helpers
@@ -38,81 +25,6 @@ import Html.Events
 import Internal.Model as Internal exposing (Attr(..), Attribute)
 import Json.Decode as Json
 import VirtualDom
-
-
--- MOUSE EVENTS
-
-
-{-| -}
-onMouseDown : msg -> Attribute msg
-onMouseDown =
-    Attr << Html.Events.onMouseDown
-
-
-{-| -}
-onMouseUp : msg -> Attribute msg
-onMouseUp =
-    Attr << Html.Events.onMouseUp
-
-
-{-| -}
-onClick : msg -> Attribute msg
-onClick =
-    Attr << Html.Events.onClick
-
-
-{-| -}
-onDoubleClick : msg -> Attribute msg
-onDoubleClick =
-    Attr << Html.Events.onDoubleClick
-
-
-{-| -}
-onClickCoords : (Coords -> msg) -> Attribute msg
-onClickCoords msg =
-    on "click" (Json.map msg localCoords)
-
-
-{-| -}
-onClickScreenCoords : (Coords -> msg) -> Attribute msg
-onClickScreenCoords msg =
-    on "click" (Json.map msg screenCoords)
-
-
-{-| -}
-onClickPageCoords : (Coords -> msg) -> Attribute msg
-onClickPageCoords msg =
-    on "click" (Json.map msg pageCoords)
-
-
-{-| -}
-onMouseEnter : msg -> Attribute msg
-onMouseEnter =
-    Attr << Html.Events.onMouseEnter
-
-
-{-| -}
-onMouseLeave : msg -> Attribute msg
-onMouseLeave =
-    Attr << Html.Events.onMouseLeave
-
-
-{-| -}
-onMouseCoords : (Coords -> msg) -> Attribute msg
-onMouseCoords msg =
-    on "mousemove" (Json.map msg localCoords)
-
-
-{-| -}
-onMouseScreenCoords : (Coords -> msg) -> Attribute msg
-onMouseScreenCoords msg =
-    on "mousemove" (Json.map msg screenCoords)
-
-
-{-| -}
-onMousePageCoords : (Coords -> msg) -> Attribute msg
-onMousePageCoords msg =
-    on "mousemove" (Json.map msg pageCoords)
 
 
 type alias Coords =
@@ -139,22 +51,6 @@ pageCoords =
     Json.map2 Coords
         (Json.field "pageX" Json.int)
         (Json.field "pageY" Json.int)
-
-
-
--- FOCUS EVENTS
-
-
-{-| -}
-onLoseFocus : msg -> Attribute msg
-onLoseFocus =
-    Attr << Html.Events.onBlur
-
-
-{-| -}
-onFocus : msg -> Attribute msg
-onFocus =
-    Attr << Html.Events.onFocus
 
 
 

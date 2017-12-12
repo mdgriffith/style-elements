@@ -4,14 +4,14 @@ module Input exposing (..)
 
 -- import Element.Attributes as Attributes
 
-import Element
+import Element exposing (Attribute, Element)
 import Element.Events as Events
 import Html
 import Html.Attributes
 import Html.Events
-import Internal.Model as Internal exposing (..)
+import Internal.Events as Events
+import Internal.Model as Internal
 import Json.Decode as Json
-import VirtualDom
 
 
 -- {-| Base Attribute type
@@ -24,13 +24,8 @@ import VirtualDom
 --     Attr msg msg
 -- type alias NormalAttribute msg =
 --     Attr () msg
-
-
-type alias Attribute msg =
-    Internal.Attribute msg
-
-
-
+-- type alias Attribute msg =
+--     Internal.Attribute msg
 {- Control of attributes.
 
 
@@ -50,7 +45,7 @@ type alias Attribute msg =
    Autofill
        -> Maybe provide the most common categories as direct functions like we already do for username and password
 
-   Errors
+   Errors/ Warnings
        ->
 
    Labels
@@ -97,11 +92,18 @@ type alias Attribute msg =
 
 
 type Label msg
-    = Label Location (List (Attribute msg)) (Element msg)
+    = Label InputPosition (List (Attribute msg)) (Element msg)
 
 
 type Notice msg
-    = Notice Location (List (Attribute msg)) (Element msg)
+    = Notice InputPosition (List (Attribute msg)) (Element msg)
+
+
+type InputPosition
+    = OnRight
+    | OnLeft
+    | Above
+    | Below
 
 
 labelRight : List (Attribute msg) -> Element msg -> Label msg
@@ -180,22 +182,22 @@ The message will fire exactly once per enter key press when the key is lifted.
 -}
 button : List (Attribute msg) -> Button msg -> Element msg
 button attrs { onPress, label } =
-    element Internal.asEl
+    Internal.element Internal.asEl
         -- We don't explicitly label this node as a button,
         -- because buttons fire a bunch of times when you hold down the enter key.
         -- We'd like to fire just once on the enter key, which means using keyup instead of keydown.
         -- Because we have no way to disable keydown, though our messages get doubled.
         Nothing
-        (htmlClass "se el"
+        (Internal.htmlClass "se el"
             :: Element.width Element.shrink
             :: Element.height Element.shrink
             :: Element.centerY
             :: Element.center
-            :: Describe Internal.Button
-            :: Attr (Html.Attributes.tabindex 0)
+            :: Internal.Describe Internal.Button
+            :: Internal.Attr (Html.Attributes.tabindex 0)
             :: (case onPress of
                     Nothing ->
-                        Attr (Html.Attributes.disabled True) :: attrs
+                        Internal.Attr (Html.Attributes.disabled True) :: attrs
 
                     Just msg ->
                         Events.onClick msg
@@ -217,14 +219,6 @@ type alias Checkbox msg =
 
 
 {-| Your basic checkbox
-
-    Input.checkbox  []
-        { onChange = Just Check
-        , checked = model.checkbox
-        , icon = Nothing
-        , label = Input.label (text "hello!")
-        }
-
 -}
 checkbox : List (Attribute msg) -> Checkbox msg -> Element msg
 checkbox attrs { label, icon, checked, onChange, notice } =
@@ -247,10 +241,10 @@ checkbox attrs { label, icon, checked, onChange, notice } =
         attributes =
             (case onChange of
                 Nothing ->
-                    Attr (Html.Attributes.disabled True)
+                    Internal.Attr (Html.Attributes.disabled True)
 
                 Just checkMsg ->
-                    Attr (Html.Events.onCheck checkMsg)
+                    Internal.Attr (Html.Events.onCheck checkMsg)
             )
                 :: attrs
     in
@@ -285,17 +279,17 @@ textHelper textType attributes textOptions =
                     []
 
                 Just placeholder ->
-                    [ Element.overlay <|
+                    [ Element.inFront <|
                         Element.when (textOptions.text == "") placeholder
                     ]
 
         behavior =
             case textOptions.onChange of
                 Nothing ->
-                    [ Attr (Html.Attributes.disabled True) ]
+                    [ Internal.Attr (Html.Attributes.disabled True) ]
 
                 Just checkMsg ->
-                    [ Attr (Html.Events.onInput checkMsg) ]
+                    [ Internal.Attr (Html.Events.onInput checkMsg) ]
 
         textTypeAttr =
             case textType of
@@ -526,62 +520,62 @@ onFocusIn msg =
 
 type_ : String -> Attribute msg
 type_ =
-    Attr << Html.Attributes.type_
+    Internal.Attr << Html.Attributes.type_
 
 
 checked : Bool -> Attribute msg
 checked =
-    Attr << Html.Attributes.checked
+    Internal.Attr << Html.Attributes.checked
 
 
 selected : Bool -> Attribute msg
 selected =
-    Attr << Html.Attributes.selected
+    Internal.Attr << Html.Attributes.selected
 
 
 name : String -> Attribute msg
 name =
-    Attr << Html.Attributes.name
+    Internal.Attr << Html.Attributes.name
 
 
 value : String -> Attribute msg
 value =
-    Attr << Html.Attributes.value
+    Internal.Attr << Html.Attributes.value
 
 
 textValue : String -> Attribute msg
 textValue =
-    Attr << Html.Attributes.defaultValue
+    Internal.Attr << Html.Attributes.defaultValue
 
 
 tabindex : Int -> Attribute msg
 tabindex =
-    Attr << Html.Attributes.tabindex
+    Internal.Attr << Html.Attributes.tabindex
 
 
 disabled : Bool -> Attribute msg
 disabled =
-    Attr << Html.Attributes.disabled
+    Internal.Attr << Html.Attributes.disabled
 
 
 spellcheck : Bool -> Attribute msg
 spellcheck =
-    Attr << Html.Attributes.spellcheck
+    Internal.Attr << Html.Attributes.spellcheck
 
 
 readonly : Bool -> Attribute msg
 readonly =
-    Attr << Html.Attributes.readonly
+    Internal.Attr << Html.Attributes.readonly
 
 
 autofill : String -> Attribute msg
 autofill =
-    Attr << Html.Attributes.attribute "autocomplete"
+    Internal.Attr << Html.Attributes.attribute "autocomplete"
 
 
 autofocus : Bool -> Attribute msg
 autofocus =
-    Attr << Html.Attributes.autofocus
+    Internal.Attr << Html.Attributes.autofocus
 
 
 positionLabels : List (Attribute msg) -> Label msg -> Maybe (Notice msg) -> Element msg -> Element msg
@@ -626,9 +620,6 @@ positionLabels attributes label notice input =
                 OnLeft ->
                     { group | left = el :: group.left }
 
-                Overlay ->
-                    { group | overlay = el :: group.overlay }
-
         nearbyGroup =
             case label of
                 Label position labelAttrs child ->
@@ -636,7 +627,6 @@ positionLabels attributes label notice input =
                     , below = []
                     , right = []
                     , left = []
-                    , overlay = []
                     }
                         |> (\group ->
                                 case notice of
@@ -652,7 +642,7 @@ positionLabels attributes label notice input =
     if nearbyGroup.left == [] && nearbyGroup.right == [] then
         Internal.element Internal.asColumn
             (Just "label")
-            (htmlClass "se column"
+            (Internal.htmlClass "se column"
                 :: Element.width Element.shrink
                 :: Element.height Element.shrink
                 :: Element.centerY
@@ -668,14 +658,14 @@ positionLabels attributes label notice input =
     else if nearbyGroup.above == [] && nearbyGroup.below == [] then
         Internal.element Internal.asRow
             (Just "label")
-            (htmlClass "se row"
+            (Internal.htmlClass "se row"
                 :: Element.width Element.shrink
                 :: Element.height Element.shrink
                 :: Element.centerY
                 :: Element.center
                 :: attributes
             )
-            (rowEdgeFillers <|
+            (Internal.rowEdgeFillers <|
                 List.filterMap identity
                     [ column nearbyGroup.left
                     , Just input
@@ -685,7 +675,7 @@ positionLabels attributes label notice input =
     else
         Internal.element Internal.asColumn
             (Just "label")
-            (htmlClass "se column"
+            (Internal.htmlClass "se column"
                 :: Element.width Element.shrink
                 :: Element.height Element.shrink
                 :: Element.centerY
