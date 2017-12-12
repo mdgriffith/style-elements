@@ -7,6 +7,7 @@ module Element.Font
         , color
         , family
           -- , importUrl
+        , glow
         , italic
         , justify
         , justifyAll
@@ -16,6 +17,7 @@ module Element.Font
         , monospace
         , sansSerif
         , serif
+        , shadow
         , size
         , strike
         , typeface
@@ -43,12 +45,12 @@ Meant to be imported as:
 
 ## Font Styles
 
-@docs uppercase, capitalize, lowercase, underline, strike, italic, bold, weight, light
+@docs underline, strike, italic, bold, weight, light
 
 -}
 
 import Color exposing (Color)
-import Internal.Model as Internal exposing (Attribute(..), Style(..))
+import Internal.Model as Internal exposing (Attr(..), Attribute, Style(..))
 
 
 type Font
