@@ -205,7 +205,7 @@ button attrs { onPress, label } =
                             :: attrs
                )
         )
-        [ label ]
+        (Internal.Unkeyed [ label ])
 
 
 {-| -}
@@ -649,11 +649,12 @@ positionLabels attributes label notice input =
                 :: Element.center
                 :: attributes
             )
-            (List.filterMap identity
-                [ row nearbyGroup.above
-                , Just input
-                , row nearbyGroup.below
-                ]
+            (Internal.Unkeyed <|
+                List.filterMap identity
+                    [ row nearbyGroup.above
+                    , Just input
+                    , row nearbyGroup.below
+                    ]
             )
     else if nearbyGroup.above == [] && nearbyGroup.below == [] then
         Internal.element Internal.asRow
@@ -665,12 +666,13 @@ positionLabels attributes label notice input =
                 :: Element.center
                 :: attributes
             )
-            (Internal.rowEdgeFillers <|
-                List.filterMap identity
-                    [ column nearbyGroup.left
-                    , Just input
-                    , column nearbyGroup.right
-                    ]
+            (Internal.Unkeyed <|
+                Internal.rowEdgeFillers <|
+                    List.filterMap identity
+                        [ column nearbyGroup.left
+                        , Just input
+                        , column nearbyGroup.right
+                        ]
             )
     else
         Internal.element Internal.asColumn
@@ -682,14 +684,15 @@ positionLabels attributes label notice input =
                 :: Element.center
                 :: attributes
             )
-            (List.filterMap identity
-                [ row nearbyGroup.above
-                , row <|
-                    List.filterMap identity
-                        [ column nearbyGroup.left
-                        , Just input
-                        , column nearbyGroup.right
-                        ]
-                , row nearbyGroup.below
-                ]
+            (Internal.Unkeyed <|
+                List.filterMap identity
+                    [ row nearbyGroup.above
+                    , row <|
+                        List.filterMap identity
+                            [ column nearbyGroup.left
+                            , Just input
+                            , column nearbyGroup.right
+                            ]
+                    , row nearbyGroup.below
+                    ]
             )
