@@ -313,6 +313,7 @@ rules =
             ]
         , Class (class Any)
             [ Prop "position" "relative"
+            , Prop "flex-shrink" "0"
             , Prop "display" "flex"
             , Prop "flex-direction" "row"
             , Prop "box-sizing" "border-box"
@@ -343,21 +344,26 @@ rules =
                             Above ->
                                 Descriptor (locationName loc)
                                     [ Prop "position" "absolute"
-                                    , Prop "display" "block"
                                     , Prop "top" "0"
+                                    , Prop "left" "0"
                                     , Prop "height" "0"
+                                    , Prop "width" "100%"
                                     , Prop "z-index" "10"
                                     , Child ".height-fill"
                                         [ Prop "height" "auto"
+                                        ]
+                                    , Child ".se"
+                                        [ Prop "position" "absolute"
+                                        , Prop "bottom" "0"
                                         ]
                                     ]
 
                             Below ->
                                 Descriptor (locationName loc)
                                     [ Prop "position" "absolute"
-                                    , Prop "display" "block"
                                     , Prop "bottom" "0"
                                     , Prop "height" "0"
+                                    , Prop "width" "100%"
                                     , Prop "z-index" "10"
                                     , Child ".height-fill"
                                         [ Prop "height" "auto"
@@ -367,18 +373,16 @@ rules =
                             OnRight ->
                                 Descriptor (locationName loc)
                                     [ Prop "position" "absolute"
-                                    , Prop "display" "block"
                                     , Prop "left" "100%"
-                                    , Prop "width" "0"
+                                    , Prop "height" "100%"
                                     , Prop "z-index" "10"
                                     ]
 
                             OnLeft ->
                                 Descriptor (locationName loc)
                                     [ Prop "position" "absolute"
-                                    , Prop "display" "block"
                                     , Prop "right" "100%"
-                                    , Prop "width" "0"
+                                    , Prop "height" "100%"
                                     , Prop "z-index" "10"
                                     ]
 
@@ -523,11 +527,6 @@ rules =
             , Child ".width-fill"
                 [ Prop "flex-grow" "100000"
                 ]
-
-            -- this is to help with spacing
-            -- , Child ".se:first-child.spacer"
-            --     [ Prop "margin-left" "0"
-            --     ]
             , Child ".spacer"
                 [ Prop "margin-left" "0 !important"
                 ]
@@ -582,9 +581,6 @@ rules =
                             ( [ Prop "justify-content" "center"
                               ]
                             , []
-                              -- , [ Prop "margin-left" "auto"
-                              --   , Prop "margin-right" "auto"
-                              --   ]
                             )
 
                         CenterY ->
@@ -625,8 +621,20 @@ rules =
             , Child "alignBottom:first-of-type.align-container-bottom"
                 [ Prop "flex-grow" "1"
                 ]
-            , Child "alignBottom.align-container-bottom"
-                [ Prop "flex-basis" "auto"
+            , Child ".teleporting-spacer"
+                [ Prop "flex-grow" "0"
+                ]
+            , Child ".se.self-center-y:first-child ~ .teleporting-spacer"
+                [ Prop "flex-grow" "1"
+                , Prop "order" "-1"
+                ]
+            , Child ".se.nearby + .se.self-center-y ~ .teleporting-spacer"
+                [ Prop "flex-grow" "1"
+                , Prop "order" "-1"
+                ]
+            , Child ".stylesheet + .se.self-center-y ~ .teleporting-spacer"
+                [ Prop "flex-grow" "1"
+                , Prop "order" "-1"
                 ]
             , describeAlignment <|
                 \alignment ->
@@ -659,9 +667,7 @@ rules =
 
                         CenterY ->
                             ( [ Prop "justify-content" "center" ]
-                            , [ Prop "margin-top" "auto"
-                              , Prop "margin-bottom" "auto"
-                              ]
+                            , []
                             )
             , Child ".container"
                 [ Prop "flex-grow" "0"

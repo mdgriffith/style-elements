@@ -121,6 +121,8 @@ layout attrs child =
                 , Font.serif
                 ]
             :: Internal.htmlClass "style-elements se el"
+            :: Internal.Class "x-content-align" "content-center-x"
+            :: Internal.Class "y-content-align" "content-center-y"
             :: attrs
         )
         child
@@ -189,8 +191,10 @@ el attrs child =
         Nothing
         (width shrink
             :: height shrink
-            :: centerY
+            -- :: centerY
             :: center
+            :: Internal.Class "x-content-align" "content-center-x"
+            :: Internal.Class "y-content-align" "content-center-y"
             :: attrs
         )
         child
@@ -200,13 +204,12 @@ el attrs child =
 row : List (Attribute msg) -> List (Element msg) -> Element msg
 row attrs children =
     Internal.row
-        (--Class "y-content-align" "content-top"
-         Internal.Class "x-content-align" "content-center-x"
-            -- :: Attributes.spacing 20
+        (Internal.Class "x-content-align" "content-center-x"
+            :: Internal.Class "y-content-align" "content-center-y"
             :: width fill
             :: attrs
         )
-        (Internal.rowEdgeFillers children)
+        (Internal.Unkeyed <| Internal.rowEdgeFillers children)
 
 
 {-| -}
@@ -214,24 +217,24 @@ column : List (Attribute msg) -> List (Element msg) -> Element msg
 column attrs children =
     Internal.column
         (Internal.Class "y-content-align" "content-top"
-            -- :: Attributes.spacing 20
+            :: Internal.Class "x-content-align" "content-center-x"
             :: height fill
             :: width fill
             :: attrs
         )
-        children
+        (Internal.Unkeyed <| Internal.columnEdgeFillers children)
 
 
 {-| -}
 paragraph : List (Attribute msg) -> List (Element msg) -> Element msg
 paragraph attrs children =
-    Internal.paragraph (Internal.htmlClass "se paragraph" :: width fill :: attrs) children
+    Internal.paragraph (Internal.htmlClass "se paragraph" :: width fill :: attrs) (Internal.Unkeyed children)
 
 
 {-| -}
 textPage : List (Attribute msg) -> List (Element msg) -> Element msg
 textPage attrs children =
-    Internal.textPage (width (px 650) :: attrs) children
+    Internal.textPage (width (px 650) :: attrs) (Internal.Unkeyed children)
 
 
 {-| For images, both a source and a description are required. The description will serve as the alt-text.
@@ -353,6 +356,7 @@ downloadAs attrs { url, filename, label } =
         label
 
 
+{-| -}
 description : String -> Attribute msg
 description =
     Internal.Describe << Internal.Label
@@ -400,32 +404,10 @@ width =
     Internal.Width
 
 
-
--- case len of
---     Px px ->
---         StyleClass (Single ("width-px-" ++ Internal.floatClass px) "width" (toString px ++ "px"))
---     Content ->
---         Class "width" "width-content"
---     Fill portion ->
---         -- TODO: account for fill /= 1
---         Class "width" "width-fill"
-
-
 {-| -}
 height : Length -> Attribute msg
 height =
     Internal.Height
-
-
-
--- case len of
---     Px px ->
---         StyleClass (Single ("height-px-" ++ Internal.floatClass px) "height" (toString px ++ "px"))
---     Content ->
---         Class "height" "height-content"
---     Fill portion ->
---         -- TODO: account for fill /= 1
---         Class "height" "height-fill"
 
 
 {-| -}

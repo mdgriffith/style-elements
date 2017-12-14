@@ -380,12 +380,12 @@ renderNode alignment node attrs children styles context =
 
                 Aligned (Just Left) _ ->
                     VirtualDom.node "alignLeft"
-                        [ Html.Attributes.class "se el container align-container-left" ]
+                        [ Html.Attributes.class "se el container align-container-left content-center-y" ]
                         [ html ]
 
                 Aligned (Just Right) _ ->
                     VirtualDom.node "alignRight"
-                        [ Html.Attributes.class "se el container align-container-right" ]
+                        [ Html.Attributes.class "se el container align-container-right content-center-y" ]
                         [ html ]
 
                 _ ->
@@ -394,7 +394,14 @@ renderNode alignment node attrs children styles context =
         AsColumn ->
             case alignment of
                 Unaligned ->
-                    html
+                    VirtualDom.node "alignTop"
+                        [ Html.Attributes.class "se el container align-container-top" ]
+                        [ html ]
+
+                Aligned _ Nothing ->
+                    VirtualDom.node "alignTop"
+                        [ Html.Attributes.class "se el container align-container-top" ]
+                        [ html ]
 
                 Aligned _ (Just Top) ->
                     VirtualDom.node "alignTop"
@@ -1133,13 +1140,13 @@ renderAttributes node styles attributes =
 rowEdgeFillers children =
     unstyled
         (VirtualDom.node "alignLeft"
-            [ Html.Attributes.class "se container align-container-left spacer" ]
+            [ Html.Attributes.class "se container align-container-left content-center-y spacer" ]
             []
         )
         :: children
         ++ [ unstyled
                 (VirtualDom.node "alignRight"
-                    [ Html.Attributes.class "se container align-container-right spacer" ]
+                    [ Html.Attributes.class "se container align-container-right content-center-y spacer" ]
                     []
                 )
            ]
@@ -1149,7 +1156,7 @@ keyedRowEdgeFillers children =
     ( "left-filler-node-pls-pls-pls-be-unique"
     , unstyled
         (VirtualDom.node "alignLeft"
-            [ Html.Attributes.class "se container align-container-left spacer" ]
+            [ Html.Attributes.class "se container align-container-left content-center-y spacer" ]
             []
         )
     )
@@ -1157,7 +1164,7 @@ keyedRowEdgeFillers children =
         ++ [ ( "right-filler-node-pls-pls-pls-be-unique"
              , unstyled
                 (VirtualDom.node "alignRight"
-                    [ Html.Attributes.class "se container align-container-right spacer" ]
+                    [ Html.Attributes.class "se container align-container-right content-center-y spacer" ]
                     []
                 )
              )
