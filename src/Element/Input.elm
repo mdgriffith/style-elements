@@ -728,7 +728,7 @@ labelAbove =
 {-| -}
 labelBelow : Element style variation msg -> Label style variation msg
 labelBelow =
-    LabelAbove
+    LabelBelow
 
 
 {-| Put the focus on this input when the page loads.
