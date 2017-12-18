@@ -22,7 +22,7 @@ module Internal.Events
 -}
 
 import Html.Events
-import Internal.Model as Internal exposing (Attr(..), Attribute)
+import Internal.Model as Internal exposing (Attribute(..))
 import Json.Decode as Json
 import VirtualDom
 

@@ -10,6 +10,7 @@ import Html
 import Html.Attributes
 import Html.Events
 import Internal.Events as Events
+import Internal.Grid
 import Internal.Model as Internal
 import Json.Decode as Json
 
@@ -92,78 +93,71 @@ import Json.Decode as Json
 
 
 type Label msg
-    = Label InputPosition (List (Attribute msg)) (Element msg)
+    = Label Internal.Grid.RelativePosition (List (Attribute msg)) (Element msg)
 
 
 type Notice msg
-    = Notice InputPosition (List (Attribute msg)) (Element msg)
-
-
-type InputPosition
-    = OnRight
-    | OnLeft
-    | Above
-    | Below
+    = Notice Internal.Grid.RelativePosition (List (Attribute msg)) (Element msg)
 
 
 labelRight : List (Attribute msg) -> Element msg -> Label msg
 labelRight =
-    Label OnRight
+    Label Internal.Grid.OnRight
 
 
 labelLeft : List (Attribute msg) -> Element msg -> Label msg
 labelLeft =
-    Label OnLeft
+    Label Internal.Grid.OnLeft
 
 
 labelAbove : List (Attribute msg) -> Element msg -> Label msg
 labelAbove =
-    Label Above
+    Label Internal.Grid.Above
 
 
 labelBelow : List (Attribute msg) -> Element msg -> Label msg
 labelBelow =
-    Label Below
+    Label Internal.Grid.Below
 
 
 warningRight : List (Attribute msg) -> Element msg -> Notice msg
 warningRight =
-    Notice OnRight
+    Notice Internal.Grid.OnRight
 
 
 warningLeft : List (Attribute msg) -> Element msg -> Notice msg
 warningLeft =
-    Notice OnLeft
+    Notice Internal.Grid.OnLeft
 
 
 warningAbove : List (Attribute msg) -> Element msg -> Notice msg
 warningAbove =
-    Notice Above
+    Notice Internal.Grid.Above
 
 
 warningBelow : List (Attribute msg) -> Element msg -> Notice msg
 warningBelow =
-    Notice Below
+    Notice Internal.Grid.Below
 
 
 errorRight : List (Attribute msg) -> Element msg -> Notice msg
 errorRight =
-    Notice OnRight
+    Notice Internal.Grid.OnRight
 
 
 errorLeft : List (Attribute msg) -> Element msg -> Notice msg
 errorLeft =
-    Notice OnLeft
+    Notice Internal.Grid.OnLeft
 
 
 errorAbove : List (Attribute msg) -> Element msg -> Notice msg
 errorAbove =
-    Notice Above
+    Notice Internal.Grid.Above
 
 
 errorBelow : List (Attribute msg) -> Element msg -> Notice msg
 errorBelow =
-    Notice Below
+    Notice Internal.Grid.Below
 
 
 {-| -}
@@ -193,6 +187,7 @@ button attrs { onPress, label } =
             :: Element.height Element.shrink
             :: Element.centerY
             :: Element.center
+            :: Element.pointer
             :: Internal.Describe Internal.Button
             :: Internal.Attr (Html.Attributes.tabindex 0)
             :: (case onPress of
@@ -325,7 +320,9 @@ textHelper textType attributes textOptions =
             Internal.el
                 (Just "input")
                 (List.concat
-                    [ [ value textOptions.text ]
+                    [ [ value textOptions.text
+                      , Element.paddingXY 15 5
+                      ]
                     , textTypeAttr
                     , behavior
                     , placeholder
@@ -333,8 +330,15 @@ textHelper textType attributes textOptions =
                     ]
                 )
                 Element.empty
+
+        spacing =
+            Internal.getSpacingAttribute attributes ( 5, 5 )
     in
-    positionLabels [] textOptions.label textOptions.notice input
+    positionLabels
+        [ spacing ]
+        textOptions.label
+        textOptions.notice
+        input
 
 
 {-| -}
@@ -377,11 +381,44 @@ email =
     textHelper Email
 
 
+{-| -}
+multiline : List (Attribute msg) -> Text msg -> Element msg
+multiline attributes textOptions =
+    let
+        placeholder =
+            case textOptions.placeholder of
+                Nothing ->
+                    []
 
--- {-| -}
--- multiline : List (Attribute msg) -> Text msg -> Element msg
--- multiline =
---     textHelper Multiline
+                Just placeholder ->
+                    [ Element.inFront <|
+                        Element.when (textOptions.text == "") placeholder
+                    ]
+
+        behavior =
+            case textOptions.onChange of
+                Nothing ->
+                    [ Internal.Attr (Html.Attributes.disabled True) ]
+
+                Just checkMsg ->
+                    [ Internal.Attr (Html.Events.onInput checkMsg) ]
+
+        input =
+            Internal.el
+                (Just "textarea")
+                (List.concat
+                    [ [ value textOptions.text ]
+                    , behavior
+                    , placeholder
+                    , attributes
+                    ]
+                )
+                (Internal.unstyled (Html.text textOptions.text))
+    in
+    positionLabels [] textOptions.label textOptions.notice input
+
+
+
 -- {-| -}
 -- spellchecked :  List (Attribute msg) -> Text msg -> Element msg
 -- spellchecked =
@@ -580,119 +617,140 @@ autofocus =
 
 positionLabels : List (Attribute msg) -> Label msg -> Maybe (Notice msg) -> Element msg -> Element msg
 positionLabels attributes label notice input =
-    let
-        spacing =
-            Internal.getSpacing attributes ( 5, 5 )
-
-        row children =
-            case children of
-                [] ->
-                    Nothing
-
-                el :: [] ->
-                    Just <| el
-
-                childs ->
-                    Just <| Element.row [ Element.width Element.fill, spacing ] childs
-
-        column children =
-            case children of
-                [] ->
-                    Nothing
-
-                el :: [] ->
-                    Just <| el
-
-                childs ->
-                    Just <| Element.column [ Element.width Element.fill, spacing ] childs
-
-        addToPosition position el group =
-            case position of
-                Above ->
-                    { group | above = el :: group.above }
-
-                Below ->
-                    { group | below = el :: group.below }
-
-                OnRight ->
-                    { group | right = el :: group.right }
-
-                OnLeft ->
-                    { group | left = el :: group.left }
-
-        nearbyGroup =
-            case label of
+    Internal.Grid.relative (Just "label")
+        attributes
+        input
+        (List.filterMap identity
+            [ case label of
                 Label position labelAttrs child ->
-                    { above = []
-                    , below = []
-                    , right = []
-                    , left = []
-                    }
-                        |> (\group ->
-                                case notice of
-                                    Nothing ->
-                                        group
+                    Just
+                        { layout = Internal.Grid.GridElement
+                        , child = [ child ]
+                        , attrs = Element.alignLeft :: labelAttrs
+                        , position = position
+                        , width = 1
+                        , height = 1
+                        }
+            , case notice of
+                Nothing ->
+                    Nothing
 
-                                    Just (Notice position noticeAttrs child) ->
-                                        addToPosition position (Element.el (Element.alignLeft :: noticeAttrs) child) group
-                           )
-                        -- This step comes after the above because order matters for the layout
-                        |> addToPosition position (Element.el labelAttrs child)
-    in
-    if nearbyGroup.left == [] && nearbyGroup.right == [] then
-        Internal.element Internal.asColumn
-            (Just "label")
-            (Internal.htmlClass "se column"
-                :: Element.width Element.shrink
-                :: Element.height Element.shrink
-                :: Element.centerY
-                :: Element.center
-                :: attributes
-            )
-            (Internal.Unkeyed <|
-                List.filterMap identity
-                    [ row nearbyGroup.above
-                    , Just input
-                    , row nearbyGroup.below
-                    ]
-            )
-    else if nearbyGroup.above == [] && nearbyGroup.below == [] then
-        Internal.element Internal.asRow
-            (Just "label")
-            (Internal.htmlClass "se row"
-                :: Element.width Element.shrink
-                :: Element.height Element.shrink
-                :: Element.centerY
-                :: Element.center
-                :: attributes
-            )
-            (Internal.Unkeyed <|
-                Internal.rowEdgeFillers <|
-                    List.filterMap identity
-                        [ column nearbyGroup.left
-                        , Just input
-                        , column nearbyGroup.right
-                        ]
-            )
-    else
-        Internal.element Internal.asColumn
-            (Just "label")
-            (Internal.htmlClass "se column"
-                :: Element.width Element.shrink
-                :: Element.height Element.shrink
-                :: Element.centerY
-                :: Element.center
-                :: attributes
-            )
-            (Internal.Unkeyed <|
-                List.filterMap identity
-                    [ row nearbyGroup.above
-                    , row <|
-                        List.filterMap identity
-                            [ column nearbyGroup.left
-                            , Just input
-                            , column nearbyGroup.right
-                            ]
-                    , row nearbyGroup.below
-                    ]
-            )
+                Just (Notice position labelAttrs child) ->
+                    Just
+                        { layout = Internal.Grid.GridElement
+                        , child = [ child ]
+                        , attrs = Element.alignLeft :: labelAttrs
+                        , position = position
+                        , width = 1
+                        , height = 1
+                        }
+            ]
+        )
+
+
+
+-- positionLabels : List (Attribute msg) -> Label msg -> Maybe (Notice msg) -> Element msg -> Element msg
+-- positionLabels attributes label notice input =
+--     let
+--         spacing =
+--             Internal.getSpacing attributes ( 5, 5 )
+--         row children =
+--             case children of
+--                 [] ->
+--                     Nothing
+--                 el :: [] ->
+--                     Just <| el
+--                 childs ->
+--                     Just <| Element.row [ Element.width Element.fill, spacing ] childs
+--         column children =
+--             case children of
+--                 [] ->
+--                     Nothing
+--                 el :: [] ->
+--                     Just <| el
+--                 childs ->
+--                     Just <| Element.column [ Element.width Element.fill, spacing ] childs
+--         addToPosition position el group =
+--             case position of
+--                 Above ->
+--                     { group | above = el :: group.above }
+--                 Below ->
+--                     { group | below = el :: group.below }
+--                 OnRight ->
+--                     { group | right = el :: group.right }
+--                 OnLeft ->
+--                     { group | left = el :: group.left }
+--         nearbyGroup =
+--             case label of
+--                 Label position labelAttrs child ->
+--                     { above = []
+--                     , below = []
+--                     , right = []
+--                     , left = []
+--                     }
+--                         |> (\group ->
+--                                 case notice of
+--                                     Nothing ->
+--                                         group
+--                                     Just (Notice position noticeAttrs child) ->
+--                                         addToPosition position (Element.el (Element.alignLeft :: noticeAttrs) child) group
+--                            )
+--                         -- This step comes after the above because order matters for the layout
+--                         |> addToPosition position (Element.el labelAttrs child)
+--     in
+--     if nearbyGroup.left == [] && nearbyGroup.right == [] then
+--         Internal.element Internal.asColumn
+--             (Just "label")
+--             (Internal.htmlClass "se column"
+--                 :: Element.width Element.fill
+--                 :: Element.height Element.shrink
+--                 :: Internal.Class "y-content-align" "content-top"
+--                 -- :: Element.centerY
+--                 -- :: Element.center
+--                 :: attributes
+--             )
+--             (Internal.Unkeyed <|
+--                 List.filterMap identity
+--                     [ row nearbyGroup.above
+--                     , Just input
+--                     , row nearbyGroup.below
+--                     ]
+--             )
+--     else if nearbyGroup.above == [] && nearbyGroup.below == [] then
+--         Internal.element Internal.asRow
+--             (Just "label")
+--             (Internal.htmlClass "se row"
+--                 :: Element.width Element.fill
+--                 :: Element.height Element.shrink
+--                 :: Internal.Class "y-content-align" "content-top"
+--                 :: attributes
+--             )
+--             (Internal.Unkeyed <|
+--                 Internal.rowEdgeFillers <|
+--                     List.filterMap identity
+--                         [ column nearbyGroup.left
+--                         , Just input
+--                         , column nearbyGroup.right
+--                         ]
+--             )
+--     else
+--         Internal.element Internal.asRow
+--             (Just "label")
+--             (Internal.htmlClass "se row"
+--                 :: Element.width Element.fill
+--                 :: Element.height Element.shrink
+--                 :: Internal.Class "y-content-align" "content-top"
+--                 :: attributes
+--             )
+--             (Internal.Unkeyed <|
+--                 List.filterMap identity
+--                     [ column nearbyGroup.left
+--                     , column <|
+--                         List.filterMap identity
+--                             [ row nearbyGroup.above
+--                             , Just input
+--                             , row nearbyGroup.below
+--                             ]
+--                     , column nearbyGroup.right
+--                     ]
+--             )

@@ -109,7 +109,6 @@ rounded radius =
 {-| -}
 roundEach : { topLeft : Float, topRight : Float, bottomLeft : Float, bottomRight : Float } -> Attribute msg
 roundEach { topLeft, topRight, bottomLeft, bottomRight } =
-    -- StyleClass (Single ("border-top-left-radius" ++ toString radius) "border-radius" (toString radius ++ "px"))
     StyleClass
         (Single ("border-radius-" ++ toString topLeft ++ "-" ++ toString topRight ++ toString bottomLeft ++ "-" ++ toString bottomRight)
             "border-radius"

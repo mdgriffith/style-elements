@@ -20,12 +20,15 @@ module Element
         , el
         , empty
         , fill
+        , fillPortion
+        , focus
         , grayscale
         , height
         , inFront
         , layout
         , layoutMode
         , link
+        , mouseOver
         , moveDown
         , moveLeft
         , moveRight
@@ -37,6 +40,7 @@ module Element
         , paddingEach
         , paddingXY
         , paragraph
+        , pointer
         , px
         , row
         , shrink
@@ -89,6 +93,12 @@ shrink =
 fill : Length
 fill =
     Internal.Fill 1
+
+
+{-| -}
+fillPortion : Int -> Length
+fillPortion =
+    Internal.Fill
 
 
 {-| -}
@@ -522,14 +532,31 @@ hidden on =
         Internal.NoAttribute
 
 
+{-| -}
+scrollbars : Attribute msg
+scrollbars =
+    Internal.Class "scrollbars" "scrollbars"
 
--- type alias Cursor =
---     { color
---     }
--- {-| -}
--- cursor : Color -> Attribute msg
--- cursor clr =
---     StyleClass (Colored ("cursor-color-" ++ formatColorClass clr) "cursor-color" clr)
+
+{-| -}
+scrollbarY : Attribute msg
+scrollbarY =
+    Internal.Class "scrollbars" "scrollbars-x"
+
+
+{-| -}
+scrollbarX : Attribute msg
+scrollbarX =
+    Internal.Class "scrollbars" "scrollbars-y"
+
+
+{-| -}
+pointer : Attribute msg
+pointer =
+    Internal.Class "cursor" "cursor-pointer"
+
+
+
 -- {-| If we have this construct, it makes it easier to change states for something like a button.
 --     el
 --         [ Color.background blue
@@ -608,13 +635,22 @@ hidden on =
 -- 2.  We can make the hover event show a 'nearby', like 'below' or something.
 --       - what happens on mobile? Do first clicks now perform that action?
 -- -}
--- hover : List (Attribute msg) -> Attribute msg
--- hover x =
---     hidden True
--- {-| -}
--- focus : List (Attribute msg) -> Attribute msg
--- focus x =
---     hidden True
+
+
+type alias Style =
+    Internal.Attribute Never
+
+
+{-| -}
+mouseOver : List Style -> Attribute msg
+mouseOver attrs =
+    Internal.Pseudo "hover" (List.map (Internal.mapAttr never) attrs)
+
+
+{-| -}
+focus : List Style -> Attribute msg
+focus attrs =
+    Internal.Pseudo "focus" (List.map (Internal.mapAttr never) attrs)
 
 
 {-| -}

@@ -11,6 +11,7 @@ type Class
 type Rule
     = Prop String String
     | Child String (List Rule)
+    | Supports ( String, String ) (List ( String, String ))
     | Descriptor String (List Rule)
     | Adjacent String (List Rule)
     | Batch (List Rule)
@@ -163,6 +164,18 @@ describeAlignment values =
         List.concatMap createDescription alignments
 
 
+gridAlignments values =
+    let
+        createDescription alignment =
+            [ Child (class Any)
+                [ Descriptor (selfName <| Self alignment) (values alignment)
+                ]
+            ]
+    in
+    Batch <|
+        List.concatMap createDescription alignments
+
+
 type SelfDescriptor
     = Self Alignment
 
@@ -214,48 +227,80 @@ class cls =
             ".spacer"
 
 
-type alias Intermediate =
-    ( String, List ( String, String ) )
+type Intermediate
+    = Intermediate
+        { selector : String
+        , props : List ( String, String )
+        , closing : String
+        , others : List Intermediate
+        }
 
 
-renderRules : String -> List Rule -> Dict.Dict String (List ( String, String ))
-renderRules parent rules =
+emptyIntermediate : String -> String -> Intermediate
+emptyIntermediate selector closing =
+    Intermediate
+        { selector = selector
+        , props = []
+        , closing = closing
+        , others = []
+        }
+
+
+renderRules : Intermediate -> List Rule -> Intermediate
+renderRules (Intermediate parent) rules =
     let
         generateIntermediates rule rendered =
             case rule of
                 Prop name val ->
-                    Dict.update parent
-                        (\x ->
-                            case x of
-                                Nothing ->
-                                    Just <| [ ( name, val ) ]
+                    { rendered | props = ( name, val ) :: rendered.props }
 
-                                Just props ->
-                                    Just <| ( name, val ) :: props
-                        )
-                        rendered
+                Supports ( prop, value ) props ->
+                    { rendered
+                        | others =
+                            Intermediate
+                                { selector = "@supports (" ++ prop ++ ":" ++ value ++ ") {" ++ parent.selector
+                                , props = props
+                                , closing = "\n}"
+                                , others = []
+                                }
+                                :: rendered.others
+                    }
 
                 Adjacent selector adjRules ->
-                    Dict.union
-                        rendered
-                        (renderRules (parent ++ " + " ++ selector) adjRules)
+                    { rendered
+                        | others =
+                            renderRules
+                                (emptyIntermediate (parent.selector ++ " + " ++ selector) "")
+                                adjRules
+                                :: rendered.others
+                    }
 
                 Child child childRules ->
-                    Dict.union
-                        rendered
-                        (renderRules (parent ++ " > " ++ child) childRules)
+                    { rendered
+                        | others =
+                            renderRules
+                                (emptyIntermediate (parent.selector ++ " > " ++ child) "")
+                                childRules
+                                :: rendered.others
+                    }
 
                 Descriptor descriptor descriptorRules ->
-                    Dict.union
-                        rendered
-                        (renderRules (parent ++ descriptor) descriptorRules)
+                    { rendered
+                        | others =
+                            renderRules
+                                (emptyIntermediate (parent.selector ++ descriptor) "")
+                                descriptorRules
+                                :: rendered.others
+                    }
 
                 Batch batched ->
-                    Dict.union
-                        rendered
-                        (renderRules parent batched)
+                    { rendered
+                        | others =
+                            renderRules (emptyIntermediate parent.selector "") batched
+                                :: rendered.others
+                    }
     in
-    List.foldr generateIntermediates Dict.empty rules
+    Intermediate <| List.foldr generateIntermediates parent rules
 
 
 render : List Class -> String
@@ -265,17 +310,30 @@ render classes =
             values
                 |> List.map (\( x, y ) -> "  " ++ x ++ ": " ++ y ++ ";")
                 |> String.join "\n"
+
+        renderClass rule =
+            case rule.props of
+                [] ->
+                    ""
+
+                _ ->
+                    rule.selector ++ " {\n" ++ renderValues rule.props ++ rule.closing ++ "\n}"
+
+        renderIntermediate (Intermediate rule) =
+            renderClass rule
+                ++ String.join "\n" (List.map renderIntermediate rule.others)
     in
     classes
         |> List.foldr
             (\(Class name rules) existing ->
-                Dict.toList (renderRules name rules) ++ existing
+                renderRules (emptyIntermediate name "") rules :: existing
             )
             []
-        |> List.map (\( cls, vals ) -> cls ++ " {\n" ++ renderValues vals ++ "\n}\n")
+        |> List.map renderIntermediate
         |> String.join "\n"
 
 
+viewportRules : String
 viewportRules =
     """html, body {
     height: 100%;
@@ -283,10 +341,12 @@ viewportRules =
 } """ ++ rules
 
 
+rulesElement : Html.Html msg
 rulesElement =
     Html.node "style" [] [ Html.text rules ]
 
 
+viewportRulesElement : Html.Html msg
 viewportRulesElement =
     Html.node "style" [] [ Html.text viewportRules ]
 
@@ -316,12 +376,44 @@ rules =
             , Prop "flex-shrink" "0"
             , Prop "display" "flex"
             , Prop "flex-direction" "row"
+            , Prop "flex-basis" "auto"
+            , Prop "resize" "none"
+
+            -- , Prop "flex-basis" "0"
             , Prop "box-sizing" "border-box"
             , Prop "margin" "0"
             , Prop "padding" "0"
             , Prop "border-width" "0"
             , Prop "border-style" "solid"
-            , Prop "font" "inherit"
+            , Prop "font-size" "inherit"
+            , Prop "color" "inherit"
+            , Prop "font-family" "inherit"
+            , Prop "line-height" "inherit"
+            , Prop "font-weight" "normal"
+            , Descriptor ".cursor-pointer"
+                [ Prop "cursor" "pointer"
+                ]
+            , Descriptor ".hover-transition"
+                [ Prop "transition"
+                    (String.join ", " <|
+                        List.map (\x -> x ++ " 160ms")
+                            [ "transform"
+                            , "opacity"
+                            , "filter"
+                            , "background-color"
+                            , "color"
+                            ]
+                    )
+                ]
+            , Descriptor ".scrollbars"
+                [ Prop "overflow" "auto"
+                ]
+            , Descriptor ".scrollbars-x"
+                [ Prop "overflow-x" "auto"
+                ]
+            , Descriptor ".scrollbars-y"
+                [ Prop "overflow-y" "auto"
+                ]
             , Descriptor ".width-content"
                 [ Prop "width" "auto"
                 ]
@@ -411,18 +503,33 @@ rules =
                                     ]
             , Descriptor ".bold"
                 [ Prop "font-weight" "700"
+                , Child ".text"
+                    [ Prop "font-weight" "700"
+                    ]
                 ]
             , Descriptor ".text-light"
                 [ Prop "font-weight" "300"
+                , Child ".text"
+                    [ Prop "font-weight" "300"
+                    ]
                 ]
             , Descriptor ".italic"
                 [ Prop "font-style" "italic"
+                , Child ".text"
+                    [ Prop "font-style" "italic"
+                    ]
                 ]
             , Descriptor ".strike"
                 [ Prop "text-decoration" "line-through"
+                , Child ".text"
+                    [ Prop "text-decoration" "line-through"
+                    ]
                 ]
             , Descriptor ".underline"
                 [ Prop "text-decoration" "underline"
+                , Child ".text"
+                    [ Prop "text-decoration" "underline"
+                    ]
                 ]
             , Descriptor ".text-justify"
                 [ Prop "text-align" "justify"
@@ -516,6 +623,9 @@ rules =
         , Class (class Row)
             [ Prop "display" "flex"
             , Prop "flex-direction" "row"
+            , Child (class Any)
+                [ Prop "flex-basis" "0"
+                ]
             , Descriptor ".space-evenly"
                 [ Prop "justify-content" "space-between"
                 ]
@@ -674,6 +784,32 @@ rules =
                 , Prop "flex-basis" "auto"
                 , Prop "width" "100%"
                 ]
+            ]
+        , Class (class Grid)
+            [ Prop "display" "-ms-grid"
+            , Supports ( "display", "grid" )
+                [ ( "display", "grid" )
+                ]
+            , gridAlignments <|
+                \alignment ->
+                    case alignment of
+                        Top ->
+                            [ Prop "justify-content" "flex-start" ]
+
+                        Bottom ->
+                            [ Prop "justify-content" "flex-end" ]
+
+                        Right ->
+                            [ Prop "align-items" "flex-end" ]
+
+                        Left ->
+                            [ Prop "align-items" "flex-start" ]
+
+                        CenterX ->
+                            [ Prop "align-items" "center" ]
+
+                        CenterY ->
+                            [ Prop "justify-content" "center" ]
             ]
         , Class (class Page)
             [ Prop "display" "block"

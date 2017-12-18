@@ -50,7 +50,7 @@ Meant to be imported as:
 -}
 
 import Color exposing (Color)
-import Internal.Model as Internal exposing (Attr(..), Attribute, Style(..))
+import Internal.Model as Internal exposing (Attribute(..), Style(..))
 
 
 type Font

@@ -28,6 +28,12 @@ type LayoutContext
     = AsRow
     | AsColumn
     | AsEl
+    | AsGrid
+    | AsGridEl
+
+
+asGrid =
+    AsGrid
 
 
 asRow =
@@ -40,6 +46,10 @@ asColumn =
 
 asEl =
     AsEl
+
+
+asGridEl =
+    AsGridEl
 
 
 type Aligned
@@ -66,20 +76,27 @@ type Style
     | Colored String String Color
     | SpacingStyle Int Int
     | PaddingStyle Int Int Int Int
+    | GridTemplateStyle
+        { spacing : ( Length, Length )
+        , columns : List Length
+        , rows : List Length
+        }
+    | GridPosition
+        { row : Int
+        , col : Int
+        , width : Int
+        , height : Int
+        }
 
 
 type Property
     = Property String String
 
 
-type alias Attribute msg =
-    Attr msg msg
-
-
-type Attr attrMsg embeddedMsg
-    = Attr (Html.Attribute attrMsg)
+type Attribute msg
+    = Attr (Html.Attribute msg)
     | Describe Description
-    | Hover (List (Attr Never embeddedMsg))
+    | Pseudo String (List (Attribute msg))
       -- invalidation key and literal class
     | Class String String
       -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
@@ -89,7 +106,7 @@ type Attr attrMsg embeddedMsg
     | AlignX HAlign
     | Width Length
     | Height Length
-    | Nearby Location (Element embeddedMsg)
+    | Nearby Location (Element msg)
     | Move (Maybe Float) (Maybe Float) (Maybe Float)
     | Rotate Float Float Float Float
     | Scale (Maybe Float) (Maybe Float) (Maybe Float)
@@ -144,7 +161,7 @@ type FilterType
 type Length
     = Px Float
     | Content
-    | Fill Float
+    | Fill Int
 
 
 type Axis
@@ -187,8 +204,8 @@ mapAttr fn attr =
         NoAttribute ->
             NoAttribute
 
-        Hover props ->
-            Hover <| List.map (mapHoverAttr fn) props
+        Pseudo cls props ->
+            Pseudo cls <| List.map (mapAttr fn) props
 
         Describe description ->
             Describe description
@@ -237,64 +254,49 @@ mapAttr fn attr =
             Filter filter
 
 
-mapHoverAttr : (msg -> msg1) -> Attr Never msg -> Attr Never msg1
-mapHoverAttr fn attr =
-    case attr of
-        NoAttribute ->
-            NoAttribute
 
-        Hover props ->
-            NoAttribute
-
-        -- Hover props
-        Describe description ->
-            Describe description
-
-        AlignX x ->
-            AlignX x
-
-        AlignY y ->
-            AlignY y
-
-        Width x ->
-            Width x
-
-        Height x ->
-            Height x
-
-        -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
-        Class x y ->
-            Class x y
-
-        StyleClass style ->
-            StyleClass style
-
-        Nearby location element ->
-            NoAttribute
-
-        -- Nearby location (map fn element)
-        Move x y z ->
-            Move x y z
-
-        Rotate x y z a ->
-            Rotate x y z a
-
-        Scale x y z ->
-            Scale x y z
-
-        Attr htmlAttr ->
-            NoAttribute
-
-        -- Attr htmlAttr
-        -- Attr (Html.Attributes.map fn htmlAttr)
-        TextShadow shadow ->
-            TextShadow shadow
-
-        BoxShadow shadow ->
-            BoxShadow shadow
-
-        Filter filter ->
-            Filter filter
+-- mapHoverAttr : (msg -> msg1) -> Attr Never msg -> Attr Never msg1
+-- mapHoverAttr fn attr =
+--     case attr of
+--         NoAttribute ->
+--             NoAttribute
+--         Hover props ->
+--             NoAttribute
+--         -- Hover props
+--         Describe description ->
+--             Describe description
+--         AlignX x ->
+--             AlignX x
+--         AlignY y ->
+--             AlignY y
+--         Width x ->
+--             Width x
+--         Height x ->
+--             Height x
+--         -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
+--         Class x y ->
+--             Class x y
+--         StyleClass style ->
+--             StyleClass style
+--         Nearby location element ->
+--             NoAttribute
+--         -- Nearby location (map fn element)
+--         Move x y z ->
+--             Move x y z
+--         Rotate x y z a ->
+--             Rotate x y z a
+--         Scale x y z ->
+--             Scale x y z
+--         Attr htmlAttr ->
+--             NoAttribute
+--         -- Attr htmlAttr
+--         -- Attr (Html.Attributes.map fn htmlAttr)
+--         TextShadow shadow ->
+--             TextShadow shadow
+--         BoxShadow shadow ->
+--             BoxShadow shadow
+--         Filter filter ->
+--             Filter filter
 
 
 class : String -> Attribute msg
@@ -371,6 +373,12 @@ renderNode alignment node attrs children styles context =
     in
     case context of
         AsEl ->
+            html
+
+        AsGrid ->
+            html
+
+        AsGridEl ->
             html
 
         AsRow ->
@@ -471,6 +479,12 @@ renderKeyedNode alignment node attrs children styles context =
         AsEl ->
             html
 
+        AsGridEl ->
+            html
+
+        AsGrid ->
+            html
+
         AsRow ->
             case alignment of
                 Unaligned ->
@@ -547,14 +561,155 @@ alignYName align =
             "self-center-y"
 
 
-gatherAttributes : Attribute msg -> Gathered msg -> Gathered msg
-gatherAttributes attr gathered =
+
+--  { attributes = []
+--     , styles = styles
+--     , width = Nothing
+--     , height = Nothing
+--     , alignment = Unaligned
+--     , node =
+--         case maybeNodeName of
+--             Nothing ->
+--                 Generic
+--             Just name ->
+--                 NodeName name
+--     , nearbys = Nothing
+--     , rotation = Nothing
+--     , translation = Nothing
+--     , scale = Nothing
+--     , filters = Nothing
+--     , boxShadows = Nothing
+--     , textShadows = Nothing
+--     , has = Set.empty
+--     }
+
+
+{-| In order to make things hoverable, we need to change the class attached to the element
+
+.bg-0-0-0 {
+background-color: rgb(0,0,0)
+}
+.hover-bg-255-255-255:hover {
+background-color: rgb(255,255,255)
+}
+
+We should be able to run the gather in GatherHoverable mode.
+
+Properties that could need to stack with existing element declarations:
+
+transforms, rotation, translation, scale, filters, shadows
+
+At the moment we can probably skip that.
+
+-}
+makeHoverable : Gathered msg -> Gathered msg
+makeHoverable g =
+    g
+
+
+gatherAttributes =
+    gatherAttributesWith Gather
+
+
+type GatherMode msg
+    = Gather
+    | GatherPseudo
+        { pseudoClass : String
+        , additionalAttributes : List (Html.Attribute msg)
+        }
+
+
+gatherAttributesWith : GatherMode msg -> Attribute msg -> Gathered msg -> Gathered msg
+gatherAttributesWith mode attr gathered =
+    let
+        className name =
+            case mode of
+                Gather ->
+                    VirtualDom.property "className" (Json.string name)
+
+                GatherPseudo { pseudoClass } ->
+                    VirtualDom.property "className" (Json.string (pseudoClass ++ "-" ++ name))
+
+        styleName name =
+            case mode of
+                Gather ->
+                    "." ++ name
+
+                GatherPseudo { pseudoClass } ->
+                    "." ++ pseudoClass ++ "-" ++ name ++ ":" ++ pseudoClass
+
+        formatStyleClass style =
+            case style of
+                Style class props ->
+                    Style (styleName class) props
+
+                Single class name val ->
+                    Single (styleName class) name val
+
+                Colored class name val ->
+                    Colored (styleName class) name val
+
+                SpacingStyle x y ->
+                    SpacingStyle x y
+
+                PaddingStyle top right bottom left ->
+                    PaddingStyle top right bottom left
+
+                GridTemplateStyle grid ->
+                    GridTemplateStyle grid
+
+                GridPosition pos ->
+                    GridPosition pos
+    in
     case attr of
         NoAttribute ->
             gathered
 
-        Hover attribtues ->
-            gathered
+        Class key class ->
+            if Set.member key gathered.has then
+                gathered
+            else
+                { gathered
+                    | attributes = className class :: gathered.attributes
+                    , has = Set.insert key gathered.has
+                }
+
+        Attr attr ->
+            case mode of
+                Gather ->
+                    { gathered | attributes = attr :: gathered.attributes }
+
+                GatherPseudo _ ->
+                    gathered
+
+        StyleClass style ->
+            let
+                key =
+                    styleKey style
+            in
+            if Set.member key gathered.has then
+                gathered
+            else
+                { gathered
+                    | attributes = className (getStyleName style) :: gathered.attributes
+                    , styles = formatStyleClass style :: gathered.styles
+                    , has = Set.insert key gathered.has
+                }
+
+        Pseudo pseudo hoverAttributes ->
+            case mode of
+                Gather ->
+                    let
+                        rendered =
+                            List.foldr (gatherAttributesWith (GatherPseudo { pseudoClass = pseudo, additionalAttributes = [] })) (initGathered Nothing []) hoverAttributes
+                    in
+                    { gathered
+                        | attributes = className "hover-transition" :: rendered.attributes ++ gathered.attributes
+                        , styles = rendered.styles ++ gathered.styles
+                    }
+
+                GatherPseudo _ ->
+                    gathered
 
         Width width ->
             if gathered.width == Nothing then
@@ -562,22 +717,29 @@ gatherAttributes attr gathered =
                     Px px ->
                         { gathered
                             | width = Just width
-                            , attributes = VirtualDom.property "className" (Json.string ("width-px-" ++ floatClass px)) :: gathered.attributes
-                            , styles = Single (".width-px-" ++ floatClass px) "width" (toString px ++ "px") :: gathered.styles
+                            , attributes = className ("width-px-" ++ floatClass px) :: gathered.attributes
+                            , styles = Single (styleName <| "width-px-" ++ floatClass px) "width" (toString px ++ "px") :: gathered.styles
                         }
 
                     Content ->
                         { gathered
                             | width = Just width
-                            , attributes = VirtualDom.property "className" (Json.string "width-content") :: gathered.attributes
+                            , attributes = className "width-content" :: gathered.attributes
                         }
 
                     Fill portion ->
-                        -- TODO: account for fill /= 1
-                        { gathered
-                            | width = Just width
-                            , attributes = VirtualDom.property "className" (Json.string "width-fill") :: gathered.attributes
-                        }
+                        if portion == 1 then
+                            { gathered
+                                | width = Just width
+                                , attributes = className "width-fill" :: gathered.attributes
+                            }
+                        else
+                            { gathered
+                                | width = Just width
+                                , attributes = className ("width-fill-portion width-fill-" ++ toString portion) :: gathered.attributes
+                                , styles =
+                                    Single (".se.row > " ++ (styleName <| "width-fill-" ++ toString portion)) "flex-grow" (toString (portion * 100000)) :: gathered.styles
+                            }
             else
                 gathered
 
@@ -587,60 +749,70 @@ gatherAttributes attr gathered =
                     Px px ->
                         { gathered
                             | height = Just height
-                            , attributes = VirtualDom.property "className" (Json.string ("height-px-" ++ floatClass px)) :: gathered.attributes
-                            , styles = Single (".height-px-" ++ floatClass px) "height" (toString px ++ "px") :: gathered.styles
+                            , attributes = className ("height-px-" ++ floatClass px) :: gathered.attributes
+                            , styles = Single (styleName <| "height-px-" ++ floatClass px) "height" (toString px ++ "px") :: gathered.styles
                         }
 
                     Content ->
                         { gathered
                             | height = Just height
-                            , attributes = VirtualDom.property "className" (Json.string "height-content") :: gathered.attributes
+                            , attributes = className "height-content" :: gathered.attributes
                         }
 
                     Fill portion ->
-                        -- TODO: account for fill /= 1
-                        { gathered
-                            | height = Just height
-                            , attributes = VirtualDom.property "className" (Json.string "height-fill") :: gathered.attributes
-                        }
+                        if portion == 1 then
+                            { gathered
+                                | height = Just height
+                                , attributes = className "height-fill" :: gathered.attributes
+                            }
+                        else
+                            { gathered
+                                | height = Just height
+                                , attributes = className ("height-fill-portion height-fill-" ++ toString portion) :: gathered.attributes
+                                , styles =
+                                    Single (".se.column > " ++ (styleName <| "height-fill-" ++ toString portion)) "flex-grow" (toString (portion * 100000)) :: gathered.styles
+                            }
             else
                 gathered
 
         Describe description ->
-            case description of
-                Main ->
-                    { gathered | node = addNodeName "main" gathered.node }
+            case mode of
+                GatherPseudo _ ->
+                    gathered
 
-                Navigation ->
-                    { gathered | node = addNodeName "nav" gathered.node }
+                Gather ->
+                    case description of
+                        Main ->
+                            { gathered | node = addNodeName "main" gathered.node }
 
-                -- Search ->
-                --     { gathered | node = addNodeName "main" gathered.node }
-                ContentInfo ->
-                    { gathered | node = addNodeName "footer" gathered.node }
+                        Navigation ->
+                            { gathered | node = addNodeName "nav" gathered.node }
 
-                Complementary ->
-                    { gathered | node = addNodeName "aside" gathered.node }
+                        ContentInfo ->
+                            { gathered | node = addNodeName "footer" gathered.node }
 
-                Heading i ->
-                    if i < 1 then
-                        { gathered | node = addNodeName "h1" gathered.node }
-                    else if i < 7 then
-                        { gathered | node = addNodeName ("h" ++ toString i) gathered.node }
-                    else
-                        { gathered | node = addNodeName "h6" gathered.node }
+                        Complementary ->
+                            { gathered | node = addNodeName "aside" gathered.node }
 
-                Button ->
-                    { gathered | attributes = Html.Attributes.attribute "aria-role" "button" :: gathered.attributes }
+                        Heading i ->
+                            if i <= 1 then
+                                { gathered | node = addNodeName "h1" gathered.node }
+                            else if i < 7 then
+                                { gathered | node = addNodeName ("h" ++ toString i) gathered.node }
+                            else
+                                { gathered | node = addNodeName "h6" gathered.node }
 
-                Label label ->
-                    { gathered | attributes = Html.Attributes.attribute "aria-label" label :: gathered.attributes }
+                        Button ->
+                            { gathered | attributes = Html.Attributes.attribute "aria-role" "button" :: gathered.attributes }
 
-                LivePolite ->
-                    { gathered | attributes = Html.Attributes.attribute "aria-live" "polite" :: gathered.attributes }
+                        Label label ->
+                            { gathered | attributes = Html.Attributes.attribute "aria-label" label :: gathered.attributes }
 
-                LiveAssertive ->
-                    { gathered | attributes = Html.Attributes.attribute "aria-live" "assertive" :: gathered.attributes }
+                        LivePolite ->
+                            { gathered | attributes = Html.Attributes.attribute "aria-live" "polite" :: gathered.attributes }
+
+                        LiveAssertive ->
+                            { gathered | attributes = Html.Attributes.attribute "aria-live" "assertive" :: gathered.attributes }
 
         Nearby location elem ->
             let
@@ -733,29 +905,11 @@ gatherAttributes attr gathered =
                                 }
             }
 
-        StyleClass style ->
-            let
-                key =
-                    styleKey style
-            in
-            if Set.member key gathered.has then
-                gathered
-            else
-                { gathered
-                    | attributes = VirtualDom.property "className" (Json.string (styleName style)) :: gathered.attributes
-                    , styles = addDot style :: gathered.styles
-                    , has = Set.insert key gathered.has
-                }
-
         AlignX x ->
             case gathered.alignment of
                 Unaligned ->
-                    let
-                        class =
-                            alignXName x
-                    in
                     { gathered
-                        | attributes = VirtualDom.property "className" (Json.string class) :: gathered.attributes
+                        | attributes = className (alignXName x) :: gathered.attributes
                         , alignment = Aligned (Just x) Nothing
                     }
 
@@ -763,24 +917,16 @@ gatherAttributes attr gathered =
                     gathered
 
                 Aligned _ y ->
-                    let
-                        class =
-                            alignXName x
-                    in
                     { gathered
-                        | attributes = VirtualDom.property "className" (Json.string class) :: gathered.attributes
+                        | attributes = className (alignXName x) :: gathered.attributes
                         , alignment = Aligned (Just x) y
                     }
 
         AlignY y ->
             case gathered.alignment of
                 Unaligned ->
-                    let
-                        class =
-                            alignYName y
-                    in
                     { gathered
-                        | attributes = VirtualDom.property "className" (Json.string class) :: gathered.attributes
+                        | attributes = className (alignYName y) :: gathered.attributes
                         , alignment = Aligned Nothing (Just y)
                     }
 
@@ -788,26 +934,10 @@ gatherAttributes attr gathered =
                     gathered
 
                 Aligned x _ ->
-                    let
-                        class =
-                            alignYName y
-                    in
                     { gathered
-                        | attributes = VirtualDom.property "className" (Json.string class) :: gathered.attributes
+                        | attributes = className (alignYName y) :: gathered.attributes
                         , alignment = Aligned x (Just y)
                     }
-
-        Class key class ->
-            if Set.member key gathered.has then
-                gathered
-            else
-                { gathered
-                    | attributes = VirtualDom.property "className" (Json.string class) :: gathered.attributes
-                    , has = Set.insert key gathered.has
-                }
-
-        Attr attr ->
-            { gathered | attributes = attr :: gathered.attributes }
 
         Move mx my mz ->
             -- add translate to the transform stack
@@ -860,11 +990,16 @@ gatherAttributes attr gathered =
                     { gathered | textShadows = Just (formatTextShadow shadow ++ ", " ++ existing) }
 
         Rotate x y z angle ->
-            { gathered
-                | rotation =
-                    Just
-                        ("rotate3d(" ++ toString x ++ "," ++ toString y ++ "," ++ toString z ++ "," ++ toString angle ++ "rad)")
-            }
+            case gathered.rotation of
+                Nothing ->
+                    { gathered
+                        | rotation =
+                            Just
+                                ("rotate3d(" ++ toString x ++ "," ++ toString y ++ "," ++ toString z ++ "," ++ toString angle ++ "rad)")
+                    }
+
+                _ ->
+                    gathered
 
         Scale mx my mz ->
             -- add scale to the transform stack
@@ -1215,8 +1350,32 @@ keyedColumnEdgeFillers children =
            ]
 
 
-getSpacing : List (Attribute msg) -> ( Int, Int ) -> Attribute msg
+getSpacing : List (Attribute msg) -> ( Int, Int ) -> ( Int, Int )
 getSpacing attrs default =
+    attrs
+        |> List.foldr
+            (\x acc ->
+                case acc of
+                    Just x ->
+                        Just x
+
+                    Nothing ->
+                        case x of
+                            StyleClass (SpacingStyle x y) ->
+                                Just ( x, y )
+
+                            _ ->
+                                Nothing
+            )
+            Nothing
+        |> Maybe.withDefault default
+
+
+
+--
+
+
+getSpacingAttribute attrs default =
     attrs
         |> List.foldr
             (\x acc ->
@@ -1252,6 +1411,11 @@ el node attrs child =
     element asEl node (htmlClass "se el" :: attrs) (Unkeyed [ child ])
 
 
+gridEl : Maybe String -> List (Attribute msg) -> List (Element msg) -> Element msg
+gridEl node attrs children =
+    element asGridEl node (htmlClass "se el" :: attrs) (Unkeyed children)
+
+
 paragraph : List (Attribute msg) -> Children (Element msg) -> Element msg
 paragraph attrs children =
     element asEl (Just "p") (htmlClass "se paragraph" :: attrs) children
@@ -1266,7 +1430,16 @@ textElement : String -> VirtualDom.Node msg
 textElement str =
     VirtualDom.node "div"
         [ VirtualDom.property "className"
-            (Json.string "se text width-content height-content self-center-x self-center-y")
+            (Json.string "se text width-content height-content")
+        ]
+        [ VirtualDom.text str ]
+
+
+textElementFill : String -> VirtualDom.Node msg
+textElementFill str =
+    VirtualDom.node "div"
+        [ VirtualDom.property "className"
+            (Json.string "se text width-fill height-fill")
         ]
         [ VirtualDom.text str ]
 
@@ -1310,6 +1483,11 @@ element context nodeName attributes children =
                     -- Same if it's a column or row with one child and width-content, height-content
                     if rendered.width == Just Content && rendered.height == Just Content && context == asEl then
                         ( Html.text str
+                            :: htmls
+                        , existingStyles
+                        )
+                    else if context == asEl then
+                        ( textElementFill str
                             :: htmls
                         , existingStyles
                         )
@@ -1376,63 +1554,11 @@ element context nodeName attributes children =
                 }
 
 
-
--- keyedElement : LayoutContext -> Maybe String -> List (Attribute msg) -> List ( String, Element msg ) -> Element msg
--- keyedElement context nodeName attributes children =
---     let
---         rendered =
---             renderAttributes nodeName [] attributes
---         ( htmlChildren, styleChildren ) =
---             List.foldr gather ( [], rendered.styles ) children
---         gather ( key, child ) ( htmls, existingStyles ) =
---             case child of
---                 Unstyled html ->
---                     ( ( key, html context ) :: htmls
---                     , existingStyles
---                     )
---                 Styled styled ->
---                     ( ( key, styled.html Nothing context ) :: htmls
---                     , styled.styles ++ existingStyles
---                     )
---                 Text str ->
---                     -- TEXT OPTIMIZATION
---                     -- You can have raw text if the element is an el, and has `width-content` and `height-content`
---                     -- Same if it's a column or row with one child and width-content, height-content
---                     if rendered.width == Just Content && rendered.height == Just Content && isOne children then
---                         ( ( key, Html.text str )
---                             :: htmls
---                         , existingStyles
---                         )
---                     else
---                         ( ( key, textElement str )
---                             :: htmls
---                         , existingStyles
---                         )
---                 Empty ->
---                     ( htmls, existingStyles )
---         renderedChildren =
---             case Maybe.map renderNearbyGroupAbsolute rendered.nearbys of
---                 Nothing ->
---                     htmlChildren
---                 Just nearby ->
---                     ( "nearby-elements-pls-pls-pls-pls-be-unique", nearby ) :: htmlChildren
---     in
---     case styleChildren of
---         [] ->
---             Unstyled <| renderNode rendered.alignment rendered.node rendered.attributes renderedChildren Nothing
---         _ ->
---             Styled
---                 { styles = styleChildren
---                 , html = renderNode rendered.alignment rendered.node rendered.attributes renderedChildren
---                 }
-
-
 type RenderMode
     = Viewport
     | Layout
     | NoStaticStyleSheet
     | WithVirtualCss
-    | Unreduced
 
 
 
@@ -1492,11 +1618,6 @@ renderRoot mode attributes child =
                 Viewport ->
                     Internal.Style.viewportRulesElement
                         :: toStyleSheet styles
-                        :: children
-
-                Unreduced ->
-                    Internal.Style.rulesElement
-                        :: toStyleSheetNoReduction styles
                         :: children
 
                 WithVirtualCss ->
@@ -1577,6 +1698,49 @@ reduceStyles style ( cache, existing ) =
                 , style :: existing
                 )
 
+        GridTemplateStyle template ->
+            let
+                class =
+                    ".grid-"
+                        ++ String.join "-" (List.map lengthClassName template.rows)
+                        ++ "-"
+                        ++ String.join "-" (List.map lengthClassName template.columns)
+                        ++ "-"
+                        ++ lengthClassName (Tuple.first template.spacing)
+                        ++ "-"
+                        ++ lengthClassName (Tuple.second template.spacing)
+            in
+            if Set.member class cache then
+                ( cache, existing )
+            else
+                ( Set.insert class cache
+                , style :: existing
+                )
+
+        GridPosition pos ->
+            let
+                class =
+                    ".grid-pos-"
+                        ++ toString pos.row
+                        ++ "-"
+                        ++ toString pos.col
+                        ++ "-"
+                        ++ toString pos.width
+                        ++ "-"
+                        ++ toString pos.height
+            in
+            if Set.member class cache then
+                ( cache, existing )
+            else
+                ( Set.insert class cache
+                , style :: existing
+                )
+
+
+toStyleSheet : List Style -> VirtualDom.Node msg
+toStyleSheet styleSheet =
+    VirtualDom.node "style" [] [ Html.text (toStyleSheetString styleSheet) ]
+
 
 toStyleSheetString : List Style -> String
 toStyleSheetString stylesheet =
@@ -1630,70 +1794,187 @@ toStyleSheetString stylesheet =
                                     ++ "px"
                                 )
                             ]
+
+                GridTemplateStyle template ->
+                    let
+                        class =
+                            ".grid-"
+                                ++ String.join "-" (List.map lengthClassName template.rows)
+                                ++ "-"
+                                ++ String.join "-" (List.map lengthClassName template.columns)
+                                ++ "-"
+                                ++ lengthClassName (Tuple.first template.spacing)
+                                ++ "-"
+                                ++ lengthClassName (Tuple.second template.spacing)
+                    in
+                    rendered
+                        ++ gridTemplate class template
+
+                GridPosition pos ->
+                    let
+                        class =
+                            ".grid-pos-"
+                                ++ toString pos.row
+                                ++ "-"
+                                ++ toString pos.col
+                                ++ "-"
+                                ++ toString pos.width
+                                ++ "-"
+                                ++ toString pos.height
+                    in
+                    rendered
+                        ++ gridPosition class pos
     in
     List.foldl combine "" stylesheet
 
 
-toStyleSheet : List Style -> VirtualDom.Node msg
-toStyleSheet stylesheet =
-    case stylesheet of
-        [] ->
-            Html.text ""
+lengthClassName x =
+    case x of
+        Px px ->
+            toString px ++ "px"
 
-        styles ->
-            let
-                renderProps (Property key val) existing =
-                    existing ++ "\n  " ++ key ++ ": " ++ val ++ ";"
+        Content ->
+            "auto"
 
-                renderStyle selector props =
-                    selector ++ "{" ++ List.foldl renderProps "" props ++ "\n}"
+        Fill i ->
+            toString i ++ "fr"
 
-                combine style rendered =
-                    case style of
-                        Style selector props ->
-                            rendered ++ "\n" ++ renderStyle selector props
 
-                        Single class prop val ->
-                            rendered ++ class ++ "{" ++ prop ++ ":" ++ val ++ "}\n"
+gridTemplate : String -> { a | rows : List Length, spacing : ( Length, Length ), columns : List Length } -> String
+gridTemplate class template =
+    let
+        ySpacing =
+            toGridLength (Tuple.second template.spacing)
 
-                        Colored class prop color ->
-                            rendered ++ class ++ "{" ++ prop ++ ":" ++ formatColor color ++ "}\n"
+        xSpacing =
+            toGridLength (Tuple.first template.spacing)
 
-                        SpacingStyle x y ->
-                            let
-                                class =
-                                    ".spacing-" ++ toString x ++ "-" ++ toString y
-                            in
-                            rendered ++ spacingClasses class x y
+        toGridLength x =
+            case x of
+                Px px ->
+                    toString px ++ "px"
 
-                        PaddingStyle top right bottom left ->
-                            let
-                                class =
-                                    ".pad-"
-                                        ++ toString top
-                                        ++ "-"
-                                        ++ toString right
-                                        ++ "-"
-                                        ++ toString bottom
-                                        ++ "-"
-                                        ++ toString left
-                            in
-                            rendered
-                                ++ renderStyle class
-                                    [ Property "padding"
-                                        (toString top
-                                            ++ "px "
-                                            ++ toString right
-                                            ++ "px "
-                                            ++ toString bottom
-                                            ++ "px "
-                                            ++ toString left
-                                            ++ "px"
-                                        )
-                                    ]
-            in
-            List.foldl combine "" styles
-                |> (\rendered -> VirtualDom.node "style" [] [ Html.text rendered ])
+                Content ->
+                    "auto"
+
+                Fill i ->
+                    toString i ++ "fr"
+
+        msColumns =
+            template.columns
+                |> List.map toGridLength
+                |> String.join ySpacing
+                |> (\x -> "-ms-grid-columns: " ++ x ++ ";")
+
+        msRows =
+            template.columns
+                |> List.map toGridLength
+                |> String.join ySpacing
+                |> (\x -> "-ms-grid-rows: " ++ x ++ ";")
+
+        base =
+            class ++ "{" ++ msColumns ++ msRows ++ "}"
+
+        columns =
+            template.columns
+                |> List.map toGridLength
+                |> String.join " "
+                |> (\x -> "grid-template-columns: " ++ x ++ ";")
+
+        rows =
+            template.rows
+                |> List.map toGridLength
+                |> String.join " "
+                |> (\x -> "grid-template-rows: " ++ x ++ ";")
+
+        gapX =
+            "grid-column-gap:" ++ toGridLength (Tuple.first template.spacing) ++ ";"
+
+        gapY =
+            "grid-row-gap:" ++ toGridLength (Tuple.first template.spacing) ++ ";"
+
+        modernGrid =
+            class ++ "{" ++ columns ++ rows ++ gapX ++ gapY ++ "}"
+
+        supports =
+            "@supports (display:grid) {" ++ modernGrid ++ "}"
+    in
+    base ++ supports
+
+
+{-| {-
+
+.grid {
+height: 100vh;
+display: -ms-grid;
+-ms-grid-columns: 1fr 10px 1fr 10px 1fr;
+-ms-grid-rows: $header 10px 1fr 10px $footer;
+
+       @supports (display:grid) {
+           display: grid;
+           grid-gap: 10px;
+           grid-template-columns: 1fr 1fr 1fr;
+           grid-template-rows: $header 1fr $footer;
+       }
+
+}
+
+    .element {}
+        -ms-grid-row: 1;
+        -ms-grid-column: 1;
+        -ms-grid-column-span: 5;
+        @supports (display:grid) {
+            grid-column: 1 / 4;
+            grid-row: 1;
+        }
+    }
+
+-}
+
+-}
+gridPosition : String -> { a | col : number1, height : number1, row : number, width : number } -> String
+gridPosition class position =
+    let
+        msPosition =
+            String.join " "
+                [ "-ms-grid-row: "
+                    ++ toString position.row
+                    ++ ";"
+                , "-ms-grid-row-span: "
+                    ++ toString position.height
+                    ++ ";"
+                , "-ms-grid-column: "
+                    ++ toString position.col
+                    ++ ";"
+                , "-ms-grid-column-span: "
+                    ++ toString position.width
+                    ++ ";"
+                ]
+
+        base =
+            class ++ "{" ++ msPosition ++ "}"
+
+        modernPosition =
+            String.join " "
+                [ "grid-row: "
+                    ++ toString position.row
+                    ++ " / "
+                    ++ toString (position.row + position.width)
+                    ++ ";"
+                , "grid-column: "
+                    ++ toString position.col
+                    ++ " / "
+                    ++ toString (position.col + position.height)
+                    ++ ";"
+                ]
+
+        modernGrid =
+            class ++ "{" ++ modernPosition ++ "}"
+
+        supports =
+            "@supports (display:grid) {" ++ modernGrid ++ "}"
+    in
+    base ++ supports
 
 
 spacingClasses : String -> Int -> Int -> String
@@ -1830,36 +2111,6 @@ formatColorClass color =
         ++ floatClass alpha
 
 
-toStyleSheetNoReduction : List Style -> VirtualDom.Node msg
-toStyleSheetNoReduction styles =
-    let
-        renderProps (Property key val) existing =
-            existing ++ "\n  " ++ key ++ ": " ++ val ++ ";"
-
-        renderStyle selector props =
-            selector ++ "{" ++ List.foldl renderProps "" props ++ "\n}"
-
-        combine style rendered =
-            case style of
-                Style selector props ->
-                    rendered ++ "\n" ++ renderStyle selector props
-
-                Single class prop val ->
-                    rendered ++ class ++ "{" ++ prop ++ ":" ++ val ++ "}\n"
-
-                Colored class prop color ->
-                    rendered ++ class ++ "{" ++ prop ++ ":" ++ formatColor color ++ "}\n"
-
-                SpacingStyle x y ->
-                    ""
-
-                PaddingStyle top right bottom left ->
-                    ""
-    in
-    List.foldl combine "" styles
-        |> (\rendered -> VirtualDom.node "style" [] [ Html.text rendered ])
-
-
 toStyleSheetVirtualCss : List Style -> ()
 toStyleSheetVirtualCss stylesheet =
     case stylesheet of
@@ -1938,6 +2189,12 @@ toStyleSheetVirtualCss stylesheet =
                                 -- TODO!
                                 cache
 
+                        GridTemplateStyle _ ->
+                            cache
+
+                        GridPosition _ ->
+                            cache
+
                 -- ( rendered ++ paddingClasses class top right bottom left
                 -- , Set.insert class cache
                 -- )
@@ -1964,9 +2221,15 @@ styleKey style =
         PaddingStyle _ _ _ _ ->
             "padding"
 
+        GridTemplateStyle _ ->
+            "grid-template"
 
-styleName : Style -> String
-styleName style =
+        GridPosition _ ->
+            "grid-position"
+
+
+getStyleName : Style -> String
+getStyleName style =
     case style of
         Style class _ ->
             class
@@ -1990,24 +2253,25 @@ styleName style =
                 ++ "-"
                 ++ toString left
 
+        GridTemplateStyle template ->
+            "grid-"
+                ++ String.join "-" (List.map lengthClassName template.rows)
+                ++ "-"
+                ++ String.join "-" (List.map lengthClassName template.columns)
+                ++ "-"
+                ++ lengthClassName (Tuple.first template.spacing)
+                ++ "-"
+                ++ lengthClassName (Tuple.second template.spacing)
 
-addDot : Style -> Style
-addDot style =
-    case style of
-        Style class props ->
-            Style ("." ++ class) props
-
-        Single class name val ->
-            Single ("." ++ class) name val
-
-        Colored class name val ->
-            Colored ("." ++ class) name val
-
-        SpacingStyle x y ->
-            SpacingStyle x y
-
-        PaddingStyle top right bottom left ->
-            PaddingStyle top right bottom left
+        GridPosition pos ->
+            "grid-pos-"
+                ++ toString pos.row
+                ++ "-"
+                ++ toString pos.col
+                ++ "-"
+                ++ toString pos.width
+                ++ "-"
+                ++ toString pos.height
 
 
 locationClass : Location -> String
