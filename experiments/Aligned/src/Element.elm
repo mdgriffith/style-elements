@@ -370,6 +370,15 @@ table attrs config =
         ( sX, sY ) =
             Internal.getSpacing attrs ( 0, 0 )
 
+        maybeHeaders =
+            List.map .header config.columns
+                |> (\headers ->
+                        if List.all ((==) Internal.Empty) headers then
+                            Nothing
+                        else
+                            Just (List.indexedMap (\col header -> onGrid 1 (col + 1) header) headers)
+                   )
+
         template =
             Internal.StyleClass <|
                 Internal.GridTemplateStyle
@@ -414,7 +423,11 @@ table attrs config =
         children =
             List.foldl (build config.columns)
                 { elements = []
-                , row = 1
+                , row =
+                    if maybeHeaders == Nothing then
+                        1
+                    else
+                        2
                 , column = 1
                 }
                 config.data
@@ -428,7 +441,13 @@ table attrs config =
             :: attrs
         )
         (Internal.Unkeyed
-            children.elements
+            (case maybeHeaders of
+                Nothing ->
+                    children.elements
+
+                Just renderedHeaders ->
+                    renderedHeaders ++ children.elements
+            )
         )
 
 
