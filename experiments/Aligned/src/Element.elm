@@ -1,8 +1,10 @@
 module Element
     exposing
         ( Attribute
+        , Column
         , Element
         , Length
+        , Table
         , above
         , alignBottom
         , alignLeft
@@ -47,6 +49,7 @@ module Element
         , spaceEvenly
         , spacing
         , spacingXY
+        , table
         , text
         , textPage
         , when
@@ -78,7 +81,7 @@ type alias Length =
 
 
 {-| -}
-px : Float -> Length
+px : Int -> Length
 px =
     Internal.Px
 
@@ -233,6 +236,223 @@ column attrs children =
             :: attrs
         )
         (Internal.Unkeyed <| Internal.columnEdgeFillers children)
+
+
+{-| Grid
+
+    grid [ width fill, height fill ]
+        [ cell [ width (fillPortion 1) ]
+            (text "hello!")
+        ,
+
+        ]
+
+
+
+    table []
+        [
+
+        ]
+
+
+    -- Problem with standard is that we're iterating through a list y times
+    -- where y == number of fields
+    -- could use different data source, which means
+
+    table [ ]
+        [ text "First name" :: List.map (text << .firstName) persons
+        , text "Last name" :: List.map (text << .lastName) persons
+        ]
+
+
+
+    --
+    table []
+        [ { value = .firstName
+        , header = text "First Name"
+        , cell = text
+        }
+        , { value = .lastName
+        , header = text "Last Name"
+        , cell = text
+        }
+        ]
+
+-- grid []
+-- { columns = [ px 100, px 100, px 100, px 100 ]
+-- , rows =
+-- [ px 100
+-- , px 100
+-- , px 100
+-- , px 100
+-- ][ px 100
+--             , px 100
+--             , px 100
+--             , px 100
+--             ]
+-- , cells =
+-- [ cell
+-- { start = ( 0, 0 )
+-- , width = 1
+-- , height = 1
+-- , content =
+-- el Box [] (text "box")
+-- }
+-- , cell
+-- { start = ( 1, 1 )
+-- , width = 1
+-- , height = 2
+-- , content =
+-- el Box [] (text "box")
+-- }
+-- ][ cell
+--                 { start = ( 0, 0 )
+--                 , width = 1
+--                 , height = 1
+--                 , content =
+--                     el Box [] (text "box")
+--                 }
+--             , cell
+--                 { start = ( 1, 1 )
+--                 , width = 1
+--                 , height = 2
+--                 , content =
+--                     el Box [] (text "box")
+--                 }
+--             ]
+-- }
+
+    table []
+        { data = persons
+        , columns =
+            [ { value = .firstName
+            , header = Just (text "First Name")
+            , view = text
+            }
+            , { value = .lastName
+            , header = Just (text "Last Name")
+            , view = text
+            }
+            ]
+        }
+
+    table []
+        { data = persons
+        , columns =
+            [ { header = text "First Name"
+              , view =
+                    text << .firstName
+              }
+            , { header = text "Last Name"
+              , view =
+                    text << .lastName
+              }
+            ]
+        }
+
+-}
+type alias Table records msg =
+    { data : List records
+    , columns : List (Column records msg)
+    }
+
+
+type alias Column record msg =
+    { header : Element msg
+    , view : record -> Element msg
+    }
+
+
+{-| -}
+table : List (Attribute msg) -> Table data msg -> Element msg
+table attrs config =
+    let
+        ( sX, sY ) =
+            Internal.getSpacing attrs ( 0, 0 )
+
+        template =
+            Internal.StyleClass <|
+                Internal.GridTemplateStyle
+                    { spacing = ( px sX, px sY )
+                    , columns = List.repeat (List.length config.columns) Internal.Content
+                    , rows = List.repeat (List.length config.data) Internal.Content
+                    }
+
+        onGrid row column el =
+            Internal.gridEl Nothing
+                [ Internal.StyleClass
+                    (Internal.GridPosition
+                        { row = row
+                        , col = column
+                        , width = 1
+                        , height = 1
+                        }
+                    )
+                ]
+                [ el ]
+
+        add cell column cursor =
+            { cursor
+                | elements =
+                    onGrid cursor.row cursor.column (column.view cell)
+                        :: cursor.elements
+                , column = cursor.column + 1
+            }
+
+        build columns rowData cursor =
+            let
+                newCursor =
+                    List.foldl (add rowData)
+                        cursor
+                        columns
+            in
+            { newCursor
+                | row = cursor.row + 1
+                , column = 1
+            }
+
+        children =
+            List.foldl (build config.columns)
+                { elements = []
+                , row = 1
+                , column = 1
+                }
+                config.data
+    in
+    Internal.element Internal.asGrid
+        Nothing
+        (Internal.htmlClass "se grid"
+            :: width fill
+            :: center
+            :: template
+            :: attrs
+        )
+        (Internal.Unkeyed
+            children.elements
+        )
+
+
+
+{-
+
+   grid []
+       { data = persons
+       , columns =
+           [ { header = text "First Name"
+             , view =
+                   text << .firstName
+             }
+           , { header = text "Last Name"
+             , view =
+                   text << .lastName
+             }
+           ]
+       }
+
+
+
+
+-}
 
 
 {-| -}
