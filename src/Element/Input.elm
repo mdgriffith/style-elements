@@ -622,7 +622,7 @@ disabled =
 
 {-| This key is needed because of the fix that is used to address [the cursor jumping bug](https://github.com/mdgriffith/style-elements/issues/91).
 
-Style Elements renders a text input using `defaultValue`, but if the value changes in your model, but not as a result of the input `onChange` event, then your input and model will get out of sync.
+Style Elements renders a text input using `value`, but if the value changes in your model, but not as a result of the input `onChange` event, then your input and model will get out of sync.
 
 So, if you manually change the value of a text input in your model, you need to ensure this key changes.
 
