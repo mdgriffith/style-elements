@@ -1,14 +1,14 @@
 module Element.Border
     exposing
-        ( all
+        ( width
         , color
         , dashed
         , dotted
-        , each
+        , widthEach
         , glow
         , innerGlow
         , innerShadow
-        , none
+          -- , none
         , roundEach
         , rounded
         , shadow
@@ -17,10 +17,11 @@ module Element.Border
 
 {-| Border Properties
 
+@docs color
 
 # Border Widths
 
-@docs none, all, xy, each
+@docs width, xy, widthEach
 
 
 # Border Styles
@@ -45,20 +46,21 @@ color clr =
 
 
 {-| -}
-all : Float -> Attribute msg
-all v =
-    StyleClass (Single ("border-" ++ floatClass v) "border-width" (toString v ++ "px"))
+width : Int -> Attribute msg
+width v =
+    StyleClass (Single ("border-" ++ toString v) "border-width" (toString v ++ "px"))
+
 
 
 {-| Set horizontal and vertical borders.
 -}
-xy : Float -> Float -> Attribute msg
+xy : Int -> Int -> Attribute msg
 xy x y =
     StyleClass (Single ("border-" ++ toString x ++ "-" ++ toString y) "border-width" (toString y ++ "px " ++ toString x ++ "px"))
 
 
-each : { bottom : Float, left : Float, right : Float, top : Float } -> Attribute msg
-each { bottom, top, left, right } =
+widthEach : { bottom : Int, left : Int, right : Int, top : Int } -> Attribute msg
+widthEach { bottom, top, left, right } =
     StyleClass
         (Single ("border-" ++ toString top ++ "-" ++ toString right ++ toString bottom ++ "-" ++ toString left)
             "border-width"
@@ -74,11 +76,12 @@ each { bottom, top, left, right } =
         )
 
 
-{-| No Borders
--}
-none : Attribute msg
-none =
-    Class "border" "border-none"
+
+-- {-| No Borders
+-- -}
+-- none : Attribute msg
+-- none =
+--     Class "border" "border-none"
 
 
 {-| -}
@@ -101,13 +104,13 @@ dotted =
 
 {-| Round all corners.
 -}
-rounded : Float -> Attribute msg
+rounded : Int -> Attribute msg
 rounded radius =
-    StyleClass (Single ("border-radius" ++ toString radius) "border-radius" (toString radius ++ "px"))
+    StyleClass (Single ("border-radius-" ++ toString radius) "border-radius" (toString radius ++ "px"))
 
 
 {-| -}
-roundEach : { topLeft : Float, topRight : Float, bottomLeft : Float, bottomRight : Float } -> Attribute msg
+roundEach : { topLeft : Int, topRight : Int, bottomLeft : Int, bottomRight : Int } -> Attribute msg
 roundEach { topLeft, topRight, bottomLeft, bottomRight } =
     StyleClass
         (Single ("border-radius-" ++ toString topLeft ++ "-" ++ toString topRight ++ toString bottomLeft ++ "-" ++ toString bottomRight)
