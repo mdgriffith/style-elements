@@ -1,6 +1,7 @@
 module Element.Font
     exposing
-        ( alignLeft
+        ( Font
+        , alignLeft
         , alignRight
         , bold
         , center
@@ -10,7 +11,7 @@ module Element.Font
         , glow
         , italic
         , justify
-        , justifyAll
+          -- , justifyAll
         , letterSpacing
         , light
         , lineHeight
@@ -40,7 +41,7 @@ Meant to be imported as:
 
 ## Properties
 
-@docs size, lineHeight, letterSpacing, wordSpacing, alignLeft, alignRight, center, justify, justifyAll
+@docs size, lineHeight, letterSpacing, wordSpacing, alignLeft, alignRight, center, justify
 
 
 ## Font Styles
@@ -51,15 +52,6 @@ Meant to be imported as:
 
 import Color exposing (Color)
 import Internal.Model as Internal exposing (Attribute(..), Style(..))
-
-
-type Font
-    = Serif
-    | SansSerif
-    | Monospace
-    | Typeface String
-    | ImportFont String String
-
 
 
 -- {-| Text decoration color.
@@ -74,9 +66,14 @@ type Font
 
 
 {-| -}
+type alias Font =
+    Internal.Font
+
+
+{-| -}
 color : Color -> Attribute msg
 color clr =
-    StyleClass (Colored ("text-color-" ++ Internal.formatColorClass clr) "color" clr)
+    StyleClass (Colored ("font-color-" ++ Internal.formatColorClass clr) "color" clr)
 
 
 {-| -}
@@ -87,51 +84,55 @@ family families =
             let
                 renderFont font =
                     case font of
-                        Serif ->
+                        Internal.Serif ->
                             "serif"
 
-                        SansSerif ->
+                        Internal.SansSerif ->
                             "sans-serif"
 
-                        Monospace ->
+                        Internal.Monospace ->
                             "monospace"
 
-                        Typeface name ->
+                        Internal.Typeface name ->
                             "\"" ++ name ++ "\""
 
-                        ImportFont name url ->
+                        Internal.ImportFont name url ->
                             "\"" ++ name ++ "\""
             in
             families
                 |> List.map renderFont
                 |> String.join ", "
     in
-    StyleClass <|
-        Single ("font-" ++ Internal.className renderedFonts) "font-family" renderedFonts
+    StyleClass <| Internal.FontFamily ("font-" ++ Internal.className renderedFonts) families
+
+
+
+-- StyleClass <|
+-- Single ("font-" ++ Internal.className renderedFonts) "font-family" renderedFonts
 
 
 {-| -}
 serif : Font
 serif =
-    Serif
+    Internal.Serif
 
 
 {-| -}
 sansSerif : Font
 sansSerif =
-    SansSerif
+    Internal.SansSerif
 
 
 {-| -}
 monospace : Font
 monospace =
-    Monospace
+    Internal.Monospace
 
 
 {-| -}
 typeface : String -> Font
 typeface =
-    Typeface
+    Internal.Typeface
 
 
 
@@ -158,8 +159,8 @@ This means the final lineHeight in px is:
 
 -}
 lineHeight : Float -> Attribute msg
-lineHeight height =
-    StyleClass (Single ("line-height-" ++ Internal.floatClass height) "line-height" (toString height))
+lineHeight =
+    StyleClass << LineHeight
 
 
 {-| In `px`.
@@ -215,10 +216,11 @@ justify =
     Internal.class "text-justify"
 
 
-{-| -}
-justifyAll : Attribute msg
-justifyAll =
-    Internal.class "text-justify-all"
+
+-- {-| -}
+-- justifyAll : Attribute msg
+-- justifyAll =
+--     Internal.class "text-justify-all"
 
 
 {-| -}

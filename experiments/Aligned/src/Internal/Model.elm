@@ -72,6 +72,9 @@ type VAlign
 type Style
     = Style String (List Property)
       --       class  prop   val
+    | LineHeight Float
+    | FontFamily String (List Font)
+    | FontSize Int
     | Single String String String
     | Colored String String Color
     | SpacingStyle Int Int
@@ -87,6 +90,14 @@ type Style
         , width : Int
         , height : Int
         }
+
+
+type Font
+    = Serif
+    | SansSerif
+    | Monospace
+    | Typeface String
+    | ImportFont String String
 
 
 type Property
@@ -159,7 +170,7 @@ type FilterType
 
 
 type Length
-    = Px Float
+    = Px Int
     | Content
     | Fill Int
 
@@ -660,6 +671,15 @@ gatherAttributesWith mode attr gathered =
 
                 GridPosition pos ->
                     GridPosition pos
+
+                LineHeight i ->
+                    LineHeight i
+
+                FontFamily name fam ->
+                    FontFamily name fam
+
+                FontSize i ->
+                    FontSize i
     in
     case attr of
         NoAttribute ->
@@ -717,8 +737,8 @@ gatherAttributesWith mode attr gathered =
                     Px px ->
                         { gathered
                             | width = Just width
-                            , attributes = className ("width-px-" ++ floatClass px) :: gathered.attributes
-                            , styles = Single (styleName <| "width-px-" ++ floatClass px) "width" (toString px ++ "px") :: gathered.styles
+                            , attributes = className ("width-exact width-px-" ++ toString px) :: gathered.attributes
+                            , styles = Single (styleName <| "width-px-" ++ toString px) "width" (toString px ++ "px") :: gathered.styles
                         }
 
                     Content ->
@@ -749,8 +769,8 @@ gatherAttributesWith mode attr gathered =
                     Px px ->
                         { gathered
                             | height = Just height
-                            , attributes = className ("height-px-" ++ floatClass px) :: gathered.attributes
-                            , styles = Single (styleName <| "height-px-" ++ floatClass px) "height" (toString px ++ "px") :: gathered.styles
+                            , attributes = className ("height-px-" ++ toString px) :: gathered.attributes
+                            , styles = Single (styleName <| "height-px-" ++ toString px) "height" (toString px ++ "px") :: gathered.styles
                         }
 
                     Content ->
@@ -1350,6 +1370,101 @@ keyedColumnEdgeFillers children =
            ]
 
 
+{-| TODO:
+
+This doesn't reduce equivalent attributes completely.
+
+-}
+filter : List (Attribute msg) -> List (Attribute msg)
+filter attrs =
+    Tuple.first <|
+        List.foldr
+            (\x ( found, has ) ->
+                case x of
+                    NoAttribute ->
+                        ( found, has )
+
+                    Class key class ->
+                        ( x :: found, has )
+
+                    Attr attr ->
+                        ( x :: found, has )
+
+                    StyleClass style ->
+                        ( x :: found, has )
+
+                    Pseudo pseudo hoverAttributes ->
+                        ( x :: found, has )
+
+                    Width width ->
+                        if Set.member "width" has then
+                            ( found, has )
+                        else
+                            ( x :: found, Set.insert "width" has )
+
+                    Height height ->
+                        if Set.member "height" has then
+                            ( found, has )
+                        else
+                            ( x :: found, Set.insert "height" has )
+
+                    Describe description ->
+                        if Set.member "described" has then
+                            ( found, has )
+                        else
+                            ( x :: found, Set.insert "described" has )
+
+                    Nearby location elem ->
+                        ( x :: found, has )
+
+                    AlignX _ ->
+                        if Set.member "align-x" has then
+                            ( found, has )
+                        else
+                            ( x :: found, Set.insert "align-x" has )
+
+                    AlignY _ ->
+                        if Set.member "align-y" has then
+                            ( found, has )
+                        else
+                            ( x :: found, Set.insert "align-y" has )
+
+                    Move mx my mz ->
+                        ( x :: found, has )
+
+                    Filter filter ->
+                        ( x :: found, has )
+
+                    BoxShadow shadow ->
+                        ( x :: found, has )
+
+                    TextShadow shadow ->
+                        ( x :: found, has )
+
+                    Rotate _ _ _ _ ->
+                        ( x :: found, has )
+
+                    Scale mx my mz ->
+                        ( x :: found, has )
+            )
+            ( [], Set.empty )
+            attrs
+
+
+get : List (Attribute msg) -> (Attribute msg -> Bool) -> List (Attribute msg)
+get attrs isAttr =
+    attrs
+        |> filter
+        |> List.foldr
+            (\x found ->
+                if isAttr x then
+                    x :: found
+                else
+                    found
+            )
+            []
+
+
 getSpacing : List (Attribute msg) -> ( Int, Int ) -> ( Int, Int )
 getSpacing attrs default =
     attrs
@@ -1371,10 +1486,7 @@ getSpacing attrs default =
         |> Maybe.withDefault default
 
 
-
---
-
-
+getSpacingAttribute : List (Attribute msg) -> ( Int, Int ) -> Attribute msg1
 getSpacingAttribute attrs default =
     attrs
         |> List.foldr
@@ -1645,11 +1757,67 @@ htmlClass cls =
     Attr <| VirtualDom.property "className" (Json.string cls)
 
 
+renderFont families =
+    let
+        renderFont font =
+            case font of
+                Serif ->
+                    "serif"
+
+                SansSerif ->
+                    "sans-serif"
+
+                Monospace ->
+                    "monospace"
+
+                Typeface name ->
+                    "\"" ++ name ++ "\""
+
+                ImportFont name url ->
+                    "\"" ++ name ++ "\""
+    in
+    families
+        |> List.map renderFont
+        |> String.join ", "
+
+
 reduceStyles : Style -> ( Set String, List Style ) -> ( Set String, List Style )
 reduceStyles style ( cache, existing ) =
     case style of
         Style selector props ->
             ( cache, style :: existing )
+
+        FontSize i ->
+            let
+                class =
+                    "fs-" ++ toString i
+            in
+            if Set.member class cache then
+                ( cache, existing )
+            else
+                ( Set.insert class cache
+                , style :: existing
+                )
+
+        FontFamily name fam ->
+            if Set.member name cache then
+                ( cache, existing )
+            else
+                ( Set.insert name cache
+                , style :: existing
+                )
+
+        LineHeight i ->
+            let
+                class =
+                    "lh-" ++ toString i
+            in
+            if Set.member class cache then
+                ( cache, existing )
+            else
+                ( Set.insert class cache
+                , style :: existing
+                )
 
         Single class prop val ->
             if Set.member class cache then
@@ -1752,78 +1920,90 @@ toStyleSheetString stylesheet =
             selector ++ "{" ++ List.foldl renderProps "" props ++ "\n}"
 
         combine style rendered =
-            case style of
-                Style selector props ->
-                    rendered ++ "\n" ++ renderStyle selector props
+            rendered
+                ++ (case style of
+                        Style selector props ->
+                            "\n" ++ renderStyle selector props
 
-                Single class prop val ->
-                    rendered ++ class ++ "{" ++ prop ++ ":" ++ val ++ "}\n"
+                        FontSize i ->
+                            ".font-size-" ++ toString (isInt i) ++ " { font-size: " ++ toString i ++ "}"
 
-                Colored class prop color ->
-                    rendered ++ class ++ "{" ++ prop ++ ":" ++ formatColor color ++ "}\n"
+                        FontFamily name typefaces ->
+                            "."
+                                ++ name
+                                ++ "{ font-family:"
+                                ++ renderFont typefaces
+                                ++ "}"
 
-                SpacingStyle x y ->
-                    let
-                        class =
-                            ".spacing-" ++ toString x ++ "-" ++ toString y
-                    in
-                    rendered ++ spacingClasses class x y
+                        LineHeight i ->
+                            ".line-height-" ++ floatClass i ++ " { line-height: " ++ toString i ++ "}"
 
-                PaddingStyle top right bottom left ->
-                    let
-                        class =
-                            ".pad-"
-                                ++ toString top
-                                ++ "-"
-                                ++ toString right
-                                ++ "-"
-                                ++ toString bottom
-                                ++ "-"
-                                ++ toString left
-                    in
-                    rendered
-                        ++ renderStyle class
-                            [ Property "padding"
-                                (toString top
-                                    ++ "px "
-                                    ++ toString right
-                                    ++ "px "
-                                    ++ toString bottom
-                                    ++ "px "
-                                    ++ toString left
-                                    ++ "px"
-                                )
-                            ]
+                        Single class prop val ->
+                            class ++ "{" ++ prop ++ ":" ++ val ++ "}\n"
 
-                GridTemplateStyle template ->
-                    let
-                        class =
-                            ".grid-"
-                                ++ String.join "-" (List.map lengthClassName template.rows)
-                                ++ "-"
-                                ++ String.join "-" (List.map lengthClassName template.columns)
-                                ++ "-"
-                                ++ lengthClassName (Tuple.first template.spacing)
-                                ++ "-"
-                                ++ lengthClassName (Tuple.second template.spacing)
-                    in
-                    rendered
-                        ++ gridTemplate class template
+                        Colored class prop color ->
+                            class ++ "{" ++ prop ++ ":" ++ formatColor color ++ "}\n"
 
-                GridPosition pos ->
-                    let
-                        class =
-                            ".grid-pos-"
-                                ++ toString pos.row
-                                ++ "-"
-                                ++ toString pos.col
-                                ++ "-"
-                                ++ toString pos.width
-                                ++ "-"
-                                ++ toString pos.height
-                    in
-                    rendered
-                        ++ gridPosition class pos
+                        SpacingStyle x y ->
+                            let
+                                class =
+                                    ".spacing-" ++ toString x ++ "-" ++ toString y
+                            in
+                            spacingClasses class x y
+
+                        PaddingStyle top right bottom left ->
+                            let
+                                class =
+                                    ".pad-"
+                                        ++ toString top
+                                        ++ "-"
+                                        ++ toString right
+                                        ++ "-"
+                                        ++ toString bottom
+                                        ++ "-"
+                                        ++ toString left
+                            in
+                            renderStyle class
+                                [ Property "padding"
+                                    (toString top
+                                        ++ "px "
+                                        ++ toString right
+                                        ++ "px "
+                                        ++ toString bottom
+                                        ++ "px "
+                                        ++ toString left
+                                        ++ "px"
+                                    )
+                                ]
+
+                        GridTemplateStyle template ->
+                            let
+                                class =
+                                    ".grid-"
+                                        ++ String.join "-" (List.map lengthClassName template.rows)
+                                        ++ "-"
+                                        ++ String.join "-" (List.map lengthClassName template.columns)
+                                        ++ "-"
+                                        ++ lengthClassName (Tuple.first template.spacing)
+                                        ++ "-"
+                                        ++ lengthClassName (Tuple.second template.spacing)
+                            in
+                            gridTemplate class template
+
+                        GridPosition pos ->
+                            let
+                                class =
+                                    ".grid-pos-"
+                                        ++ toString pos.row
+                                        ++ "-"
+                                        ++ toString pos.col
+                                        ++ "-"
+                                        ++ toString pos.width
+                                        ++ "-"
+                                        ++ toString pos.height
+                            in
+                            gridPosition class pos
+                   )
     in
     List.foldl combine "" stylesheet
 
@@ -2189,10 +2369,19 @@ toStyleSheetVirtualCss stylesheet =
                                 -- TODO!
                                 cache
 
+                        LineHeight _ ->
+                            cache
+
                         GridTemplateStyle _ ->
                             cache
 
                         GridPosition _ ->
+                            cache
+
+                        FontFamily _ _ ->
+                            cache
+
+                        FontSize _ ->
                             cache
 
                 -- ( rendered ++ paddingClasses class top right bottom left
@@ -2209,8 +2398,17 @@ styleKey style =
         Style class _ ->
             class
 
+        FontSize i ->
+            "fontsize"
+
+        FontFamily _ _ ->
+            "fontfamily"
+
         Single _ prop _ ->
             prop
+
+        LineHeight _ ->
+            "lineheight"
 
         Colored _ prop _ ->
             prop
@@ -2228,11 +2426,25 @@ styleKey style =
             "grid-position"
 
 
+isInt : Int -> Int
+isInt x =
+    x
+
+
 getStyleName : Style -> String
 getStyleName style =
     case style of
         Style class _ ->
             class
+
+        LineHeight i ->
+            "line-height-" ++ floatClass i
+
+        FontFamily name _ ->
+            name
+
+        FontSize i ->
+            "font-size-" ++ toString (isInt i)
 
         Single class _ _ ->
             class
@@ -2241,7 +2453,7 @@ getStyleName style =
             class
 
         SpacingStyle x y ->
-            "spacing-" ++ toString x ++ "-" ++ toString y
+            "spacing-" ++ toString (isInt x) ++ "-" ++ toString (isInt y)
 
         PaddingStyle top right bottom left ->
             "pad-"

@@ -42,7 +42,6 @@ relative node attributes primary around =
         make positioned =
             Internal.el positioned.attrs positioned.child
 
-        -- Internal.getSpacing attributes ( 5, 5 )
         ( template, children ) =
             createGrid ( sX, sY ) primary around
     in
@@ -178,7 +177,7 @@ createGrid ( spacingX, spacingY ) primary nearby =
     in
     ( [ Internal.StyleClass
             (Internal.GridTemplateStyle
-                { spacing = ( Internal.Px (toFloat spacingX), Internal.Px (toFloat spacingY) )
+                { spacing = ( Internal.Px spacingX, Internal.Px spacingY )
                 , columns = List.map (always Internal.Content) (List.range 1 colCount)
                 , rows = List.map (always Internal.Content) (List.range 1 rowCount)
                 }

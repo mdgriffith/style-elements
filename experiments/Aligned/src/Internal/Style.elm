@@ -354,7 +354,13 @@ viewportRulesElement =
 rules : String
 rules =
     render
-        [ Class "html,body"
+        [ Class (class Any ++ ":focus")
+            [ Prop "border-radius" "5px"
+            , Prop "border-color" "rgba(155,203,255,1.0)"
+            , Prop "box-shadow" "0 0 3px 3px rgba(155,203,255,1.0)"
+            , Prop "outline" "none"
+            ]
+        , Class "html,body"
             [ Prop "height" "100%"
             , Prop "padding" "0"
             , Prop "margin" "0"
@@ -404,6 +410,10 @@ rules =
                             , "color"
                             ]
                     )
+                ]
+            , Descriptor ".overflow-hidden"
+                [ Prop "overflow" "hidden"
+                , Prop " -ms-overflow-style" "none"
                 ]
             , Descriptor ".scrollbars"
                 [ Prop "overflow" "auto"
@@ -625,6 +635,9 @@ rules =
             , Prop "flex-direction" "row"
             , Child (class Any)
                 [ Prop "flex-basis" "0"
+                , Descriptor ".width-exact"
+                    [ Prop "flex-basis" "auto"
+                    ]
                 ]
             , Descriptor ".space-evenly"
                 [ Prop "justify-content" "space-between"
@@ -718,6 +731,12 @@ rules =
                 ]
             , Child ".spacer + .se"
                 [ Prop "margin-top" "0"
+                ]
+            , Child ".se.spacer"
+                [ Prop "margin-top" "0 !important"
+                ]
+            , Child ".se.teleporting-spacer"
+                [ Prop "margin-top" "0 !important"
                 ]
             , Child ".stylesheet + .se"
                 [ Prop "margin-top" "0"
