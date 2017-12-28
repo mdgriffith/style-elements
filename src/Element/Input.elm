@@ -630,7 +630,7 @@ A common way to do this is to maintain increment a counter whenever you manually
 
 **This option will be removed as soon as this bug is addressed farther upstream.**
 
-So if it feels awkward and like a hack, it's be cause it is.
+So if it feels awkward and like a hack, it's because it is.
 
 -}
 textKey : String -> Option style variation msg
@@ -1536,7 +1536,7 @@ type alias SearchMenu option style variation msg =
         [ padding 10
         , spacing 20
         ]
-        { label = Input.labelAbove <| text "Lunch"
+        { label = Input.labelAbove (text "Lunch")
 
         -- in this case, model.selectmenu is
         , with = model.selectMenu
