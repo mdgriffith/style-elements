@@ -23,6 +23,7 @@ module Element.Input
           -- , cell
           -- , cellWith
         , currentPassword
+        , date
         , disabled
         , dropMenu
         , email
@@ -61,7 +62,7 @@ module Element.Input
 
 ## Text Input
 
-@docs Text, text, multiline, search, email
+@docs Text, text, multiline, search, email, date
 
 The following text inputs give hints to the browser so they can be autofilled.
 
@@ -361,6 +362,7 @@ type TextKind
     | Password
     | Email
     | TextArea
+    | Date
 
 
 {-| -}
@@ -407,6 +409,12 @@ email =
 multiline : style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
 multiline =
     textHelper TextArea []
+
+
+{-| -}
+date : style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
+date =
+    textHelper Date []
 
 
 {-| -}
@@ -527,6 +535,9 @@ textHelper kind addedOptions style attrs input =
 
                 TextArea ->
                     "text"
+
+                Date ->
+                    "date"
 
         withAutofocus attrs =
             if List.any ((==) FocusOnLoad) options then

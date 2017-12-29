@@ -114,6 +114,7 @@ main =
             ( { checkbox = False
               , lunch = Taco
               , text = "hi"
+              , date = ""
               , manyLunches = [ Taco, Burrito ]
               , openMenu = False
               , search = Input.autocomplete Nothing Search
@@ -131,6 +132,7 @@ type Msg
     = Check Bool
     | ChooseLunch Lunch
     | ChangeText String
+    | ChangeDate String
     | UpdateLunches (List Lunch)
     | ShowMenu Bool
     | Search (Input.SelectMsg Lunch)
@@ -156,6 +158,11 @@ update msg model =
 
         ChangeText str ->
             ( { model | text = str }
+            , Cmd.none
+            )
+
+        ChangeDate str ->
+            ( { model | date = str }
             , Cmd.none
             )
 
@@ -198,6 +205,15 @@ view model =
                             }
                     , options =
                         [ Input.errorBelow (el Error [] (text "This is an Error!"))
+                        ]
+                    }
+                , Input.date Field []
+                    { onChange = ChangeDate
+                    , value = model.date
+                    , label =
+                        Input.labelLeft (el None [] (text "Date"))
+                    , options =
+                        [ Input.errorBelow (el Error [] (text "This is a date Error!"))
                         ]
                     }
                 , Input.checkbox Checkbox
