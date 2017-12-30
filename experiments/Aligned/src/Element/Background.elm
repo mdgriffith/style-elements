@@ -1,4 +1,4 @@
-module Element.Background exposing (color, image, tiled, tiledX, tiledY)
+module Element.Background exposing (color, image, mouseOverColor, tiled, tiledX, tiledY)
 
 {-|
 
@@ -24,6 +24,12 @@ Gradient
 
 import Color exposing (Color)
 import Internal.Model exposing (..)
+
+
+{-| -}
+mouseOverColor : Color -> Attribute msg
+mouseOverColor clr =
+    hover (Colored ("hover-bg-" ++ formatColorClass clr) "background-color" clr)
 
 
 {-| -}

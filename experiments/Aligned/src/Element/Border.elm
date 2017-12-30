@@ -1,23 +1,25 @@
 module Element.Border
     exposing
-        ( width
-        , color
+        ( color
         , dashed
         , dotted
-        , widthEach
         , glow
         , innerGlow
         , innerShadow
+        , mouseOverColor
           -- , none
         , roundEach
         , rounded
         , shadow
         , solid
+        , width
+        , widthEach
         )
 
 {-| Border Properties
 
 @docs color
+
 
 # Border Widths
 
@@ -46,10 +48,15 @@ color clr =
 
 
 {-| -}
+mouseOverColor : Color -> Attribute msg
+mouseOverColor clr =
+    hover (Colored ("hover-border-color-" ++ formatColorClass clr) "border-color" clr)
+
+
+{-| -}
 width : Int -> Attribute msg
 width v =
     StyleClass (Single ("border-" ++ toString v) "border-width" (toString v ++ "px"))
-
 
 
 {-| Set horizontal and vertical borders.

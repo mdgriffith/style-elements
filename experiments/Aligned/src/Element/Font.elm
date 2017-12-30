@@ -16,6 +16,7 @@ module Element.Font
         , light
         , lineHeight
         , monospace
+        , mouseOverColor
         , sansSerif
         , serif
         , shadow
@@ -72,8 +73,14 @@ type alias Font =
 
 {-| -}
 color : Color -> Attribute msg
-color clr =
-    StyleClass (Colored ("font-color-" ++ Internal.formatColorClass clr) "color" clr)
+color fontColor =
+    StyleClass (Colored ("font-color-" ++ Internal.formatColorClass fontColor) "color" fontColor)
+
+
+{-| -}
+mouseOverColor : Color -> Attribute msg
+mouseOverColor fontColor =
+    Internal.hover (Colored ("hover-font-color-" ++ Internal.formatColorClass fontColor) "color" fontColor)
 
 
 {-| -}

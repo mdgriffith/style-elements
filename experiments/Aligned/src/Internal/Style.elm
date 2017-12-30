@@ -354,21 +354,15 @@ viewportRulesElement =
 rules : String
 rules =
     render
-        [ Class (class Any ++ ":focus")
-            [ Prop "border-radius" "5px"
-            , Prop "border-color" "rgba(155,203,255,1.0)"
-            , Prop "box-shadow" "0 0 3px 3px rgba(155,203,255,1.0)"
-            , Prop "outline" "none"
-            ]
-        , Class "html,body"
+        [ Class "html,body"
             [ Prop "height" "100%"
             , Prop "padding" "0"
             , Prop "margin" "0"
             ]
-        , Class "input"
+        , Class ("input" ++ class Any)
             [ Prop "border" "none"
             ]
-        , Class "a"
+        , Class ("a" ++ class Any)
             [ Prop "text-decoration" "none"
             , Prop "color" "inherit"
             ]

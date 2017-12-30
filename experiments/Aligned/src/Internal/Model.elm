@@ -1,7 +1,6 @@
 module Internal.Model exposing (..)
 
-{-| Implement style elements using as few calls as possible
--}
+{-| -}
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -32,22 +31,31 @@ type LayoutContext
     | AsGridEl
 
 
+
+{- Constants -}
+
+
+asGrid : LayoutContext
 asGrid =
     AsGrid
 
 
+asRow : LayoutContext
 asRow =
     AsRow
 
 
+asColumn : LayoutContext
 asColumn =
     AsColumn
 
 
+asEl : LayoutContext
 asEl =
     AsEl
 
 
+asGridEl : LayoutContext
 asGridEl =
     AsGridEl
 
@@ -67,6 +75,11 @@ type VAlign
     = Top
     | CenterY
     | Bottom
+
+
+hover : Style -> Attribute msg
+hover style =
+    StyleClass (PseudoSelector Hover style)
 
 
 type Style
@@ -90,6 +103,12 @@ type Style
         , width : Int
         , height : Int
         }
+    | PseudoSelector PseudoClass Style
+
+
+type PseudoClass
+    = Focus
+    | Hover
 
 
 type Font
@@ -104,10 +123,15 @@ type Property
     = Property String String
 
 
+type Transformation
+    = Move (Maybe Float) (Maybe Float) (Maybe Float)
+    | Rotate Float Float Float Float
+    | Scale Float Float Float
+
+
 type Attribute msg
     = Attr (Html.Attribute msg)
     | Describe Description
-    | Pseudo String (List (Attribute msg))
       -- invalidation key and literal class
     | Class String String
       -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
@@ -118,9 +142,10 @@ type Attribute msg
     | Width Length
     | Height Length
     | Nearby Location (Element msg)
-    | Move (Maybe Float) (Maybe Float) (Maybe Float)
-    | Rotate Float Float Float Float
-    | Scale (Maybe Float) (Maybe Float) (Maybe Float)
+    | Transform (Maybe PseudoClass) Transformation
+      -- | Move (Maybe Float) (Maybe Float) (Maybe Float)
+      -- | Rotate Float Float Float Float
+      -- | Scale Float Float Float
     | TextShadow
         { offset : ( Float, Float )
         , blur : Float
@@ -215,9 +240,6 @@ mapAttr fn attr =
         NoAttribute ->
             NoAttribute
 
-        Pseudo cls props ->
-            Pseudo cls <| List.map (mapAttr fn) props
-
         Describe description ->
             Describe description
 
@@ -243,14 +265,8 @@ mapAttr fn attr =
         Nearby location element ->
             Nearby location (map fn element)
 
-        Move x y z ->
-            Move x y z
-
-        Rotate x y z a ->
-            Rotate x y z a
-
-        Scale x y z ->
-            Scale x y z
+        Transform pseudo trans ->
+            Transform pseudo trans
 
         Attr htmlAttr ->
             Attr (Html.Attributes.map fn htmlAttr)
@@ -263,51 +279,6 @@ mapAttr fn attr =
 
         Filter filter ->
             Filter filter
-
-
-
--- mapHoverAttr : (msg -> msg1) -> Attr Never msg -> Attr Never msg1
--- mapHoverAttr fn attr =
---     case attr of
---         NoAttribute ->
---             NoAttribute
---         Hover props ->
---             NoAttribute
---         -- Hover props
---         Describe description ->
---             Describe description
---         AlignX x ->
---             AlignX x
---         AlignY y ->
---             AlignY y
---         Width x ->
---             Width x
---         Height x ->
---             Height x
---         -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
---         Class x y ->
---             Class x y
---         StyleClass style ->
---             StyleClass style
---         Nearby location element ->
---             NoAttribute
---         -- Nearby location (map fn element)
---         Move x y z ->
---             Move x y z
---         Rotate x y z a ->
---             Rotate x y z a
---         Scale x y z ->
---             Scale x y z
---         Attr htmlAttr ->
---             NoAttribute
---         -- Attr htmlAttr
---         -- Attr (Html.Attributes.map fn htmlAttr)
---         TextShadow shadow ->
---             TextShadow shadow
---         BoxShadow shadow ->
---             BoxShadow shadow
---         Filter filter ->
---             Filter filter
 
 
 class : String -> Attribute msg
@@ -323,7 +294,19 @@ embed fn a =
             html
 
         Styled styled ->
-            styled.html (Just (toStyleSheetString styled.styles))
+            styled.html
+                (Just
+                    (toStyleSheetString
+                        { hover = AllowHover
+                        , focus =
+                            { borderColor = Nothing
+                            , shadow = Nothing
+                            , backgroundColor = Nothing
+                            }
+                        }
+                        styled.styles
+                    )
+                )
 
         Text text ->
             always (Html.text text)
@@ -338,6 +321,7 @@ unstyled =
     Unstyled << always
 
 
+{-| -}
 renderNode : Aligned -> NodeName -> List (VirtualDom.Property msg) -> Children (VirtualDom.Node msg) -> Maybe String -> LayoutContext -> VirtualDom.Node msg
 renderNode alignment node attrs children styles context =
     let
@@ -572,52 +556,7 @@ alignYName align =
             "self-center-y"
 
 
-
---  { attributes = []
---     , styles = styles
---     , width = Nothing
---     , height = Nothing
---     , alignment = Unaligned
---     , node =
---         case maybeNodeName of
---             Nothing ->
---                 Generic
---             Just name ->
---                 NodeName name
---     , nearbys = Nothing
---     , rotation = Nothing
---     , translation = Nothing
---     , scale = Nothing
---     , filters = Nothing
---     , boxShadows = Nothing
---     , textShadows = Nothing
---     , has = Set.empty
---     }
-
-
-{-| In order to make things hoverable, we need to change the class attached to the element
-
-.bg-0-0-0 {
-background-color: rgb(0,0,0)
-}
-.hover-bg-255-255-255:hover {
-background-color: rgb(255,255,255)
-}
-
-We should be able to run the gather in GatherHoverable mode.
-
-Properties that could need to stack with existing element declarations:
-
-transforms, rotation, translation, scale, filters, shadows
-
-At the moment we can probably skip that.
-
--}
-makeHoverable : Gathered msg -> Gathered msg
-makeHoverable g =
-    g
-
-
+gatherAttributes : Attribute msg -> Gathered msg -> Gathered msg
 gatherAttributes =
     gatherAttributesWith Gather
 
@@ -625,7 +564,7 @@ gatherAttributes =
 type GatherMode msg
     = Gather
     | GatherPseudo
-        { pseudoClass : String
+        { pseudoClass : PseudoClass
         , additionalAttributes : List (Html.Attribute msg)
         }
 
@@ -639,7 +578,11 @@ gatherAttributesWith mode attr gathered =
                     VirtualDom.property "className" (Json.string name)
 
                 GatherPseudo { pseudoClass } ->
-                    VirtualDom.property "className" (Json.string (pseudoClass ++ "-" ++ name))
+                    let
+                        baseName =
+                            psuedoClassName pseudoClass ++ "-" ++ name
+                    in
+                    VirtualDom.property "className" (Json.string baseName)
 
         styleName name =
             case mode of
@@ -647,10 +590,13 @@ gatherAttributesWith mode attr gathered =
                     "." ++ name
 
                 GatherPseudo { pseudoClass } ->
-                    "." ++ pseudoClass ++ "-" ++ name ++ ":" ++ pseudoClass
+                    "." ++ psuedoClassName pseudoClass ++ "-" ++ name
 
         formatStyleClass style =
             case style of
+                PseudoSelector selector style ->
+                    PseudoSelector selector (formatStyleClass style)
+
                 Style class props ->
                     Style (styleName class) props
 
@@ -711,25 +657,16 @@ gatherAttributesWith mode attr gathered =
                 gathered
             else
                 { gathered
-                    | attributes = className (getStyleName style) :: gathered.attributes
+                    | attributes =
+                        case style of
+                            PseudoSelector Hover _ ->
+                                VirtualDom.property "className" (Json.string "hover-transition") :: className (getStyleName style) :: gathered.attributes
+
+                            _ ->
+                                className (getStyleName style) :: gathered.attributes
                     , styles = formatStyleClass style :: gathered.styles
                     , has = Set.insert key gathered.has
                 }
-
-        Pseudo pseudo hoverAttributes ->
-            case mode of
-                Gather ->
-                    let
-                        rendered =
-                            List.foldr (gatherAttributesWith (GatherPseudo { pseudoClass = pseudo, additionalAttributes = [] })) (initGathered Nothing []) hoverAttributes
-                    in
-                    { gathered
-                        | attributes = className "hover-transition" :: rendered.attributes ++ gathered.attributes
-                        , styles = rendered.styles ++ gathered.styles
-                    }
-
-                GatherPseudo _ ->
-                    gathered
 
         Width width ->
             if gathered.width == Nothing then
@@ -959,32 +896,6 @@ gatherAttributesWith mode attr gathered =
                         , alignment = Aligned x (Just y)
                     }
 
-        Move mx my mz ->
-            -- add translate to the transform stack
-            let
-                addIfNothing val existing =
-                    case existing of
-                        Nothing ->
-                            val
-
-                        x ->
-                            x
-
-                translate =
-                    case gathered.translation of
-                        Nothing ->
-                            Just
-                                ( mx, my, mz )
-
-                        Just ( existingX, existingY, existingZ ) ->
-                            Just
-                                ( addIfNothing mx existingX
-                                , addIfNothing my existingY
-                                , addIfNothing mz existingZ
-                                )
-            in
-            { gathered | translation = translate }
-
         Filter filter ->
             case gathered.filters of
                 Nothing ->
@@ -1009,20 +920,199 @@ gatherAttributesWith mode attr gathered =
                 Just existing ->
                     { gathered | textShadows = Just (formatTextShadow shadow ++ ", " ++ existing) }
 
-        Rotate x y z angle ->
-            case gathered.rotation of
-                Nothing ->
-                    { gathered
-                        | rotation =
-                            Just
-                                ("rotate3d(" ++ toString x ++ "," ++ toString y ++ "," ++ toString z ++ "," ++ toString angle ++ "rad)")
-                    }
+        Transform pseudoClass transform ->
+            case transform of
+                Move mx my mz ->
+                    case pseudoClass of
+                        Nothing ->
+                            case gathered.transform of
+                                Nothing ->
+                                    { gathered
+                                        | transform =
+                                            Just
+                                                { translate =
+                                                    Just ( mx, my, mz )
+                                                , scale = Nothing
+                                                , rotate = Nothing
+                                                }
+                                    }
 
-                _ ->
-                    gathered
+                                Just transformation ->
+                                    { gathered
+                                        | transform = Just (addTranslate mx my mz transformation)
+                                    }
 
-        Scale mx my mz ->
-            -- add scale to the transform stack
+                        Just Hover ->
+                            case gathered.transformHover of
+                                Nothing ->
+                                    { gathered
+                                        | transformHover =
+                                            Just
+                                                { translate =
+                                                    Just ( mx, my, mz )
+                                                , scale = Nothing
+                                                , rotate = Nothing
+                                                }
+                                    }
+
+                                Just transformation ->
+                                    { gathered
+                                        | transformHover = Just (addTranslate mx my mz transformation)
+                                    }
+
+                        Just Focus ->
+                            gathered
+
+                Rotate x y z angle ->
+                    case pseudoClass of
+                        Nothing ->
+                            case gathered.transform of
+                                Nothing ->
+                                    { gathered
+                                        | transform =
+                                            Just
+                                                { rotate =
+                                                    Just ( x, y, z, angle )
+                                                , scale = Nothing
+                                                , translate = Nothing
+                                                }
+                                    }
+
+                                Just transformation ->
+                                    { gathered
+                                        | transform = Just (addRotate x y z angle transformation)
+                                    }
+
+                        Just Hover ->
+                            case gathered.transformHover of
+                                Nothing ->
+                                    { gathered
+                                        | transformHover =
+                                            Just
+                                                { rotate =
+                                                    Just ( x, y, z, angle )
+                                                , scale = Nothing
+                                                , translate = Nothing
+                                                }
+                                    }
+
+                                Just transformation ->
+                                    { gathered
+                                        | transformHover = Just (addRotate x y z angle transformation)
+                                    }
+
+                        Just Focus ->
+                            gathered
+
+                Scale x y z ->
+                    case pseudoClass of
+                        Nothing ->
+                            case gathered.transform of
+                                Nothing ->
+                                    { gathered
+                                        | transform =
+                                            Just
+                                                { scale =
+                                                    Just ( x, y, z )
+                                                , rotate = Nothing
+                                                , translate = Nothing
+                                                }
+                                    }
+
+                                Just transformation ->
+                                    { gathered
+                                        | transform = Just (addScale x y z transformation)
+                                    }
+
+                        Just Hover ->
+                            case gathered.transformHover of
+                                Nothing ->
+                                    { gathered
+                                        | transformHover =
+                                            Just
+                                                { scale =
+                                                    Just ( x, y, z )
+                                                , rotate = Nothing
+                                                , translate = Nothing
+                                                }
+                                    }
+
+                                Just transformation ->
+                                    { gathered
+                                        | transformHover = Just (addScale x y z transformation)
+                                    }
+
+                        Just Focus ->
+                            gathered
+
+
+
+-- case gathered.rotation of
+--     Nothing ->
+--         { gathered
+--             | rotation =
+--                 Just
+--                     ("rotate3d(" ++ toString x ++ "," ++ toString y ++ "," ++ toString z ++ "," ++ toString angle ++ "rad)")
+--         }
+--     _ ->
+--         gathered
+-- let
+--     newScale =
+--         case gathered.scale of
+--             Nothing ->
+--                 Just
+--                     ( x
+--                     , y
+--                     , z
+--                     )
+--             _ ->
+--                 gathered.scale
+-- in
+-- { gathered | scale = newScale }
+
+
+type alias TransformationAlias a =
+    { a
+        | rotate : Maybe ( Float, Float, Float, Float )
+        , translate : Maybe ( Maybe Float, Maybe Float, Maybe Float )
+        , scale : Maybe ( Float, Float, Float )
+    }
+
+
+addScale x y z transformation =
+    case transformation.scale of
+        Nothing ->
+            { transformation
+                | scale =
+                    Just ( x, y, z )
+            }
+
+        _ ->
+            transformation
+
+
+addRotate x y z angle transformation =
+    case transformation.rotate of
+        Nothing ->
+            { transformation
+                | rotate =
+                    Just ( x, y, z, angle )
+            }
+
+        _ ->
+            transformation
+
+
+addTranslate : Maybe a -> Maybe a1 -> Maybe a2 -> { b | translate : Maybe ( Maybe a, Maybe a1, Maybe a2 ) } -> { b | translate : Maybe ( Maybe a, Maybe a1, Maybe a2 ) }
+addTranslate mx my mz transformation =
+    case transformation.translate of
+        Nothing ->
+            { transformation
+                | translate =
+                    Just ( mx, my, mz )
+            }
+
+        Just ( existingX, existingY, existingZ ) ->
             let
                 addIfNothing val existing =
                     case existing of
@@ -1031,24 +1121,15 @@ gatherAttributesWith mode attr gathered =
 
                         x ->
                             x
-
-                scale =
-                    case gathered.scale of
-                        Nothing ->
-                            Just
-                                ( mx
-                                , my
-                                , mz
-                                )
-
-                        Just ( existingX, existingY, existingZ ) ->
-                            Just
-                                ( addIfNothing mx existingX
-                                , addIfNothing my existingY
-                                , addIfNothing mz existingZ
-                                )
             in
-            { gathered | scale = scale }
+            { transformation
+                | translate =
+                    Just
+                        ( addIfNothing mx existingX
+                        , addIfNothing my existingY
+                        , addIfNothing mz existingZ
+                        )
+            }
 
 
 type NodeName
@@ -1078,15 +1159,17 @@ type alias Gathered msg =
     , filters : Maybe String
     , boxShadows : Maybe String
     , textShadows : Maybe String
-    , rotation : Maybe String
-    , translation : Maybe ( Maybe Float, Maybe Float, Maybe Float )
-    , scale : Maybe ( Maybe Float, Maybe Float, Maybe Float )
+    , transform : Maybe TransformationGroup
+    , transformHover : Maybe TransformationGroup
     , has : Set String
     }
 
 
-pair =
-    (,)
+type alias TransformationGroup =
+    { rotate : Maybe ( Float, Float, Float, Float )
+    , translate : Maybe ( Maybe Float, Maybe Float, Maybe Float )
+    , scale : Maybe ( Float, Float, Float )
+    }
 
 
 {-| Because of how it's constructed, we know that NearbyGroup is nonempty
@@ -1130,9 +1213,8 @@ initGathered maybeNodeName styles =
             Just name ->
                 NodeName name
     , nearbys = Nothing
-    , rotation = Nothing
-    , translation = Nothing
-    , scale = Nothing
+    , transform = Nothing
+    , transformHover = Nothing
     , filters = Nothing
     , boxShadows = Nothing
     , textShadows = Nothing
@@ -1164,62 +1246,127 @@ className x =
         |> Regex.replace Regex.All (Regex.regex "[\\s+]") (\_ -> "")
 
 
+
+-- renderTransformationGroup : TransformationGroup -> Maybe String
+
+
+renderTransformationGroup maybePostfix group =
+    let
+        translate =
+            flip Maybe.map
+                group.translate
+                (\( x, y, z ) ->
+                    "translate3d("
+                        ++ toString (Maybe.withDefault 0 x)
+                        ++ "px, "
+                        ++ toString (Maybe.withDefault 0 y)
+                        ++ "px, "
+                        ++ toString (Maybe.withDefault 0 z)
+                        ++ "px)"
+                )
+
+        scale =
+            flip Maybe.map
+                group.scale
+                (\( x, y, z ) ->
+                    "scale3d(" ++ toString x ++ ", " ++ toString y ++ ", " ++ toString z ++ ")"
+                )
+
+        rotate =
+            flip Maybe.map
+                group.rotate
+                (\( x, y, z, angle ) ->
+                    "rotate3d(" ++ toString x ++ "," ++ toString y ++ "," ++ toString z ++ "," ++ toString angle ++ "rad)"
+                )
+
+        transformations =
+            List.filterMap identity
+                [ scale
+                , translate
+                , rotate
+                ]
+
+        name =
+            String.join "-" <|
+                List.filterMap identity
+                    [ flip Maybe.map
+                        group.translate
+                        (\( x, y, z ) ->
+                            "move-"
+                                ++ floatClass (Maybe.withDefault 0 x)
+                                ++ "-"
+                                ++ floatClass (Maybe.withDefault 0 y)
+                                ++ "-"
+                                ++ floatClass (Maybe.withDefault 0 z)
+                        )
+                    , flip Maybe.map
+                        group.scale
+                        (\( x, y, z ) ->
+                            "scale" ++ floatClass x ++ "-" ++ floatClass y ++ "-" ++ floatClass z
+                        )
+                    , flip Maybe.map
+                        group.rotate
+                        (\( x, y, z, angle ) ->
+                            "rotate-" ++ floatClass x ++ "-" ++ floatClass y ++ "-" ++ floatClass z ++ "-" ++ floatClass angle
+                        )
+                    ]
+    in
+    case transformations of
+        [] ->
+            Nothing
+
+        trans ->
+            let
+                transforms =
+                    String.join " " trans
+
+                ( classOnElement, classInStylesheet ) =
+                    case maybePostfix of
+                        Nothing ->
+                            ( "transform-" ++ name
+                            , ".transform-" ++ name
+                            )
+
+                        Just ( postfix, pseudostate ) ->
+                            ( "transform-" ++ name ++ "-" ++ postfix
+                            , "." ++ "transform-" ++ name ++ "-" ++ postfix ++ ":" ++ pseudostate
+                            )
+            in
+            Just ( classOnElement, Single classInStylesheet "transform" transforms )
+
+
 formatTransformations : Gathered msg -> Gathered msg
 formatTransformations gathered =
     let
-        translate =
-            case gathered.translation of
-                Nothing ->
-                    Nothing
-
-                Just ( x, y, z ) ->
-                    Just
-                        ("translate3d("
-                            ++ toString (Maybe.withDefault 0 x)
-                            ++ "px, "
-                            ++ toString (Maybe.withDefault 0 y)
-                            ++ "px, "
-                            ++ toString (Maybe.withDefault 0 z)
-                            ++ "px)"
-                        )
-
-        scale =
-            case gathered.scale of
-                Nothing ->
-                    Nothing
-
-                Just ( x, y, z ) ->
-                    Just
-                        ("scale3d("
-                            ++ toString (Maybe.withDefault 0 x)
-                            ++ "px, "
-                            ++ toString (Maybe.withDefault 0 y)
-                            ++ "px, "
-                            ++ toString (Maybe.withDefault 0 z)
-                            ++ "px)"
-                        )
-
-        transformations =
-            [ scale, translate, gathered.rotation ]
-                |> List.filterMap identity
-
         addTransform ( classes, styles ) =
-            case transformations of
-                [] ->
+            case gathered.transform of
+                Nothing ->
                     ( classes, styles )
 
-                trans ->
-                    let
-                        transforms =
-                            String.join " " trans
+                Just transform ->
+                    case renderTransformationGroup Nothing transform of
+                        Nothing ->
+                            ( classes, styles )
 
-                        name =
-                            "transform-" ++ className transforms
-                    in
-                    ( name :: classes
-                    , Single ("." ++ name) "transform" transforms
-                        :: styles
-                    )
+                        Just ( name, transformStyle ) ->
+                            ( name :: classes
+                            , transformStyle :: styles
+                            )
+
+        addHoverTransform ( classes, styles ) =
+            case gathered.transformHover of
+                Nothing ->
+                    ( classes, styles )
+
+                Just transform ->
+                    case renderTransformationGroup (Just ( "hover", "hover" )) transform of
+                        Nothing ->
+                            ( classes, styles )
+
+                        Just ( name, transformStyle ) ->
+                            ( name :: classes
+                            , transformStyle :: styles
+                            )
 
         addFilters ( classes, styles ) =
             case gathered.filters of
@@ -1273,6 +1420,7 @@ formatTransformations gathered =
                 |> addBoxShadows
                 |> addTextShadows
                 |> addTransform
+                |> addHoverTransform
     in
     { gathered
         | styles = styles
@@ -1292,6 +1440,7 @@ renderAttributes node styles attributes =
                 |> formatTransformations
 
 
+rowEdgeFillers : List (Element msg) -> List (Element msg)
 rowEdgeFillers children =
     unstyled
         (VirtualDom.node "alignLeft"
@@ -1307,6 +1456,7 @@ rowEdgeFillers children =
            ]
 
 
+keyedRowEdgeFillers : List ( String, Element msg ) -> List ( String, Element msg )
 keyedRowEdgeFillers children =
     ( "left-filler-node-pls-pls-pls-be-unique"
     , unstyled
@@ -1326,6 +1476,7 @@ keyedRowEdgeFillers children =
            ]
 
 
+columnEdgeFillers : List (Element msg) -> List (Element msg)
 columnEdgeFillers children =
     -- unstyled <|
     -- (VirtualDom.node "alignTop"
@@ -1346,6 +1497,7 @@ columnEdgeFillers children =
            ]
 
 
+keyedColumnEdgeFillers : List ( String, Element msg ) -> List ( String, Element msg )
 keyedColumnEdgeFillers children =
     -- unstyled <|
     -- (VirtualDom.node "alignTop"
@@ -1393,9 +1545,6 @@ filter attrs =
                     StyleClass style ->
                         ( x :: found, has )
 
-                    Pseudo pseudo hoverAttributes ->
-                        ( x :: found, has )
-
                     Width width ->
                         if Set.member "width" has then
                             ( found, has )
@@ -1429,9 +1578,6 @@ filter attrs =
                         else
                             ( x :: found, Set.insert "align-y" has )
 
-                    Move mx my mz ->
-                        ( x :: found, has )
-
                     Filter filter ->
                         ( x :: found, has )
 
@@ -1441,10 +1587,7 @@ filter attrs =
                     TextShadow shadow ->
                         ( x :: found, has )
 
-                    Rotate _ _ _ _ ->
-                        ( x :: found, has )
-
-                    Scale mx my mz ->
+                    Transform _ _ ->
                         ( x :: found, has )
             )
             ( [], Set.empty )
@@ -1673,6 +1816,37 @@ type RenderMode
     | WithVirtualCss
 
 
+type alias Options =
+    { hover : HoverOption
+    , focus : FocusStyle
+    }
+
+
+type HoverOption
+    = NoHover
+    | AllowHover
+    | ForceHover
+
+
+type alias Shadow =
+    { color : Color
+    , offset : ( Int, Int )
+    , blur : Int
+    , size : Int
+    }
+
+
+
+-- formatBoxShadow : { e | blur : a, color : Color, inset : Bool, offset : ( b, c ), size : d }
+
+
+type alias FocusStyle =
+    { borderColor : Maybe Color
+    , shadow : Maybe Shadow
+    , backgroundColor : Maybe Color
+    }
+
+
 
 -- renderStyles : Element msg -> ( Set String, List Style ) -> ( Set String, List Style )
 -- renderStyles el ( cache, existing ) =
@@ -1687,11 +1861,42 @@ type RenderMode
 --             List.foldr renderStyles reduced styled.children
 
 
+optionStyles : Options -> Style
+optionStyles options =
+    Style ".se:focus"
+        (List.filterMap identity
+            [ Maybe.map (\color -> Property "border-color" (formatColor color)) options.focus.borderColor
+            , Maybe.map (\color -> Property "background-color" (formatColor color)) options.focus.backgroundColor
+            , Maybe.map
+                (\shadow ->
+                    Property "box-shadow"
+                        (formatBoxShadow
+                            { color = shadow.color
+                            , offset = shadow.offset
+                            , inset = False
+                            , blur = shadow.blur
+                            , size = shadow.size
+                            }
+                        )
+                )
+                options.focus.shadow
+            , Just <| Property "outline" "none"
+            ]
+        )
+
+
+
+-- Class (class Any ++ ":focus")
+--             [ Prop "border-color" "rgba(155,203,255,1.0)"
+--             , Prop "box-shadow" "0 0 3px 3px rgba(155,203,255,1.0)"
+--             , Prop "outline" "none"
+--             ]
+
+
 {-| -}
-renderRoot : RenderMode -> List (Attribute msg) -> Element msg -> Html msg
-renderRoot mode attributes child =
+renderRoot : Options -> RenderMode -> List (Attribute msg) -> Element msg -> Html msg
+renderRoot options mode attributes child =
     let
-        -- styleChildren
         rendered =
             renderAttributes Nothing [] attributes
 
@@ -1713,23 +1918,23 @@ renderRoot mode attributes child =
 
         styles =
             styleChildren
-                |> List.foldr reduceStyles ( Set.empty, [] )
+                |> List.foldr reduceStyles ( Set.empty, [ optionStyles options ] )
                 -- |> renderStyles child
                 |> Tuple.second
 
         styleSheets children =
             case mode of
                 NoStaticStyleSheet ->
-                    toStyleSheet styles :: children
+                    toStyleSheet options styles :: children
 
                 Layout ->
                     Internal.Style.rulesElement
-                        :: toStyleSheet styles
+                        :: toStyleSheet options styles
                         :: children
 
                 Viewport ->
                     Internal.Style.viewportRulesElement
-                        :: toStyleSheet styles
+                        :: toStyleSheet options styles
                         :: children
 
                 WithVirtualCss ->
@@ -1757,6 +1962,7 @@ htmlClass cls =
     Attr <| VirtualDom.property "className" (Json.string cls)
 
 
+renderFont : List Font -> String
 renderFont families =
     let
         renderFont font =
@@ -1783,231 +1989,267 @@ renderFont families =
 
 reduceStyles : Style -> ( Set String, List Style ) -> ( Set String, List Style )
 reduceStyles style ( cache, existing ) =
-    case style of
-        Style selector props ->
-            ( cache, style :: existing )
-
-        FontSize i ->
-            let
-                class =
-                    "fs-" ++ toString i
-            in
-            if Set.member class cache then
-                ( cache, existing )
-            else
-                ( Set.insert class cache
-                , style :: existing
-                )
-
-        FontFamily name fam ->
-            if Set.member name cache then
-                ( cache, existing )
-            else
-                ( Set.insert name cache
-                , style :: existing
-                )
-
-        LineHeight i ->
-            let
-                class =
-                    "lh-" ++ toString i
-            in
-            if Set.member class cache then
-                ( cache, existing )
-            else
-                ( Set.insert class cache
-                , style :: existing
-                )
-
-        Single class prop val ->
-            if Set.member class cache then
-                ( cache, existing )
-            else
-                ( Set.insert class cache
-                , style :: existing
-                )
-
-        Colored class prop color ->
-            if Set.member class cache then
-                ( cache, existing )
-            else
-                ( Set.insert class cache
-                , style :: existing
-                )
-
-        SpacingStyle x y ->
-            let
-                class =
-                    ".spacing-" ++ toString x ++ "-" ++ toString y
-            in
-            if Set.member class cache then
-                ( cache, existing )
-            else
-                ( Set.insert class cache
-                , style :: existing
-                )
-
-        PaddingStyle top right bottom left ->
-            let
-                class =
-                    ".pad-"
-                        ++ toString top
-                        ++ "-"
-                        ++ toString right
-                        ++ "-"
-                        ++ toString bottom
-                        ++ "-"
-                        ++ toString left
-            in
-            if Set.member class cache then
-                ( cache, existing )
-            else
-                ( Set.insert class cache
-                , style :: existing
-                )
-
-        GridTemplateStyle template ->
-            let
-                class =
-                    ".grid-"
-                        ++ String.join "-" (List.map lengthClassName template.rows)
-                        ++ "-"
-                        ++ String.join "-" (List.map lengthClassName template.columns)
-                        ++ "-"
-                        ++ lengthClassName (Tuple.first template.spacing)
-                        ++ "-"
-                        ++ lengthClassName (Tuple.second template.spacing)
-            in
-            if Set.member class cache then
-                ( cache, existing )
-            else
-                ( Set.insert class cache
-                , style :: existing
-                )
-
-        GridPosition pos ->
-            let
-                class =
-                    ".grid-pos-"
-                        ++ toString pos.row
-                        ++ "-"
-                        ++ toString pos.col
-                        ++ "-"
-                        ++ toString pos.width
-                        ++ "-"
-                        ++ toString pos.height
-            in
-            if Set.member class cache then
-                ( cache, existing )
-            else
-                ( Set.insert class cache
-                , style :: existing
-                )
-
-
-toStyleSheet : List Style -> VirtualDom.Node msg
-toStyleSheet styleSheet =
-    VirtualDom.node "style" [] [ Html.text (toStyleSheetString styleSheet) ]
-
-
-toStyleSheetString : List Style -> String
-toStyleSheetString stylesheet =
     let
-        renderProps (Property key val) existing =
-            existing ++ "\n  " ++ key ++ ": " ++ val ++ ";"
+        styleName =
+            getStyleName style
+    in
+    if Set.member styleName cache then
+        ( cache, existing )
+    else
+        ( Set.insert styleName cache
+        , style :: existing
+        )
 
-        renderStyle selector props =
-            selector ++ "{" ++ List.foldl renderProps "" props ++ "\n}"
 
-        combine style rendered =
-            rendered
-                ++ (case style of
-                        Style selector props ->
-                            "\n" ++ renderStyle selector props
+toStyleSheet : Options -> List Style -> VirtualDom.Node msg
+toStyleSheet options styleSheet =
+    VirtualDom.node "style" [] [ Html.text (toStyleSheetString options styleSheet) ]
 
-                        FontSize i ->
-                            ".font-size-" ++ toString (isInt i) ++ " { font-size: " ++ toString i ++ "}"
 
-                        FontFamily name typefaces ->
-                            "."
-                                ++ name
-                                ++ "{ font-family:"
-                                ++ renderFont typefaces
-                                ++ "}"
+toStyleSheetString : Options -> List Style -> String
+toStyleSheetString options stylesheet =
+    let
+        renderProps force (Property key val) existing =
+            if force then
+                existing ++ "\n  " ++ key ++ ": " ++ val ++ " !important;"
+            else
+                existing ++ "\n  " ++ key ++ ": " ++ val ++ ";"
 
-                        LineHeight i ->
-                            ".line-height-" ++ floatClass i ++ " { line-height: " ++ toString i ++ "}"
+        renderStyle force maybePseudo selector props =
+            case maybePseudo of
+                Nothing ->
+                    selector ++ "{" ++ List.foldl (renderProps force) "" props ++ "\n}"
 
-                        Single class prop val ->
-                            class ++ "{" ++ prop ++ ":" ++ val ++ "}\n"
+                Just pseudo ->
+                    selector ++ ":" ++ pseudo ++ " {" ++ List.foldl (renderProps force) "" props ++ "\n}"
 
-                        Colored class prop color ->
-                            class ++ "{" ++ prop ++ ":" ++ formatColor color ++ "}\n"
+        renderStyleRule rule maybePseudo force =
+            case rule of
+                Style selector props ->
+                    renderStyle force maybePseudo selector props
 
-                        SpacingStyle x y ->
-                            let
-                                class =
-                                    ".spacing-" ++ toString x ++ "-" ++ toString y
-                            in
-                            spacingClasses class x y
+                FontSize i ->
+                    renderStyle force
+                        maybePseudo
+                        (".font-size-" ++ toString (isInt i))
+                        [ Property "font-size" (toString i)
+                        ]
 
-                        PaddingStyle top right bottom left ->
-                            let
-                                class =
-                                    ".pad-"
-                                        ++ toString top
-                                        ++ "-"
-                                        ++ toString right
-                                        ++ "-"
-                                        ++ toString bottom
-                                        ++ "-"
-                                        ++ toString left
-                            in
-                            renderStyle class
-                                [ Property "padding"
-                                    (toString top
-                                        ++ "px "
-                                        ++ toString right
-                                        ++ "px "
-                                        ++ toString bottom
-                                        ++ "px "
-                                        ++ toString left
-                                        ++ "px"
-                                    )
+                FontFamily name typefaces ->
+                    renderStyle force
+                        maybePseudo
+                        ("." ++ name)
+                        [ Property "font-family" (renderFont typefaces)
+                        ]
+
+                LineHeight i ->
+                    renderStyle force
+                        maybePseudo
+                        (".line-height-" ++ floatClass i)
+                        [ Property "line-height" (toString i)
+                        ]
+
+                Single class prop val ->
+                    renderStyle force
+                        maybePseudo
+                        class
+                        [ Property prop val
+                        ]
+
+                Colored class prop color ->
+                    renderStyle force
+                        maybePseudo
+                        class
+                        [ Property prop (formatColor color)
+                        ]
+
+                SpacingStyle x y ->
+                    let
+                        class =
+                            ".spacing-" ++ toString x ++ "-" ++ toString y
+                    in
+                    List.foldl (++)
+                        ""
+                        [ renderStyle force maybePseudo (class ++ ".row > .se") [ Property "margin-left" (toString x ++ "px") ]
+                        , renderStyle force maybePseudo (class ++ ".column > .se") [ Property "margin-top" (toString y ++ "px") ]
+                        , renderStyle force maybePseudo (class ++ ".page > .se") [ Property "margin-top" (toString y ++ "px") ]
+                        , renderStyle force maybePseudo (class ++ ".page > .self-left") [ Property "margin-right" (toString x ++ "px") ]
+                        , renderStyle force maybePseudo (class ++ ".page > .self-right") [ Property "margin-left" (toString x ++ "px") ]
+                        ]
+
+                PaddingStyle top right bottom left ->
+                    let
+                        class =
+                            ".pad-"
+                                ++ toString top
+                                ++ "-"
+                                ++ toString right
+                                ++ "-"
+                                ++ toString bottom
+                                ++ "-"
+                                ++ toString left
+                    in
+                    renderStyle force
+                        maybePseudo
+                        class
+                        [ Property "padding"
+                            (toString top
+                                ++ "px "
+                                ++ toString right
+                                ++ "px "
+                                ++ toString bottom
+                                ++ "px "
+                                ++ toString left
+                                ++ "px"
+                            )
+                        ]
+
+                GridTemplateStyle template ->
+                    let
+                        class =
+                            ".grid-"
+                                ++ String.join "-" (List.map lengthClassName template.rows)
+                                ++ "-"
+                                ++ String.join "-" (List.map lengthClassName template.columns)
+                                ++ "-"
+                                ++ lengthClassName (Tuple.first template.spacing)
+                                ++ "-"
+                                ++ lengthClassName (Tuple.second template.spacing)
+
+                        ySpacing =
+                            toGridLength (Tuple.second template.spacing)
+
+                        xSpacing =
+                            toGridLength (Tuple.first template.spacing)
+
+                        toGridLength x =
+                            case x of
+                                Px px ->
+                                    toString px ++ "px"
+
+                                Content ->
+                                    "auto"
+
+                                Fill i ->
+                                    toString i ++ "fr"
+
+                        msColumns =
+                            template.columns
+                                |> List.map toGridLength
+                                |> String.join ySpacing
+                                |> (\x -> "-ms-grid-columns: " ++ x ++ ";")
+
+                        msRows =
+                            template.columns
+                                |> List.map toGridLength
+                                |> String.join ySpacing
+                                |> (\x -> "-ms-grid-rows: " ++ x ++ ";")
+
+                        base =
+                            class ++ "{" ++ msColumns ++ msRows ++ "}"
+
+                        columns =
+                            template.columns
+                                |> List.map toGridLength
+                                |> String.join " "
+                                |> (\x -> "grid-template-columns: " ++ x ++ ";")
+
+                        rows =
+                            template.rows
+                                |> List.map toGridLength
+                                |> String.join " "
+                                |> (\x -> "grid-template-rows: " ++ x ++ ";")
+
+                        gapX =
+                            "grid-column-gap:" ++ toGridLength (Tuple.first template.spacing) ++ ";"
+
+                        gapY =
+                            "grid-row-gap:" ++ toGridLength (Tuple.first template.spacing) ++ ";"
+
+                        modernGrid =
+                            class ++ "{" ++ columns ++ rows ++ gapX ++ gapY ++ "}"
+
+                        supports =
+                            "@supports (display:grid) {" ++ modernGrid ++ "}"
+                    in
+                    base ++ supports
+
+                GridPosition position ->
+                    let
+                        class =
+                            ".grid-pos-"
+                                ++ toString position.row
+                                ++ "-"
+                                ++ toString position.col
+                                ++ "-"
+                                ++ toString position.width
+                                ++ "-"
+                                ++ toString position.height
+
+                        msPosition =
+                            String.join " "
+                                [ "-ms-grid-row: "
+                                    ++ toString position.row
+                                    ++ ";"
+                                , "-ms-grid-row-span: "
+                                    ++ toString position.height
+                                    ++ ";"
+                                , "-ms-grid-column: "
+                                    ++ toString position.col
+                                    ++ ";"
+                                , "-ms-grid-column-span: "
+                                    ++ toString position.width
+                                    ++ ";"
                                 ]
 
-                        GridTemplateStyle template ->
-                            let
-                                class =
-                                    ".grid-"
-                                        ++ String.join "-" (List.map lengthClassName template.rows)
-                                        ++ "-"
-                                        ++ String.join "-" (List.map lengthClassName template.columns)
-                                        ++ "-"
-                                        ++ lengthClassName (Tuple.first template.spacing)
-                                        ++ "-"
-                                        ++ lengthClassName (Tuple.second template.spacing)
-                            in
-                            gridTemplate class template
+                        base =
+                            class ++ "{" ++ msPosition ++ "}"
 
-                        GridPosition pos ->
-                            let
-                                class =
-                                    ".grid-pos-"
-                                        ++ toString pos.row
-                                        ++ "-"
-                                        ++ toString pos.col
-                                        ++ "-"
-                                        ++ toString pos.width
-                                        ++ "-"
-                                        ++ toString pos.height
-                            in
-                            gridPosition class pos
-                   )
+                        modernPosition =
+                            String.join " "
+                                [ "grid-row: "
+                                    ++ toString position.row
+                                    ++ " / "
+                                    ++ toString (position.row + position.width)
+                                    ++ ";"
+                                , "grid-column: "
+                                    ++ toString position.col
+                                    ++ " / "
+                                    ++ toString (position.col + position.height)
+                                    ++ ";"
+                                ]
+
+                        modernGrid =
+                            class ++ "{" ++ modernPosition ++ "}"
+
+                        supports =
+                            "@supports (display:grid) {" ++ modernGrid ++ "}"
+                    in
+                    base ++ supports
+
+                PseudoSelector class style ->
+                    case class of
+                        Focus ->
+                            renderStyleRule style (Just "focus") False
+
+                        Hover ->
+                            case options.hover of
+                                NoHover ->
+                                    ""
+
+                                AllowHover ->
+                                    renderStyleRule style (Just "hover") False
+
+                                ForceHover ->
+                                    renderStyleRule style Nothing True
+
+        combine style rendered =
+            rendered ++ renderStyleRule style Nothing False
     in
     List.foldl combine "" stylesheet
 
 
+lengthClassName : Length -> String
 lengthClassName x =
     case x of
         Px px ->
@@ -2018,165 +2260,6 @@ lengthClassName x =
 
         Fill i ->
             toString i ++ "fr"
-
-
-gridTemplate : String -> { a | rows : List Length, spacing : ( Length, Length ), columns : List Length } -> String
-gridTemplate class template =
-    let
-        ySpacing =
-            toGridLength (Tuple.second template.spacing)
-
-        xSpacing =
-            toGridLength (Tuple.first template.spacing)
-
-        toGridLength x =
-            case x of
-                Px px ->
-                    toString px ++ "px"
-
-                Content ->
-                    "auto"
-
-                Fill i ->
-                    toString i ++ "fr"
-
-        msColumns =
-            template.columns
-                |> List.map toGridLength
-                |> String.join ySpacing
-                |> (\x -> "-ms-grid-columns: " ++ x ++ ";")
-
-        msRows =
-            template.columns
-                |> List.map toGridLength
-                |> String.join ySpacing
-                |> (\x -> "-ms-grid-rows: " ++ x ++ ";")
-
-        base =
-            class ++ "{" ++ msColumns ++ msRows ++ "}"
-
-        columns =
-            template.columns
-                |> List.map toGridLength
-                |> String.join " "
-                |> (\x -> "grid-template-columns: " ++ x ++ ";")
-
-        rows =
-            template.rows
-                |> List.map toGridLength
-                |> String.join " "
-                |> (\x -> "grid-template-rows: " ++ x ++ ";")
-
-        gapX =
-            "grid-column-gap:" ++ toGridLength (Tuple.first template.spacing) ++ ";"
-
-        gapY =
-            "grid-row-gap:" ++ toGridLength (Tuple.first template.spacing) ++ ";"
-
-        modernGrid =
-            class ++ "{" ++ columns ++ rows ++ gapX ++ gapY ++ "}"
-
-        supports =
-            "@supports (display:grid) {" ++ modernGrid ++ "}"
-    in
-    base ++ supports
-
-
-{-| {-
-
-.grid {
-height: 100vh;
-display: -ms-grid;
--ms-grid-columns: 1fr 10px 1fr 10px 1fr;
--ms-grid-rows: $header 10px 1fr 10px $footer;
-
-       @supports (display:grid) {
-           display: grid;
-           grid-gap: 10px;
-           grid-template-columns: 1fr 1fr 1fr;
-           grid-template-rows: $header 1fr $footer;
-       }
-
-}
-
-    .element {}
-        -ms-grid-row: 1;
-        -ms-grid-column: 1;
-        -ms-grid-column-span: 5;
-        @supports (display:grid) {
-            grid-column: 1 / 4;
-            grid-row: 1;
-        }
-    }
-
--}
-
--}
-gridPosition : String -> { a | col : number1, height : number1, row : number, width : number } -> String
-gridPosition class position =
-    let
-        msPosition =
-            String.join " "
-                [ "-ms-grid-row: "
-                    ++ toString position.row
-                    ++ ";"
-                , "-ms-grid-row-span: "
-                    ++ toString position.height
-                    ++ ";"
-                , "-ms-grid-column: "
-                    ++ toString position.col
-                    ++ ";"
-                , "-ms-grid-column-span: "
-                    ++ toString position.width
-                    ++ ";"
-                ]
-
-        base =
-            class ++ "{" ++ msPosition ++ "}"
-
-        modernPosition =
-            String.join " "
-                [ "grid-row: "
-                    ++ toString position.row
-                    ++ " / "
-                    ++ toString (position.row + position.width)
-                    ++ ";"
-                , "grid-column: "
-                    ++ toString position.col
-                    ++ " / "
-                    ++ toString (position.col + position.height)
-                    ++ ";"
-                ]
-
-        modernGrid =
-            class ++ "{" ++ modernPosition ++ "}"
-
-        supports =
-            "@supports (display:grid) {" ++ modernGrid ++ "}"
-    in
-    base ++ supports
-
-
-spacingClasses : String -> Int -> Int -> String
-spacingClasses class x y =
-    let
-        renderProps (Property key val) existing =
-            existing ++ "\n  " ++ key ++ ": " ++ val ++ ";"
-
-        renderStyle selector props =
-            selector ++ "{" ++ List.foldl renderProps "" props ++ "\n}"
-
-        merge ( selector, props ) existing =
-            existing ++ "\n" ++ renderStyle selector props
-    in
-    List.foldl merge
-        ""
-        [ pair (class ++ ".row > .se") [ Property "margin-left" (toString x ++ "px") ]
-        , pair (class ++ ".column > .se") [ Property "margin-top" (toString y ++ "px") ]
-        , pair (class ++ ".page > .se") [ Property "margin-top" (toString y ++ "px") ]
-        , pair (class ++ ".page > .self-left") [ Property "margin-right" (toString x ++ "px") ]
-        , pair (class ++ ".page > .self-right") [ Property "margin-left" (toString x ++ "px") ]
-        ]
 
 
 formatDropShadow : { d | blur : a, color : Color, offset : ( b, c ) } -> String
@@ -2215,6 +2298,7 @@ formatBoxShadow shadow =
             ]
 
 
+filterName : FilterType -> String
 filterName filtr =
     case filtr of
         FilterUrl url ->
@@ -2384,6 +2468,9 @@ toStyleSheetVirtualCss stylesheet =
                         FontSize _ ->
                             cache
 
+                        PseudoSelector _ _ ->
+                            cache
+
                 -- ( rendered ++ paddingClasses class top right bottom left
                 -- , Set.insert class cache
                 -- )
@@ -2392,6 +2479,17 @@ toStyleSheetVirtualCss stylesheet =
                 |> always ()
 
 
+psuedoClassName class =
+    case class of
+        Focus ->
+            "focus"
+
+        Hover ->
+            "hover"
+
+
+{-| This is a key to know which styles should override which other styles.
+-}
 styleKey : Style -> String
 styleKey style =
     case style of
@@ -2424,6 +2522,9 @@ styleKey style =
 
         GridPosition _ ->
             "grid-position"
+
+        PseudoSelector class style ->
+            psuedoClassName class ++ styleKey style
 
 
 isInt : Int -> Int
@@ -2484,6 +2585,9 @@ getStyleName style =
                 ++ toString pos.width
                 ++ "-"
                 ++ toString pos.height
+
+        PseudoSelector selector subStyle ->
+            getStyleName subStyle
 
 
 locationClass : Location -> String

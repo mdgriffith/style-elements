@@ -19,16 +19,16 @@ module Element.Events
 {-|
 
 
-# Mouse Helpers
+# Mouse Events
 
-@docs onClick, onDoubleClick, onMouseDown, onMouseUp, onMouseEnter, onMouseLeave
+@docs onClick, onDoubleClick, onMouseDown, onMouseUp, onMouseEnter, onMouseLeave, onMouseMovement
 
 @docs onClickCoords, onClickPageCoords, onClickScreenCoords
 
-@docs onMouseCoords, nMousePageCoords, onMouseScreenCoords
+@docs onMouseCoords, onMousePageCoords, onMouseScreenCoords
 
 
-# Focus Helpers
+# Focus Events
 
 @docs onFocus, onLoseFocus
 
@@ -68,6 +68,41 @@ onDoubleClick =
 
 
 {-| -}
+onMouseEnter : msg -> Attribute msg
+onMouseEnter =
+    Attr << Html.Events.onMouseEnter
+
+
+{-| -}
+onMouseLeave : msg -> Attribute msg
+onMouseLeave =
+    Attr << Html.Events.onMouseLeave
+
+
+{-| -}
+onMouseMove : msg -> Attribute msg
+onMouseMove msg =
+    on "mousemove" (Json.succeed msg)
+
+
+
+-- onClickWith
+--     { button = primary
+--     , send = localCoords Button
+--     }
+-- type alias Click =
+--     { button : Button
+--     , send : Track
+--     }
+-- type Button = Primary | Secondary
+-- type Track
+--     = ElementCoords
+--     | PageCoords
+--     | ScreenCoords
+-- |
+
+
+{-| -}
 onClickCoords : (Coords -> msg) -> Attribute msg
 onClickCoords msg =
     on "click" (Json.map msg localCoords)
@@ -83,18 +118,6 @@ onClickScreenCoords msg =
 onClickPageCoords : (Coords -> msg) -> Attribute msg
 onClickPageCoords msg =
     on "click" (Json.map msg pageCoords)
-
-
-{-| -}
-onMouseEnter : msg -> Attribute msg
-onMouseEnter =
-    Attr << Html.Events.onMouseEnter
-
-
-{-| -}
-onMouseLeave : msg -> Attribute msg
-onMouseLeave =
-    Attr << Html.Events.onMouseLeave
 
 
 {-| -}
@@ -116,7 +139,9 @@ onMousePageCoords msg =
 
 
 type alias Coords =
-    { x : Int, y : Int }
+    { x : Int
+    , y : Int
+    }
 
 
 screenCoords : Json.Decoder Coords

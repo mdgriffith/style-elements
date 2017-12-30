@@ -10,12 +10,14 @@ module Element
         , alignLeft
         , alignRight
         , alignTop
+        , allowHover
         , behind
         , below
-        , blur
         , center
         , centerY
         , column
+        , default
+        , defaultFocus
         , description
         , download
         , downloadAs
@@ -23,19 +25,20 @@ module Element
         , empty
         , fill
         , fillPortion
-        , focus
-        , grayscale
+        , forceHover
         , height
         , inFront
         , layout
         , layoutMode
+        , layoutWith
         , link
-        , mouseOver
+        , mouseOverScale
         , moveDown
         , moveLeft
         , moveRight
         , moveUp
         , newTabLink
+        , noHover
         , onLeft
         , onRight
         , padding
@@ -44,7 +47,9 @@ module Element
         , paragraph
         , pointer
         , px
+        , rotate
         , row
+        , scale
         , shrink
         , spaceEvenly
         , spacing
@@ -52,14 +57,12 @@ module Element
         , table
         , text
         , textPage
-        , when
-        , whenJust
         , width
         )
 
 {-| -}
 
-import Color
+import Color exposing (Color)
 import Element.Background as Background
 import Element.Font as Font
 import Html exposing (Html)
@@ -107,7 +110,8 @@ fillPortion =
 {-| -}
 layoutMode : Internal.RenderMode -> List (Attribute msg) -> Element msg -> Html msg
 layoutMode mode attrs child =
-    Internal.renderRoot mode
+    Internal.renderRoot default
+        mode
         (Background.color Color.blue
             :: Font.color Color.white
             :: Font.size 20
@@ -122,9 +126,11 @@ layoutMode mode attrs child =
         child
 
 
+{-| -}
 layout : List (Attribute msg) -> Element msg -> Html msg
 layout attrs child =
-    Internal.renderRoot Internal.Layout
+    Internal.renderRoot default
+        Internal.Layout
         (Background.color Color.blue
             :: Font.color Color.white
             :: Font.size 20
@@ -141,48 +147,117 @@ layout attrs child =
         child
 
 
-{-| A helper function. This:
 
-    when (x == 5) (text "yay, it's 5")
-
-is sugar for
-
-    if (x == 5) then
-        text "yay, it's 5"
-    else
-        empty
-
--}
-when : Bool -> Element msg -> Element msg
-when bool elm =
-    if bool then
-        elm
-    else
-        empty
+-- focused : List Style -> Attribute msg
+-- focused attrs =
+--     Internal.Pseudo
+--         { pseudo = "focus"
+--         , attributes = List.map (Internal.mapAttr never) attrs
+--         , trigger = Internal.OnSelf
+--         }
 
 
-{-| Another helper function that defaults to `empty`
+{-| -}
+layoutWith : Options -> List (Attribute msg) -> Element msg -> Html msg
+layoutWith options attrs child =
+    Internal.renderRoot options
+        Internal.Layout
+        (Background.color Color.blue
+            :: Font.color Color.white
+            :: Font.size 20
+            :: Font.family
+                [ Font.typeface "Open Sans"
+                , Font.typeface "georgia"
+                , Font.serif
+                ]
+            :: Internal.htmlClass "style-elements se el"
+            :: Internal.Class "x-content-align" "content-center-x"
+            :: Internal.Class "y-content-align" "content-center-y"
+            :: attrs
+        )
+        child
 
-    whenJust (Just ("Hi!")) text
 
-is sugar for
+type alias Options =
+    Internal.Options
 
-    case maybe of
-        Nothing ->
-            empty
 
-        Just x ->
-            text x
+type alias FocusStyle =
+    Internal.FocusStyle
 
--}
-whenJust : Maybe a -> (a -> Element msg) -> Element msg
-whenJust maybe view =
-    case maybe of
-        Nothing ->
-            empty
 
-        Just thing ->
-            view thing
+type alias HoverOption =
+    Internal.HoverOption
+
+
+default : Options
+default =
+    { hover = allowHover
+    , focus =
+        defaultFocus
+    }
+
+
+defaultFocus : FocusStyle
+defaultFocus =
+    { backgroundColor = Nothing
+    , borderColor = Nothing
+    , shadow =
+        Just
+            { color = Color.rgb 155 203 255
+            , offset = ( 0, 0 )
+            , blur = 3
+            , size = 3
+            }
+    }
+
+
+noHover : HoverOption
+noHover =
+    Internal.NoHover
+
+
+allowHover : HoverOption
+allowHover =
+    Internal.AllowHover
+
+
+forceHover : HoverOption
+forceHover =
+    Internal.ForceHover
+
+
+
+-- {-| A helper function. This:
+--     when (x == 5) (text "yay, it's 5")
+-- is sugar for
+--     if (x == 5) then
+--         text "yay, it's 5"
+--     else
+--         empty
+-- -}
+-- when : Bool -> Element msg -> Element msg
+-- when bool elm =
+--     if bool then
+--         elm
+--     else
+--         empty
+-- {-| Another helper function that defaults to `empty`
+--     whenJust (Just ("Hi!")) text
+-- is sugar for
+--     case maybe of
+--         Nothing ->
+--             empty
+--         Just x ->
+--             text x
+-- -}
+-- whenJust : Maybe a -> (a -> Element msg) -> Element msg
+-- whenJust maybe view =
+--     case maybe of
+--         Nothing ->
+--             empty
+--         Just thing ->
+--             view thing
 
 
 {-| -}
@@ -451,29 +526,6 @@ table attrs config =
         )
 
 
-
-{-
-
-   grid []
-       { data = persons
-       , columns =
-           [ { header = text "First Name"
-             , view =
-                   text << .firstName
-             }
-           , { header = text "Last Name"
-             , view =
-                   text << .lastName
-             }
-           ]
-       }
-
-
-
-
--}
-
-
 {-| -}
 paragraph : List (Attribute msg) -> List (Element msg) -> Element msg
 paragraph attrs children =
@@ -660,33 +712,52 @@ height =
 
 
 {-| -}
-moveUp : Float -> Attribute msg
-moveUp y =
-    Internal.Move Nothing (Just (negate y)) Nothing
+scale : Float -> Attribute msg
+scale n =
+    Internal.Transform Nothing (Internal.Scale n n 1)
 
 
 {-| -}
-moveDown : Float -> Attribute msg
-moveDown y =
-    Internal.Move Nothing (Just y) Nothing
-
-
-{-| -}
-moveRight : Float -> Attribute msg
-moveRight x =
-    Internal.Move (Just x) Nothing Nothing
-
-
-{-| -}
-moveLeft : Float -> Attribute msg
-moveLeft x =
-    Internal.Move (Just (negate x)) Nothing Nothing
+mouseOverScale : Float -> Attribute msg
+mouseOverScale n =
+    Internal.Transform (Just Internal.Hover) (Internal.Scale n n 1)
 
 
 {-| -}
 rotate : Float -> Attribute msg
 rotate angle =
-    Internal.Rotate 0 0 1 angle
+    Internal.Transform Nothing (Internal.Rotate 0 0 1 angle)
+
+
+
+-- {-| -}
+-- mouseOverRotate : Float -> Attribute msg
+-- mouseOverRotate angle =
+--     Internal.Transform (Just Internal.Hover) (Internal.Rotate 0 0 1 angle)
+
+
+{-| -}
+moveUp : Float -> Attribute msg
+moveUp y =
+    Internal.Transform Nothing (Internal.Move Nothing (Just (negate y)) Nothing)
+
+
+{-| -}
+moveDown : Float -> Attribute msg
+moveDown y =
+    Internal.Transform Nothing (Internal.Move Nothing (Just y) Nothing)
+
+
+{-| -}
+moveRight : Float -> Attribute msg
+moveRight x =
+    Internal.Transform Nothing (Internal.Move (Just x) Nothing Nothing)
+
+
+{-| -}
+moveLeft : Float -> Attribute msg
+moveLeft x =
+    Internal.Transform Nothing (Internal.Move (Just (negate x)) Nothing Nothing)
 
 
 {-| -}
@@ -830,22 +901,22 @@ pointer =
 --   - How many properties would likely vary in this way?
 --   - Would a `Color.palette {text, background, border}` go help?
 --     Input.button
---     [ Color.palette
+-- [ Color.palette
 --     ( if disabled then
---     { background = grey
---     , text = darkGrey
---     , border = grey
---     }
+--         { background = grey
+--         , text = darkGrey
+--         , border = grey
+--         }
 --     else
---     { background = blue
---     , text = black
---     , border = blue
---     }
+--         { background = blue
+--         , text = black
+--         , border = blue
+--         }
 --     )
---     ]
---     { onPress = switch model.disabled Send
---     , label = text "Press me"
---     }
+-- ]
+-- { onPress = switch model.disabled Send
+-- , label = text "Press me"
+-- }
 -- -- with mixIf
 --     Input.button
 --         [ Color.background blue
@@ -874,31 +945,34 @@ pointer =
 -- 2.  We can make the hover event show a 'nearby', like 'below' or something.
 --       - what happens on mobile? Do first clicks now perform that action?
 -- -}
-
-
-type alias Style =
-    Internal.Attribute Never
-
-
-{-| -}
-mouseOver : List Style -> Attribute msg
-mouseOver attrs =
-    Internal.Pseudo "hover" (List.map (Internal.mapAttr never) attrs)
-
-
-{-| -}
-focus : List Style -> Attribute msg
-focus attrs =
-    Internal.Pseudo "focus" (List.map (Internal.mapAttr never) attrs)
-
-
-{-| -}
-blur : Float -> Attribute msg
-blur x =
-    Internal.Filter (Internal.Blur x)
-
-
-{-| -}
-grayscale : Float -> Attribute msg
-grayscale x =
-    Internal.Filter (Internal.Grayscale x)
+-- {-| -}
+-- blur : Float -> Attribute msg
+-- blur x =
+--     Internal.Filter (Internal.Blur x)
+-- {-| -}
+-- grayscale : Float -> Attribute msg
+-- grayscale x =
+--     Internal.Filter (Internal.Grayscale x)
+-- -- hoverColors : { text : Maybe Color, background : Maybe Color, border : Maybe Color }
+-- type alias Style =
+--     Internal.Attribute Never
+-- type alias Shadow =
+--     { color : Color
+--     , offset : ( Int, Int )
+--     , blur : Int
+--     , size : Int
+--     }
+-- type alias Hoverable =
+--     { textColor : Maybe Color
+--     , backgroundColor : Maybe Color
+--     , borderColor : Maybe Color
+--     , scale : Maybe Int
+--     , shadow : Maybe Shadow
+--     }
+-- {-| -}
+-- mouseOver : List Style -> Attribute msg
+-- mouseOver attrs =
+--     Internal.Pseudo
+--         { class = Internal.Hover
+--         , attributes = List.map (Internal.mapAttr never) attrs
+--         }
