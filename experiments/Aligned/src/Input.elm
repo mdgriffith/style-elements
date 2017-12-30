@@ -94,6 +94,10 @@ import Json.Decode as Json
 --     HiddenLabel
 
 
+type alias Style =
+    Internal.Attribute Never
+
+
 type Placeholder msg
     = Placeholder (Element msg)
 
@@ -345,8 +349,11 @@ defaultTextPadding =
 
 
 textHelper : TextType -> List (Attribute msg) -> Text msg -> Element msg
-textHelper textType attributes textOptions =
+textHelper textType attrs textOptions =
     let
+        attributes =
+            Element.width Element.fill :: attrs
+
         behavior =
             case textOptions.onChange of
                 Nothing ->
@@ -452,7 +459,7 @@ textHelper textType attributes textOptions =
                 Just (Placeholder placeholder) ->
                     Internal.el Nothing
                         [ Element.inFront <|
-                            Element.when (textOptions.text == "") <|
+                            if textOptions.text == "" then
                                 Internal.el Nothing
                                     (Font.color charcoal
                                         :: defaultTextPadding
@@ -461,6 +468,8 @@ textHelper textType attributes textOptions =
                                         :: inputPadding
                                     )
                                     placeholder
+                            else
+                                Element.empty
                         ]
                         inputElement
     in
@@ -513,8 +522,11 @@ email =
 
 {-| -}
 multilineHelper : SpellChecked -> List (Attribute msg) -> Text msg -> Element msg
-multilineHelper spellchecked attributes textOptions =
+multilineHelper spellchecked attrs textOptions =
     let
+        attributes =
+            Element.height Element.shrink :: Element.width Element.fill :: attrs
+
         behavior =
             case textOptions.onChange of
                 Nothing ->
@@ -589,7 +601,7 @@ multilineHelper spellchecked attributes textOptions =
                     adjustedAttributes
 
         attributesFromChild =
-            Internal.get attributes <|
+            Internal.get (Element.width Element.fill :: attributes) <|
                 \attr ->
                     case attr of
                         Internal.Width (Internal.Fill _) ->
@@ -636,32 +648,42 @@ multilineHelper spellchecked attributes textOptions =
 
                 Just (Placeholder placeholder) ->
                     [ Element.inFront <|
-                        Element.when (textOptions.text == "") <|
+                        if textOptions.text == "" then
                             Internal.el Nothing (Font.color charcoal :: inputPadding) placeholder
+                        else
+                            Element.empty
                     ]
-
-        textarea =
-            Internal.el
-                (Just "textarea")
-                (List.concat
-                    [ [ value textOptions.text
-                      , case spellchecked of
-                            SpellChecked ->
-                                spellcheck True
-
-                            NotSpellChecked ->
-                                spellcheck False
-                      ]
-                    , behavior
-                    , withHeight
-                    ]
-                )
-                (Internal.unstyled (Html.text textOptions.text))
 
         input =
             Internal.el Nothing
                 placeholder
-                textarea
+            <|
+                Internal.el
+                    (Just "textarea")
+                    (List.concat
+                        [ [ value textOptions.text
+                          , case spellchecked of
+                                SpellChecked ->
+                                    spellcheck True
+
+                                NotSpellChecked ->
+                                    spellcheck False
+                          ]
+                        , behavior
+                        , withHeight
+                        ]
+                    )
+                    (Internal.unstyled (Html.text textOptions.text))
+
+        -- ( triggerAttrs, myLabel ) =
+        --     case textOptions.label of
+        --         Label position labelAttributes child ->
+        --             let
+        --                 ( trigger, newLabelAttributes ) =
+        --                     Internal.createPseudoTrigger labelAttributes
+        --                         |> Debug.log "trigger"
+        --             in
+        --             ( trigger, Label position newLabelAttributes child )
     in
     positionLabels attributesFromChild textOptions.label textOptions.notice input
 
