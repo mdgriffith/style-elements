@@ -303,6 +303,7 @@ embed fn a =
                             , shadow = Nothing
                             , backgroundColor = Nothing
                             }
+                        , mode = Layout
                         }
                         styled.styles
                     )
@@ -1816,16 +1817,30 @@ type RenderMode
     | WithVirtualCss
 
 
-type alias Options =
-    { hover : HoverOption
+type alias OptionRecord =
+    { hover : HoverSetting
     , focus : FocusStyle
+    , mode : RenderMode
     }
 
 
-type HoverOption
+type HoverSetting
     = NoHover
     | AllowHover
     | ForceHover
+
+
+type Option
+    = HoverOption HoverSetting
+    | FocusStyleOption FocusStyle
+    | RenderModeOption RenderMode
+
+
+type alias FocusStyle =
+    { borderColor : Maybe Color
+    , shadow : Maybe Shadow
+    , backgroundColor : Maybe Color
+    }
 
 
 type alias Shadow =
@@ -1833,17 +1848,6 @@ type alias Shadow =
     , offset : ( Int, Int )
     , blur : Int
     , size : Int
-    }
-
-
-
--- formatBoxShadow : { e | blur : a, color : Color, inset : Bool, offset : ( b, c ), size : d }
-
-
-type alias FocusStyle =
-    { borderColor : Maybe Color
-    , shadow : Maybe Shadow
-    , backgroundColor : Maybe Color
     }
 
 
@@ -1861,12 +1865,14 @@ type alias FocusStyle =
 --             List.foldr renderStyles reduced styled.children
 
 
-optionStyles : Options -> Style
-optionStyles options =
+renderFocusStyle :
+    FocusStyle
+    -> Style
+renderFocusStyle focus =
     Style ".se:focus"
         (List.filterMap identity
-            [ Maybe.map (\color -> Property "border-color" (formatColor color)) options.focus.borderColor
-            , Maybe.map (\color -> Property "background-color" (formatColor color)) options.focus.backgroundColor
+            [ Maybe.map (\color -> Property "border-color" (formatColor color)) focus.borderColor
+            , Maybe.map (\color -> Property "background-color" (formatColor color)) focus.backgroundColor
             , Maybe.map
                 (\shadow ->
                     Property "box-shadow"
@@ -1879,23 +1885,90 @@ optionStyles options =
                             }
                         )
                 )
-                options.focus.shadow
+                focus.shadow
             , Just <| Property "outline" "none"
             ]
         )
 
 
+focusDefaultStyle =
+    { backgroundColor = Nothing
+    , borderColor = Nothing
+    , shadow =
+        Just
+            { color = Color.rgb 155 203 255
+            , offset = ( 0, 0 )
+            , blur = 3
+            , size = 3
+            }
+    }
 
--- Class (class Any ++ ":focus")
---             [ Prop "border-color" "rgba(155,203,255,1.0)"
---             , Prop "box-shadow" "0 0 3px 3px rgba(155,203,255,1.0)"
---             , Prop "outline" "none"
---             ]
+
+optionsToRecord : List Option -> OptionRecord
+optionsToRecord options =
+    let
+        combine opt record =
+            case opt of
+                HoverOption hoverable ->
+                    case record.hover of
+                        Nothing ->
+                            { record | hover = Just hoverable }
+
+                        _ ->
+                            record
+
+                FocusStyleOption focusStyle ->
+                    case record.focus of
+                        Nothing ->
+                            { record | focus = Just focusStyle }
+
+                        _ ->
+                            record
+
+                RenderModeOption renderMode ->
+                    case record.mode of
+                        Nothing ->
+                            { record | mode = Just renderMode }
+
+                        _ ->
+                            record
+
+        finalize record =
+            { hover =
+                case record.hover of
+                    Nothing ->
+                        AllowHover
+
+                    Just hoverable ->
+                        hoverable
+            , focus =
+                case record.focus of
+                    Nothing ->
+                        focusDefaultStyle
+
+                    Just focusable ->
+                        focusable
+            , mode =
+                case record.mode of
+                    Nothing ->
+                        Layout
+
+                    Just actualMode ->
+                        actualMode
+            }
+    in
+    finalize <|
+        List.foldr combine
+            { hover = Nothing
+            , focus = Nothing
+            , mode = Nothing
+            }
+            options
 
 
 {-| -}
-renderRoot : Options -> RenderMode -> List (Attribute msg) -> Element msg -> Html msg
-renderRoot options mode attributes child =
+renderRoot : List Option -> List (Attribute msg) -> Element msg -> Html msg
+renderRoot optionList attributes child =
     let
         rendered =
             renderAttributes Nothing [] attributes
@@ -1916,14 +1989,17 @@ renderRoot options mode attributes child =
                 Empty ->
                     ( Html.text "", rendered.styles )
 
+        options =
+            optionsToRecord optionList
+
         styles =
             styleChildren
-                |> List.foldr reduceStyles ( Set.empty, [ optionStyles options ] )
+                |> List.foldr reduceStyles ( Set.empty, [ renderFocusStyle options.focus ] )
                 -- |> renderStyles child
                 |> Tuple.second
 
         styleSheets children =
-            case mode of
+            case options.mode of
                 NoStaticStyleSheet ->
                     toStyleSheet options styles :: children
 
@@ -2001,12 +2077,12 @@ reduceStyles style ( cache, existing ) =
         )
 
 
-toStyleSheet : Options -> List Style -> VirtualDom.Node msg
+toStyleSheet : OptionRecord -> List Style -> VirtualDom.Node msg
 toStyleSheet options styleSheet =
     VirtualDom.node "style" [] [ Html.text (toStyleSheetString options styleSheet) ]
 
 
-toStyleSheetString : Options -> List Style -> String
+toStyleSheetString : OptionRecord -> List Style -> String
 toStyleSheetString options stylesheet =
     let
         renderProps force (Property key val) existing =

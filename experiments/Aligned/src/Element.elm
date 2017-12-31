@@ -10,13 +10,11 @@ module Element
         , alignLeft
         , alignRight
         , alignTop
-        , allowHover
         , behind
         , below
         , center
         , centerY
         , column
-        , default
         , defaultFocus
         , description
         , download
@@ -25,11 +23,11 @@ module Element
         , empty
         , fill
         , fillPortion
+        , focusStyle
         , forceHover
         , height
         , inFront
         , layout
-        , layoutMode
         , layoutWith
         , link
         , mouseOverScale
@@ -108,29 +106,9 @@ fillPortion =
 
 
 {-| -}
-layoutMode : Internal.RenderMode -> List (Attribute msg) -> Element msg -> Html msg
-layoutMode mode attrs child =
-    Internal.renderRoot default
-        mode
-        (Background.color Color.blue
-            :: Font.color Color.white
-            :: Font.size 20
-            :: Font.family
-                [ Font.typeface "Open Sans"
-                , Font.typeface "georgia"
-                , Font.serif
-                ]
-            :: Internal.htmlClass "style-elements se el"
-            :: attrs
-        )
-        child
-
-
-{-| -}
 layout : List (Attribute msg) -> Element msg -> Html msg
 layout attrs child =
-    Internal.renderRoot default
-        Internal.Layout
+    Internal.renderRoot []
         (Background.color Color.blue
             :: Font.color Color.white
             :: Font.size 20
@@ -158,10 +136,9 @@ layout attrs child =
 
 
 {-| -}
-layoutWith : Options -> List (Attribute msg) -> Element msg -> Html msg
-layoutWith options attrs child =
+layoutWith : { options : List Option } -> List (Attribute msg) -> Element msg -> Html msg
+layoutWith { options } attrs child =
     Internal.renderRoot options
-        Internal.Layout
         (Background.color Color.blue
             :: Font.color Color.white
             :: Font.size 20
@@ -178,53 +155,36 @@ layoutWith options attrs child =
         child
 
 
-type alias Options =
-    Internal.Options
+type alias Option =
+    Internal.Option
 
 
 type alias FocusStyle =
     Internal.FocusStyle
 
 
-type alias HoverOption =
-    Internal.HoverOption
-
-
-default : Options
-default =
-    { hover = allowHover
-    , focus =
-        defaultFocus
-    }
-
-
+{-| -}
 defaultFocus : FocusStyle
 defaultFocus =
-    { backgroundColor = Nothing
-    , borderColor = Nothing
-    , shadow =
-        Just
-            { color = Color.rgb 155 203 255
-            , offset = ( 0, 0 )
-            , blur = 3
-            , size = 3
-            }
-    }
+    Internal.focusDefaultStyle
 
 
-noHover : HoverOption
+{-| -}
+focusStyle : FocusStyle -> Option
+focusStyle =
+    Internal.FocusStyleOption
+
+
+{-| -}
+noHover : Option
 noHover =
-    Internal.NoHover
+    Internal.HoverOption Internal.NoHover
 
 
-allowHover : HoverOption
-allowHover =
-    Internal.AllowHover
-
-
-forceHover : HoverOption
+{-| -}
+forceHover : Option
 forceHover =
-    Internal.ForceHover
+    Internal.HoverOption Internal.ForceHover
 
 
 
