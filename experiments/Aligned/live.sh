@@ -1,1 +1,1 @@
-elm-live Example.elm --open --pushstate
+elm-live ProperAlignment.elm --open --pushstate
