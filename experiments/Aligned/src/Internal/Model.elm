@@ -2286,12 +2286,12 @@ toStyleSheetString options stylesheet =
                                 [ "grid-row: "
                                     ++ toString position.row
                                     ++ " / "
-                                    ++ toString (position.row + position.width)
+                                    ++ toString (position.row + position.height)
                                     ++ ";"
                                 , "grid-column: "
                                     ++ toString position.col
                                     ++ " / "
-                                    ++ toString (position.col + position.height)
+                                    ++ toString (position.col + position.width)
                                     ++ ";"
                                 ]
 
