@@ -17,87 +17,6 @@ import Internal.Model as Internal
 import Json.Decode as Json
 
 
--- {-| Base Attribute type
--- -}
--- type Attr inputOptions msg
---     = Attr inputOptions msg
--- {-| Input attributes can have errors, and can't have events attached to them.
--- -}
--- type alias InputAttribute msg =
---     Attr msg msg
--- type alias NormalAttribute msg =
---     Attr () msg
--- type alias Attribute msg =
---     Internal.Attribute msg
-{- Control of attributes.
-
-
-   Input options should only work
-
-
-
-   Disabled
-       -> msg is easily removeable.
-       -> A style change can be triggered
-
-
-   FocusOnLoad
-       -> Do we really care?
-
-
-   Autofill
-       -> Maybe provide the most common categories as direct functions like we already do for username and password
-
-   Errors/ Warnings
-       ->
-
-   Labels
-       -> Required for all inputs
-
-
-   Placeholder
-        -> Optional for text inputs
-
-
--}
--- type Error msg
---     = ErrorBelow (Element msg)
---     | ErrorAbove (Element msg)
--- type Label msg
---     = LabelBelow (Element msg)
---     | LabelAbove (Element msg)
---     | LabelOnRight (Element msg)
---     | LabelOnLeft (Element msg)
---     | HiddenLabel String
--- {-|
---      Input.checkbox
---         [ Input.warning
---             [] (text "")
---         , Input.error True
---             [] (text "This box needs to be checked!")
---         , Input.required
---         ]
---         { onChange = Just Check
---         , checked = model.checkbox
---         , icon = Nothing
---         , label = Input.label [] (text "hello!")
---         }
--- -}
--- label : List (Attribute msg) -> Element msg -> Label msg
--- label attrs el =
--- placeholder : List (Attribute msg) -> Label msg -> Label msg
--- placeholder attrs label =
---     label
--- {-| -}
--- hiddenLabel : String -> Label msg
--- hiddenLabel =
---     HiddenLabel
-
-
-type alias Style =
-    Internal.Attribute Never
-
-
 type Placeholder msg
     = Placeholder (Element msg)
 
@@ -241,25 +160,96 @@ checkbox attrs { label, icon, checked, onChange, notice } =
     --      </label>
     let
         input =
-            Internal.el
-                (Just "input")
-                [ Internal.Attr <| Html.Attributes.type_ "checkbox"
-                , Internal.Attr <| Html.Attributes.checked checked
-                , Element.centerY
-                ]
-                Element.empty
+            case icon of
+                Nothing ->
+                    Internal.el
+                        (Just "input")
+                        [ Internal.Attr <| Html.Attributes.type_ "checkbox"
+                        , Internal.Attr <| Html.Attributes.checked checked
+                        , Element.centerY
+                        ]
+                        Element.empty
+
+                Just actualIcon ->
+                    Internal.el
+                        (Just "div")
+                        [ Internal.Attr <|
+                            Html.Attributes.attribute "role" "checkbox"
+                        , Internal.Attr <|
+                            Html.Attributes.attribute "aria-checked" <|
+                                if checked then
+                                    "true"
+                                else
+                                    "false"
+                        , tabindex 0
+                        , Element.centerY
+                        ]
+                        actualIcon
 
         attributes =
             (case onChange of
                 Nothing ->
-                    Internal.Attr (Html.Attributes.disabled True)
+                    [ Internal.Attr (Html.Attributes.disabled True) ]
 
                 Just checkMsg ->
-                    Internal.Attr (Html.Events.onCheck checkMsg)
+                    case icon of
+                        Nothing ->
+                            [ Internal.Attr (Html.Events.onCheck checkMsg) ]
+
+                        Just _ ->
+                            [ Internal.Attr (Html.Events.onClick (checkMsg (not checked)))
+                            , onEnter (checkMsg (not checked))
+                            ]
             )
-                :: attrs
+                ++ (Element.pointer :: attrs)
     in
-    positionLabels attributes label notice input
+    Internal.Grid.relative (Just "label")
+        attributes
+        input
+        (List.filterMap identity
+            [ case label of
+                Label position labelAttrs child ->
+                    Just
+                        { layout = Internal.Grid.GridElement
+                        , child = [ child ]
+                        , attrs = Element.alignLeft :: labelAttrs
+                        , position = position
+                        , width =
+                            case position of
+                                Internal.Grid.Above ->
+                                    2
+
+                                Internal.Grid.Below ->
+                                    2
+
+                                _ ->
+                                    1
+                        , height = 1
+                        }
+            , case notice of
+                Nothing ->
+                    Nothing
+
+                Just (Notice position labelAttrs child) ->
+                    Just
+                        { layout = Internal.Grid.GridElement
+                        , child = [ child ]
+                        , attrs = Element.alignLeft :: labelAttrs
+                        , position = position
+                        , width =
+                            case position of
+                                Internal.Grid.Above ->
+                                    2
+
+                                Internal.Grid.Below ->
+                                    2
+
+                                _ ->
+                                    1
+                        , height = 1
+                        }
+            ]
+        )
 
 
 {-| -}
