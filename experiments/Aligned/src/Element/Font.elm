@@ -87,10 +87,9 @@ mouseOverColor fontColor =
 family : List Font -> Attribute msg
 family families =
     let
-        renderedFonts =
-            let
-                renderFont font =
-                    case font of
+        renderFontClassName font current =
+            current
+                ++ (case font of
                         Internal.Serif ->
                             "serif"
 
@@ -101,21 +100,19 @@ family families =
                             "monospace"
 
                         Internal.Typeface name ->
-                            "\"" ++ name ++ "\""
+                            name
+                                |> String.toLower
+                                |> String.words
+                                |> String.join "-"
 
                         Internal.ImportFont name url ->
-                            "\"" ++ name ++ "\""
-            in
-            families
-                |> List.map renderFont
-                |> String.join ", "
+                            name
+                                |> String.toLower
+                                |> String.words
+                                |> String.join "-"
+                   )
     in
-    StyleClass <| Internal.FontFamily ("font-" ++ Internal.className renderedFonts) families
-
-
-
--- StyleClass <|
--- Single ("font-" ++ Internal.className renderedFonts) "font-family" renderedFonts
+    StyleClass <| Internal.FontFamily (List.foldl renderFontClassName "font-" families) families
 
 
 {-| -}
