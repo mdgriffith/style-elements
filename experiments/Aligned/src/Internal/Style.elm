@@ -359,6 +359,9 @@ rules =
             , Prop "padding" "0"
             , Prop "margin" "0"
             ]
+        , Class ".se:focus"
+            [ Prop "outline" "none"
+            ]
         , Class ("input" ++ class Any)
             [ Prop "border" "none"
             ]

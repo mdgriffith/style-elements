@@ -148,43 +148,70 @@ type alias Checkbox msg =
     }
 
 
+defaultCheckbox : Bool -> Element msg
+defaultCheckbox checked =
+    Element.el
+        [ Element.width (Element.px 12)
+        , Element.height (Element.px 12)
+        , Font.color white
+        , Font.size 9
+        , Font.center
+        , Border.rounded 3
+        , Border.color <|
+            Color.rgb 211 211 211
+        , Font.family
+            [ Font.typeface "georgia"
+            , Font.serif
+            ]
+        , Border.shadow
+            { offset = ( 0, 0 )
+            , blur = 1
+            , color = Color.rgb 238 238 238
+            }
+        , Background.color <|
+            if checked then
+                Color.rgb 59 153 252
+            else
+                white
+        , Border.width <|
+            if checked then
+                0
+            else
+                1
+        ]
+        (if checked then
+            Element.text "✓"
+         else
+            Element.empty
+        )
+
+
 {-| Your basic checkbox
 -}
 checkbox : List (Attribute msg) -> Checkbox msg -> Element msg
 checkbox attrs { label, icon, checked, onChange, notice } =
-    --     Desired Output
-    --      <label>
-    --          <input type="checkbox" checked/>
-    --          <div class="label">Here is my checkbox</div>
-    --          <div class="warning">This needs to be checked</div>
-    --      </label>
     let
         input =
-            case icon of
-                Nothing ->
-                    Internal.el
-                        (Just "input")
-                        [ Internal.Attr <| Html.Attributes.type_ "checkbox"
-                        , Internal.Attr <| Html.Attributes.checked checked
-                        , Element.centerY
-                        ]
-                        Element.empty
+            Internal.el
+                (Just "div")
+                [ Internal.Attr <|
+                    Html.Attributes.attribute "role" "checkbox"
+                , Internal.Attr <|
+                    Html.Attributes.attribute "aria-checked" <|
+                        if checked then
+                            "true"
+                        else
+                            "false"
+                , Internal.class "focusable"
+                , Element.centerY
+                ]
+                (case icon of
+                    Nothing ->
+                        defaultCheckbox checked
 
-                Just actualIcon ->
-                    Internal.el
-                        (Just "div")
-                        [ Internal.Attr <|
-                            Html.Attributes.attribute "role" "checkbox"
-                        , Internal.Attr <|
-                            Html.Attributes.attribute "aria-checked" <|
-                                if checked then
-                                    "true"
-                                else
-                                    "false"
-                        , tabindex 0
-                        , Element.centerY
-                        ]
+                    Just actualIcon ->
                         actualIcon
+                )
 
         attributes =
             (case onChange of
@@ -192,16 +219,18 @@ checkbox attrs { label, icon, checked, onChange, notice } =
                     [ Internal.Attr (Html.Attributes.disabled True) ]
 
                 Just checkMsg ->
-                    case icon of
-                        Nothing ->
-                            [ Internal.Attr (Html.Events.onCheck checkMsg) ]
-
-                        Just _ ->
-                            [ Internal.Attr (Html.Events.onClick (checkMsg (not checked)))
-                            , onEnter (checkMsg (not checked))
-                            ]
+                    [ Internal.Attr (Html.Events.onClick (checkMsg (not checked)))
+                    , onKeyLookup <|
+                        \code ->
+                            if code == enter then
+                                Just <| checkMsg (not checked)
+                            else if code == space then
+                                Just <| checkMsg (not checked)
+                            else
+                                Nothing
+                    ]
             )
-                ++ (Element.pointer :: attrs)
+                ++ (tabindex 0 :: Element.pointer :: attrs)
     in
     Internal.Grid.relative (Just "label")
         attributes
@@ -664,16 +693,6 @@ multilineHelper spellchecked attrs textOptions =
                         ]
                     )
                     (Internal.unstyled (Html.text textOptions.text))
-
-        -- ( triggerAttrs, myLabel ) =
-        --     case textOptions.label of
-        --         Label position labelAttributes child ->
-        --             let
-        --                 ( trigger, newLabelAttributes ) =
-        --                     Internal.createPseudoTrigger labelAttributes
-        --                         |> Debug.log "trigger"
-        --             in
-        --             ( trigger, Label position newLabelAttributes child )
     in
     positionLabels attributesFromChild textOptions.label textOptions.notice input
 
@@ -750,10 +769,9 @@ type OptionState
     = Idle
     | Focused
     | Selected
-    | SelectedInBox
-    | Disabled
 
 
+option : a -> Element msg -> Option a msg
 option value text =
     Option value
         defaultRadioIcon
@@ -762,51 +780,59 @@ option value text =
 
 defaultRadioIcon : OptionState -> Element msg
 defaultRadioIcon status =
-    case status of
-        Idle ->
-            Element.el
-                [ Element.width (Element.px 10)
-                , Element.height (Element.px 10)
-                , Background.color grey
-                , Border.rounded 5
-                ]
-                Element.empty
+    Element.el
+        [ Element.width (Element.px 14)
+        , Element.height (Element.px 14)
+        , Background.color white
+        , Border.rounded 7
+        , Border.shadow
+            { offset = ( 0, 0 )
+            , blur = 1
+            , color = Color.rgb 235 235 235
+            }
+        , Border.width <|
+            case status of
+                Idle ->
+                    1
 
-        Disabled ->
-            Element.el
-                [ Element.width (Element.px 10)
-                , Element.height (Element.px 10)
-                , Background.color grey
-                , Border.rounded 5
-                ]
-                Element.empty
+                Focused ->
+                    1
 
-        Focused ->
-            Element.el
-                [ Element.width (Element.px 10)
-                , Element.height (Element.px 10)
-                , Background.color lightBlue
-                , Border.rounded 5
-                ]
-                Element.empty
+                Selected ->
+                    5
+        , Border.color <|
+            case status of
+                Idle ->
+                    Color.rgb 208 208 208
 
-        Selected ->
-            Element.el
-                [ Element.width (Element.px 10)
-                , Element.height (Element.px 10)
-                , Background.color blue
-                , Border.rounded 5
-                ]
-                Element.empty
+                Focused ->
+                    Color.rgb 208 208 208
 
-        SelectedInBox ->
-            Element.el
-                [ Element.width (Element.px 10)
-                , Element.height (Element.px 10)
-                , Background.color blue
-                , Border.rounded 5
-                ]
-                Element.empty
+                Selected ->
+                    Color.rgb 59 153 252
+        ]
+        Element.empty
+
+
+
+-- case status of
+--     Idle ->
+--     Focused ->
+--         Element.el
+--             [ Element.width (Element.px 14)
+--             , Element.height (Element.px 14)
+--             , Background.color lightBlue
+--             , Border.rounded 7
+--             ]
+--             Element.empty
+--     Selected ->
+--         Element.el
+--             [ Element.width (Element.px 14)
+--             , Element.height (Element.px 14)
+--             , Background.color blue
+--             , Border.rounded 7
+--             ]
+--             Element.empty
 
 
 {-|
@@ -864,15 +890,34 @@ radioHelper orientation attrs input =
             in
             Element.row
                 [ spacing
+                , Element.pointer
                 , case input.onChange of
                     Nothing ->
                         Internal.NoAttribute
 
                     Just send ->
                         Events.onClick (send value)
+                , case status of
+                    Selected ->
+                        Internal.class "focusable"
+
+                    _ ->
+                        Internal.NoAttribute
+                , case status of
+                    Selected ->
+                        Internal.Attr <|
+                            Html.Attributes.attribute "aria-checked"
+                                "true"
+
+                    _ ->
+                        Internal.Attr <|
+                            Html.Attributes.attribute "aria-checked"
+                                "false"
+                , Internal.Attr <|
+                    Html.Attributes.attribute "role" "radio"
                 ]
                 [ icon status
-                , Element.el [ Element.width Element.fill ] text
+                , Element.el [ Element.width Element.fill, Internal.class "unfocusable" ] text
                 ]
 
         optionArea =
@@ -884,8 +929,99 @@ radioHelper orientation attrs input =
                 Column ->
                     column attrs
                         (List.map renderOption input.options)
+
+        toggleSelected =
+            case input.selected of
+                Nothing ->
+                    Nothing
+
+                Just selected ->
+                    Nothing
+
+        prevNext =
+            case input.options of
+                [] ->
+                    Nothing
+
+                (Option value _ _) :: _ ->
+                    List.foldl track ( NotFound, value, value ) input.options
+                        |> (\( found, b, a ) ->
+                                case found of
+                                    NotFound ->
+                                        Just ( b, value )
+
+                                    BeforeFound ->
+                                        Just ( b, value )
+
+                                    _ ->
+                                        Just ( b, a )
+                           )
+
+        track option ( found, prev, nxt ) =
+            case option of
+                Option value _ _ ->
+                    case found of
+                        NotFound ->
+                            if Just value == input.selected then
+                                ( BeforeFound, prev, nxt )
+                            else
+                                ( found, value, nxt )
+
+                        BeforeFound ->
+                            ( AfterFound, prev, value )
+
+                        AfterFound ->
+                            ( found, prev, nxt )
     in
-    positionLabels [ Element.alignLeft ] input.label input.notice optionArea
+    positionLabels
+        (case input.onChange of
+            Nothing ->
+                [ Element.alignLeft ]
+
+            Just onChange ->
+                List.filterMap identity
+                    [ Just Element.alignLeft
+                    , Just (tabindex 0)
+                    , Just <|
+                        Internal.Attr <|
+                            Html.Attributes.attribute "role" "radiogroup"
+                    , case prevNext of
+                        Nothing ->
+                            Nothing
+
+                        Just ( prev, next ) ->
+                            Just
+                                (onKeyLookup <|
+                                    \code ->
+                                        if code == leftArrow then
+                                            Just (onChange prev)
+                                        else if code == upArrow then
+                                            Just (onChange prev)
+                                        else if code == rightArrow then
+                                            Just (onChange next)
+                                        else if code == downArrow then
+                                            Just (onChange next)
+                                        else if code == space then
+                                            case input.selected of
+                                                Nothing ->
+                                                    Just (onChange prev)
+
+                                                _ ->
+                                                    Nothing
+                                        else
+                                            Nothing
+                                )
+                    ]
+        )
+        input.label
+        input.notice
+        optionArea
+
+
+type Found
+    = NotFound
+    | BeforeFound
+    | AfterFound
 
 
 type Orientation
@@ -893,6 +1029,7 @@ type Orientation
     | Column
 
 
+column : List (Attribute msg) -> List (Internal.Element msg) -> Internal.Element msg
 column attrs children =
     Internal.column
         (--Internal.Class "y-content-align" "content-top"
@@ -904,6 +1041,7 @@ column attrs children =
         (Internal.Unkeyed children)
 
 
+row : List (Attribute msg) -> List (Internal.Element msg) -> Internal.Element msg
 row attrs children =
     Internal.row
         (--Internal.Class "x-content-align" "content-center-x"
@@ -932,14 +1070,26 @@ onSpace msg =
 
 
 {-| -}
-onUp : msg -> Attribute msg
-onUp msg =
+onUpArrow : msg -> Attribute msg
+onUpArrow msg =
     onKey 38 msg
 
 
 {-| -}
-onDown : msg -> Attribute msg
-onDown msg =
+onRightArrow : msg -> Attribute msg
+onRightArrow msg =
+    onKey 39 msg
+
+
+{-| -}
+onLeftArrow : msg -> Attribute msg
+onLeftArrow msg =
+    onKey 37 msg
+
+
+{-| -}
+onDownArrow : msg -> Attribute msg
+onDownArrow msg =
     onKey 40 msg
 
 
@@ -966,6 +1116,16 @@ backspace =
 upArrow : Int
 upArrow =
     38
+
+
+leftArrow : Int
+leftArrow =
+    37
+
+
+rightArrow : Int
+rightArrow =
+    39
 
 
 downArrow : Int

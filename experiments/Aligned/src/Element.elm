@@ -107,32 +107,8 @@ fillPortion =
 
 {-| -}
 layout : List (Attribute msg) -> Element msg -> Html msg
-layout attrs child =
-    Internal.renderRoot []
-        (Background.color Color.blue
-            :: Font.color Color.white
-            :: Font.size 20
-            :: Font.family
-                [ Font.typeface "Open Sans"
-                , Font.typeface "georgia"
-                , Font.serif
-                ]
-            :: Internal.htmlClass "style-elements se el"
-            :: Internal.Class "x-content-align" "content-center-x"
-            :: Internal.Class "y-content-align" "content-center-y"
-            :: attrs
-        )
-        child
-
-
-
--- focused : List Style -> Attribute msg
--- focused attrs =
---     Internal.Pseudo
---         { pseudo = "focus"
---         , attributes = List.map (Internal.mapAttr never) attrs
---         , trigger = Internal.OnSelf
---         }
+layout =
+    layoutWith { options = [] }
 
 
 {-| -}
@@ -384,6 +360,15 @@ column attrs children =
               }
             ]
         }
+
+
+
+
+
+    -- for a grid we want
+    -- every position to be fully specified, meaning you can't place things outside of the grid
+    --
+    grid []
 
 -}
 type alias Table records msg =

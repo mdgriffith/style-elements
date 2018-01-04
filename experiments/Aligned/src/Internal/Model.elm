@@ -558,40 +558,13 @@ alignYName align =
 
 
 gatherAttributes : Attribute msg -> Gathered msg -> Gathered msg
-gatherAttributes =
-    gatherAttributesWith Gather
-
-
-type GatherMode msg
-    = Gather
-    | GatherPseudo
-        { pseudoClass : PseudoClass
-        , additionalAttributes : List (Html.Attribute msg)
-        }
-
-
-gatherAttributesWith : GatherMode msg -> Attribute msg -> Gathered msg -> Gathered msg
-gatherAttributesWith mode attr gathered =
+gatherAttributes attr gathered =
     let
         className name =
-            case mode of
-                Gather ->
-                    VirtualDom.property "className" (Json.string name)
-
-                GatherPseudo { pseudoClass } ->
-                    let
-                        baseName =
-                            psuedoClassName pseudoClass ++ "-" ++ name
-                    in
-                    VirtualDom.property "className" (Json.string baseName)
+            VirtualDom.property "className" (Json.string name)
 
         styleName name =
-            case mode of
-                Gather ->
-                    "." ++ name
-
-                GatherPseudo { pseudoClass } ->
-                    "." ++ psuedoClassName pseudoClass ++ "-" ++ name
+            "." ++ name
 
         formatStyleClass style =
             case style of
@@ -642,12 +615,7 @@ gatherAttributesWith mode attr gathered =
                 }
 
         Attr attr ->
-            case mode of
-                Gather ->
-                    { gathered | attributes = attr :: gathered.attributes }
-
-                GatherPseudo _ ->
-                    gathered
+            { gathered | attributes = attr :: gathered.attributes }
 
         StyleClass style ->
             let
@@ -734,43 +702,38 @@ gatherAttributesWith mode attr gathered =
                 gathered
 
         Describe description ->
-            case mode of
-                GatherPseudo _ ->
-                    gathered
+            case description of
+                Main ->
+                    { gathered | node = addNodeName "main" gathered.node }
 
-                Gather ->
-                    case description of
-                        Main ->
-                            { gathered | node = addNodeName "main" gathered.node }
+                Navigation ->
+                    { gathered | node = addNodeName "nav" gathered.node }
 
-                        Navigation ->
-                            { gathered | node = addNodeName "nav" gathered.node }
+                ContentInfo ->
+                    { gathered | node = addNodeName "footer" gathered.node }
 
-                        ContentInfo ->
-                            { gathered | node = addNodeName "footer" gathered.node }
+                Complementary ->
+                    { gathered | node = addNodeName "aside" gathered.node }
 
-                        Complementary ->
-                            { gathered | node = addNodeName "aside" gathered.node }
+                Heading i ->
+                    if i <= 1 then
+                        { gathered | node = addNodeName "h1" gathered.node }
+                    else if i < 7 then
+                        { gathered | node = addNodeName ("h" ++ toString i) gathered.node }
+                    else
+                        { gathered | node = addNodeName "h6" gathered.node }
 
-                        Heading i ->
-                            if i <= 1 then
-                                { gathered | node = addNodeName "h1" gathered.node }
-                            else if i < 7 then
-                                { gathered | node = addNodeName ("h" ++ toString i) gathered.node }
-                            else
-                                { gathered | node = addNodeName "h6" gathered.node }
+                Button ->
+                    { gathered | attributes = Html.Attributes.attribute "aria-role" "button" :: gathered.attributes }
 
-                        Button ->
-                            { gathered | attributes = Html.Attributes.attribute "aria-role" "button" :: gathered.attributes }
+                Label label ->
+                    { gathered | attributes = Html.Attributes.attribute "aria-label" label :: gathered.attributes }
 
-                        Label label ->
-                            { gathered | attributes = Html.Attributes.attribute "aria-label" label :: gathered.attributes }
+                LivePolite ->
+                    { gathered | attributes = Html.Attributes.attribute "aria-live" "polite" :: gathered.attributes }
 
-                        LivePolite ->
-                            { gathered | attributes = Html.Attributes.attribute "aria-live" "polite" :: gathered.attributes }
-
-                        LiveAssertive ->
-                            { gathered | attributes = Html.Attributes.attribute "aria-live" "assertive" :: gathered.attributes }
+                LiveAssertive ->
+                    { gathered | attributes = Html.Attributes.attribute "aria-live" "assertive" :: gathered.attributes }
 
         Nearby location elem ->
             let
@@ -1045,31 +1008,6 @@ gatherAttributesWith mode attr gathered =
 
                         Just Focus ->
                             gathered
-
-
-
--- case gathered.rotation of
---     Nothing ->
---         { gathered
---             | rotation =
---                 Just
---                     ("rotate3d(" ++ toString x ++ "," ++ toString y ++ "," ++ toString z ++ "," ++ toString angle ++ "rad)")
---         }
---     _ ->
---         gathered
--- let
---     newScale =
---         case gathered.scale of
---             Nothing ->
---                 Just
---                     ( x
---                     , y
---                     , z
---                     )
---             _ ->
---                 gathered.scale
--- in
--- { gathered | scale = newScale }
 
 
 type alias TransformationAlias a =
@@ -1445,13 +1383,13 @@ rowEdgeFillers : List (Element msg) -> List (Element msg)
 rowEdgeFillers children =
     unstyled
         (VirtualDom.node "alignLeft"
-            [ Html.Attributes.class "se container align-container-left content-center-y spacer" ]
+            [ Html.Attributes.class "se container align-container-left content-center-y spacer unfocusable" ]
             []
         )
         :: children
         ++ [ unstyled
                 (VirtualDom.node "alignRight"
-                    [ Html.Attributes.class "se container align-container-right content-center-y spacer" ]
+                    [ Html.Attributes.class "se container align-container-right content-center-y spacer unfocusable" ]
                     []
                 )
            ]
@@ -1462,7 +1400,7 @@ keyedRowEdgeFillers children =
     ( "left-filler-node-pls-pls-pls-be-unique"
     , unstyled
         (VirtualDom.node "alignLeft"
-            [ Html.Attributes.class "se container align-container-left content-center-y spacer" ]
+            [ Html.Attributes.class "se container align-container-left content-center-y spacer unfocusable" ]
             []
         )
     )
@@ -1470,7 +1408,7 @@ keyedRowEdgeFillers children =
         ++ [ ( "right-filler-node-pls-pls-pls-be-unique"
              , unstyled
                 (VirtualDom.node "alignRight"
-                    [ Html.Attributes.class "se container align-container-right content-center-y spacer" ]
+                    [ Html.Attributes.class "se container align-container-right content-center-y spacer unfocusable" ]
                     []
                 )
              )
@@ -1487,12 +1425,12 @@ columnEdgeFillers children =
     children
         ++ [ unstyled
                 (VirtualDom.node "div"
-                    [ Html.Attributes.class "se container align-container-top teleporting-spacer" ]
+                    [ Html.Attributes.class "se container align-container-top teleporting-spacer unfocusable" ]
                     []
                 )
            , unstyled
                 (VirtualDom.node "alignBottom"
-                    [ Html.Attributes.class "se container align-container-bottom spacer" ]
+                    [ Html.Attributes.class "se container align-container-bottom spacer unfocusable" ]
                     []
                 )
            ]
@@ -1810,6 +1748,75 @@ element context nodeName attributes children =
                 }
 
 
+{-| -}
+renderRoot : List Option -> List (Attribute msg) -> Element msg -> Html msg
+renderRoot optionList attributes child =
+    let
+        options =
+            optionsToRecord optionList
+
+        rendered =
+            renderAttributes Nothing [] attributes
+
+        ( htmlChildren, styleChildren ) =
+            case child of
+                Unstyled html ->
+                    ( html asEl, rendered.styles )
+
+                Styled styled ->
+                    ( styled.html Nothing asEl
+                    , styled.styles ++ rendered.styles
+                    )
+
+                Text str ->
+                    ( textElement str
+                    , rendered.styles
+                    )
+
+                Empty ->
+                    ( Html.text "", rendered.styles )
+
+        styles =
+            styleChildren
+                |> List.foldr reduceStyles ( Set.empty, [ renderFocusStyle options.focus ] )
+                |> Tuple.second
+
+        styleSheets children =
+            -- children
+            case options.mode of
+                NoStaticStyleSheet ->
+                    toStyleSheet options styles :: children
+
+                Layout ->
+                    Internal.Style.rulesElement
+                        :: toStyleSheet options styles
+                        :: children
+
+                Viewport ->
+                    Internal.Style.viewportRulesElement
+                        :: toStyleSheet options styles
+                        :: children
+
+                WithVirtualCss ->
+                    let
+                        _ =
+                            toStyleSheetVirtualCss styles
+                    in
+                    Internal.Style.rulesElement
+                        :: children
+
+        children =
+            case Maybe.map renderNearbyGroupAbsolute rendered.nearbys of
+                Nothing ->
+                    styleSheets [ htmlChildren ]
+
+                Just nearby ->
+                    styleSheets [ nearby, htmlChildren ]
+    in
+    -- The top node cannot be keyed
+    renderNode rendered.alignment rendered.node rendered.attributes (Unkeyed children) Nothing asEl
+
+
 type RenderMode
     = Viewport
     | Layout
@@ -1869,7 +1876,7 @@ renderFocusStyle :
     FocusStyle
     -> Style
 renderFocusStyle focus =
-    Style ".se:focus"
+    Style ".se:focus .focusable > *:not(.unfocusable)"
         (List.filterMap identity
             [ Maybe.map (\color -> Property "border-color" (formatColor color)) focus.borderColor
             , Maybe.map (\color -> Property "background-color" (formatColor color)) focus.backgroundColor
@@ -1891,6 +1898,7 @@ renderFocusStyle focus =
         )
 
 
+focusDefaultStyle : { backgroundColor : Maybe Color, borderColor : Maybe Color, shadow : Maybe Shadow }
 focusDefaultStyle =
     { backgroundColor = Nothing
     , borderColor = Nothing
@@ -1964,73 +1972,6 @@ optionsToRecord options =
             , mode = Nothing
             }
             options
-
-
-{-| -}
-renderRoot : List Option -> List (Attribute msg) -> Element msg -> Html msg
-renderRoot optionList attributes child =
-    let
-        rendered =
-            renderAttributes Nothing [] attributes
-
-        ( htmlChildren, styleChildren ) =
-            case child of
-                Unstyled html ->
-                    ( html asEl, rendered.styles )
-
-                Styled styled ->
-                    ( styled.html Nothing asEl, styled.styles ++ rendered.styles )
-
-                Text str ->
-                    ( textElement str
-                    , rendered.styles
-                    )
-
-                Empty ->
-                    ( Html.text "", rendered.styles )
-
-        options =
-            optionsToRecord optionList
-
-        styles =
-            styleChildren
-                |> List.foldr reduceStyles ( Set.empty, [ renderFocusStyle options.focus ] )
-                -- |> renderStyles child
-                |> Tuple.second
-
-        styleSheets children =
-            case options.mode of
-                NoStaticStyleSheet ->
-                    toStyleSheet options styles :: children
-
-                Layout ->
-                    Internal.Style.rulesElement
-                        :: toStyleSheet options styles
-                        :: children
-
-                Viewport ->
-                    Internal.Style.viewportRulesElement
-                        :: toStyleSheet options styles
-                        :: children
-
-                WithVirtualCss ->
-                    let
-                        _ =
-                            toStyleSheetVirtualCss styles
-                    in
-                    Internal.Style.rulesElement
-                        :: children
-
-        children =
-            case Maybe.map renderNearbyGroupAbsolute rendered.nearbys of
-                Nothing ->
-                    styleSheets [ htmlChildren ]
-
-                Just nearby ->
-                    styleSheets [ nearby, htmlChildren ]
-    in
-    -- The top node cannot be keyed
-    renderNode rendered.alignment rendered.node rendered.attributes (Unkeyed children) Nothing asEl
 
 
 htmlClass : String -> Attribute msg
