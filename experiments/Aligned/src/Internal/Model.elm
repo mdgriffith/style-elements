@@ -143,9 +143,6 @@ type Attribute msg
     | Height Length
     | Nearby Location (Element msg)
     | Transform (Maybe PseudoClass) Transformation
-      -- | Move (Maybe Float) (Maybe Float) (Maybe Float)
-      -- | Rotate Float Float Float Float
-      -- | Scale Float Float Float
     | TextShadow
         { offset : ( Float, Float )
         , blur : Float
@@ -1087,10 +1084,22 @@ type alias NearbyGroup msg =
     }
 
 
+type Borders
+    = NoBorders
+    | AllBorders Int
+    | EachBorders
+        { left : Int
+        , top : Int
+        , bottom : Int
+        , right : Int
+        }
+
+
 type alias Gathered msg =
     { attributes : List (Html.Attribute msg)
     , styles : List Style
     , alignment : Aligned
+    , borders : Borders
     , width : Maybe Length
     , height : Maybe Length
     , nearbys : Maybe (NearbyGroup msg)
@@ -1101,6 +1110,31 @@ type alias Gathered msg =
     , transform : Maybe TransformationGroup
     , transformHover : Maybe TransformationGroup
     , has : Set String
+    }
+
+
+initGathered : Maybe String -> List Style -> Gathered msg
+initGathered maybeNodeName styles =
+    { attributes = []
+    , styles = styles
+    , width = Nothing
+    , height = Nothing
+    , borders = NoBorders
+    , alignment = Unaligned
+    , node =
+        case maybeNodeName of
+            Nothing ->
+                Generic
+
+            Just name ->
+                NodeName name
+    , nearbys = Nothing
+    , transform = Nothing
+    , transformHover = Nothing
+    , filters = Nothing
+    , boxShadows = Nothing
+    , textShadows = Nothing
+    , has = Set.empty
     }
 
 
@@ -1137,30 +1171,6 @@ renderNearbyGroupAbsolute nearby =
         )
 
 
-initGathered : Maybe String -> List Style -> Gathered msg
-initGathered maybeNodeName styles =
-    { attributes = []
-    , styles = styles
-    , width = Nothing
-    , height = Nothing
-    , alignment = Unaligned
-    , node =
-        case maybeNodeName of
-            Nothing ->
-                Generic
-
-            Just name ->
-                NodeName name
-    , nearbys = Nothing
-    , transform = Nothing
-    , transformHover = Nothing
-    , filters = Nothing
-    , boxShadows = Nothing
-    , textShadows = Nothing
-    , has = Set.empty
-    }
-
-
 {-| -}
 uncapitalize : String -> String
 uncapitalize str =
@@ -1185,10 +1195,8 @@ className x =
         |> Regex.replace Regex.All (Regex.regex "[\\s+]") (\_ -> "")
 
 
-
--- renderTransformationGroup : TransformationGroup -> Maybe String
-
-
+{-| -}
+renderTransformationGroup : Maybe ( String, String ) -> { a | rotate : Maybe ( Float, Float, Float, Float ), scale : Maybe ( Float, Float, Float ), translate : Maybe ( Maybe Float, Maybe Float, Maybe Float ) } -> Maybe ( String, Style )
 renderTransformationGroup maybePostfix group =
     let
         translate =
@@ -2048,8 +2056,8 @@ toStyleSheetString options stylesheet =
                 FontSize i ->
                     renderStyle force
                         maybePseudo
-                        (".font-size-" ++ toString (isInt i))
-                        [ Property "font-size" (toString i)
+                        (".font-size-" ++ intToString i)
+                        [ Property "font-size" (intToString i)
                         ]
 
                 FontFamily name typefaces ->
@@ -2195,27 +2203,27 @@ toStyleSheetString options stylesheet =
                     let
                         class =
                             ".grid-pos-"
-                                ++ toString position.row
+                                ++ intToString position.row
                                 ++ "-"
-                                ++ toString position.col
+                                ++ intToString position.col
                                 ++ "-"
-                                ++ toString position.width
+                                ++ intToString position.width
                                 ++ "-"
-                                ++ toString position.height
+                                ++ intToString position.height
 
                         msPosition =
                             String.join " "
                                 [ "-ms-grid-row: "
-                                    ++ toString position.row
+                                    ++ intToString position.row
                                     ++ ";"
                                 , "-ms-grid-row-span: "
-                                    ++ toString position.height
+                                    ++ intToString position.height
                                     ++ ";"
                                 , "-ms-grid-column: "
-                                    ++ toString position.col
+                                    ++ intToString position.col
                                     ++ ";"
                                 , "-ms-grid-column-span: "
-                                    ++ toString position.width
+                                    ++ intToString position.width
                                     ++ ";"
                                 ]
 
@@ -2225,14 +2233,14 @@ toStyleSheetString options stylesheet =
                         modernPosition =
                             String.join " "
                                 [ "grid-row: "
-                                    ++ toString position.row
+                                    ++ intToString position.row
                                     ++ " / "
-                                    ++ toString (position.row + position.height)
+                                    ++ intToString (position.row + position.height)
                                     ++ ";"
                                 , "grid-column: "
-                                    ++ toString position.col
+                                    ++ intToString position.col
                                     ++ " / "
-                                    ++ toString (position.col + position.width)
+                                    ++ intToString (position.col + position.width)
                                     ++ ";"
                                 ]
 
@@ -2270,13 +2278,13 @@ lengthClassName : Length -> String
 lengthClassName x =
     case x of
         Px px ->
-            toString px ++ "px"
+            intToString px ++ "px"
 
         Content ->
             "auto"
 
         Fill i ->
-            toString i ++ "fr"
+            intToString i ++ "fr"
 
 
 formatDropShadow : { d | blur : a, color : Color, offset : ( b, c ) } -> String
@@ -2362,7 +2370,39 @@ filterName filtr =
 
 floatClass : Float -> String
 floatClass x =
-    toString <| round (x * 100)
+    intToString (round (x * 100))
+
+
+intToString : Int -> String
+intToString i =
+    case i of
+        0 ->
+            "0"
+
+        1 ->
+            "1"
+
+        2 ->
+            "2"
+
+        3 ->
+            "3"
+
+        4 ->
+            "4"
+
+        5 ->
+            "5"
+
+        100 ->
+            "100"
+
+        255 ->
+            -- included because of colors
+            "255"
+
+        _ ->
+            toString i
 
 
 formatColor : Color -> String
@@ -2371,9 +2411,9 @@ formatColor color =
         { red, green, blue, alpha } =
             Color.toRgb color
     in
-    ("rgba(" ++ toString red)
-        ++ ("," ++ toString green)
-        ++ ("," ++ toString blue)
+    ("rgba(" ++ intToString red)
+        ++ ("," ++ intToString green)
+        ++ ("," ++ intToString blue)
         ++ ("," ++ toString alpha ++ ")")
 
 
@@ -2383,11 +2423,11 @@ formatColorClass color =
         { red, green, blue, alpha } =
             Color.toRgb color
     in
-    toString red
+    intToString red
         ++ "-"
-        ++ toString green
+        ++ intToString green
         ++ "-"
-        ++ toString blue
+        ++ intToString blue
         ++ "-"
         ++ floatClass alpha
 
