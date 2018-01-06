@@ -7,7 +7,6 @@ module Element.Border
         , innerGlow
         , innerShadow
         , mouseOverColor
-          -- , none
         , roundEach
         , rounded
         , shadow
@@ -18,7 +17,7 @@ module Element.Border
 
 {-| Border Properties
 
-@docs color
+@docs color, mouseOverColor
 
 
 # Border Widths
@@ -194,7 +193,9 @@ innerShadow { offset, blur, color, size } =
 
 
 {-| A drop shadow will add a shadow to whatever shape you give it.
-So, if you apply a drop shadow to an image with an alpha channel, the shadow will appear around the eges.
+
+So, if you apply a drop shadow to an image with an alpha channel, the shadow will appear around the edges of the non-trasparent part.
+
 -}
 shadow :
     { offset : ( Float, Float )
