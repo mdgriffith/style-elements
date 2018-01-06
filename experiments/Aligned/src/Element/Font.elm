@@ -7,11 +7,10 @@ module Element.Font
         , center
         , color
         , family
-          -- , importUrl
         , glow
+        , importUrl
         , italic
         , justify
-          -- , justifyAll
         , letterSpacing
         , light
         , lineHeight
@@ -28,21 +27,19 @@ module Element.Font
         , wordSpacing
         )
 
-{-| Font Properties
+{-| _Note_
 
-Meant to be imported as:
-
-    import Style.Font as Font
+`Font.color`, `Font.size`, `Font.family`, and `Font.lineHeight` are all inherited, meaning you can set them at the top of your view and all subsequent nodes will have that value.
 
 
 ## Typefaces
 
-@docs color, typeface, font, serif, sansSerif, cursive, fantasy, monospace, importUrl
+@docs family, typeface, font, serif, sansSerif, monospace, importUrl
 
 
 ## Properties
 
-@docs size, lineHeight, letterSpacing, wordSpacing, alignLeft, alignRight, center, justify
+@docs color, mouseOverColor, size, lineHeight, letterSpacing, wordSpacing, alignLeft, alignRight, center, justify
 
 
 ## Font Styles
@@ -53,17 +50,6 @@ Meant to be imported as:
 
 import Color exposing (Color)
 import Internal.Model as Internal exposing (Attribute(..), Style(..))
-
-
--- {-| Text decoration color.
--- -}
--- decoration : Color -> Property
--- decoration clr =
---     Internal.Exact "text-decoration-color" (formatColor clr)
--- {-| -}
--- selection : Color -> Property
--- selection clr =
---     Internal.SelectionColor clr
 
 
 {-| -}
@@ -83,7 +69,21 @@ mouseOverColor fontColor =
     Internal.hover (Colored ("hover-font-color-" ++ Internal.formatColorClass fontColor) "color" fontColor)
 
 
-{-| -}
+{-|
+
+    import Element
+    import Element.Font as Font
+
+    myElement =
+        Element.el
+            [ Font.family
+                [ Font.typeface "Helvetica"
+                , Font.sansSerif
+                ]
+            ]
+            (text "")
+
+-}
 family : List Font -> Attribute msg
 family families =
     let
@@ -139,11 +139,10 @@ typeface =
     Internal.Typeface
 
 
-
--- {-| -}
--- importUrl : { url : String, name : String } -> Font
--- importUrl { url, name } =
---     Internal.ImportFont name url
+{-| -}
+importUrl : { url : String, name : String } -> Font
+importUrl { url, name } =
+    Internal.ImportFont name url
 
 
 {-| Font size as `px`
