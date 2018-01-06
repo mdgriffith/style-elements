@@ -91,7 +91,7 @@ type Placeholder msg
 {-| -}
 placeholder : List (Attribute msg) -> Element msg -> Placeholder msg
 placeholder attrs child =
-    Placeholder <| Internal.el Nothing (Element.height Element.fill :: attrs) child
+    Placeholder <| Internal.el Nothing (Element.height Element.fill :: attrs) (Internal.Unkeyed [ child ])
 
 
 {-| -}
@@ -285,12 +285,14 @@ checkbox attrs { label, icon, checked, onChange, notice } =
                 , Internal.class "focusable"
                 , Element.centerY
                 ]
-                (case icon of
-                    Nothing ->
-                        defaultCheckbox checked
+                (Internal.Unkeyed
+                    [ case icon of
+                        Nothing ->
+                            defaultCheckbox checked
 
-                    Just actualIcon ->
-                        actualIcon
+                        Just actualIcon ->
+                            actualIcon
+                    ]
                 )
 
         attributes =
@@ -488,7 +490,7 @@ sliderX attributes input =
                     ++ behavior
                     ++ attributes
                 )
-                icon
+                (Internal.Unkeyed [ icon ])
     in
     positionLabels
         [ Element.width Element.fill ]
@@ -621,7 +623,7 @@ textHelper textType attrs textOptions =
                     , attributes
                     ]
                 )
-                Element.empty
+                (Internal.Unkeyed [])
 
         input =
             case textOptions.placeholder of
@@ -638,9 +640,9 @@ textHelper textType attrs textOptions =
                                     :: Element.width Element.fill
                                     :: inputPadding
                                 )
-                                placeholder
+                                (Internal.Unkeyed [ placeholder ])
                         ]
-                        inputElement
+                        (Internal.Unkeyed [ inputElement ])
     in
     positionLabels
         parentAttributes
@@ -817,29 +819,31 @@ multilineHelper spellchecked attrs textOptions =
 
                 Just (Placeholder placeholder) ->
                     [ Element.inFront (textOptions.text == "") <|
-                        Internal.el Nothing (Font.color charcoal :: inputPadding) placeholder
+                        Internal.el Nothing (Font.color charcoal :: inputPadding) (Internal.Unkeyed [ placeholder ])
                     ]
 
         input =
             Internal.el Nothing
                 placeholder
             <|
-                Internal.el
-                    (Just "textarea")
-                    (List.concat
-                        [ [ value textOptions.text
-                          , case spellchecked of
-                                SpellChecked ->
-                                    spellcheck True
+                Internal.Unkeyed
+                    [ Internal.el
+                        (Just "textarea")
+                        (List.concat
+                            [ [ value textOptions.text
+                              , case spellchecked of
+                                    SpellChecked ->
+                                        spellcheck True
 
-                                NotSpellChecked ->
-                                    spellcheck False
-                          ]
-                        , behavior
-                        , withHeight
-                        ]
-                    )
-                    (Internal.unstyled (Html.text textOptions.text))
+                                    NotSpellChecked ->
+                                        spellcheck False
+                              ]
+                            , behavior
+                            , withHeight
+                            ]
+                        )
+                        (Internal.Unkeyed [ Internal.unstyled (Html.text textOptions.text) ])
+                    ]
     in
     positionLabels attributesFromChild textOptions.label textOptions.notice input
 

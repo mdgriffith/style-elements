@@ -165,8 +165,9 @@ layoutWith { options } attrs child =
             :: Font.size 20
             :: Font.family
                 [ Font.typeface "Open Sans"
-                , Font.typeface "georgia"
-                , Font.serif
+                , Font.typeface "Helvetica"
+                , Font.typeface "Verdana"
+                , Font.sansSerif
                 ]
             :: Internal.htmlClass "style-elements se el"
             :: Internal.Class "x-content-align" "content-center-x"
@@ -284,7 +285,7 @@ el attrs child =
             :: Internal.Class "y-content-align" "content-center-y"
             :: attrs
         )
-        child
+        (Internal.Unkeyed [ child ])
 
 
 {-| -}
@@ -572,14 +573,16 @@ image attrs { src, description } =
     Internal.el
         Nothing
         (clip :: attrs)
-        (Internal.el
-            (Just "img")
-            (imageAttributes
-                ++ [ Internal.Attr <| Html.Attributes.src src
-                   , Internal.Attr <| Html.Attributes.alt description
-                   ]
-            )
-            Internal.Empty
+        (Internal.Unkeyed
+            [ Internal.el
+                (Just "img")
+                (imageAttributes
+                    ++ [ Internal.Attr <| Html.Attributes.src src
+                       , Internal.Attr <| Html.Attributes.alt description
+                       ]
+                )
+                (Internal.Unkeyed [ Internal.Empty ])
+            ]
         )
 
 
@@ -609,14 +612,16 @@ decorativeImage attrs { src } =
     Internal.el
         Nothing
         (clip :: attrs)
-        (Internal.el
-            (Just "img")
-            (imageAttributes
-                ++ [ Internal.Attr <| Html.Attributes.src src
-                   , Internal.Attr <| Html.Attributes.alt ""
-                   ]
-            )
-            Internal.Empty
+        (Internal.Unkeyed
+            [ Internal.el
+                (Just "img")
+                (imageAttributes
+                    ++ [ Internal.Attr <| Html.Attributes.src src
+                       , Internal.Attr <| Html.Attributes.alt ""
+                       ]
+                )
+                (Internal.Unkeyed [ Internal.Empty ])
+            ]
         )
 
 
@@ -640,7 +645,7 @@ link attrs { url, label } =
             :: center
             :: attrs
         )
-        label
+        (Internal.Unkeyed [ label ])
 
 
 {-| -}
@@ -657,7 +662,7 @@ newTabLink attrs { url, label } =
             :: center
             :: attrs
         )
-        label
+        (Internal.Unkeyed [ label ])
 
 
 {-| A link to download a file.
@@ -674,7 +679,7 @@ download attrs { url, label } =
             :: center
             :: attrs
         )
-        label
+        (Internal.Unkeyed [ label ])
 
 
 {-| A link to download a file, but you can specify the filename.
@@ -691,7 +696,7 @@ downloadAs attrs { url, filename, label } =
             :: center
             :: attrs
         )
-        label
+        (Internal.Unkeyed [ label ])
 
 
 {-| -}

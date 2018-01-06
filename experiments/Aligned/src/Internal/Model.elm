@@ -1622,9 +1622,9 @@ column attrs children =
     element asColumn Nothing (htmlClass "se column" :: attrs) children
 
 
-el : Maybe String -> List (Attribute msg) -> Element msg -> Element msg
+el : Maybe String -> List (Attribute msg) -> Children (Element msg) -> Element msg
 el node attrs child =
-    element asEl node (htmlClass "se el" :: attrs) (Unkeyed [ child ])
+    element asEl node (htmlClass "se el" :: attrs) child
 
 
 gridEl : Maybe String -> List (Attribute msg) -> List (Element msg) -> Element msg
