@@ -23,18 +23,28 @@ type Layout
     | Column
 
 
-type alias Positioned msg =
+type alias Around msg =
+    { right : Maybe (PositionedElement msg)
+    , left : Maybe (PositionedElement msg)
+    , primary : Internal.Element msg
+    , primaryWidth : Internal.Length
+    , defaultWidth : Internal.Length
+    , below : Maybe (PositionedElement msg)
+    , above : Maybe (PositionedElement msg)
+    }
+
+
+type alias PositionedElement msg =
     { layout : Layout
     , child : List (Internal.Element msg)
     , attrs : List (Internal.Attribute msg)
-    , position : RelativePosition
     , width : Int
     , height : Int
     }
 
 
-relative : Maybe String -> List (Internal.Attribute msg) -> Internal.Element msg -> List (Positioned msg) -> Internal.Element msg
-relative node attributes primary around =
+relative : Maybe String -> List (Internal.Attribute msg) -> Around msg -> Internal.Element msg
+relative node attributes around =
     let
         ( sX, sY ) =
             Internal.getSpacing attributes ( 5, 5 )
@@ -43,7 +53,7 @@ relative node attributes primary around =
             Internal.el positioned.attrs positioned.child
 
         ( template, children ) =
-            createGrid ( sX, sY ) primary around
+            createGrid ( sX, sY ) around
     in
     Internal.element Internal.asGrid
         node
@@ -59,40 +69,17 @@ relative node attributes primary around =
         )
 
 
-createGrid : ( Int, Int ) -> Element.Element msg -> List (Positioned msg) -> ( List (Internal.Attribute msg1), List (Element.Element msg) )
-createGrid ( spacingX, spacingY ) primary nearby =
+createGrid : ( Int, Int ) -> Around msg -> ( List (Internal.Attribute msg1), List (Element.Element msg) )
+createGrid ( spacingX, spacingY ) nearby =
     let
-        find positioned existing =
-            case positioned.position of
-                Above ->
-                    { existing | above = True }
-
-                Below ->
-                    { existing | below = True }
-
-                OnRight ->
-                    { existing | right = True }
-
-                OnLeft ->
-                    { existing | left = True }
-
-        exists =
-            List.foldl find
-                { right = False
-                , left = False
-                , below = False
-                , above = False
-                }
-                nearby
-
         rowCount =
             List.sum
                 [ 1
-                , if not exists.above then
+                , if Nothing == nearby.above then
                     0
                   else
                     1
-                , if not exists.below then
+                , if Nothing == nearby.below then
                     0
                   else
                     1
@@ -101,51 +88,39 @@ createGrid ( spacingX, spacingY ) primary nearby =
         colCount =
             List.sum
                 [ 1
-                , if not exists.left then
+                , if Nothing == nearby.left then
                     0
                   else
                     1
-                , if not exists.right then
+                , if Nothing == nearby.right then
                     0
                   else
                     1
                 ]
 
         rows =
-            { above =
-                if not exists.above then
-                    0
-                else
-                    1
-            , primary =
-                if not exists.above then
-                    1
-                else
-                    2
-            , below =
-                if not exists.above then
-                    2
-                else
-                    3
-            }
+            if nearby.above == Nothing then
+                { above = 0
+                , primary = 1
+                , below = 2
+                }
+            else
+                { above = 1
+                , primary = 2
+                , below = 3
+                }
 
         columns =
-            { left =
-                if not exists.left then
-                    0
-                else
-                    1
-            , primary =
-                if not exists.left then
-                    1
-                else
-                    2
-            , right =
-                if not exists.left then
-                    2
-                else
-                    3
-            }
+            if Nothing == nearby.left then
+                { left = 0
+                , primary = 1
+                , right = 2
+                }
+            else
+                { left = 1
+                , primary = 2
+                , right = 3
+                }
 
         rowCoord pos =
             case pos of
@@ -174,37 +149,52 @@ createGrid ( spacingX, spacingY ) primary nearby =
 
                 OnLeft ->
                     columns.left
+
+        place pos el =
+            build (rowCoord pos) (colCoord pos) spacingX spacingY el
     in
     ( [ Internal.StyleClass
             (Internal.GridTemplateStyle
                 { spacing = ( Internal.Px spacingX, Internal.Px spacingY )
-                , columns = List.map (always Internal.Content) (List.range 1 colCount)
+                , columns =
+                    List.filterMap identity
+                        [ Maybe.map (always nearby.defaultWidth) nearby.left
+                        , Just nearby.primaryWidth
+                        , Maybe.map (always nearby.defaultWidth) nearby.right
+                        ]
                 , rows = List.map (always Internal.Content) (List.range 1 rowCount)
                 }
             )
       ]
-    , Internal.gridEl Nothing
-        [ Internal.StyleClass
-            (Internal.GridPosition
-                { row = rows.primary
-                , col = columns.primary
-                , width = 1
-                , height = 1
-                }
-            )
+    , List.filterMap identity
+        [ Just <|
+            Internal.gridEl Nothing
+                [ Internal.StyleClass
+                    (Internal.GridPosition
+                        { row = rows.primary
+                        , col = columns.primary
+                        , width = 1
+                        , height = 1
+                        }
+                    )
+                ]
+                [ nearby.primary ]
+        , Maybe.map (place OnLeft) nearby.left
+        , Maybe.map (place OnRight) nearby.right
+        , Maybe.map (place Above) nearby.above
+        , Maybe.map (place Below) nearby.below
         ]
-        [ primary ]
-        :: List.map (build rowCoord colCoord spacingX spacingY) (groupUp nearby)
     )
 
 
+build : Int -> Int -> Int -> Int -> { a | attrs : List (Internal.Attribute msg), height : Int, layout : Layout, width : Int, child : List (Internal.Element msg) } -> Internal.Element msg
 build rowCoord colCoord spacingX spacingY positioned =
     let
         attributes =
             Internal.StyleClass
                 (Internal.GridPosition
-                    { row = rowCoord positioned.position
-                    , col = colCoord positioned.position
+                    { row = rowCoord
+                    , col = colCoord
                     , width = positioned.width
                     , height = positioned.height
                     }
@@ -227,67 +217,3 @@ build rowCoord colCoord spacingX spacingY positioned =
             Internal.column
                 attributes
                 (Internal.Unkeyed <| Internal.columnEdgeFillers positioned.child)
-
-
-groupUp positioned =
-    let
-        row children =
-            case children of
-                [] ->
-                    Nothing
-
-                el :: [] ->
-                    Just <| el
-
-                head :: _ ->
-                    Just
-                        { head
-                            | layout = Row
-                            , child = List.map (\x -> Internal.gridEl Nothing x.attrs x.child) children
-                        }
-
-        column children =
-            case children of
-                [] ->
-                    Nothing
-
-                el :: [] ->
-                    Just <| el
-
-                head :: _ ->
-                    Just
-                        { head
-                            | layout = Column
-                            , child = List.map (\x -> Internal.gridEl Nothing x.attrs x.child) children
-                        }
-
-        addToPosition el group =
-            case el.position of
-                Above ->
-                    { group | above = el :: group.above }
-
-                Below ->
-                    { group | below = el :: group.below }
-
-                OnRight ->
-                    { group | right = el :: group.right }
-
-                OnLeft ->
-                    { group | left = el :: group.left }
-
-        wrap grouped =
-            List.filterMap identity
-                [ row grouped.above
-                , row grouped.below
-                , column grouped.left
-                , column grouped.right
-                ]
-    in
-    positioned
-        |> List.foldr addToPosition
-            { above = []
-            , below = []
-            , right = []
-            , left = []
-            }
-        |> wrap

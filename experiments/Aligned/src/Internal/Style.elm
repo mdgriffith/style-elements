@@ -362,6 +362,20 @@ rules =
         , Class ".se:focus"
             [ Prop "outline" "none"
             ]
+        , Class ".se:focus .se.show-on-focus"
+            [ Prop "opacity" "1"
+            , Prop "pointer-events" "auto"
+            ]
+        , Class ".se.show-on-focus"
+            [ Prop "opacity" "0"
+            , Prop "pointer-events" "none"
+            , Prop "transition"
+                (String.join ", " <|
+                    List.map (\x -> x ++ " 160ms")
+                        [ "opacity"
+                        ]
+                )
+            ]
         , Class ("input" ++ class Any)
             [ Prop "border" "none"
             ]
@@ -421,6 +435,15 @@ rules =
             , Descriptor ".scrollbars-y"
                 [ Prop "overflow-y" "auto"
                 ]
+            , Descriptor ".clip"
+                [ Prop "overflow" "hidden"
+                ]
+            , Descriptor ".clip-x"
+                [ Prop "overflow-x" "hidden"
+                ]
+            , Descriptor ".clip-y"
+                [ Prop "overflow-y" "hidden"
+                ]
             , Descriptor ".width-content"
                 [ Prop "width" "auto"
                 ]
@@ -448,6 +471,7 @@ rules =
                                     , Prop "height" "0"
                                     , Prop "width" "100%"
                                     , Prop "z-index" "10"
+                                    , Prop "pointer-events" "auto"
                                     , Child ".height-fill"
                                         [ Prop "height" "auto"
                                         ]
@@ -464,6 +488,7 @@ rules =
                                     , Prop "height" "0"
                                     , Prop "width" "100%"
                                     , Prop "z-index" "10"
+                                    , Prop "pointer-events" "auto"
                                     , Child ".height-fill"
                                         [ Prop "height" "auto"
                                         ]
@@ -475,6 +500,7 @@ rules =
                                     , Prop "left" "100%"
                                     , Prop "height" "100%"
                                     , Prop "z-index" "10"
+                                    , Prop "pointer-events" "auto"
                                     ]
 
                             OnLeft ->
@@ -483,30 +509,29 @@ rules =
                                     , Prop "right" "100%"
                                     , Prop "height" "100%"
                                     , Prop "z-index" "10"
+                                    , Prop "pointer-events" "auto"
                                     ]
 
                             Within ->
                                 Descriptor (locationName loc)
                                     [ Prop "position" "absolute"
-
-                                    -- , Prop "display" "block"
                                     , Prop "width" "100%"
                                     , Prop "height" "100%"
                                     , Prop "left" "0"
                                     , Prop "top" "0"
                                     , Prop "z-index" "10"
+                                    , Prop "pointer-events" "auto"
                                     ]
 
                             Behind ->
                                 Descriptor (locationName loc)
                                     [ Prop "position" "absolute"
-
-                                    -- , Prop "display" "block"
                                     , Prop "width" "100%"
                                     , Prop "height" "100%"
                                     , Prop "left" "0"
                                     , Prop "top" "0"
                                     , Prop "z-index" "0"
+                                    , Prop "pointer-events" "auto"
                                     ]
             , Descriptor ".bold"
                 [ Prop "font-weight" "700"

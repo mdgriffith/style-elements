@@ -1,6 +1,71 @@
-module Input exposing (..)
+module Input
+    exposing
+        ( Checkbox
+        , Label
+        , Menu
+        , Notice
+        , Option
+        , Placeholder
+        , Radio
+        , button
+        , checkbox
+        , currentPassword
+        , email
+        , errorAbove
+        , errorBelow
+        , errorLeft
+        , errorRight
+        , labelAbove
+        , labelBelow
+        , labelLeft
+        , labelRight
+        , menuAbove
+        , menuBelow
+        , multiline
+        , newPassword
+        , placeholder
+        , radio
+        , radioRow
+        , search
+        , select
+        , spellcheckedMultiline
+        , text
+        , username
+        , warningAbove
+        , warningBelow
+        , warningLeft
+        , warningRight
+        )
 
-{-| -}
+{-|
+
+
+## Inputs
+
+@docs button
+
+@docs checkbox, Checkbox
+
+@docs text, Text, Placeholder, placeholder, username, newPassword, currentPassword, email, search
+
+@docs multiline, spellcheckedMultiline
+
+@docs radio, radioRow, Radio, Option
+
+@docs select, Select, Menu, menuAbove, menuBelow
+
+
+## Labels and Notices
+
+@docs labelAbove, labelBelow, labelLeft, labelRight
+
+@docs warningAbove, warningBelow, warningLeft, warningRight
+
+@docs errorAbove, errorBelow, errorLeft, errorRight
+
+@docs Placeholder, placeholder
+
+-}
 
 import Color exposing (..)
 import Element exposing (Attribute, Element)
@@ -17,6 +82,7 @@ import Internal.Model as Internal
 import Json.Decode as Json
 
 
+{-| -}
 type Placeholder msg
     = Placeholder (Element msg)
 
@@ -27,69 +93,83 @@ placeholder attrs child =
     Placeholder <| Internal.el Nothing (Element.height Element.fill :: attrs) child
 
 
+{-| -}
 type Label msg
     = Label Internal.Grid.RelativePosition (List (Attribute msg)) (Element msg)
 
 
+{-| -}
 type Notice msg
     = Notice Internal.Grid.RelativePosition (List (Attribute msg)) (Element msg)
 
 
+{-| -}
 labelRight : List (Attribute msg) -> Element msg -> Label msg
 labelRight =
     Label Internal.Grid.OnRight
 
 
+{-| -}
 labelLeft : List (Attribute msg) -> Element msg -> Label msg
 labelLeft =
     Label Internal.Grid.OnLeft
 
 
+{-| -}
 labelAbove : List (Attribute msg) -> Element msg -> Label msg
 labelAbove =
     Label Internal.Grid.Above
 
 
+{-| -}
 labelBelow : List (Attribute msg) -> Element msg -> Label msg
 labelBelow =
     Label Internal.Grid.Below
 
 
+{-| -}
 warningRight : List (Attribute msg) -> Element msg -> Notice msg
 warningRight =
     Notice Internal.Grid.OnRight
 
 
+{-| -}
 warningLeft : List (Attribute msg) -> Element msg -> Notice msg
 warningLeft =
     Notice Internal.Grid.OnLeft
 
 
+{-| -}
 warningAbove : List (Attribute msg) -> Element msg -> Notice msg
 warningAbove =
     Notice Internal.Grid.Above
 
 
+{-| -}
 warningBelow : List (Attribute msg) -> Element msg -> Notice msg
 warningBelow =
     Notice Internal.Grid.Below
 
 
+{-| -}
 errorRight : List (Attribute msg) -> Element msg -> Notice msg
 errorRight =
     Notice Internal.Grid.OnRight
 
 
+{-| -}
 errorLeft : List (Attribute msg) -> Element msg -> Notice msg
 errorLeft =
     Notice Internal.Grid.OnLeft
 
 
+{-| -}
 errorAbove : List (Attribute msg) -> Element msg -> Notice msg
 errorAbove =
     Notice Internal.Grid.Above
 
 
+{-| -}
 errorBelow : List (Attribute msg) -> Element msg -> Notice msg
 errorBelow =
     Notice Internal.Grid.Below
@@ -157,8 +237,7 @@ defaultCheckbox checked =
         , Font.size 9
         , Font.center
         , Border.rounded 3
-        , Border.color <|
-            Color.rgb 211 211 211
+        , Border.color (Color.rgb 211 211 211)
         , Font.family
             [ Font.typeface "georgia"
             , Font.serif
@@ -230,55 +309,128 @@ checkbox attrs { label, icon, checked, onChange, notice } =
                                 Nothing
                     ]
             )
-                ++ (tabindex 0 :: Element.pointer :: attrs)
+                ++ (tabindex 0 :: Element.pointer :: Background.color blue :: Element.alignLeft :: Element.width Element.fill :: attrs)
     in
     Internal.Grid.relative (Just "label")
         attributes
-        input
-        (List.filterMap identity
-            [ case label of
-                Label position labelAttrs child ->
-                    Just
-                        { layout = Internal.Grid.GridElement
-                        , child = [ child ]
-                        , attrs = Element.alignLeft :: labelAttrs
-                        , position = position
-                        , width =
-                            case position of
-                                Internal.Grid.Above ->
-                                    2
+        ({ right = Nothing
+         , left = Nothing
+         , primary = input
+         , primaryWidth = Internal.Content
+         , defaultWidth = Internal.Fill 1
+         , below = Nothing
+         , above = Nothing
+         }
+            |> (\group ->
+                    case label of
+                        Label position labelAttrs child ->
+                            place position
+                                { layout = Internal.Grid.GridElement
+                                , child = [ child ]
+                                , attrs = Element.alignLeft :: labelAttrs
+                                , width =
+                                    case position of
+                                        Internal.Grid.Above ->
+                                            2
 
-                                Internal.Grid.Below ->
-                                    2
+                                        Internal.Grid.Below ->
+                                            2
 
-                                _ ->
-                                    1
-                        , height = 1
-                        }
-            , case notice of
-                Nothing ->
-                    Nothing
+                                        _ ->
+                                            1
+                                , height = 1
+                                }
+                                group
+               )
+            |> (\group ->
+                    case notice of
+                        Nothing ->
+                            group
 
-                Just (Notice position labelAttrs child) ->
-                    Just
-                        { layout = Internal.Grid.GridElement
-                        , child = [ child ]
-                        , attrs = Element.alignLeft :: labelAttrs
-                        , position = position
-                        , width =
-                            case position of
-                                Internal.Grid.Above ->
-                                    2
+                        Just (Notice position labelAttrs child) ->
+                            place position
+                                { layout = Internal.Grid.GridElement
+                                , child = [ child ]
+                                , attrs = Element.alignLeft :: labelAttrs
+                                , width =
+                                    case position of
+                                        Internal.Grid.Above ->
+                                            2
 
-                                Internal.Grid.Below ->
-                                    2
+                                        Internal.Grid.Below ->
+                                            2
 
-                                _ ->
-                                    1
-                        , height = 1
-                        }
-            ]
+                                        _ ->
+                                            1
+                                , height = 1
+                                }
+                                group
+               )
         )
+
+
+place : Internal.Grid.RelativePosition -> Internal.Grid.PositionedElement msg -> Internal.Grid.Around msg -> Internal.Grid.Around msg
+place position el group =
+    case position of
+        Internal.Grid.Above ->
+            case group.above of
+                Nothing ->
+                    { group | above = Just el }
+
+                Just existing ->
+                    { group
+                        | above =
+                            Just
+                                { el
+                                    | child = el.child ++ existing.child
+                                    , layout = Internal.Grid.Row
+                                }
+                    }
+
+        Internal.Grid.Below ->
+            case group.below of
+                Nothing ->
+                    { group | below = Just el }
+
+                Just existing ->
+                    { group
+                        | below =
+                            Just
+                                { el
+                                    | child = el.child ++ existing.child
+                                    , layout = Internal.Grid.Row
+                                }
+                    }
+
+        Internal.Grid.OnRight ->
+            case group.right of
+                Nothing ->
+                    { group | right = Just el }
+
+                Just existing ->
+                    { group
+                        | right =
+                            Just
+                                { el
+                                    | child = el.child ++ existing.child
+                                    , layout = Internal.Grid.Column
+                                }
+                    }
+
+        Internal.Grid.OnLeft ->
+            case group.left of
+                Nothing ->
+                    { group | left = Just el }
+
+                Just existing ->
+                    { group
+                        | left =
+                            Just
+                                { el
+                                    | child = el.child ++ existing.child
+                                    , layout = Internal.Grid.Column
+                                }
+                    }
 
 
 {-| -}
@@ -477,18 +629,15 @@ textHelper textType attrs textOptions =
 
                 Just (Placeholder placeholder) ->
                     Internal.el Nothing
-                        [ Element.inFront <|
-                            if textOptions.text == "" then
-                                Internal.el Nothing
-                                    (Font.color charcoal
-                                        :: defaultTextPadding
-                                        :: Element.height Element.fill
-                                        :: Element.width Element.fill
-                                        :: inputPadding
-                                    )
-                                    placeholder
-                            else
-                                Element.empty
+                        [ Element.inFront (textOptions.text == "") <|
+                            Internal.el Nothing
+                                (Font.color charcoal
+                                    :: defaultTextPadding
+                                    :: Element.height Element.fill
+                                    :: Element.width Element.fill
+                                    :: inputPadding
+                                )
+                                placeholder
                         ]
                         inputElement
     in
@@ -666,11 +815,8 @@ multilineHelper spellchecked attrs textOptions =
                     []
 
                 Just (Placeholder placeholder) ->
-                    [ Element.inFront <|
-                        if textOptions.text == "" then
-                            Internal.el Nothing (Font.color charcoal :: inputPadding) placeholder
-                        else
-                            Element.empty
+                    [ Element.inFront (textOptions.text == "") <|
+                        Internal.el Nothing (Font.color charcoal :: inputPadding) placeholder
                     ]
 
         input =
@@ -719,32 +865,41 @@ positionLabels : List (Attribute msg) -> Label msg -> Maybe (Notice msg) -> Elem
 positionLabels attributes label notice input =
     Internal.Grid.relative (Just "label")
         attributes
-        input
-        (List.filterMap identity
-            [ case label of
-                Label position labelAttrs child ->
-                    Just
-                        { layout = Internal.Grid.GridElement
-                        , child = [ child ]
-                        , attrs = Element.alignLeft :: labelAttrs
-                        , position = position
-                        , width = 1
-                        , height = 1
-                        }
-            , case notice of
-                Nothing ->
-                    Nothing
+        ({ right = Nothing
+         , left = Nothing
+         , primary = input
+         , primaryWidth = Internal.Fill 1
+         , defaultWidth = Internal.Content
+         , below = Nothing
+         , above = Nothing
+         }
+            |> (\group ->
+                    case label of
+                        Label position labelAttrs child ->
+                            place position
+                                { layout = Internal.Grid.GridElement
+                                , child = [ child ]
+                                , attrs = Element.alignLeft :: labelAttrs
+                                , width = 1
+                                , height = 1
+                                }
+                                group
+               )
+            |> (\group ->
+                    case notice of
+                        Nothing ->
+                            group
 
-                Just (Notice position labelAttrs child) ->
-                    Just
-                        { layout = Internal.Grid.GridElement
-                        , child = [ child ]
-                        , attrs = Element.alignLeft :: labelAttrs
-                        , position = position
-                        , width = 1
-                        , height = 1
-                        }
-            ]
+                        Just (Notice position labelAttrs child) ->
+                            place position
+                                { layout = Internal.Grid.GridElement
+                                , child = [ child ]
+                                , attrs = Element.alignLeft :: labelAttrs
+                                , width = 1
+                                , height = 1
+                                }
+                                group
+               )
         )
 
 
@@ -785,11 +940,27 @@ defaultRadioIcon status =
         , Element.height (Element.px 14)
         , Background.color white
         , Border.rounded 7
-        , Border.shadow
-            { offset = ( 0, 0 )
-            , blur = 1
-            , color = Color.rgb 235 235 235
-            }
+
+        -- , Border.shadow <|
+        --     -- case status of
+        --     --     Idle ->
+        --     --         { offset = ( 0, 0 )
+        --     --         , blur =
+        --     --             1
+        --     --         , color = Color.rgb 235 235 235
+        --     --         }
+        --     --     Focused ->
+        --     --         { offset = ( 0, 0 )
+        --     --         , blur =
+        --     --             0
+        --     --         , color = Color.rgba 235 235 235 0
+        --     --         }
+        --     --     Selected ->
+        --     { offset = ( 0, 0 )
+        --     , blur =
+        --         1
+        --     , color = Color.rgba 235 235 235 0
+        --     }
         , Border.width <|
             case status of
                 Idle ->
@@ -1016,6 +1187,232 @@ radioHelper orientation attrs input =
         input.label
         input.notice
         optionArea
+
+
+{-| -}
+type alias Select option msg =
+    { onChange : Maybe (option -> msg)
+    , menu : Menu option msg
+    , selected : Maybe option
+    , label : Label msg
+    , notice : Maybe (Notice msg)
+    }
+
+
+type Menu option msg
+    = Menu MenuPosition (List (Attribute msg)) (List (Option option msg))
+
+
+type MenuPosition
+    = MenuAbove
+    | MenuBelow
+
+
+{-| -}
+menuAbove : List (Attribute msg) -> List (Option option msg) -> Menu option msg
+menuAbove =
+    Menu MenuAbove
+
+
+{-| -}
+menuBelow : List (Attribute msg) -> List (Option option msg) -> Menu option msg
+menuBelow =
+    Menu MenuBelow
+
+
+{-| -}
+select : List (Attribute msg) -> Select option msg -> Element msg
+select attrs input =
+    let
+        spacing =
+            Internal.getSpacingAttribute attrs ( 5, 5 )
+
+        renderOption (Option value icon text) =
+            let
+                status =
+                    if Just value == input.selected then
+                        Selected
+                    else
+                        Idle
+            in
+            Element.row
+                [ spacing
+                , Element.pointer
+                , case input.onChange of
+                    Nothing ->
+                        Internal.NoAttribute
+
+                    Just send ->
+                        Events.onClick (send value)
+                , case status of
+                    Selected ->
+                        Internal.class "focusable"
+
+                    _ ->
+                        Internal.NoAttribute
+                , case status of
+                    Selected ->
+                        Internal.Attr <|
+                            Html.Attributes.attribute "aria-checked"
+                                "true"
+
+                    _ ->
+                        Internal.Attr <|
+                            Html.Attributes.attribute "aria-checked"
+                                "false"
+                , Internal.Attr <|
+                    Html.Attributes.attribute "role" "radio"
+                ]
+                [ icon status
+                , Element.el [ Element.width Element.fill, Internal.class "unfocusable" ] text
+                ]
+
+        renderSelectedOption (Option value icon text) =
+            let
+                status =
+                    if Just value == input.selected then
+                        Selected
+                    else
+                        Idle
+            in
+            Element.row
+                [ spacing
+                , Element.pointer
+                , case status of
+                    Selected ->
+                        Internal.class "focusable"
+
+                    _ ->
+                        Internal.NoAttribute
+                ]
+                [ icon status
+                , Element.el [ Element.width Element.fill, Internal.class "unfocusable" ] text
+                ]
+
+        toggleSelected =
+            case input.selected of
+                Nothing ->
+                    Nothing
+
+                Just selected ->
+                    Nothing
+
+        box =
+            Element.el
+                ((case input.menu of
+                    Menu orientation attrs options ->
+                        case orientation of
+                            MenuAbove ->
+                                Element.above True
+                                    (column (Internal.class "show-on-focus" :: Background.color white :: attrs)
+                                        (List.map renderOption options)
+                                    )
+
+                            MenuBelow ->
+                                Element.below True
+                                    (column (Internal.class "show-on-focus" :: Background.color white :: attrs)
+                                        (List.map renderOption options)
+                                    )
+                 )
+                    :: Border.width 1
+                    :: Border.color lightGrey
+                    :: Border.rounded 5
+                    :: attrs
+                )
+                (case prevNext of
+                    Nothing ->
+                        Element.empty
+
+                    Just ( prev, selected, next ) ->
+                        case selected of
+                            Nothing ->
+                                Element.empty
+
+                            Just sel ->
+                                renderSelectedOption sel
+                )
+
+        prevNext =
+            case input.menu of
+                Menu _ attrs options ->
+                    case options of
+                        [] ->
+                            Nothing
+
+                        (Option value _ _) :: _ ->
+                            List.foldl track ( NotFound, value, Nothing, value ) options
+                                |> (\( found, b, selected, a ) ->
+                                        case found of
+                                            NotFound ->
+                                                Just ( b, selected, value )
+
+                                            BeforeFound ->
+                                                Just ( b, selected, value )
+
+                                            _ ->
+                                                Just ( b, selected, a )
+                                   )
+
+        track option ( found, prev, selected, nxt ) =
+            case option of
+                Option value _ _ ->
+                    case found of
+                        NotFound ->
+                            if Just value == input.selected then
+                                ( BeforeFound, prev, Just option, nxt )
+                            else
+                                ( found, value, selected, nxt )
+
+                        BeforeFound ->
+                            ( AfterFound, prev, selected, value )
+
+                        AfterFound ->
+                            ( found, prev, selected, nxt )
+    in
+    positionLabels
+        (case input.onChange of
+            Nothing ->
+                [ Element.alignLeft ]
+
+            Just onChange ->
+                List.filterMap identity
+                    [ Just Element.alignLeft
+                    , Just (tabindex 0)
+                    , Just (Element.width Element.fill)
+                    , Just <|
+                        Internal.Attr <|
+                            Html.Attributes.attribute "role" "radiogroup"
+                    , case prevNext of
+                        Nothing ->
+                            Nothing
+
+                        Just ( prev, selected, next ) ->
+                            Just
+                                (onKeyLookup <|
+                                    \code ->
+                                        if code == leftArrow then
+                                            Just (onChange prev)
+                                        else if code == upArrow then
+                                            Just (onChange prev)
+                                        else if code == rightArrow then
+                                            Just (onChange next)
+                                        else if code == downArrow then
+                                            Just (onChange next)
+                                        else if code == space then
+                                            case input.selected of
+                                                Nothing ->
+                                                    Just (onChange prev)
+
+                                                _ ->
+                                                    Nothing
+                                        else
+                                            Nothing
+                                )
+                    ]
+        )
+        input.label
+        input.notice
+        box
 
 
 type Found
