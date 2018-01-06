@@ -593,12 +593,18 @@ rules =
             [ Prop "display" "flex"
             , Prop "flex-direction" "column"
             , Prop "white-space" "pre"
+            , Child ".height-content"
+                [ Prop "height" "auto"
+                ]
             , Child ".height-fill"
                 [ Prop "flex-grow" "100000"
                 ]
             , Child ".width-fill"
                 [ -- alignLeft, alignRight, centerX are overridden by width.
                   Prop "align-self" "stretch !important"
+                ]
+            , Descriptor ".width-content"
+                [ Prop "width" "auto"
                 ]
             , describeAlignment <|
                 \alignment ->
