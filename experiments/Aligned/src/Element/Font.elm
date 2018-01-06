@@ -6,9 +6,9 @@ module Element.Font
         , bold
         , center
         , color
+        , external
         , family
         , glow
-        , importUrl
         , italic
         , justify
         , letterSpacing
@@ -140,8 +140,8 @@ typeface =
 
 
 {-| -}
-importUrl : { url : String, name : String } -> Font
-importUrl { url, name } =
+external : { url : String, name : String } -> Font
+external { url, name } =
     Internal.ImportFont name url
 
 

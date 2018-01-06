@@ -554,6 +554,20 @@ alignYName align =
             "self-center-y"
 
 
+noAreas : List (Attribute msg) -> List (Attribute msg)
+noAreas attrs =
+    let
+        notAnArea a =
+            case a of
+                Describe _ ->
+                    False
+
+                _ ->
+                    True
+    in
+    List.filter notAnArea attrs
+
+
 gatherAttributes : Attribute msg -> Gathered msg -> Gathered msg
 gatherAttributes attr gathered =
     let
@@ -1990,7 +2004,7 @@ htmlClass cls =
 renderFont : List Font -> String
 renderFont families =
     let
-        renderFont font =
+        fontName font =
             case font of
                 Serif ->
                     "serif"
@@ -2008,7 +2022,7 @@ renderFont families =
                     "\"" ++ name ++ "\""
     in
     families
-        |> List.map renderFont
+        |> List.map fontName
         |> String.join ", "
 
 
@@ -2268,10 +2282,40 @@ toStyleSheetString options stylesheet =
                                 ForceHover ->
                                     renderStyleRule style Nothing True
 
+        renderTopLevels rule =
+            case rule of
+                FontFamily name typefaces ->
+                    let
+                        getImports font =
+                            case font of
+                                ImportFont _ url ->
+                                    Just ("@import url('" ++ url ++ "');")
+
+                                _ ->
+                                    Nothing
+                    in
+                    typefaces
+                        |> List.filterMap getImports
+                        |> String.join "\n"
+                        |> Just
+
+                _ ->
+                    Nothing
+
         combine style rendered =
-            rendered ++ renderStyleRule style Nothing False
+            { rendered
+                | rules = rendered.rules ++ renderStyleRule style Nothing False
+                , topLevel =
+                    case renderTopLevels style of
+                        Nothing ->
+                            rendered.topLevel
+
+                        Just topLevel ->
+                            rendered.topLevel ++ topLevel
+            }
     in
-    List.foldl combine "" stylesheet
+    List.foldl combine { rules = "", topLevel = "" } stylesheet
+        |> (\{ rules, topLevel } -> topLevel ++ rules)
 
 
 lengthClassName : Length -> String
