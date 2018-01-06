@@ -14,8 +14,10 @@ module Element
         , below
         , center
         , centerY
+        , clip
+        , clipX
+        , clipY
         , column
-        , defaultFocus
         , description
         , download
         , downloadAs
@@ -48,6 +50,9 @@ module Element
         , rotate
         , row
         , scale
+        , scrollbarX
+        , scrollbarY
+        , scrollbars
         , shrink
         , spaceEvenly
         , spacing
@@ -58,7 +63,43 @@ module Element
         , width
         )
 
-{-| -}
+{-|
+
+@docs empty, text, el
+
+@docs row, column
+
+@docs textPage, paragraph
+
+@docs table, Table, Column
+
+@docs layout layoutWith, Option, forceHover, noHover, focusStyle
+
+
+### Special Elements
+
+@docs link, newTabLink, download, downloadAs
+
+
+## Attributes
+
+@docs description
+
+@docs width, height, Length, px, shrink, fill, fillPortion
+
+@docs padding, paddingXY, paddingEach
+
+@docs spacing, spacingXY, spaceEvenly
+
+@docs alignLeft, alignRight, center, centerY, alignTop, alignBottom
+
+@docs above, below, onRight, onLeft, inFront, behind
+
+@docs moveRight, moveUp, moveLeft, moveDown, rotate, scale, mouseOverScale
+
+@docs clip, clipX, clipY, scrollbars, scrollbarY, scrollbarX
+
+-}
 
 import Color exposing (Color)
 import Element.Background as Background
@@ -131,22 +172,40 @@ layoutWith { options } attrs child =
         child
 
 
+{-| -}
 type alias Option =
     Internal.Option
 
 
-type alias FocusStyle =
-    Internal.FocusStyle
-
-
 {-| -}
-defaultFocus : FocusStyle
+defaultFocus :
+    { borderColor : Maybe Color
+    , backgroundColor : Maybe Color
+    , shadow :
+        Maybe
+            { color : Color
+            , offset : ( Int, Int )
+            , blur : Int
+            , size : Int
+            }
+    }
 defaultFocus =
     Internal.focusDefaultStyle
 
 
 {-| -}
-focusStyle : FocusStyle -> Option
+focusStyle :
+    { borderColor : Maybe Color
+    , backgroundColor : Maybe Color
+    , shadow :
+        Maybe
+            { color : Color
+            , offset : ( Int, Int )
+            , blur : Int
+            , size : Int
+            }
+    }
+    -> Option
 focusStyle =
     Internal.FocusStyleOption
 
@@ -609,39 +668,57 @@ description =
 
 
 {-| -}
-below : Internal.Element msg -> Attribute msg
-below =
-    Internal.Nearby Internal.Below
+below : Bool -> Internal.Element msg -> Attribute msg
+below on element =
+    if on then
+        Internal.Nearby Internal.Below element
+    else
+        Internal.NoAttribute
 
 
 {-| -}
-above : Internal.Element msg -> Attribute msg
-above =
-    Internal.Nearby Internal.Above
+above : Bool -> Internal.Element msg -> Attribute msg
+above on element =
+    if on then
+        Internal.Nearby Internal.Above element
+    else
+        Internal.NoAttribute
 
 
 {-| -}
-onRight : Internal.Element msg -> Attribute msg
-onRight =
-    Internal.Nearby Internal.OnRight
+onRight : Bool -> Internal.Element msg -> Attribute msg
+onRight on element =
+    if on then
+        Internal.Nearby Internal.OnRight element
+    else
+        Internal.NoAttribute
 
 
 {-| -}
-onLeft : Internal.Element msg -> Attribute msg
-onLeft =
-    Internal.Nearby Internal.OnLeft
+onLeft : Bool -> Internal.Element msg -> Attribute msg
+onLeft on element =
+    if on then
+        Internal.Nearby Internal.OnLeft element
+    else
+        Internal.NoAttribute
 
 
 {-| -}
-inFront : Internal.Element msg -> Attribute msg
-inFront =
-    Internal.Nearby Internal.InFront
+inFront : Bool -> Internal.Element msg -> Attribute msg
+inFront on element =
+    if on then
+        Internal.Nearby Internal.InFront element
+    else
+        Internal.NoAttribute
 
 
 {-| -}
-behind : Internal.Element msg -> Attribute msg
-behind =
-    Internal.Nearby Internal.Behind
+behind : Bool -> Internal.Element msg -> Attribute msg
+behind on element =
+    if on then
+        Internal.Nearby Internal.Behind element
+    else
+        Internal.NoAttribute
 
 
 {-| -}
@@ -790,19 +867,37 @@ hidden on =
 {-| -}
 scrollbars : Attribute msg
 scrollbars =
-    Internal.Class "scrollbars" "scrollbars"
+    Internal.Class "overflow" "scrollbars"
 
 
 {-| -}
 scrollbarY : Attribute msg
 scrollbarY =
-    Internal.Class "scrollbars" "scrollbars-x"
+    Internal.Class "overflow" "scrollbars-y"
 
 
 {-| -}
 scrollbarX : Attribute msg
 scrollbarX =
-    Internal.Class "scrollbars" "scrollbars-y"
+    Internal.Class "overflow" "scrollbars-x"
+
+
+{-| -}
+clip : Attribute msg
+clip =
+    Internal.Class "overflow" "clip"
+
+
+{-| -}
+clipY : Attribute msg
+clipY =
+    Internal.Class "overflow" "clip-y"
+
+
+{-| -}
+clipX : Attribute msg
+clipX =
+    Internal.Class "overflow" "clip-x"
 
 
 {-| -}
