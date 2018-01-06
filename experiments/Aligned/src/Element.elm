@@ -18,6 +18,7 @@ module Element
         , clipX
         , clipY
         , column
+        , decorativeImage
         , description
         , download
         , downloadAs
@@ -28,6 +29,7 @@ module Element
         , focusStyle
         , forceHover
         , height
+        , image
         , inFront
         , layout
         , layoutWith
@@ -79,6 +81,8 @@ module Element
 ### Special Elements
 
 @docs link, newTabLink, download, downloadAs
+
+@docs image, decorativeImage
 
 
 ## Attributes
@@ -546,15 +550,36 @@ textPage attrs children =
 -}
 image : List (Attribute msg) -> { src : String, description : String } -> Element msg
 image attrs { src, description } =
+    let
+        filtered =
+            Internal.filter attrs
+
+        imageAttributes =
+            attrs
+                |> List.filter
+                    (\a ->
+                        case a of
+                            Internal.Width _ ->
+                                True
+
+                            Internal.Height _ ->
+                                True
+
+                            _ ->
+                                False
+                    )
+    in
     Internal.el
         Nothing
-        attrs
-        (Internal.unstyled <|
-            VirtualDom.node "img"
-                [ Html.Attributes.src src
-                , Html.Attributes.alt description
-                ]
-                []
+        (clip :: attrs)
+        (Internal.el
+            (Just "img")
+            (imageAttributes
+                ++ [ Internal.Attr <| Html.Attributes.src src
+                   , Internal.Attr <| Html.Attributes.alt description
+                   ]
+            )
+            Internal.Empty
         )
 
 
@@ -562,15 +587,36 @@ image attrs { src, description } =
 -}
 decorativeImage : List (Attribute msg) -> { src : String } -> Element msg
 decorativeImage attrs { src } =
+    let
+        filtered =
+            Internal.filter attrs
+
+        imageAttributes =
+            attrs
+                |> List.filter
+                    (\a ->
+                        case a of
+                            Internal.Width _ ->
+                                True
+
+                            Internal.Height _ ->
+                                True
+
+                            _ ->
+                                False
+                    )
+    in
     Internal.el
         Nothing
-        attrs
-        (Internal.unstyled <|
-            VirtualDom.node "img"
-                [ Html.Attributes.src src
-                , Html.Attributes.alt ""
-                ]
-                []
+        (clip :: attrs)
+        (Internal.el
+            (Just "img")
+            (imageAttributes
+                ++ [ Internal.Attr <| Html.Attributes.src src
+                   , Internal.Attr <| Html.Attributes.alt ""
+                   ]
+            )
+            Internal.Empty
         )
 
 
@@ -614,13 +660,7 @@ newTabLink attrs { url, label } =
         label
 
 
-{-|
-
-    download []
-        { url = "mydownload.pdf"
-        , label = text "Download this"
-        }
-
+{-| A link to download a file.
 -}
 download : List (Attribute msg) -> { url : String, label : Element msg } -> Element msg
 download attrs { url, label } =
@@ -637,14 +677,7 @@ download attrs { url, label } =
         label
 
 
-{-|
-
-     downloadAs []
-        { url = "mydownload.pdf"
-        , filename "your-thing.pdf"
-        , label = text "Download this"
-        }
-
+{-| A link to download a file, but you can specify the filename.
 -}
 downloadAs : List (Attribute msg) -> { label : Element msg, filename : String, url : String } -> Element msg
 downloadAs attrs { url, filename, label } =
