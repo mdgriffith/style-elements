@@ -23,6 +23,7 @@ module Input
         , menuBelow
         , multiline
         , newPassword
+        , option
         , placeholder
         , radio
         , radioRow
@@ -50,7 +51,7 @@ module Input
 
 @docs multiline, spellcheckedMultiline
 
-@docs radio, radioRow, Radio, Option
+@docs radio, radioRow, Radio, Option, option
 
 @docs select, Select, Menu, menuAbove, menuBelow
 
