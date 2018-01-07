@@ -1,18 +1,19 @@
 module Element.Events
     exposing
         ( onClick
-        , onClickCoords
-        , onClickPageCoords
-        , onClickScreenCoords
+          -- , onClickCoords
+          -- , onClickPageCoords
+          -- , onClickScreenCoords
         , onDoubleClick
         , onFocus
         , onLoseFocus
-        , onMouseCoords
+          -- , onMouseCoords
         , onMouseDown
         , onMouseEnter
         , onMouseLeave
-        , onMousePageCoords
-        , onMouseScreenCoords
+        , onMouseMove
+          -- , onMousePageCoords
+          -- , onMouseScreenCoords
         , onMouseUp
         )
 
@@ -21,11 +22,7 @@ module Element.Events
 
 # Mouse Events
 
-@docs onClick, onDoubleClick, onMouseDown, onMouseUp, onMouseEnter, onMouseLeave, onMouseMovement
-
-@docs onClickCoords, onClickPageCoords, onClickScreenCoords
-
-@docs onMouseCoords, onMousePageCoords, onMouseScreenCoords
+@docs onClick, onDoubleClick, onMouseDown, onMouseUp, onMouseEnter, onMouseLeave, onMouseMove
 
 
 # Focus Events
