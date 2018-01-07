@@ -1,12 +1,15 @@
-module Input
+module Element.Input
     exposing
-        ( Checkbox
+        ( Button
+        , Checkbox
         , Label
         , Menu
         , Notice
         , Option
         , Placeholder
         , Radio
+        , Select
+        , Text
         , button
         , checkbox
         , currentPassword
@@ -43,7 +46,7 @@ module Input
 
 ## Inputs
 
-@docs button
+@docs button, Button
 
 @docs checkbox, Checkbox
 
@@ -58,9 +61,9 @@ module Input
 
 ## Labels and Notices
 
-@docs labelAbove, labelBelow, labelLeft, labelRight
+@docs Label, labelAbove, labelBelow, labelLeft, labelRight
 
-@docs warningAbove, warningBelow, warningLeft, warningRight
+@docs Notice, warningAbove, warningBelow, warningLeft, warningRight
 
 @docs errorAbove, errorBelow, errorLeft, errorRight
 
@@ -436,67 +439,60 @@ place position el group =
                     }
 
 
-{-| -}
-type alias Slider msg =
-    { onChange : Maybe (Int -> msg)
-    , range : ( Int, Int )
-    , value : Int
-    , label : Label msg
-    , notice : Maybe (Notice msg)
-    }
 
-
-sliderX : List (Attribute msg) -> Slider msg -> Element msg
-sliderX attributes input =
-    let
-        behavior =
-            case input.onChange of
-                Nothing ->
-                    [ Internal.Attr (Html.Attributes.disabled True) ]
-
-                Just changeCoord ->
-                    [ Events.onMouseCoords (\{ x, y } -> changeCoord x)
-                    ]
-
-        min =
-            Tuple.first input.range
-
-        max =
-            Tuple.second input.range
-
-        percentage =
-            ((toFloat input.value - toFloat min) / (toFloat max - toFloat min)) + toFloat min
-
-        icon =
-            Element.el
-                [ Element.width (Element.px 10)
-                , Element.height (Element.px 10)
-                , Background.color lightBlue
-                , Border.rounded 5
-                , Element.alignLeft
-                , Element.moveUp 5
-                , Element.pointer
-                , Element.moveRight percentage
-                ]
-                Element.empty
-
-        controls =
-            Internal.el
-                Nothing
-                ([ Background.color grey
-                 , Element.width Element.fill
-                 , Element.height (Element.px 1)
-                 ]
-                    ++ behavior
-                    ++ attributes
-                )
-                (Internal.Unkeyed [ icon ])
-    in
-    positionLabels
-        [ Element.width Element.fill ]
-        input.label
-        input.notice
-        controls
+-- {-| -}
+-- type alias Slider msg =
+--     { onChange : Maybe (Int -> msg)
+--     , range : ( Int, Int )
+--     , value : Int
+--     , label : Label msg
+--     , notice : Maybe (Notice msg)
+--     }
+-- sliderX : List (Attribute msg) -> Slider msg -> Element msg
+-- sliderX attributes input =
+--     let
+--         behavior =
+--             case input.onChange of
+--                 Nothing ->
+--                     [ Internal.Attr (Html.Attributes.disabled True) ]
+--                 Just changeCoord ->
+--                     [ Events.onMouseCoords (\{ x, y } -> changeCoord x)
+--                     ]
+--         min =
+--             Tuple.first input.range
+--         max =
+--             Tuple.second input.range
+--         percentage =
+--             ((toFloat input.value - toFloat min) / (toFloat max - toFloat min)) + toFloat min
+--         icon =
+--             Element.el
+--                 [ Element.width (Element.px 10)
+--                 , Element.height (Element.px 10)
+--                 , Background.color lightBlue
+--                 , Border.rounded 5
+--                 , Element.alignLeft
+--                 , Element.moveUp 5
+--                 , Element.pointer
+--                 , Element.moveRight percentage
+--                 ]
+--                 Element.empty
+--         controls =
+--             Internal.el
+--                 Nothing
+--                 ([ Background.color grey
+--                  , Element.width Element.fill
+--                  , Element.height (Element.px 1)
+--                  ]
+--                     ++ behavior
+--                     ++ attributes
+--                 )
+--                 (Internal.Unkeyed [ icon ])
+--     in
+--     positionLabels
+--         [ Element.width Element.fill ]
+--         input.label
+--         input.notice
+--         controls
 
 
 type TextType
@@ -518,6 +514,7 @@ type alias Text msg =
     }
 
 
+defaultTextPadding : Attribute msg
 defaultTextPadding =
     Element.paddingXY 15 5
 
@@ -931,7 +928,8 @@ type OptionState
     | Selected
 
 
-option : a -> Element msg -> Option a msg
+{-| -}
+option : value -> Element msg -> Option value msg
 option value text =
     Option value
         defaultRadioIcon
@@ -1204,6 +1202,7 @@ type alias Select option msg =
     }
 
 
+{-| -}
 type Menu option msg
     = Menu MenuPosition (List (Attribute msg)) (List (Option option msg))
 
