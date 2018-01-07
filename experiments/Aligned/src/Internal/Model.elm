@@ -2,6 +2,8 @@ module Internal.Model exposing (..)
 
 {-| -}
 
+-- import VirtualCss
+
 import Color exposing (Color)
 import Html exposing (Html)
 import Html.Attributes
@@ -9,7 +11,6 @@ import Internal.Style
 import Json.Encode as Json
 import Regex
 import Set exposing (Set)
-import VirtualCss
 import VirtualDom
 
 
@@ -1820,13 +1821,15 @@ renderRoot optionList attributes child =
                         :: children
 
                 WithVirtualCss ->
-                    let
-                        _ =
-                            toStyleSheetVirtualCss styles
-                    in
-                    Internal.Style.rulesElement
-                        :: children
+                    -- not implemented...yet
+                    children
 
+        -- let
+        --     _ =
+        --         toStyleSheetVirtualCss styles
+        -- in
+        -- Internal.Style.rulesElement
+        --     :: children
         children =
             case Maybe.map renderNearbyGroupAbsolute rendered.nearbys of
                 Nothing ->
@@ -2476,108 +2479,94 @@ formatColorClass color =
         ++ floatClass alpha
 
 
-toStyleSheetVirtualCss : List Style -> ()
-toStyleSheetVirtualCss stylesheet =
-    case stylesheet of
-        [] ->
-            ()
 
-        styles ->
-            let
-                renderProps (Property key val) existing =
-                    existing ++ "\n  " ++ key ++ ": " ++ val ++ ";"
-
-                renderStyle selector props =
-                    selector ++ "{" ++ List.foldl renderProps "" props ++ "\n}"
-
-                _ =
-                    VirtualCss.clear ()
-
-                combine style cache =
-                    case style of
-                        Style selector props ->
-                            let
-                                _ =
-                                    VirtualCss.insert (renderStyle selector props) 0
-                            in
-                            cache
-
-                        Single class prop val ->
-                            if Set.member class cache then
-                                cache
-                            else
-                                let
-                                    _ =
-                                        VirtualCss.insert (class ++ "{" ++ prop ++ ":" ++ val ++ "}") 0
-                                in
-                                Set.insert class cache
-
-                        Colored class prop color ->
-                            if Set.member class cache then
-                                cache
-                            else
-                                let
-                                    _ =
-                                        VirtualCss.insert (class ++ "{" ++ prop ++ ":" ++ formatColor color ++ "}") 0
-                                in
-                                Set.insert class cache
-
-                        SpacingStyle x y ->
-                            let
-                                class =
-                                    ".spacing-" ++ toString x ++ "-" ++ toString y
-                            in
-                            if Set.member class cache then
-                                cache
-                            else
-                                -- TODO!
-                                cache
-
-                        -- ( rendered ++ spacingClasses class x y
-                        -- , Set.insert class cache
-                        -- )
-                        PaddingStyle top right bottom left ->
-                            let
-                                class =
-                                    ".pad-"
-                                        ++ toString top
-                                        ++ "-"
-                                        ++ toString right
-                                        ++ "-"
-                                        ++ toString bottom
-                                        ++ "-"
-                                        ++ toString left
-                            in
-                            if Set.member class cache then
-                                cache
-                            else
-                                -- TODO!
-                                cache
-
-                        LineHeight _ ->
-                            cache
-
-                        GridTemplateStyle _ ->
-                            cache
-
-                        GridPosition _ ->
-                            cache
-
-                        FontFamily _ _ ->
-                            cache
-
-                        FontSize _ ->
-                            cache
-
-                        PseudoSelector _ _ ->
-                            cache
-
-                -- ( rendered ++ paddingClasses class top right bottom left
-                -- , Set.insert class cache
-                -- )
-            in
-            List.foldl combine Set.empty styles
-                |> always ()
+-- toStyleSheetVirtualCss : List Style -> ()
+-- toStyleSheetVirtualCss stylesheet =
+--     case stylesheet of
+--         [] ->
+--             ()
+--         styles ->
+--             let
+--                 renderProps (Property key val) existing =
+--                     existing ++ "\n  " ++ key ++ ": " ++ val ++ ";"
+--                 renderStyle selector props =
+--                     selector ++ "{" ++ List.foldl renderProps "" props ++ "\n}"
+--                 _ =
+--                     VirtualCss.clear ()
+--                 combine style cache =
+--                     case style of
+--                         Style selector props ->
+--                             let
+--                                 _ =
+--                                     VirtualCss.insert (renderStyle selector props) 0
+--                             in
+--                             cache
+--                         Single class prop val ->
+--                             if Set.member class cache then
+--                                 cache
+--                             else
+--                                 let
+--                                     _ =
+--                                         VirtualCss.insert (class ++ "{" ++ prop ++ ":" ++ val ++ "}") 0
+--                                 in
+--                                 Set.insert class cache
+--                         Colored class prop color ->
+--                             if Set.member class cache then
+--                                 cache
+--                             else
+--                                 let
+--                                     _ =
+--                                         VirtualCss.insert (class ++ "{" ++ prop ++ ":" ++ formatColor color ++ "}") 0
+--                                 in
+--                                 Set.insert class cache
+--                         SpacingStyle x y ->
+--                             let
+--                                 class =
+--                                     ".spacing-" ++ toString x ++ "-" ++ toString y
+--                             in
+--                             if Set.member class cache then
+--                                 cache
+--                             else
+--                                 -- TODO!
+--                                 cache
+--                         -- ( rendered ++ spacingClasses class x y
+--                         -- , Set.insert class cache
+--                         -- )
+--                         PaddingStyle top right bottom left ->
+--                             let
+--                                 class =
+--                                     ".pad-"
+--                                         ++ toString top
+--                                         ++ "-"
+--                                         ++ toString right
+--                                         ++ "-"
+--                                         ++ toString bottom
+--                                         ++ "-"
+--                                         ++ toString left
+--                             in
+--                             if Set.member class cache then
+--                                 cache
+--                             else
+--                                 -- TODO!
+--                                 cache
+--                         LineHeight _ ->
+--                             cache
+--                         GridTemplateStyle _ ->
+--                             cache
+--                         GridPosition _ ->
+--                             cache
+--                         FontFamily _ _ ->
+--                             cache
+--                         FontSize _ ->
+--                             cache
+--                         PseudoSelector _ _ ->
+--                             cache
+--                 -- ( rendered ++ paddingClasses class top right bottom left
+--                 -- , Set.insert class cache
+--                 -- )
+--             in
+--             List.foldl combine Set.empty styles
+--                 |> always ()
 
 
 psuedoClassName class =

@@ -4,11 +4,19 @@
     "repository": "https://github.com/mdgriffith/style-elements.git",
     "license": "BSD3",
     "source-directories": [
-        "src",
-        "."
+        "src"
     ],
-    "exposed-modules": [],
-    "native-modules": true,
+    "exposed-modules": 
+        [ "Element"
+        , "Element.Input"
+        , "Element.Events"
+        , "Element.Background"
+        , "Element.Border"
+        , "Element.Font"
+        , "Element.Lazy"
+        , "Element.Keyed"
+        , "Element.Area"
+        ],
     "dependencies": {
         "Skinney/murmur3": "2.0.4 <= v < 3.0.0",
         "elm-community/elm-test": "4.0.0 <= v < 5.0.0",
