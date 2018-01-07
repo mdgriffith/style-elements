@@ -14,7 +14,7 @@ module Element.Background
 
 @docs color, mouseOverColor, gradient
 
-@docs image, tiled, tiledX, tiledY
+@docs image, fittedImage, tiled, tiledX, tiledY
 
 -}
 

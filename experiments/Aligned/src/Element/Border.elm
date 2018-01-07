@@ -13,6 +13,7 @@ module Element.Border
         , solid
         , width
         , widthEach
+        , widthXY
         )
 
 {-| Border Properties
@@ -22,7 +23,7 @@ module Element.Border
 
 # Border Widths
 
-@docs width, xy, widthEach
+@docs width, widthXY, widthEach
 
 
 # Border Styles
@@ -33,6 +34,8 @@ module Element.Border
 # Rounded Border
 
 @docs rounded, roundEach
+
+@docs glow, innerGlow, shadow, innerShadow
 
 -}
 
@@ -60,11 +63,12 @@ width v =
 
 {-| Set horizontal and vertical borders.
 -}
-xy : Int -> Int -> Attribute msg
-xy x y =
+widthXY : Int -> Int -> Attribute msg
+widthXY x y =
     StyleClass (Single ("border-" ++ toString x ++ "-" ++ toString y) "border-width" (toString y ++ "px " ++ toString x ++ "px"))
 
 
+{-| -}
 widthEach : { bottom : Int, left : Int, right : Int, top : Int } -> Attribute msg
 widthEach { bottom, top, left, right } =
     StyleClass
