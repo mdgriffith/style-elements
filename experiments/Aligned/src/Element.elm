@@ -3,13 +3,17 @@ module Element
         ( Attribute
         , Column
         , Element
+        , FocusStyle
         , Length
+        , Link
+        , Option
         , Table
         , above
         , alignBottom
         , alignLeft
         , alignRight
         , alignTop
+        , attribute
         , behind
         , below
         , center
@@ -29,11 +33,15 @@ module Element
         , focusStyle
         , forceHover
         , height
+        , hidden
+        , html
         , image
         , inFront
         , layout
         , layoutWith
         , link
+        , map
+        , mapAttribute
         , mouseOverScale
         , moveDown
         , moveLeft
@@ -61,47 +69,155 @@ module Element
         , spacingXY
         , table
         , text
-        , textPage
+        , textColumn
         , width
         )
 
 {-|
 
-@docs empty, text, el
+
+## Basic Elements
+
+@docs Element, Attribute, empty, text, el
+
+
+## Rows and Columns
+
+Rows and columns are the most common layouts.
 
 @docs row, column
 
-@docs textPage, paragraph
 
-@docs table, Table, Column
+## Text Layout
 
-@docs layout layoutWith, Option, forceHover, noHover, focusStyle
+Text needs it's own layout primitives.
+
+@docs paragraph, textColumn
 
 
-### Special Elements
+## Data Table
 
-@docs link, newTabLink, download, downloadAs
+@docs Table, Column, table
+
+
+## Rendering
+
+@docs layout, layoutWith, Option, forceHover, noHover, focusStyle, FocusStyle
+
+
+# Links and Images
+
+@docs Link, link, newTabLink, download, downloadAs
 
 @docs image, decorativeImage
 
 
-## Attributes
+# Attributes
 
-@docs description
+@docs Attribute, hidden, description, pointer
+
+
+## Width and Height
 
 @docs width, height, Length, px, shrink, fill, fillPortion
+
+
+## Padding and Spacing
+
+There's no concept of margin in `style-elements`, instead we have padding and spacing.
+
+Padding is what you'd expect, the distance between the outer edge and the content, and spacing is the space between children.
+
+So, if we have the following row, with some padding and spacing.
+
+    Element.row [ padding 10, spacing 7 ]
+        [ Element.el [] empty
+        , Element.el [] empty
+        , Element.el [] empty
+        ]
+
+Here's what we can expect.
+
+<img src="https://mdgriffith.gitbooks.io/style-elements/content/assets/spacing-400.png" alt="Three boxes spaced 7 pixels apart.  There's a 10 pixel distance from the edge of the parent to the boxes." />
 
 @docs padding, paddingXY, paddingEach
 
 @docs spacing, spacingXY, spaceEvenly
 
-@docs alignLeft, alignRight, center, centerY, alignTop, alignBottom
+
+## Alignment
+
+Alignment can be used to align an `Element` within another `Element`.
+
+    Element.el [ center, alignTop ] (text "I'm centered and aligned top!")
+
+If alignment is set on elements in a layout such as `row`, then the element will push the other elements in that direction. Here's an example.
+
+    Element.row []
+        [ Element.el [] Element.empty
+        , Element.el [ alignLeft ] Element.empty
+        , Element.el [ center ] Element.empty
+        , Element.el [ alignRight ] Element.empty
+        ]
+
+will result in a layout like
+
+    |-|-| |-| |-|
+
+Where there are two elements on the left, one in the center, and on on the right.
+
+@docs center, centerY, alignLeft, alignRight, alignTop, alignBottom
+
+
+## Nearby Elements
+
+It can be nice to position an element relative to another element, _without
+
+Let's say we want a dropdown menu. Essentially we want to say: _put this element below this other element, but don't affect the layout when you do_.
+
+    Elemenet.row []
+        [ Element.el
+            [ Element.below True (Element.text "I'm below!")
+            ]
+            (Element.text "I'm normal!")
+        ]
+
+This will result in
+
+    |- I'm normal! -|
+       I'm below
+
+Where `"I'm Below"` doesn't change the size of `Element.row`.
+
+This is very useful for things like dropdown menus or tooltips.
 
 @docs above, below, onRight, onLeft, inFront, behind
 
+
+## Adjustment
+
 @docs moveRight, moveUp, moveLeft, moveDown, rotate, scale, mouseOverScale
 
-@docs clip, clipX, clipY, scrollbars, scrollbarY, scrollbarX
+
+## Clipping and Scrollbars
+
+Clip the content if it overflows.
+
+@docs clip, clipX, clipY
+
+If these are present, the element will add a scrollbar if necessary.
+
+@docs scrollbars, scrollbarY, scrollbarX
+
+
+## Mapping
+
+@docs map, mapAttribute
+
+
+## Compatibility
+
+@docs html, attribute
 
 -}
 
@@ -111,17 +227,51 @@ import Element.Font as Font
 import Html exposing (Html)
 import Html.Attributes
 import Internal.Model as Internal
-import VirtualDom
 
 
+{-| The basic building block of your layout. Here we create a
+
+    import Background
+    import Element
+
+    view =
+        Element.el [] (Element.text "Hello!")
+
+-}
 type alias Element msg =
     Internal.Element msg
 
 
+{-| -}
 type alias Attribute msg =
     Internal.Attribute msg
 
 
+{-| -}
+html : Html msg -> Element msg
+html =
+    Internal.unstyled
+
+
+{-| -}
+attribute : Html.Attribute msg -> Attribute msg
+attribute =
+    Internal.Attr
+
+
+{-| -}
+map : (msg -> msg1) -> Element msg -> Element msg1
+map =
+    Internal.map
+
+
+{-| -}
+mapAttribute : (msg -> msg1) -> Attribute msg -> Attribute msg1
+mapAttribute =
+    Internal.mapAttr
+
+
+{-| -}
 type alias Length =
     Internal.Length
 
@@ -138,19 +288,27 @@ shrink =
     Internal.Content
 
 
-{-| -}
+{-| Fill the available space. The available space will be split evenly between elements that have `width fill`.
+-}
 fill : Length
 fill =
     Internal.Fill 1
 
 
-{-| -}
+{-| Sometimes you may not want to split available space evenly. In this case you can use `fillPortion` to define which elements should have what portion of the available space.
+
+So, two elements, one with `width (fillPortion 2)` and one with `width (fillPortion 3)`. The first would get 2 portions of the available space, while the second would get 3.
+
+Also: `fill == fillPortion 1`
+
+-}
 fillPortion : Int -> Length
 fillPortion =
     Internal.Fill
 
 
-{-| -}
+{-| This is your top level node where you can turn `Element` into `Html`.
+-}
 layout : List (Attribute msg) -> Element msg -> Html msg
 layout =
     layoutWith { options = [] }
@@ -199,7 +357,7 @@ defaultFocus =
 
 
 {-| -}
-focusStyle :
+type alias FocusStyle =
     { borderColor : Maybe Color
     , backgroundColor : Maybe Color
     , shadow :
@@ -210,18 +368,26 @@ focusStyle :
             , size : Int
             }
     }
-    -> Option
+
+
+{-| -}
+focusStyle : FocusStyle -> Option
 focusStyle =
     Internal.FocusStyleOption
 
 
-{-| -}
+{-| Disable all `mouseOver` styles.
+-}
 noHover : Option
 noHover =
     Internal.HoverOption Internal.NoHover
 
 
-{-| -}
+{-| Any `hover` styles, aka attributes with `mouseOver` in the name, will be always turned on.
+
+This is useful for when you're targeting a platform that has no mouse, such as mobile.
+
+-}
 forceHover : Option
 forceHover =
     Internal.HoverOption Internal.ForceHover
@@ -260,19 +426,41 @@ forceHover =
 --             view thing
 
 
-{-| -}
+{-| Nothing to see here!
+-}
 empty : Element msg
 empty =
     Internal.Empty
 
 
-{-| -}
+{-| Create some plain text.
+
+    text "Hello, you stylish developer!"
+
+**Note** text does not wrap by default. In order to get text to wrap, check out `paragraph`!
+
+-}
 text : String -> Element msg
 text content =
     Internal.Text content
 
 
-{-| -}
+{-| The basic building block of your layout.
+
+    import Color exposing (blue, darkBlue)
+    import Element exposing (Element)
+    import Element.Background as Background
+    import Element.Border as Border
+
+    myElement : Element msg
+    myElement =
+        Element.el
+            [ Background.color blue
+            , Border.color darkBlue
+            ]
+            (Element.text "You've made a stylish element!")
+
+-}
 el : List (Attribute msg) -> Element msg -> Element msg
 el attrs child =
     Internal.el
@@ -288,7 +476,8 @@ el attrs child =
         (Internal.Unkeyed [ child ])
 
 
-{-| -}
+{-| If you want a row of elements, use `row`!
+-}
 row : List (Attribute msg) -> List (Element msg) -> Element msg
 row attrs children =
     Internal.row
@@ -313,141 +502,62 @@ column attrs children =
         (Internal.Unkeyed <| Internal.columnEdgeFillers children)
 
 
-{-| Grid
-
-    grid [ width fill, height fill ]
-        [ cell [ width (fillPortion 1) ]
-            (text "hello!")
-        ,
-
-        ]
-
-
-
-    table []
-        [
-
-        ]
-
-
-    -- Problem with standard is that we're iterating through a list y times
-    -- where y == number of fields
-    -- could use different data source, which means
-
-    table [ ]
-        [ text "First name" :: List.map (text << .firstName) persons
-        , text "Last name" :: List.map (text << .lastName) persons
-        ]
-
-
-
-    --
-    table []
-        [ { value = .firstName
-        , header = text "First Name"
-        , cell = text
-        }
-        , { value = .lastName
-        , header = text "Last Name"
-        , cell = text
-        }
-        ]
-
--- grid []
--- { columns = [ px 100, px 100, px 100, px 100 ]
--- , rows =
--- [ px 100
--- , px 100
--- , px 100
--- , px 100
--- ][ px 100
---             , px 100
---             , px 100
---             , px 100
---             ]
--- , cells =
--- [ cell
--- { start = ( 0, 0 )
--- , width = 1
--- , height = 1
--- , content =
--- el Box [] (text "box")
--- }
--- , cell
--- { start = ( 1, 1 )
--- , width = 1
--- , height = 2
--- , content =
--- el Box [] (text "box")
--- }
--- ][ cell
---                 { start = ( 0, 0 )
---                 , width = 1
---                 , height = 1
---                 , content =
---                     el Box [] (text "box")
---                 }
---             , cell
---                 { start = ( 1, 1 )
---                 , width = 1
---                 , height = 2
---                 , content =
---                     el Box [] (text "box")
---                 }
---             ]
--- }
-
-    table []
-        { data = persons
-        , columns =
-            [ { value = .firstName
-            , header = Just (text "First Name")
-            , view = text
-            }
-            , { value = .lastName
-            , header = Just (text "Last Name")
-            , view = text
-            }
-            ]
-        }
-
-    table []
-        { data = persons
-        , columns =
-            [ { header = text "First Name"
-              , view =
-                    text << .firstName
-              }
-            , { header = text "Last Name"
-              , view =
-                    text << .lastName
-              }
-            ]
-        }
-
-
-
-
-
-    -- for a grid we want
-    -- every position to be fully specified, meaning you can't place things outside of the grid
-    --
-    grid []
-
--}
+{-| -}
 type alias Table records msg =
     { data : List records
     , columns : List (Column records msg)
     }
 
 
+{-| -}
 type alias Column record msg =
     { header : Element msg
     , view : record -> Element msg
     }
 
 
-{-| -}
+{-| Show some tabular data.
+
+Start with a list of records and specify how each column should be rendered.
+
+So, if we have a list of `persons`:
+
+    type alias Person =
+        { firstName : String
+        , lastName : String
+        }
+
+    persons : List Person
+    persons =
+        [ { firstName = "David"
+          , lastName = "Bowie"
+          }
+        , { firstName = "Florence"
+          , lastName = "Welch"
+          }
+        ]
+
+We could render it using
+
+    Element.table []
+        { data = persons
+        , columns =
+            [ { header = Element.text "First Name"
+              , view =
+                    (\person ->
+                        Element.text person.firstName
+                    )
+              }
+            , { header = Element.text "Last Name"
+              , view =
+                     (\person ->
+                        Element.text person.lastName
+                     )
+              }
+            ]
+        }
+
+-}
 table : List (Attribute msg) -> Table data msg -> Element msg
 table attrs config =
     let
@@ -535,19 +645,71 @@ table attrs config =
         )
 
 
-{-| -}
+{-| A paragraph will layout all children as wrapped, inline elements.
+
+    import Element
+    import Element.Font as Font
+
+    Element.paragraph []
+        [ text "lots of text ...."
+        , el [ Font.bold ] (text "this is bold")
+        , text "lots of text ...."
+        ]
+
+This is really useful when you want to markup text by having some parts be bold, or some be links, or whatever you so desire.
+
+Also, if a child element has `alignLeft` or `alignRight`, then it will be moved to that side and the text will flow around it, (ah yes, `float` behavior).
+
+This makes it particularly easy to do something like a [dropped capital](https://en.wikipedia.org/wiki/Initial).
+
+    import Element
+    import Element.Font as Font
+
+    Element.paragraph []
+        [ el
+            [ alignLeft
+            , padding 5
+            , Font.lineHeight 1
+            ]
+            (text "S")
+        , text "lots of text ...."
+        ]
+
+Which will look something like
+
+<img src="https://mdgriffith.gitbooks.io/style-elements/content/assets/Screen%20Shot%202017-08-25%20at%209.41.52%20PM.png" />
+
+-}
 paragraph : List (Attribute msg) -> List (Element msg) -> Element msg
 paragraph attrs children =
     Internal.paragraph (Internal.htmlClass "se paragraph" :: width fill :: attrs) (Internal.Unkeyed children)
 
 
-{-| -}
-textPage : List (Attribute msg) -> List (Element msg) -> Element msg
-textPage attrs children =
+{-| Now that we have a paragraph, we need someway to attach a bunch of paragraph's together.
+
+To do that we can use a `textColumn`.
+
+The main difference between a `column` and a `textColumn` is that `textColumn` will flow the text around elements that have `alignRight` or `alignLeft`, just like we just saw with paragraph.
+
+In the following example, we have a `textColumn` where one child has `alignLeft`.
+
+    Elment.textColumn [ spacing 10, padding 10 ]
+        [ paragraph [] [ text "lots of text ...." ]
+        , el [ alignLeft ] empty
+        , paragraph [] [ text "lots of text ...." ]
+        ]
+
+Which will result in something like:
+
+<img src="https://mdgriffith.gitbooks.io/style-elements/content/assets/Screen%20Shot%202017-08-25%20at%208.42.39%20PM.png" />
+
+-}
+textColumn : List (Attribute msg) -> List (Element msg) -> Element msg
+textColumn attrs children =
     Internal.textPage (width (px 650) :: attrs) (Internal.Unkeyed children)
 
 
-{-| For images, both a source and a description are required. The description will serve as the alt-text.
+{-| Both a source and a description are required for images. The description is used to describe the image to screen readers.
 -}
 image : List (Attribute msg) -> { src : String, description : String } -> Element msg
 image attrs { src, description } =
@@ -625,6 +787,13 @@ decorativeImage attrs { src } =
         )
 
 
+{-| -}
+type alias Link msg =
+    { url : String
+    , label : Element msg
+    }
+
+
 {-|
 
     link []
@@ -633,7 +802,7 @@ decorativeImage attrs { src } =
         }
 
 -}
-link : List (Attribute msg) -> { url : String, label : Element msg } -> Element msg
+link : List (Attribute msg) -> Link msg -> Element msg
 link attrs { url, label } =
     Internal.el
         (Just "a")
@@ -649,7 +818,7 @@ link attrs { url, label } =
 
 
 {-| -}
-newTabLink : List (Attribute msg) -> { url : String, label : Element msg } -> Element msg
+newTabLink : List (Attribute msg) -> Link msg -> Element msg
 newTabLink attrs { url, label } =
     Internal.el
         (Just "a")
@@ -667,7 +836,7 @@ newTabLink attrs { url, label } =
 
 {-| A link to download a file.
 -}
-download : List (Attribute msg) -> { url : String, label : Element msg } -> Element msg
+download : List (Attribute msg) -> Link msg -> Element msg
 download attrs { url, label } =
     Internal.el
         (Just "a")
@@ -714,7 +883,8 @@ below on element =
         Internal.NoAttribute
 
 
-{-| -}
+{-| `above` takes a `Bool` first so that you can easily toggle showing and hiding the element.
+-}
 above : Bool -> Internal.Element msg -> Attribute msg
 above on element =
     if on then
@@ -887,7 +1057,11 @@ spacing x =
     Internal.StyleClass (Internal.SpacingStyle x x)
 
 
-{-| -}
+{-| In the majority of cases you'll just need to use `spacing`, which will work as intended.
+
+However for some layouts, like `textColumn`, you may want to set a different spacing for the x axis compared to the y axis.
+
+-}
 spacingXY : Int -> Int -> Attribute msg
 spacingXY x y =
     Internal.StyleClass (Internal.SpacingStyle x y)
@@ -938,7 +1112,8 @@ clipX =
     Internal.Class "overflow" "clip-x"
 
 
-{-| -}
+{-| Set the cursor to the pointer hand.
+-}
 pointer : Attribute msg
 pointer =
     Internal.Class "cursor" "cursor-pointer"

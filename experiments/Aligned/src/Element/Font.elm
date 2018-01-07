@@ -27,24 +27,69 @@ module Element.Font
         , wordSpacing
         )
 
-{-| _Note_
+{-|
 
-`Font.color`, `Font.size`, `Font.family`, and `Font.lineHeight` are all inherited, meaning you can set them at the top of your view and all subsequent nodes will have that value.
+
+# Style your fonts!
+
+    import Color exposing (blue)
+    import Element
+    import Element.Font as Font
+
+    view =
+        Element.el
+            [ Font.color blue
+            , Font.size 18
+            , Font.lineHeight 1.3 -- line height is given as a ratio of Font.size.
+            , Font.family
+                [ Font.typeface "Open Sans"
+                , Font.sansSerif
+                ]
+            ]
+            (Element.text "Woohoo, I'm stylish text")
+
+**Note**: `Font.color`, `Font.size`, `Font.family`, and `Font.lineHeight` are all inherited, meaning you can set them at the top of your view and all subsequent nodes will have that value.
+
+@docs color, mouseOverColor, size, lineHeight
 
 
 ## Typefaces
 
-@docs family, typeface, font, serif, sansSerif, monospace, importUrl
+@docs family, Font, typeface, serif, sansSerif, monospace
+
+@docs external
+
+`Font.external` can be used to import font files. Let's say you found a neat font on <http://fonts.google.com>:
+
+    import Element
+    import Element.Font as Font
+
+    view =
+        Element.el
+            [ Font.family
+                [ Font.external
+                    { name = "Roboto"
+                    , url = "https://fonts.googleapis.com/css?family=Roboto"
+                    }
+                , Font.sansSerif
+                ]
+            ]
+            (Element.text "Woohoo, I'm stylish text")
 
 
-## Properties
+## Alignment and Spacing
 
-@docs color, mouseOverColor, size, lineHeight, letterSpacing, wordSpacing, alignLeft, alignRight, center, justify
+@docs alignLeft, alignRight, center, justify, letterSpacing, wordSpacing
 
 
 ## Font Styles
 
-@docs underline, strike, italic, bold, weight, light
+@docs underline, strike, italic, bold, light, weight
+
+
+## Shadows
+
+@docs glow, shadow
 
 -}
 
@@ -145,7 +190,7 @@ external { url, name } =
     Internal.ImportFont name url
 
 
-{-| Font size as `px`
+{-| Font sizes are always given as `px`.
 -}
 size : Int -> Attribute msg
 size size =
@@ -154,7 +199,7 @@ size size =
 
 {-| This is the only unitless value in the library that isn't `px`.
 
-Given as a _proportion_ of the `Font.size`.
+It's given as a _proportion_ of the `Font.size`.
 
 This means the final lineHeight in px is:
 
@@ -206,7 +251,7 @@ alignRight =
     Internal.class "text-right"
 
 
-{-| Align font center.
+{-| Center align the font.
 -}
 center : Attribute msg
 center =
@@ -271,7 +316,8 @@ shadow { offset, blur, color } =
         }
 
 
-{-| -}
+{-| A glow is just a simplified shadow
+-}
 glow : Color -> Float -> Internal.Attribute msg
 glow color size =
     Internal.TextShadow
