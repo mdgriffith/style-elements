@@ -32,7 +32,8 @@ module Element.Events
 -}
 
 import Html.Events
-import Internal.Model as Internal exposing (Attribute(..))
+import Element exposing (Attribute)
+import Internal.Model as Internal
 import Json.Decode as Json
 import VirtualDom
 
@@ -43,37 +44,37 @@ import VirtualDom
 {-| -}
 onMouseDown : msg -> Attribute msg
 onMouseDown =
-    Attr << Html.Events.onMouseDown
+    Internal.Attr << Html.Events.onMouseDown
 
 
 {-| -}
 onMouseUp : msg -> Attribute msg
 onMouseUp =
-    Attr << Html.Events.onMouseUp
+    Internal.Attr << Html.Events.onMouseUp
 
 
 {-| -}
 onClick : msg -> Attribute msg
 onClick =
-    Attr << Html.Events.onClick
+    Internal.Attr << Html.Events.onClick
 
 
 {-| -}
 onDoubleClick : msg -> Attribute msg
 onDoubleClick =
-    Attr << Html.Events.onDoubleClick
+    Internal.Attr << Html.Events.onDoubleClick
 
 
 {-| -}
 onMouseEnter : msg -> Attribute msg
 onMouseEnter =
-    Attr << Html.Events.onMouseEnter
+    Internal.Attr << Html.Events.onMouseEnter
 
 
 {-| -}
 onMouseLeave : msg -> Attribute msg
 onMouseLeave =
-    Attr << Html.Events.onMouseLeave
+    Internal.Attr << Html.Events.onMouseLeave
 
 
 {-| -}
@@ -170,13 +171,13 @@ pageCoords =
 {-| -}
 onLoseFocus : msg -> Attribute msg
 onLoseFocus =
-    Attr << Html.Events.onBlur
+    Internal.Attr << Html.Events.onBlur
 
 
 {-| -}
 onFocus : msg -> Attribute msg
 onFocus =
-    Attr << Html.Events.onFocus
+    Internal.Attr << Html.Events.onFocus
 
 
 
@@ -207,14 +208,14 @@ It really does help!
 -}
 on : String -> Json.Decoder msg -> Attribute msg
 on event decode =
-    Attr <| Html.Events.on event decode
+    Internal.Attr <| Html.Events.on event decode
 
 
 {-| Same as `on` but you can set a few options.
 -}
 onWithOptions : String -> Html.Events.Options -> Json.Decoder msg -> Attribute msg
 onWithOptions event options decode =
-    Attr <| Html.Events.onWithOptions event options decode
+    Internal.Attr <| Html.Events.onWithOptions event options decode
 
 
 

@@ -9,15 +9,20 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
+import Element.Palette as Palette
 import Html exposing (Html)
 import Html.Attributes
-import Input as Input
+import Element.Input as Input
 import Internal.Model
 import Internal.Style as Internal
 import Json.Decode as Json
-import Mouse
+-- import Mouse
 import Time exposing (Time)
 import VirtualDom
+
+
+{- Define Palette as a Record -}
+-- user definition
 
 
 main =
@@ -247,22 +252,41 @@ type Lunch
     | Taco
 
 
+boxTest =
+    column [ spacing 20 ]
+        [ box
+        , box
+        , box
+        , box
+        ]
+
+
+box =
+    el
+        [ Element.width (px 60)
+        , Element.height (px 60)
+        , Background.color blue
+        , Font.color white
+        ]
+        (text "box")
+
+
 view model =
     layoutWith
-        { options =
-            [ allowHover
-            , focusStyle
-                { backgroundColor = Nothing
-                , borderColor = Nothing --Just Color.red
-                , shadow =
-                    Just
-                        { color = Color.red
-                        , offset = ( 0, 0 )
-                        , blur = 3
-                        , size = 3
-                        }
-                }
-            ]
+        { options = []
+
+        -- [ focusStyle
+        --     { backgroundColor = Nothing
+        --     , borderColor = Nothing --Just Color.red
+        --     , shadow =
+        --         Just
+        --             { color = Color.red
+        --             , offset = ( 0, 0 )
+        --             , blur = 3
+        --             , size = 3
+        --             }
+        --     }
+        -- ]
         }
         [ -- Modal logic.
           -- Only shown when checked
@@ -296,10 +320,17 @@ view model =
           --             (text "Welcome!")
           Background.color white
         , Font.color black
+        , Font.family
+            [ --      Font.typeface "Open Sans"
+              -- , Font.typeface "Helvetica"
+              -- , Font.typeface "Verdana"
+              Font.external
+                { name = "Bellefair"
+                , url = "https://fonts.googleapis.com/css?family=Bellefair"
+                }
+            , Font.serif
+            ]
         ]
-    -- <|
-    --     text "I am the main page, damnit"
-    -- [ Background.color white, Font.color black, paddingXY 0 20 ]
     <|
         -- row
         --     [ Background.color blue
@@ -391,33 +422,71 @@ view model =
               --     -- , alignLeft
               --     ]
               --     (text "MAIN CONTENT")
-              Input.button
-                [ Background.color grey
-                , Font.color black
-                , paddingXY 10 2
-                , Border.rounded 10
-                , centerY
-                , Background.mouseOverColor yellow
-                , scale 1.5
-
-                -- , mouseOverScale 2.0
-                -- , mouseOverRotate (pi * 0.5)
-                , rotate pi
-                , moveRight 200
+              --   Input.button
+              --     [ Background.color grey
+              --     , Background.mouseOverColor yellow
+              --     , Font.color black
+              --     , paddingXY 10 2
+              --     , Border.rounded 10
+              --     , centerY
+              --     , scale 1.5
+              --     -- , mouseOverScale 2.0
+              --     -- , mouseOverRotate (pi * 0.5)
+              --     , rotate pi
+              --     , moveRight 200
+              --     ]
+              --     { onPress = Just NoOp
+              --     , label = text "Press Me!"
+              --     }
+              image [ height (px 500) ]
+                { src = "https://placeimg.com/640/420/animals/grayscale"
+                , description = "Here's my image!"
+                }
+            , el
+                [ width (px 500)
+                , height (px 200)
+                , alignLeft
+                , Background.fittedImage "https://placeimg.com/640/420/animals/grayscale"
                 ]
-                { onPress = Just NoOp
-                , label = text "Press Me!"
+                empty
+            , el
+                [ width (px 500)
+                , height (px 200)
+                , alignLeft
+                , Background.image "https://placeimg.com/640/420/animals/grayscale"
+                ]
+                empty
+            , el
+                [ width (px 800)
+                , height (px 400)
+
+                -- , alignLeft
+                , Background.tiledY "https://placeimg.com/200/200/animals/grayscale"
+                ]
+                empty
+            , el
+                [ width (px 800)
+                , height (px 400)
+
+                -- , alignLeft
+                , Background.gradient 0
+                    [ red
+                    , blue
+                    , green
+                    ]
+                ]
+                empty
+            , Input.checkbox
+                []
+                { onChange = Just Check
+                , checked = model.checked
+                , icon = Nothing
+                , label = Input.labelRight [] (text "Checkbox Label")
+                , notice =
+                    Just <|
+                        Input.warningBelow [] (text "Warning!")
                 }
 
-            -- , Input.checkbox [ Background.color grey ]
-            --     { onChange = Just Check
-            --     , checked = model.checked
-            --     , icon = Nothing
-            --     , label = Input.labelRight [] (text "Checkbox Label")
-            --     , notice =
-            --         Just <|
-            --             Input.warningBelow [] (text "Warning!")
-            --     }
             -- , Element.table []
             --     { data =
             --         [ { firstName = "Cheryl", lastName = "Boo" }
@@ -436,32 +505,45 @@ view model =
             --           }
             --         ]
             --     }
-            --   Input.text
-            --     [ Background.color grey
-            --     , Border.color grey
-            --     , Border.width 1
-            --     , Border.rounded 10
-            --     , Font.lineHeight 1.5
-            --     , spacing 10
-            --     , Input.focused [ Font.color blue ]
-            --     -- , moveDown 20
-            --     -- , width fill
-            --     -- , width (px 300)
-            --     -- , alignLeft
-            --     ]
-            --     { text = model.text
-            --     , onChange = Just Change
-            --     , placeholder =
-            --         Just <| Input.placeholder [ Background.color blue, Font.color white ] (text "placeholder")
-            --     , label =
-            --         Input.labelBelow
-            --             [ Input.focused [ Font.color blue ]
-            --             ]
-            --             (text "On Focus, turn blue!")
-            --     , notice =
-            --         Just <|
-            --             Input.warningBelow [ alignRight ] (text "Warning Below")
-            --     }
+            , Input.text
+                [ Background.color grey
+                , Border.color grey
+                , Border.width 1
+                , Border.rounded 10
+                , Font.lineHeight 1.5
+                , spacing 10
+                ]
+                { text = model.text
+                , onChange = Just Change
+                , placeholder =
+                    Just <| Input.placeholder [ Background.color blue, Font.color white ] (text "placeholder")
+                , label =
+                    Input.labelLeft [] (text "Label")
+                , notice =
+                    Just <|
+                        Input.warningBelow [] (text "Warning Below")
+                }
+            , Input.text
+                [ Background.color grey
+                , Border.color grey
+                , Border.width 1
+                , Border.rounded 10
+                , Font.lineHeight 1.5
+                , spacing 10
+                ]
+                { text = model.text
+                , onChange = Just Change
+                , placeholder =
+                    Just <| Input.placeholder [ Background.color blue, Font.color white ] (text "placeholder")
+                , label =
+                    Input.labelBelow
+                        []
+                        (text "Label")
+                , notice =
+                    Just <|
+                        Input.warningBelow [] (text "Warning Below")
+                }
+
             --   Input.multiline
             --     [ --width (px 600)
             --       height shrink
@@ -516,6 +598,82 @@ view model =
             --           Input.option Taco (text "Taco!")
             --         , Input.option Gyro (text "Gyro")
             --         ]
+            --     }
+            , Input.select
+                [ padding 10
+                , spacing 5
+                , Border.width 1
+                , Border.color grey
+                , width fill
+                ]
+                { onChange = Just ChooseLunch
+                , selected = Just model.lunch
+                , label = Input.labelAbove [ width fill ] (text "Lunch")
+                , notice = Nothing
+                , menu =
+                    Input.menuBelow
+                        [ Border.width 1
+                        , Border.color grey
+                        , padding 10
+                        ]
+                        [ -- Input.styledChoice Burrito <|
+                          -- \selected ->
+                          --     Element.row
+                          --         [ spacing 5 ]
+                          --         [ el None [] <|
+                          --             if selected then
+                          --                 text ":D"
+                          --             else
+                          --                 text ":("
+                          --         , text "burrito"
+                          --         ]
+                          Input.option Taco (text "Taco!")
+                        , Input.option Gyro (text "Gyro")
+                        ]
+                }
+            , Element.text "Yo yo yo"
+            , Input.checkbox
+                []
+                { onChange = Just Check
+                , checked = model.checked
+                , icon = Nothing
+                , label = Input.labelRight [] (text "Checkbox Label")
+                , notice =
+                    Just <|
+                        Input.warningBelow [] (text "Warning!")
+                }
+
+            -- , Input.select
+            --     [ padding 10
+            --     , spacing 5
+            --     , Border.width 1
+            --     , Border.color grey
+            --     , width fill
+            --     ]
+            --     { onChange = Just ChooseLunch
+            --     , selected = Just model.lunch
+            --     , label = Input.labelAbove [ width fill ] (text "Lunch")
+            --     , notice = Nothing
+            --     , menu =
+            --         Input.menuBelow
+            --             [ Border.width 1
+            --             , Border.color grey
+            --             , padding 10
+            --             ]
+            --             [ -- Input.styledChoice Burrito <|
+            --               -- \selected ->
+            --               --     Element.row
+            --               --         [ spacing 5 ]
+            --               --         [ el None [] <|
+            --               --             if selected then
+            --               --                 text ":D"
+            --               --             else
+            --               --                 text ":("
+            --               --         , text "burrito"
+            --               --         ]
+            --               Input.option Taco (text "Taco!")
+            --             , Input.option Gyro (text "Gyro")
+            --             ]
             --     }
             -- , Input.sliderX
             --     []
