@@ -2149,13 +2149,13 @@ toStyleSheetString options stylesheet =
                 GridTemplateStyle template ->
                     let
                         class =
-                            ".grid-"
+                            ".grid-rows-"
                                 ++ String.join "-" (List.map lengthClassName template.rows)
-                                ++ "-"
+                                ++ "-cols-"
                                 ++ String.join "-" (List.map lengthClassName template.columns)
-                                ++ "-"
+                                ++ "-space-x-"
                                 ++ lengthClassName (Tuple.first template.spacing)
-                                ++ "-"
+                                ++ "-space-y-"
                                 ++ lengthClassName (Tuple.second template.spacing)
 
                         ySpacing =
@@ -2657,13 +2657,13 @@ getStyleName style =
                 ++ toString left
 
         GridTemplateStyle template ->
-            "grid-"
+            "grid-rows-"
                 ++ String.join "-" (List.map lengthClassName template.rows)
-                ++ "-"
+                ++ "-cols-"
                 ++ String.join "-" (List.map lengthClassName template.columns)
-                ++ "-"
+                ++ "-space-x-"
                 ++ lengthClassName (Tuple.first template.spacing)
-                ++ "-"
+                ++ "-space-y-"
                 ++ lengthClassName (Tuple.second template.spacing)
 
         GridPosition pos ->
