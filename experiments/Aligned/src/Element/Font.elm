@@ -234,7 +234,7 @@ wordSpacing offset =
 weight : Int -> Attribute msg
 weight fontWeight =
     StyleClass <|
-        Single ("font-weight-" ++ toString fontWeight) "font-weight" (toString fontWeight ++ "px")
+        Single ("font-weight-" ++ toString fontWeight) "font-weight" (toString fontWeight)
 
 
 {-| Align the font to the left.
