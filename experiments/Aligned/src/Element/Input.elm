@@ -97,12 +97,17 @@ placeholder attrs child =
     Placeholder <| Internal.el Nothing (Element.height Element.fill :: attrs) (Internal.Unkeyed [ child ])
 
 
-{-| -}
+{-| Every input has a required `label`.
+-}
 type Label msg
     = Label Internal.Grid.RelativePosition (List (Attribute msg)) (Element msg)
 
 
-{-| -}
+{-| As well, for every input except buttons, you can optionally add a warning or an error.
+
+The proper accessibility markup is applied in both cases so that screen readers can see the error state.
+
+-}
 type Notice msg
     = Notice Internal.Grid.RelativePosition (List (Attribute msg)) (Element msg)
 
@@ -188,9 +193,16 @@ type alias Button msg =
 
 {-| A standard button.
 
-The onPress message will be sent on either `onClick` or when the enter key has been pressed.
+The `onPress` handler will be fired either `onClick` or when the element is focused and the enter key has been pressed.
 
-The message will fire exactly once per enter key press when the key is lifted.
+    import Element.Input as Input
+
+    Input.button []
+        { onPress = Just ClickMsg
+        , label = text "My Button"
+        }
+
+`onPress` takes a `Maybe msg`. If you provide the value `Nothing`, then the button will be disabled.
 
 -}
 button : List (Attribute msg) -> Button msg -> Element msg
@@ -269,8 +281,7 @@ defaultCheckbox checked =
         )
 
 
-{-| Your basic checkbox
--}
+{-| -}
 checkbox : List (Attribute msg) -> Checkbox msg -> Element msg
 checkbox attrs { label, icon, checked, onChange, notice } =
     let
@@ -315,7 +326,7 @@ checkbox attrs { label, icon, checked, onChange, notice } =
                                 Nothing
                     ]
             )
-                ++ (tabindex 0 :: Element.pointer :: Background.color blue :: Element.alignLeft :: Element.width Element.fill :: attrs)
+                ++ (tabindex 0 :: Element.pointer :: Element.alignLeft :: Element.width Element.fill :: attrs)
     in
     Internal.Grid.relative (Just "label")
         attributes
@@ -706,62 +717,75 @@ multilineHelper spellchecked attrs textOptions =
         -- Special height calculator
         -- Height content needs to be translated into a special class
         -- descriptions are also disallowed
-        ( padding, heightContent, adjustedAttributes ) =
+        ( padding, heightContent, maybeLineHeight, adjustedAttributes ) =
             attributes
                 |> List.foldr
-                    (\attr ( pad, height, newAttrs ) ->
+                    (\attr ( pad, height, lh, newAttrs ) ->
                         case attr of
                             Internal.Describe _ ->
-                                ( pad, height, newAttrs )
+                                ( pad, height, lh, newAttrs )
 
                             Internal.Height Internal.Content ->
                                 case height of
                                     Nothing ->
-                                        ( pad, Just True, newAttrs )
+                                        ( pad, Just True, lh, newAttrs )
 
                                     Just i ->
-                                        ( pad, height, newAttrs )
+                                        ( pad, height, lh, newAttrs )
+
+                            Internal.StyleClass (Internal.LineHeight lineHeight) ->
+                                ( pad, height, lh, newAttrs )
 
                             Internal.Height _ ->
                                 case height of
                                     Nothing ->
-                                        ( pad, Just False, attr :: newAttrs )
+                                        ( pad, Just False, lh, attr :: newAttrs )
 
                                     Just i ->
-                                        ( pad, height, newAttrs )
+                                        ( pad, height, lh, newAttrs )
 
                             Internal.StyleClass (Internal.PaddingStyle t r b l) ->
-                                ( Just ( t, r, b, l ), height, attr :: newAttrs )
+                                ( Just ( t, r, b, l ), height, lh, attr :: newAttrs )
 
                             _ ->
-                                ( pad, height, attr :: newAttrs )
+                                ( pad, height, lh, attr :: newAttrs )
                     )
-                    ( Nothing, Nothing, [] )
+                    ( Nothing, Nothing, Nothing, [] )
 
         withHeight =
             case heightContent of
                 Just True ->
                     let
+                        lineHeight =
+                            Maybe.withDefault 1.5 maybeLineHeight
+
                         newlineCount =
                             String.lines textOptions.text
                                 |> List.length
                                 -- |> ((+) 1)
                                 |> toFloat
 
-                        heightValue =
+                        heightValue count =
                             case padding of
                                 Nothing ->
-                                    toString (newlineCount * 1.5) ++ "em"
+                                    toString (count * lineHeight) ++ "em"
 
                                 Just ( t, r, b, l ) ->
-                                    "calc(" ++ toString (newlineCount * 1.5) ++ "em + " ++ toString (t + b) ++ "px)"
+                                    "calc(" ++ toString (count * lineHeight) ++ "em + " ++ toString (t + b) ++ "px)"
 
                         heightClass =
                             Internal.StyleClass
                                 (Internal.Single ("textarea-height-" ++ toString newlineCount)
                                     "height"
-                                    heightValue
+                                    (heightValue newlineCount)
                                 )
+
+                        --  Internal.StyleClass
+                        --     (Internal.Single ("textarea-height-" ++ toString (newlineCount + 1))
+                        --         "height"
+                        --         (heightValue (newlineCount + 1))
+                        --     )
+                        -- ]
                     in
                     Internal.class "overflow-hidden" :: heightClass :: adjustedAttributes
 
@@ -834,6 +858,12 @@ multilineHelper spellchecked attrs textOptions =
 
                                     NotSpellChecked ->
                                         spellcheck False
+                              , case maybeLineHeight of
+                                    Nothing ->
+                                        Font.lineHeight 1.5
+
+                                    Just i ->
+                                        Font.lineHeight i
                               ]
                             , behavior
                             , withHeight
