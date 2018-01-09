@@ -667,9 +667,6 @@ rules =
                     [ Prop "flex-basis" "auto"
                     ]
                 ]
-            , Descriptor ".space-evenly"
-                [ Prop "justify-content" "space-between"
-                ]
             , Child ".height-fill"
                 [ --Prop "height" "100%"
                   -- alignTop, centerY, and alignBottom need to be disabled
@@ -739,6 +736,14 @@ rules =
                             , [ Prop "align-self" "center"
                               ]
                             )
+
+            -- Must be below the alignment rules or else it interferes
+            , Descriptor ".space-evenly"
+                [ Prop "justify-content" "space-between"
+                , Child ".spacer"
+                    [ Prop "display" "none"
+                    ]
+                ]
             ]
         , Class (class Column)
             [ Prop "display" "flex"
@@ -750,9 +755,6 @@ rules =
                 [ --Prop "width" "100%"
                   -- alignLeft, alignRight, centerX need to be disabled
                   Prop "align-self" "stretch !important"
-                ]
-            , Descriptor ".space-evenly"
-                [ Prop "justify-content" "space-between"
                 ]
             , Child ".se:first-child"
                 [ Prop "margin-top" "0 !important"
@@ -830,6 +832,12 @@ rules =
                 [ Prop "flex-grow" "0"
                 , Prop "flex-basis" "auto"
                 , Prop "width" "100%"
+                ]
+            , Descriptor ".space-evenly"
+                [ Prop "justify-content" "space-between"
+                , Child ".spacer"
+                    [ Prop "display" "none"
+                    ]
                 ]
             ]
         , Class (class Grid)
