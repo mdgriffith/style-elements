@@ -376,9 +376,6 @@ rules =
                         ]
                 )
             ]
-        , Class ("input" ++ class Any)
-            [ Prop "border" "none"
-            ]
         , Class ("a" ++ class Any)
             [ Prop "text-decoration" "none"
             , Prop "color" "inherit"
@@ -390,6 +387,8 @@ rules =
             ]
         , Class (class Any)
             [ Prop "position" "relative"
+            , Prop "border" "none"
+            , Prop "text-decoration" "none"
             , Prop "flex-shrink" "0"
             , Prop "display" "flex"
             , Prop "flex-direction" "row"
