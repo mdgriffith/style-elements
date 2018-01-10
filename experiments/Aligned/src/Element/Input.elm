@@ -244,43 +244,6 @@ type alias Checkbox msg =
     }
 
 
-defaultCheckbox : Bool -> Element msg
-defaultCheckbox checked =
-    Element.el
-        [ Element.width (Element.px 12)
-        , Element.height (Element.px 12)
-        , Font.color white
-        , Font.size 9
-        , Font.center
-        , Border.rounded 3
-        , Border.color (Color.rgb 211 211 211)
-        , Font.family
-            [ Font.typeface "georgia"
-            , Font.serif
-            ]
-        , Border.shadow
-            { offset = ( 0, 0 )
-            , blur = 1
-            , color = Color.rgb 238 238 238
-            }
-        , Background.color <|
-            if checked then
-                Color.rgb 59 153 252
-            else
-                white
-        , Border.width <|
-            if checked then
-                0
-            else
-                1
-        ]
-        (if checked then
-            Element.text "✓"
-         else
-            Element.empty
-        )
-
-
 {-| -}
 checkbox : List (Attribute msg) -> Checkbox msg -> Element msg
 checkbox attrs { label, icon, checked, onChange, notice } =
@@ -523,11 +486,6 @@ type alias Text msg =
     , label : Label msg
     , notice : Maybe (Notice msg)
     }
-
-
-defaultTextPadding : Attribute msg
-defaultTextPadding =
-    Element.paddingXY 15 5
 
 
 textHelper : TextType -> List (Attribute msg) -> Text msg -> Element msg
@@ -966,58 +924,6 @@ option value text =
         text
 
 
-defaultRadioIcon : OptionState -> Element msg
-defaultRadioIcon status =
-    Element.el
-        [ Element.width (Element.px 14)
-        , Element.height (Element.px 14)
-        , Background.color white
-        , Border.rounded 7
-
-        -- , Border.shadow <|
-        --     -- case status of
-        --     --     Idle ->
-        --     --         { offset = ( 0, 0 )
-        --     --         , blur =
-        --     --             1
-        --     --         , color = Color.rgb 235 235 235
-        --     --         }
-        --     --     Focused ->
-        --     --         { offset = ( 0, 0 )
-        --     --         , blur =
-        --     --             0
-        --     --         , color = Color.rgba 235 235 235 0
-        --     --         }
-        --     --     Selected ->
-        --     { offset = ( 0, 0 )
-        --     , blur =
-        --         1
-        --     , color = Color.rgba 235 235 235 0
-        --     }
-        , Border.width <|
-            case status of
-                Idle ->
-                    1
-
-                Focused ->
-                    1
-
-                Selected ->
-                    5
-        , Border.color <|
-            case status of
-                Idle ->
-                    Color.rgb 208 208 208
-
-                Focused ->
-                    Color.rgb 208 208 208
-
-                Selected ->
-                    Color.rgb 59 153 252
-        ]
-        Element.empty
-
-
 
 -- case status of
 --     Idle ->
@@ -1225,8 +1131,9 @@ radioHelper orientation attrs input =
 {-| -}
 type alias Select option msg =
     { onChange : Maybe (option -> msg)
-    , menu : Menu option msg
     , selected : Maybe option
+    , menu : Menu option msg
+    , placeholder : Maybe (Element msg)
     , label : Label msg
     , notice : Maybe (Notice msg)
     }
@@ -1269,8 +1176,8 @@ select attrs input =
                     else
                         Idle
             in
-            Element.row
-                [ spacing
+            Element.el
+                [ Element.width Element.fill
                 , Element.pointer
                 , case input.onChange of
                     Nothing ->
@@ -1297,9 +1204,7 @@ select attrs input =
                 , Internal.Attr <|
                     Html.Attributes.attribute "role" "radio"
                 ]
-                [ icon status
-                , Element.el [ Element.width Element.fill, Internal.class "unfocusable" ] text
-                ]
+                text
 
         renderSelectedOption (Option value icon text) =
             let
@@ -1309,19 +1214,17 @@ select attrs input =
                     else
                         Idle
             in
-            Element.row
-                [ spacing
+            Element.el
+                [ Element.width Element.fill
                 , Element.pointer
-                , case status of
-                    Selected ->
-                        Internal.class "focusable"
 
-                    _ ->
-                        Internal.NoAttribute
+                -- , case status of
+                --     Selected ->
+                --         Internal.class "focusable"
+                --     _ ->
+                --         Internal.NoAttribute
                 ]
-                [ icon status
-                , Element.el [ Element.width Element.fill, Internal.class "unfocusable" ] text
-                ]
+                text
 
         toggleSelected =
             case input.selected of
@@ -1351,6 +1254,9 @@ select attrs input =
                     :: Border.width 1
                     :: Border.color lightGrey
                     :: Border.rounded 5
+                    :: defaultTextPadding
+                    :: Element.width Element.fill
+                    :: Element.pointer
                     :: attrs
                 )
                 (case prevNext of
@@ -1360,7 +1266,12 @@ select attrs input =
                     Just ( prev, selected, next ) ->
                         case selected of
                             Nothing ->
-                                Element.empty
+                                case input.placeholder of
+                                    Nothing ->
+                                        Element.text "-"
+
+                                    Just placeholder ->
+                                        placeholder
 
                             Just sel ->
                                 renderSelectedOption sel
@@ -1406,7 +1317,9 @@ select attrs input =
     positionLabels
         (case input.onChange of
             Nothing ->
-                [ Element.alignLeft ]
+                [ Element.width Element.fill
+                , Element.alignLeft
+                ]
 
             Just onChange ->
                 List.filterMap identity
@@ -1699,3 +1612,101 @@ autofill =
 autofocus : Bool -> Attribute msg
 autofocus =
     Internal.Attr << Html.Attributes.autofocus
+
+
+
+{- Style Defaults -}
+
+
+defaultTextPadding : Attribute msg
+defaultTextPadding =
+    Element.paddingXY 15 5
+
+
+defaultRadioIcon : OptionState -> Element msg
+defaultRadioIcon status =
+    Element.el
+        [ Element.width (Element.px 14)
+        , Element.height (Element.px 14)
+        , Background.color white
+        , Border.rounded 7
+
+        -- , Border.shadow <|
+        --     -- case status of
+        --     --     Idle ->
+        --     --         { offset = ( 0, 0 )
+        --     --         , blur =
+        --     --             1
+        --     --         , color = Color.rgb 235 235 235
+        --     --         }
+        --     --     Focused ->
+        --     --         { offset = ( 0, 0 )
+        --     --         , blur =
+        --     --             0
+        --     --         , color = Color.rgba 235 235 235 0
+        --     --         }
+        --     --     Selected ->
+        --     { offset = ( 0, 0 )
+        --     , blur =
+        --         1
+        --     , color = Color.rgba 235 235 235 0
+        --     }
+        , Border.width <|
+            case status of
+                Idle ->
+                    1
+
+                Focused ->
+                    1
+
+                Selected ->
+                    5
+        , Border.color <|
+            case status of
+                Idle ->
+                    Color.rgb 208 208 208
+
+                Focused ->
+                    Color.rgb 208 208 208
+
+                Selected ->
+                    Color.rgb 59 153 252
+        ]
+        Element.empty
+
+
+defaultCheckbox : Bool -> Element msg
+defaultCheckbox checked =
+    Element.el
+        [ Element.width (Element.px 12)
+        , Element.height (Element.px 12)
+        , Font.color white
+        , Font.size 9
+        , Font.center
+        , Border.rounded 3
+        , Border.color (Color.rgb 211 211 211)
+        , Font.family
+            [ Font.typeface "georgia"
+            , Font.serif
+            ]
+        , Border.shadow
+            { offset = ( 0, 0 )
+            , blur = 1
+            , color = Color.rgb 238 238 238
+            }
+        , Background.color <|
+            if checked then
+                Color.rgb 59 153 252
+            else
+                white
+        , Border.width <|
+            if checked then
+                0
+            else
+                1
+        ]
+        (if checked then
+            Element.text "✓"
+         else
+            Element.empty
+        )
