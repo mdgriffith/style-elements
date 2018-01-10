@@ -584,6 +584,7 @@ textHelper textType attrs textOptions =
                     [ [ value textOptions.text
                       , defaultTextPadding
                       ]
+                    , defaultTextBoxStyle
                     , textTypeAttr
                     , behavior
                     , attributes
@@ -662,7 +663,7 @@ multilineHelper : SpellChecked -> List (Attribute msg) -> Text msg -> Element ms
 multilineHelper spellchecked attrs textOptions =
     let
         attributes =
-            Element.height Element.shrink :: Element.width Element.fill :: attrs
+            Element.height Element.shrink :: Element.width Element.fill :: defaultTextBoxStyle ++ attrs
 
         behavior =
             case textOptions.onChange of
@@ -791,7 +792,7 @@ multilineHelper spellchecked attrs textOptions =
                         _ ->
                             False
 
-        placeholder =
+        placeholderInFront =
             case textOptions.placeholder of
                 Nothing ->
                     []
@@ -803,7 +804,7 @@ multilineHelper spellchecked attrs textOptions =
 
         input =
             Internal.el Nothing
-                placeholder
+                placeholderInFront
             <|
                 Internal.Unkeyed
                     [ Internal.el
@@ -1151,14 +1152,14 @@ type MenuPosition
 
 {-| -}
 menuAbove : List (Attribute msg) -> List (Option option msg) -> Menu option msg
-menuAbove =
-    Menu MenuAbove
+menuAbove attrs =
+    Menu MenuAbove (defaultTextBoxStyle ++ attrs)
 
 
 {-| -}
 menuBelow : List (Attribute msg) -> List (Option option msg) -> Menu option msg
-menuBelow =
-    Menu MenuBelow
+menuBelow attrs =
+    Menu MenuBelow (defaultTextBoxStyle ++ attrs)
 
 
 {-| -}
@@ -1618,9 +1619,20 @@ autofocus =
 {- Style Defaults -}
 
 
+defaultTextBoxStyle : List (Attribute msg)
+defaultTextBoxStyle =
+    [ defaultTextPadding
+    , Border.rounded 3
+    , Border.color lightGrey
+    , Background.color white
+    , Border.width 1
+    , Element.spacing 3
+    ]
+
+
 defaultTextPadding : Attribute msg
 defaultTextPadding =
-    Element.paddingXY 15 5
+    Element.paddingXY 12 7
 
 
 defaultRadioIcon : OptionState -> Element msg
