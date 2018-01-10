@@ -17,6 +17,11 @@ These can be used directly as properties.
         [ Shadow.glow Color.red 5
         ]
 
+    style MyStyleWithMultipleShadow
+        [ Shadow.glow Color.red 5
+        , Shadow.glow Color.blue 15
+        ]
+
 @docs simple, deep, glow, innerGlow, textGlow
 
 
