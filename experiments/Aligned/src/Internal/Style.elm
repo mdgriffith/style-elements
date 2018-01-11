@@ -676,6 +676,7 @@ rules =
                 ]
             , Child ".spacer"
                 [ Prop "margin-left" "0 !important"
+                , Prop "height" "auto !important"
                 ]
             , Child ".spacer + .se"
                 [ Prop "margin-left" "0 !important"
