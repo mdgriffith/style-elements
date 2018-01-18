@@ -29,7 +29,9 @@ type LayoutContext
     | AsColumn
     | AsEl
     | AsGrid
-    | AsGridEl
+      -- | AsGridEl
+    | AsParagraph
+    | AsTextColumn
 
 
 
@@ -56,9 +58,36 @@ asEl =
     AsEl
 
 
-asGridEl : LayoutContext
-asGridEl =
-    AsGridEl
+asParagraph : LayoutContext
+asParagraph =
+    AsParagraph
+
+
+asTextColumn : LayoutContext
+asTextColumn =
+    AsTextColumn
+
+
+contextClasses : LayoutContext -> Attribute msg
+contextClasses context =
+    case context of
+        AsRow ->
+            htmlClass "se row"
+
+        AsColumn ->
+            htmlClass "se column"
+
+        AsEl ->
+            htmlClass "se el"
+
+        AsGrid ->
+            htmlClass "se grid"
+
+        AsParagraph ->
+            htmlClass "se paragraph"
+
+        AsTextColumn ->
+            htmlClass "se page"
 
 
 type Aligned
@@ -366,15 +395,6 @@ renderNode { alignment, attributes, node, width, height } children styles contex
                         ]
     in
     case context of
-        AsEl ->
-            html
-
-        AsGrid ->
-            html
-
-        AsGridEl ->
-            html
-
         AsRow ->
             case width of
                 Just (Fill _) ->
@@ -427,6 +447,9 @@ renderNode { alignment, attributes, node, width, height } children styles contex
 
                         _ ->
                             html
+
+        _ ->
+            html
 
 
 addNodeName : String -> NodeName -> NodeName
@@ -1311,15 +1334,10 @@ type EmbedStyle
 
 element : EmbedStyle -> LayoutContext -> Maybe String -> List (Attribute msg) -> Children (Element msg) -> Element msg
 element embedMode context node attributes children =
-    case attributes of
-        [] ->
-            initGathered node
-                |> asElement embedMode children context
-
-        attrs ->
-            List.foldr gatherAttributes (initGathered node) attrs
-                |> formatTransformations
-                |> asElement embedMode children context
+    (contextClasses context :: attributes)
+        |> List.foldr gatherAttributes (initGathered node)
+        |> formatTransformations
+        |> asElement embedMode children context
 
 
 asElement : EmbedStyle -> Children (Element msg) -> LayoutContext -> Gathered msg -> Element msg

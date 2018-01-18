@@ -466,8 +466,7 @@ el attrs child =
     Internal.element Internal.NoStyleSheet
         Internal.asEl
         Nothing
-        (Internal.htmlClass "se el"
-            :: width shrink
+        (width shrink
             :: height shrink
             -- :: centerY
             :: center
@@ -486,8 +485,7 @@ row attrs children =
         Internal.NoStyleSheet
         Internal.asRow
         Nothing
-        (Internal.htmlClass "se row"
-            :: Internal.Class "x-content-align" "content-center-x"
+        (Internal.Class "x-content-align" "content-center-x"
             :: Internal.Class "y-content-align" "content-center-y"
             :: width fill
             :: attrs
@@ -501,8 +499,7 @@ column attrs children =
     Internal.element Internal.NoStyleSheet
         Internal.asColumn
         Nothing
-        (Internal.htmlClass "se column"
-            :: Internal.Class "y-content-align" "content-top"
+        (Internal.Class "y-content-align" "content-top"
             :: Internal.Class "x-content-align" "content-center-x"
             :: height fill
             :: width fill
@@ -593,10 +590,9 @@ table attrs config =
         onGrid row column el =
             Internal.element
                 Internal.NoStyleSheet
-                Internal.asGridEl
+                Internal.asEl
                 Nothing
-                [ Internal.htmlClass "se el"
-                , Internal.StyleClass
+                [ Internal.StyleClass
                     (Internal.GridPosition
                         { row = row
                         , col = column
@@ -642,8 +638,7 @@ table attrs config =
     Internal.element Internal.NoStyleSheet
         Internal.asGrid
         Nothing
-        (Internal.htmlClass "se grid"
-            :: width fill
+        (width fill
             :: center
             :: template
             :: attrs
@@ -696,8 +691,7 @@ Which will look something like
 -}
 paragraph : List (Attribute msg) -> List (Element msg) -> Element msg
 paragraph attrs children =
-    -- Internal.paragraph (Internal.htmlClass "se paragraph" :: width fill :: attrs) (Internal.Unkeyed children)
-    Internal.element Internal.NoStyleSheet Internal.asEl (Just "p") (Internal.htmlClass "se paragraph" :: attrs) (Internal.Unkeyed children)
+    Internal.element Internal.NoStyleSheet Internal.asParagraph (Just "p") attrs (Internal.Unkeyed children)
 
 
 {-| Now that we have a paragraph, we need someway to attach a bunch of paragraph's together.
@@ -723,9 +717,9 @@ textColumn : List (Attribute msg) -> List (Element msg) -> Element msg
 textColumn attrs children =
     Internal.element
         Internal.NoStyleSheet
-        Internal.asEl
+        Internal.asTextColumn
         Nothing
-        (Internal.htmlClass "se page" :: width (px 650) :: attrs)
+        (width (px 650) :: attrs)
         (Internal.Unkeyed children)
 
 
@@ -752,16 +746,14 @@ image attrs { src, description } =
     Internal.element Internal.NoStyleSheet
         Internal.asEl
         Nothing
-        (Internal.htmlClass "se el"
-            :: clip
+        (clip
             :: attrs
         )
         (Internal.Unkeyed
             [ Internal.element Internal.NoStyleSheet
                 Internal.asEl
                 (Just "img")
-                (Internal.htmlClass "se el"
-                    :: imageAttributes
+                (imageAttributes
                     ++ [ Internal.Attr <| Html.Attributes.src src
                        , Internal.Attr <| Html.Attributes.alt description
                        ]
@@ -794,16 +786,14 @@ decorativeImage attrs { src } =
     Internal.element Internal.NoStyleSheet
         Internal.asEl
         Nothing
-        (Internal.htmlClass "se el"
-            :: clip
+        (clip
             :: attrs
         )
         (Internal.Unkeyed
             [ Internal.element Internal.NoStyleSheet
                 Internal.asEl
                 (Just "img")
-                (Internal.htmlClass "se el"
-                    :: imageAttributes
+                (imageAttributes
                     ++ [ Internal.Attr <| Html.Attributes.src src
                        , Internal.Attr <| Html.Attributes.alt ""
                        ]
@@ -833,8 +823,7 @@ link attrs { url, label } =
     Internal.element Internal.NoStyleSheet
         Internal.asEl
         (Just "a")
-        (Internal.htmlClass "se el"
-            :: Internal.Attr (Html.Attributes.href url)
+        (Internal.Attr (Html.Attributes.href url)
             :: Internal.Attr (Html.Attributes.rel "noopener noreferrer")
             :: width shrink
             :: height shrink
@@ -851,8 +840,7 @@ newTabLink attrs { url, label } =
     Internal.element Internal.NoStyleSheet
         Internal.asEl
         (Just "a")
-        (Internal.htmlClass "se el"
-            :: Internal.Attr (Html.Attributes.href url)
+        (Internal.Attr (Html.Attributes.href url)
             :: Internal.Attr (Html.Attributes.rel "noopener noreferrer")
             :: Internal.Attr (Html.Attributes.target "_blank")
             :: width shrink
@@ -871,8 +859,7 @@ download attrs { url, label } =
     Internal.element Internal.NoStyleSheet
         Internal.asEl
         (Just "a")
-        (Internal.htmlClass "se el"
-            :: Internal.Attr (Html.Attributes.href url)
+        (Internal.Attr (Html.Attributes.href url)
             :: Internal.Attr (Html.Attributes.download True)
             :: width shrink
             :: height shrink
@@ -890,8 +877,7 @@ downloadAs attrs { url, filename, label } =
     Internal.element Internal.NoStyleSheet
         Internal.asEl
         (Just "a")
-        (Internal.htmlClass "se el"
-            :: Internal.Attr (Html.Attributes.href url)
+        (Internal.Attr (Html.Attributes.href url)
             :: Internal.Attr (Html.Attributes.downloadAs filename)
             :: width shrink
             :: height shrink

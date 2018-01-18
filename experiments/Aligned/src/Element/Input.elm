@@ -96,8 +96,7 @@ placeholder attrs child =
         Internal.element Internal.NoStyleSheet
             Internal.asEl
             Nothing
-            (Internal.htmlClass "se el"
-                :: Element.height Element.fill
+            (Element.height Element.fill
                 :: attrs
             )
             (Internal.Unkeyed [ child ])
@@ -220,8 +219,7 @@ button attrs { onPress, label } =
         -- We'd like to fire just once on the enter key, which means using keyup instead of keydown.
         -- Because we have no way to disable keydown, though our messages get doubled.
         Nothing
-        (Internal.htmlClass "se el"
-            :: Element.width Element.shrink
+        (Element.width Element.shrink
             :: Element.height Element.shrink
             :: Element.centerY
             :: Element.center
@@ -259,8 +257,7 @@ checkbox attrs { label, icon, checked, onChange, notice } =
             Internal.element Internal.NoStyleSheet
                 Internal.asEl
                 (Just "div")
-                [ Internal.htmlClass "se el"
-                , Internal.Attr <|
+                [ Internal.Attr <|
                     Html.Attributes.attribute "role" "checkbox"
                 , Internal.Attr <|
                     Html.Attributes.attribute "aria-checked" <|
@@ -591,8 +588,7 @@ textHelper textType attrs textOptions =
                 Internal.asEl
                 (Just "input")
                 (List.concat
-                    [ [ Internal.htmlClass "se el"
-                      , value textOptions.text
+                    [ [ value textOptions.text
                       , defaultTextPadding
                       ]
                     , defaultTextBoxStyle
@@ -612,13 +608,11 @@ textHelper textType attrs textOptions =
                     Internal.element Internal.NoStyleSheet
                         Internal.asEl
                         Nothing
-                        [ Internal.htmlClass "se el"
-                        , Element.inFront (textOptions.text == "") <|
+                        [ Element.inFront (textOptions.text == "") <|
                             Internal.element Internal.NoStyleSheet
                                 Internal.asEl
                                 Nothing
-                                (Internal.htmlClass "se el"
-                                    :: Font.color charcoal
+                                (Font.color charcoal
                                     :: defaultTextPadding
                                     :: Element.height Element.fill
                                     :: Element.width Element.fill
@@ -819,7 +813,7 @@ multilineHelper spellchecked attrs textOptions =
                         Internal.element Internal.NoStyleSheet
                             Internal.asEl
                             Nothing
-                            (Internal.htmlClass "se el" :: Font.color charcoal :: inputPadding)
+                            (Font.color charcoal :: inputPadding)
                             (Internal.Unkeyed [ placeholder ])
                     ]
 
@@ -835,7 +829,6 @@ multilineHelper spellchecked attrs textOptions =
                         (Just "textarea")
                         (List.concat
                             [ [ value textOptions.text
-                              , Internal.htmlClass "se el"
                               , case spellchecked of
                                     SpellChecked ->
                                         spellcheck True
@@ -1404,8 +1397,7 @@ column attrs children =
     Internal.element Internal.NoStyleSheet
         Internal.asColumn
         Nothing
-        (Internal.htmlClass "se column"
-            :: Element.height Element.shrink
+        (Element.height Element.shrink
             :: Element.width Element.fill
             :: attrs
         )
@@ -1418,8 +1410,7 @@ row attrs children =
         Internal.NoStyleSheet
         Internal.asRow
         Nothing
-        (Internal.htmlClass "se row"
-            :: Element.width Element.fill
+        (Element.width Element.fill
             :: attrs
         )
         (Internal.Unkeyed <| Internal.rowEdgeFillers children)

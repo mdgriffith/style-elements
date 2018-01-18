@@ -13,7 +13,8 @@ import Internal.Model as Internal
 {-| -}
 el : List (Attribute msg) -> ( String, Element msg ) -> Element msg
 el attrs child =
-    Internal.el
+    Internal.element Internal.NoStyleSheet
+        Internal.asEl
         Nothing
         (width Element.shrink
             :: height Element.shrink
@@ -33,8 +34,7 @@ row attrs children =
         Internal.NoStyleSheet
         Internal.asRow
         Nothing
-        (Internal.htmlClass "se row"
-            :: Internal.Class "x-content-align" "content-center-x"
+        (Internal.Class "x-content-align" "content-center-x"
             :: Internal.Class "y-content-align" "content-center-y"
             :: width fill
             :: attrs
@@ -48,8 +48,7 @@ column attrs children =
     Internal.element Internal.NoStyleSheet
         Internal.asColumn
         Nothing
-        (Internal.htmlClass "se column"
-            :: Internal.Class "y-content-align" "content-top"
+        (Internal.Class "y-content-align" "content-top"
             :: Internal.Class "x-content-align" "content-center-x"
             :: height fill
             :: width fill

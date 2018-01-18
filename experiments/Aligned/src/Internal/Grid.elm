@@ -53,9 +53,7 @@ relative node attributes around =
             Internal.element Internal.NoStyleSheet
                 Internal.asEl
                 Nothing
-                (Internal.htmlClass "se el"
-                    :: positioned.attrs
-                )
+                positioned.attrs
                 (Internal.Unkeyed positioned.child)
 
         ( template, children ) =
@@ -64,11 +62,10 @@ relative node attributes around =
     Internal.element Internal.NoStyleSheet
         Internal.asGrid
         node
-        (Internal.htmlClass "se grid"
-            -- :: Element.width Element.shrink
-            -- :: Element.height Element.shrink
-            -- :: Internal.Class "y-content-align" "content-top"
-            :: Element.center
+        (-- :: Element.width Element.shrink
+         -- :: Element.height Element.shrink
+         -- :: Internal.Class "y-content-align" "content-top"
+         Element.center
             :: (template ++ attributes)
         )
         (Internal.Unkeyed
@@ -176,10 +173,9 @@ createGrid ( spacingX, spacingY ) nearby =
     , List.filterMap identity
         [ Just <|
             Internal.element Internal.NoStyleSheet
-                Internal.asGridEl
+                Internal.asEl
                 Nothing
-                [ Internal.htmlClass "se el"
-                , Internal.StyleClass
+                [ Internal.StyleClass
                     (Internal.GridPosition
                         { row = rows.primary
                         , col = columns.primary
@@ -217,7 +213,7 @@ build rowCoord colCoord spacingX spacingY positioned =
             Internal.element Internal.NoStyleSheet
                 Internal.asColumn
                 Nothing
-                (Internal.htmlClass "se column" :: attributes)
+                attributes
                 (Internal.Unkeyed <| Internal.columnEdgeFillers positioned.child)
 
         Row ->
@@ -231,5 +227,5 @@ build rowCoord colCoord spacingX spacingY positioned =
             Internal.element Internal.NoStyleSheet
                 Internal.asColumn
                 Nothing
-                (Internal.htmlClass "se column" :: attributes)
+                attributes
                 (Internal.Unkeyed <| Internal.columnEdgeFillers positioned.child)
