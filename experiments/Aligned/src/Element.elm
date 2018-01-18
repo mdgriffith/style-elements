@@ -463,9 +463,11 @@ text content =
 -}
 el : List (Attribute msg) -> Element msg -> Element msg
 el attrs child =
-    Internal.el
+    Internal.element Internal.NoStyleSheet
+        Internal.asEl
         Nothing
-        (width shrink
+        (Internal.htmlClass "se el"
+            :: width shrink
             :: height shrink
             -- :: centerY
             :: center
@@ -480,8 +482,12 @@ el attrs child =
 -}
 row : List (Attribute msg) -> List (Element msg) -> Element msg
 row attrs children =
-    Internal.row
-        (Internal.Class "x-content-align" "content-center-x"
+    Internal.element
+        Internal.NoStyleSheet
+        Internal.asRow
+        Nothing
+        (Internal.htmlClass "se row"
+            :: Internal.Class "x-content-align" "content-center-x"
             :: Internal.Class "y-content-align" "content-center-y"
             :: width fill
             :: attrs
@@ -492,8 +498,11 @@ row attrs children =
 {-| -}
 column : List (Attribute msg) -> List (Element msg) -> Element msg
 column attrs children =
-    Internal.column
-        (Internal.Class "y-content-align" "content-top"
+    Internal.element Internal.NoStyleSheet
+        Internal.asColumn
+        Nothing
+        (Internal.htmlClass "se column"
+            :: Internal.Class "y-content-align" "content-top"
             :: Internal.Class "x-content-align" "content-center-x"
             :: height fill
             :: width fill
@@ -582,8 +591,12 @@ table attrs config =
                     }
 
         onGrid row column el =
-            Internal.gridEl Nothing
-                [ Internal.StyleClass
+            Internal.element
+                Internal.NoStyleSheet
+                Internal.asGridEl
+                Nothing
+                [ Internal.htmlClass "se el"
+                , Internal.StyleClass
                     (Internal.GridPosition
                         { row = row
                         , col = column
@@ -592,7 +605,7 @@ table attrs config =
                         }
                     )
                 ]
-                [ el ]
+                (Internal.Unkeyed [ el ])
 
         add cell column cursor =
             { cursor
@@ -626,7 +639,8 @@ table attrs config =
                 }
                 config.data
     in
-    Internal.element Internal.asGrid
+    Internal.element Internal.NoStyleSheet
+        Internal.asGrid
         Nothing
         (Internal.htmlClass "se grid"
             :: width fill
@@ -682,7 +696,8 @@ Which will look something like
 -}
 paragraph : List (Attribute msg) -> List (Element msg) -> Element msg
 paragraph attrs children =
-    Internal.paragraph (Internal.htmlClass "se paragraph" :: width fill :: attrs) (Internal.Unkeyed children)
+    -- Internal.paragraph (Internal.htmlClass "se paragraph" :: width fill :: attrs) (Internal.Unkeyed children)
+    Internal.element Internal.NoStyleSheet Internal.asEl (Just "p") (Internal.htmlClass "se paragraph" :: attrs) (Internal.Unkeyed children)
 
 
 {-| Now that we have a paragraph, we need someway to attach a bunch of paragraph's together.
@@ -706,7 +721,12 @@ Which will result in something like:
 -}
 textColumn : List (Attribute msg) -> List (Element msg) -> Element msg
 textColumn attrs children =
-    Internal.textPage (width (px 650) :: attrs) (Internal.Unkeyed children)
+    Internal.element
+        Internal.NoStyleSheet
+        Internal.asEl
+        Nothing
+        (Internal.htmlClass "se page" :: width (px 650) :: attrs)
+        (Internal.Unkeyed children)
 
 
 {-| Both a source and a description are required for images. The description is used to describe the image to screen readers.
@@ -714,9 +734,6 @@ textColumn attrs children =
 image : List (Attribute msg) -> { src : String, description : String } -> Element msg
 image attrs { src, description } =
     let
-        filtered =
-            Internal.filter attrs
-
         imageAttributes =
             attrs
                 |> List.filter
@@ -732,18 +749,24 @@ image attrs { src, description } =
                                 False
                     )
     in
-    Internal.el
+    Internal.element Internal.NoStyleSheet
+        Internal.asEl
         Nothing
-        (clip :: attrs)
+        (Internal.htmlClass "se el"
+            :: clip
+            :: attrs
+        )
         (Internal.Unkeyed
-            [ Internal.el
+            [ Internal.element Internal.NoStyleSheet
+                Internal.asEl
                 (Just "img")
-                (imageAttributes
+                (Internal.htmlClass "se el"
+                    :: imageAttributes
                     ++ [ Internal.Attr <| Html.Attributes.src src
                        , Internal.Attr <| Html.Attributes.alt description
                        ]
                 )
-                (Internal.Unkeyed [ Internal.Empty ])
+                (Internal.Unkeyed [])
             ]
         )
 
@@ -753,9 +776,6 @@ image attrs { src, description } =
 decorativeImage : List (Attribute msg) -> { src : String } -> Element msg
 decorativeImage attrs { src } =
     let
-        filtered =
-            Internal.filter attrs
-
         imageAttributes =
             attrs
                 |> List.filter
@@ -771,18 +791,24 @@ decorativeImage attrs { src } =
                                 False
                     )
     in
-    Internal.el
+    Internal.element Internal.NoStyleSheet
+        Internal.asEl
         Nothing
-        (clip :: attrs)
+        (Internal.htmlClass "se el"
+            :: clip
+            :: attrs
+        )
         (Internal.Unkeyed
-            [ Internal.el
+            [ Internal.element Internal.NoStyleSheet
+                Internal.asEl
                 (Just "img")
-                (imageAttributes
+                (Internal.htmlClass "se el"
+                    :: imageAttributes
                     ++ [ Internal.Attr <| Html.Attributes.src src
                        , Internal.Attr <| Html.Attributes.alt ""
                        ]
                 )
-                (Internal.Unkeyed [ Internal.Empty ])
+                (Internal.Unkeyed [])
             ]
         )
 
@@ -804,9 +830,11 @@ type alias Link msg =
 -}
 link : List (Attribute msg) -> Link msg -> Element msg
 link attrs { url, label } =
-    Internal.el
+    Internal.element Internal.NoStyleSheet
+        Internal.asEl
         (Just "a")
-        (Internal.Attr (Html.Attributes.href url)
+        (Internal.htmlClass "se el"
+            :: Internal.Attr (Html.Attributes.href url)
             :: Internal.Attr (Html.Attributes.rel "noopener noreferrer")
             :: width shrink
             :: height shrink
@@ -820,9 +848,11 @@ link attrs { url, label } =
 {-| -}
 newTabLink : List (Attribute msg) -> Link msg -> Element msg
 newTabLink attrs { url, label } =
-    Internal.el
+    Internal.element Internal.NoStyleSheet
+        Internal.asEl
         (Just "a")
-        (Internal.Attr (Html.Attributes.href url)
+        (Internal.htmlClass "se el"
+            :: Internal.Attr (Html.Attributes.href url)
             :: Internal.Attr (Html.Attributes.rel "noopener noreferrer")
             :: Internal.Attr (Html.Attributes.target "_blank")
             :: width shrink
@@ -838,9 +868,11 @@ newTabLink attrs { url, label } =
 -}
 download : List (Attribute msg) -> Link msg -> Element msg
 download attrs { url, label } =
-    Internal.el
+    Internal.element Internal.NoStyleSheet
+        Internal.asEl
         (Just "a")
-        (Internal.Attr (Html.Attributes.href url)
+        (Internal.htmlClass "se el"
+            :: Internal.Attr (Html.Attributes.href url)
             :: Internal.Attr (Html.Attributes.download True)
             :: width shrink
             :: height shrink
@@ -855,9 +887,11 @@ download attrs { url, label } =
 -}
 downloadAs : List (Attribute msg) -> { label : Element msg, filename : String, url : String } -> Element msg
 downloadAs attrs { url, filename, label } =
-    Internal.el
+    Internal.element Internal.NoStyleSheet
+        Internal.asEl
         (Just "a")
-        (Internal.Attr (Html.Attributes.href url)
+        (Internal.htmlClass "se el"
+            :: Internal.Attr (Html.Attributes.href url)
             :: Internal.Attr (Html.Attributes.downloadAs filename)
             :: width shrink
             :: height shrink
@@ -1229,3 +1263,14 @@ pointer =
 --         { class = Internal.Hover
 --         , attributes = List.map (Internal.mapAttr never) attrs
 --         }
+
+
+type Device
+    = Device
+
+
+{-| <meta name="viewport" content="width=device-width, initial-scale=1">
+-}
+classifyDevice : { window | width : Int } -> Device
+classifyDevice window =
+    Device

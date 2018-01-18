@@ -67,8 +67,6 @@ module Element.Input
 
 @docs errorAbove, errorBelow, errorLeft, errorRight
 
-@docs Placeholder, placeholder
-
 -}
 
 import Color exposing (..)
@@ -94,7 +92,15 @@ type Placeholder msg
 {-| -}
 placeholder : List (Attribute msg) -> Element msg -> Placeholder msg
 placeholder attrs child =
-    Placeholder <| Internal.el Nothing (Element.height Element.fill :: attrs) (Internal.Unkeyed [ child ])
+    Placeholder <|
+        Internal.element Internal.NoStyleSheet
+            Internal.asEl
+            Nothing
+            (Internal.htmlClass "se el"
+                :: Element.height Element.fill
+                :: attrs
+            )
+            (Internal.Unkeyed [ child ])
 
 
 {-| Every input has a required `label`.
@@ -207,7 +213,8 @@ The `onPress` handler will be fired either `onClick` or when the element is focu
 -}
 button : List (Attribute msg) -> Button msg -> Element msg
 button attrs { onPress, label } =
-    Internal.element Internal.asEl
+    Internal.element Internal.NoStyleSheet
+        Internal.asEl
         -- We don't explicitly label this node as a button,
         -- because buttons fire a bunch of times when you hold down the enter key.
         -- We'd like to fire just once on the enter key, which means using keyup instead of keydown.
@@ -249,9 +256,11 @@ checkbox : List (Attribute msg) -> Checkbox msg -> Element msg
 checkbox attrs { label, icon, checked, onChange, notice } =
     let
         input =
-            Internal.el
+            Internal.element Internal.NoStyleSheet
+                Internal.asEl
                 (Just "div")
-                [ Internal.Attr <|
+                [ Internal.htmlClass "se el"
+                , Internal.Attr <|
                     Html.Attributes.attribute "role" "checkbox"
                 , Internal.Attr <|
                     Html.Attributes.attribute "aria-checked" <|
@@ -578,10 +587,12 @@ textHelper textType attrs textOptions =
                             False
 
         inputElement =
-            Internal.el
+            Internal.element Internal.NoStyleSheet
+                Internal.asEl
                 (Just "input")
                 (List.concat
-                    [ [ value textOptions.text
+                    [ [ Internal.htmlClass "se el"
+                      , value textOptions.text
                       , defaultTextPadding
                       ]
                     , defaultTextBoxStyle
@@ -598,10 +609,16 @@ textHelper textType attrs textOptions =
                     inputElement
 
                 Just (Placeholder placeholder) ->
-                    Internal.el Nothing
-                        [ Element.inFront (textOptions.text == "") <|
-                            Internal.el Nothing
-                                (Font.color charcoal
+                    Internal.element Internal.NoStyleSheet
+                        Internal.asEl
+                        Nothing
+                        [ Internal.htmlClass "se el"
+                        , Element.inFront (textOptions.text == "") <|
+                            Internal.element Internal.NoStyleSheet
+                                Internal.asEl
+                                Nothing
+                                (Internal.htmlClass "se el"
+                                    :: Font.color charcoal
                                     :: defaultTextPadding
                                     :: Element.height Element.fill
                                     :: Element.width Element.fill
@@ -799,18 +816,26 @@ multilineHelper spellchecked attrs textOptions =
 
                 Just (Placeholder placeholder) ->
                     [ Element.inFront (textOptions.text == "") <|
-                        Internal.el Nothing (Font.color charcoal :: inputPadding) (Internal.Unkeyed [ placeholder ])
+                        Internal.element Internal.NoStyleSheet
+                            Internal.asEl
+                            Nothing
+                            (Internal.htmlClass "se el" :: Font.color charcoal :: inputPadding)
+                            (Internal.Unkeyed [ placeholder ])
                     ]
 
         input =
-            Internal.el Nothing
+            Internal.element Internal.NoStyleSheet
+                Internal.asEl
+                Nothing
                 placeholderInFront
             <|
                 Internal.Unkeyed
-                    [ Internal.el
+                    [ Internal.element Internal.NoStyleSheet
+                        Internal.asEl
                         (Just "textarea")
                         (List.concat
                             [ [ value textOptions.text
+                              , Internal.htmlClass "se el"
                               , case spellchecked of
                                     SpellChecked ->
                                         spellcheck True
@@ -1376,10 +1401,11 @@ type Orientation
 
 column : List (Attribute msg) -> List (Internal.Element msg) -> Internal.Element msg
 column attrs children =
-    Internal.column
-        (--Internal.Class "y-content-align" "content-top"
-         -- :: Internal.Class "x-content-align" "content-center-x"
-         Element.height Element.shrink
+    Internal.element Internal.NoStyleSheet
+        Internal.asColumn
+        Nothing
+        (Internal.htmlClass "se column"
+            :: Element.height Element.shrink
             :: Element.width Element.fill
             :: attrs
         )
@@ -1388,17 +1414,18 @@ column attrs children =
 
 row : List (Attribute msg) -> List (Internal.Element msg) -> Internal.Element msg
 row attrs children =
-    Internal.row
-        (--Internal.Class "x-content-align" "content-center-x"
-         -- :: Internal.Class "y-content-align" "content-center-y"
-         Element.width Element.fill
+    Internal.element
+        Internal.NoStyleSheet
+        Internal.asRow
+        Nothing
+        (Internal.htmlClass "se row"
+            :: Element.width Element.fill
             :: attrs
         )
         (Internal.Unkeyed <| Internal.rowEdgeFillers children)
 
 
 
--- <| Internal.columnEdgeFillers children)
 {- Event Handlers -}
 
 
