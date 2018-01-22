@@ -171,7 +171,7 @@ type Attribute msg
     | AlignX HAlign
     | Width Length
     | Height Length
-    | Nearby Location (Element msg)
+    | Nearby Location Bool (Element msg)
     | Transform (Maybe PseudoClass) Transformation
     | TextShadow
         { offset : ( Float, Float )
@@ -225,6 +225,14 @@ type Length
     = Px Int
     | Content
     | Fill Int
+
+
+
+-- | Between
+--     { value : Length
+--     , min : Maybe Int
+--     , max : Maybe Int
+--     }
 
 
 type Axis
@@ -289,8 +297,8 @@ mapAttr fn attr =
         StyleClass style ->
             StyleClass style
 
-        Nearby location element ->
-            Nearby location (map fn element)
+        Nearby location on element ->
+            Nearby location on (map fn element)
 
         Transform pseudo trans ->
             Transform pseudo trans
@@ -683,7 +691,7 @@ gatherAttributes attr gathered =
                 LiveAssertive ->
                     { gathered | attributes = Html.Attributes.attribute "aria-live" "assertive" :: gathered.attributes }
 
-        Nearby location elem ->
+        Nearby location on elem ->
             let
                 nearbyGroup =
                     case gathered.nearbys of
@@ -721,13 +729,13 @@ gatherAttributes attr gathered =
                                     Nothing
 
                                 Text str ->
-                                    Just (textElement str)
+                                    Just ( on, textElement str )
 
                                 Unstyled html ->
-                                    Just (html asEl)
+                                    Just ( on, html asEl )
 
                                 Styled styled ->
-                                    Just (styled.html Nothing asEl)
+                                    Just ( on, styled.html Nothing asEl )
 
                         _ ->
                             existing
@@ -1084,12 +1092,12 @@ type NodeName
 
 
 type alias NearbyGroup msg =
-    { above : Maybe (Html msg)
-    , below : Maybe (Html msg)
-    , right : Maybe (Html msg)
-    , left : Maybe (Html msg)
-    , infront : Maybe (Html msg)
-    , behind : Maybe (Html msg)
+    { above : Maybe ( Bool, Html msg )
+    , below : Maybe ( Bool, Html msg )
+    , right : Maybe ( Bool, Html msg )
+    , left : Maybe ( Bool, Html msg )
+    , infront : Maybe ( Bool, Html msg )
+    , behind : Maybe ( Bool, Html msg )
     }
 
 
@@ -1164,9 +1172,18 @@ renderNearbyGroupAbsolute nearby =
                 Nothing ->
                     Nothing
 
-                Just el ->
+                Just ( on, el ) ->
                     Just <|
-                        Html.div [ Html.Attributes.class (locationClass location) ] [ el ]
+                        Html.div
+                            [ Html.Attributes.class <|
+                                locationClass location
+                                    ++ (if not on then
+                                            " hidden"
+                                        else
+                                            ""
+                                       )
+                            ]
+                            [ el ]
     in
     Html.div [ Html.Attributes.class "se el nearby" ]
         (List.filterMap create
@@ -1722,7 +1739,7 @@ filter attrs =
                         else
                             ( x :: found, Set.insert "described" has )
 
-                    Nearby location elem ->
+                    Nearby location on elem ->
                         ( x :: found, has )
 
                     AlignX _ ->
@@ -2369,6 +2386,19 @@ lengthClassName x =
 
         Fill i ->
             intToString i ++ "fr"
+
+
+
+-- Between { value, min, max } ->
+--     case (min, max) ->
+--         (Nothing, Nothing) ->
+--             lengthClassName value
+--         (Just minimum, Nothing) ->
+--             lengthClassName value ++ "-min-" ++ intToString minimum
+--         (Nothing, Just maximum) ->
+--             lengthClassName value ++ "-max-" ++ intToString maximum
+--         (Just minimum, Just maximum) ->
+--             lengthClassName value ++ "-min-" ++ intToString minimum ++ "-max-" ++ intToString maximum
 
 
 formatDropShadow : { d | blur : a, color : Color, offset : ( b, c ) } -> String

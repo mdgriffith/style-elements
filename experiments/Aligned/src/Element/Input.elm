@@ -86,20 +86,13 @@ import Json.Decode as Json
 
 {-| -}
 type Placeholder msg
-    = Placeholder (Element msg)
+    = Placeholder (List (Attribute msg)) (Element msg)
 
 
 {-| -}
 placeholder : List (Attribute msg) -> Element msg -> Placeholder msg
-placeholder attrs child =
-    Placeholder <|
-        Internal.element Internal.noStyleSheet
-            Internal.asEl
-            Nothing
-            (Element.height Element.fill
-                :: attrs
-            )
-            (Internal.Unkeyed [ child ])
+placeholder =
+    Placeholder
 
 
 {-| Every input has a required `label`.
@@ -586,47 +579,54 @@ textHelper textType attrs textOptions =
         inputElement =
             Internal.element Internal.noStyleSheet
                 Internal.asEl
-                (Just "input")
-                (List.concat
-                    [ [ value textOptions.text
-                      , defaultTextPadding
-                      ]
-                    , defaultTextBoxStyle
-                    , textTypeAttr
-                    , behavior
-                    , attributes
-                    ]
-                )
-                (Internal.Unkeyed [])
+                Nothing
+                (case textOptions.placeholder of
+                    Nothing ->
+                        []
 
-        input =
-            case textOptions.placeholder of
-                Nothing ->
-                    inputElement
-
-                Just (Placeholder placeholder) ->
-                    Internal.element Internal.noStyleSheet
-                        Internal.asEl
-                        Nothing
+                    Just (Placeholder placeholderAttrs placeholder) ->
                         [ Element.inFront (textOptions.text == "") <|
                             Internal.element Internal.noStyleSheet
                                 Internal.asEl
                                 Nothing
                                 (Font.color charcoal
+                                    :: Internal.Class "text-selection" "no-text-selection"
                                     :: defaultTextPadding
                                     :: Element.height Element.fill
                                     :: Element.width Element.fill
-                                    :: inputPadding
+                                    :: (inputPadding
+                                            ++ placeholderAttrs
+                                       )
                                 )
-                                (Internal.Unkeyed [ placeholder ])
+                                (Internal.Unkeyed
+                                    [ placeholder
+                                    ]
+                                )
                         ]
-                        (Internal.Unkeyed [ inputElement ])
+                )
+                (Internal.Unkeyed <|
+                    [ Internal.element Internal.noStyleSheet
+                        Internal.asEl
+                        (Just "input")
+                        (List.concat
+                            [ [ value textOptions.text
+                              , defaultTextPadding
+                              ]
+                            , defaultTextBoxStyle
+                            , textTypeAttr
+                            , behavior
+                            , attributes
+                            ]
+                        )
+                        (Internal.Unkeyed [])
+                    ]
+                )
     in
     positionLabels
-        parentAttributes
+        (Internal.Class "cursor" "cursor-text" :: parentAttributes)
         textOptions.label
         textOptions.notice
-        input
+        inputElement
 
 
 {-| -}
@@ -715,7 +715,12 @@ multilineHelper spellchecked attrs textOptions =
                                         ( pad, height, lh, newAttrs )
 
                             Internal.StyleClass (Internal.PaddingStyle t r b l) ->
-                                ( Just ( t, r, b, l ), height, lh, attr :: newAttrs )
+                                case pad of
+                                    Nothing ->
+                                        ( Just ( t, r, b, l ), height, lh, attr :: newAttrs )
+
+                                    _ ->
+                                        ( pad, height, lh, newAttrs )
 
                             _ ->
                                 ( pad, height, lh, attr :: newAttrs )
@@ -732,11 +737,16 @@ multilineHelper spellchecked attrs textOptions =
                         newlineCount =
                             String.lines textOptions.text
                                 |> List.length
-                                -- |> ((+) 1)
                                 |> toFloat
+                                |> (\x ->
+                                        if x < 1 then
+                                            1
+                                        else
+                                            x
+                                   )
 
                         heightValue count =
-                            case padding of
+                            case Debug.log "padding" padding of
                                 Nothing ->
                                     toString (count * lineHeight) ++ "em"
 
@@ -803,27 +813,36 @@ multilineHelper spellchecked attrs textOptions =
                         _ ->
                             False
 
-        placeholderInFront =
-            case textOptions.placeholder of
-                Nothing ->
-                    []
-
-                Just (Placeholder placeholder) ->
-                    [ Element.inFront (textOptions.text == "") <|
-                        Internal.element Internal.noStyleSheet
-                            Internal.asEl
-                            Nothing
-                            (Font.color charcoal :: inputPadding)
-                            (Internal.Unkeyed [ placeholder ])
-                    ]
-
         input =
             Internal.element Internal.noStyleSheet
                 Internal.asEl
                 Nothing
-                placeholderInFront
-            <|
-                Internal.Unkeyed
+                (case textOptions.placeholder of
+                    Nothing ->
+                        []
+
+                    Just (Placeholder placeholderAttrs placeholder) ->
+                        [ Element.inFront (textOptions.text == "") <|
+                            Internal.element Internal.noStyleSheet
+                                Internal.asEl
+                                Nothing
+                                (Font.color charcoal
+                                    :: Internal.Class "text-selection" "no-text-selection"
+                                    :: defaultTextPadding
+                                    :: Internal.Class "cursor" "cursor-text"
+                                    :: Element.height Element.fill
+                                    :: Element.width Element.fill
+                                    :: (inputPadding
+                                            ++ placeholderAttrs
+                                       )
+                                )
+                                (Internal.Unkeyed
+                                    [ placeholder
+                                    ]
+                                )
+                        ]
+                )
+                (Internal.Unkeyed <|
                     [ Internal.element Internal.noStyleSheet
                         Internal.asEl
                         (Just "textarea")
@@ -848,6 +867,7 @@ multilineHelper spellchecked attrs textOptions =
                         )
                         (Internal.Unkeyed [ Internal.unstyled (Html.text textOptions.text) ])
                     ]
+                )
     in
     positionLabels attributesFromChild textOptions.label textOptions.notice input
 
@@ -1722,6 +1742,7 @@ defaultCheckbox checked =
         , Border.shadow
             { offset = ( 0, 0 )
             , blur = 1
+            , size = 2
             , color = Color.rgb 238 238 238
             }
         , Background.color <|

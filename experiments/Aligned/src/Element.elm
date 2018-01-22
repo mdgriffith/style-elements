@@ -300,6 +300,11 @@ fill =
     Internal.Fill 1
 
 
+
+-- between =
+--     Internal.Between
+
+
 {-| Sometimes you may not want to split available space evenly. In this case you can use `fillPortion` to define which elements should have what portion of the available space.
 
 So, two elements, one with `width (fillPortion 2)` and one with `width (fillPortion 3)`. The first would get 2 portions of the available space, while the second would get 3.
@@ -967,58 +972,43 @@ description =
 
 
 {-| -}
-below : Bool -> Internal.Element msg -> Attribute msg
+below : Bool -> Element msg -> Attribute msg
 below on element =
     if on then
-        Internal.Nearby Internal.Below element
+        Internal.Nearby Internal.Below on element
     else
         Internal.NoAttribute
 
 
 {-| `above` takes a `Bool` first so that you can easily toggle showing and hiding the element.
 -}
-above : Bool -> Internal.Element msg -> Attribute msg
+above : Bool -> Element msg -> Attribute msg
 above on element =
-    if on then
-        Internal.Nearby Internal.Above element
-    else
-        Internal.NoAttribute
+    Internal.Nearby Internal.Above on element
 
 
 {-| -}
-onRight : Bool -> Internal.Element msg -> Attribute msg
+onRight : Bool -> Element msg -> Attribute msg
 onRight on element =
-    if on then
-        Internal.Nearby Internal.OnRight element
-    else
-        Internal.NoAttribute
+    Internal.Nearby Internal.OnRight on element
 
 
 {-| -}
-onLeft : Bool -> Internal.Element msg -> Attribute msg
+onLeft : Bool -> Element msg -> Attribute msg
 onLeft on element =
-    if on then
-        Internal.Nearby Internal.OnLeft element
-    else
-        Internal.NoAttribute
+    Internal.Nearby Internal.OnLeft on element
 
 
 {-| -}
-inFront : Bool -> Internal.Element msg -> Attribute msg
+inFront : Bool -> Element msg -> Attribute msg
 inFront on element =
-    if on then
-        Internal.Nearby Internal.InFront element
-    else
-        Internal.NoAttribute
+    Internal.Nearby Internal.InFront on element
 
 
 {-| -}
-behind : Bool -> Internal.Element msg -> Attribute msg
+behind : Bool -> Element msg -> Attribute msg
 behind on element =
-    if on then
-        Internal.Nearby Internal.Behind element
-    else
-        Internal.NoAttribute
+    Internal.Nearby Internal.Behind on element
 
 
 {-| -}
@@ -1209,118 +1199,6 @@ clipX =
 pointer : Attribute msg
 pointer =
     Internal.Class "cursor" "cursor-pointer"
-
-
-
--- {-| If we have this construct, it makes it easier to change states for something like a button.
---     el
---         [ Color.background blue
---         , onClick Send
---         , mixIf model.disabled
---             [ Color.background grey
---             , onClick NoOp
---             ]
---         ]
--- Does it allow elimination of event handlers? Would have to rely on html behavior for that if it's true.
--- People could implement systems that involve multiple properties being set together.
--- Example of a disabled button
---     Input.button
---         [ Color.background
---             ( if disabled then
---                 grey
---              else
---                 blue
---             )
---         , Color.border
---             ( if disabled then
---                 grey
---              else
---                 blue
---             )
---         ]
---         { onPress = switch model.disabled Send
---         , label = text "Press me"
---         }
--- Advantages: no new constructs(!)
--- Disadvantages: could get verbose in the case of many properties set.
---   - How many properties would likely vary in this way?
---   - Would a `Color.palette {text, background, border}` go help?
---     Input.button
--- [ Color.palette
---     ( if disabled then
---         { background = grey
---         , text = darkGrey
---         , border = grey
---         }
---     else
---         { background = blue
---         , text = black
---         , border = blue
---         }
---     )
--- ]
--- { onPress = switch model.disabled Send
--- , label = text "Press me"
--- }
--- -- with mixIf
---     Input.button
---         [ Color.background blue
---         , mixIf model.disabled
---             [ Color.background grey
---             ]
---         ]
---         { onPress = (if model.disabled then Nothing else Just Send )
---         , label = text "Press me"
---         }
--- Advantages:
---   - Any properties can be set together.
---   - Would allow `above`/`below` type elements to be triggered manually.
--- Disadvantages:
---   - Does binding certain properties together lead to a good experience?
--- -}
--- mixIf : Bool -> List (Attribute msg) -> List (Attribute msg)
--- mixIf on attrs =
---     if on then
---         attrs
---     else
---         []
--- {-| For the hover pseudoclass, the considerations:
--- 1.  What happens on mobile/touch devices?
---       - Let the platform handle it
--- 2.  We can make the hover event show a 'nearby', like 'below' or something.
---       - what happens on mobile? Do first clicks now perform that action?
--- -}
--- {-| -}
--- blur : Float -> Attribute msg
--- blur x =
---     Internal.Filter (Internal.Blur x)
--- {-| -}
--- grayscale : Float -> Attribute msg
--- grayscale x =
---     Internal.Filter (Internal.Grayscale x)
--- -- hoverColors : { text : Maybe Color, background : Maybe Color, border : Maybe Color }
--- type alias Style =
---     Internal.Attribute Never
--- type alias Shadow =
---     { color : Color
---     , offset : ( Int, Int )
---     , blur : Int
---     , size : Int
---     }
--- type alias Hoverable =
---     { textColor : Maybe Color
---     , backgroundColor : Maybe Color
---     , borderColor : Maybe Color
---     , scale : Maybe Int
---     , shadow : Maybe Shadow
---     }
--- {-| -}
--- mouseOver : List Style -> Attribute msg
--- mouseOver attrs =
---     Internal.Pseudo
---         { class = Internal.Hover
---         , attributes = List.map (Internal.mapAttr never) attrs
---         }
 
 
 type Device
