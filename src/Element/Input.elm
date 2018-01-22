@@ -3,6 +3,7 @@ module Element.Input
         ( Checkbox
         , Choice
         , ChoiceState(..)
+        , Error
         , Label
         , Option
         , Radio
@@ -84,7 +85,7 @@ The following text inputs give hints to the browser so they can be autofilled.
 
 ## Options
 
-@docs Option, errorAbove, errorBelow, disabled, focusOnLoad, autofill, autofillSection, allowSpellcheck
+@docs Option, Error, errorAbove, errorBelow, disabled, focusOnLoad, autofill, autofillSection, allowSpellcheck
 
 -}
 
@@ -650,11 +651,13 @@ radioKey =
     Key
 
 
+{-| -}
 type Error style variation msg
     = ErrorBelow (Element style variation msg)
     | ErrorAbove (Element style variation msg)
 
 
+{-| -}
 type Label style variation msg
     = LabelBelow (Element style variation msg)
     | LabelAbove (Element style variation msg)
