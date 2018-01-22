@@ -611,6 +611,7 @@ textHelper textType attrs textOptions =
                         (List.concat
                             [ [ value textOptions.text
                               , defaultTextPadding
+                              , Internal.Class "focus" "focus-exactly"
                               ]
                             , defaultTextBoxStyle
                             , textTypeAttr
@@ -848,6 +849,7 @@ multilineHelper spellchecked attrs textOptions =
                         (Just "textarea")
                         (List.concat
                             [ [ value textOptions.text
+                              , Internal.Class "focus" "focus-exactly"
                               , case spellchecked of
                                     SpellChecked ->
                                         spellcheck True

@@ -1943,7 +1943,7 @@ renderFocusStyle :
     FocusStyle
     -> Style
 renderFocusStyle focus =
-    Style ".se:focus .focusable > *:not(.unfocusable)"
+    Style ".se:focus .focusable > *:not(.unfocusable), .se.focus-exactly:focus"
         (List.filterMap identity
             [ Maybe.map (\color -> Property "border-color" (formatColor color)) focus.borderColor
             , Maybe.map (\color -> Property "background-color" (formatColor color)) focus.backgroundColor
