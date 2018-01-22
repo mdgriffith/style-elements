@@ -24,7 +24,7 @@ suite =
         , benchmark1 "Repeated Styles" repeatedStyles 20
         , benchmark1 "Overlapping Styles" overlappingStyles 20
         , benchmark1 "Gathering Attributes"
-            (Internal.renderAttributes Nothing [])
+            (List.foldr Internal.gatherAttributes (Internal.initGathered Nothing))
             [ Font.color yellow
             , Background.color green
             , Font.size 30
@@ -46,7 +46,7 @@ simple : a -> Html.Html msg
 simple _ =
     Element.layoutWith
         { options =
-            [--Internal.RenderModeOption Internal.NoStaticStyleSheet
+            [ Internal.RenderModeOption Internal.NoStaticStyleSheet
             ]
         }
         [ Font.color yellow
@@ -65,15 +65,15 @@ simple _ =
             Element.empty
 
 
+overlappingStyles : Int -> Html msg
 overlappingStyles i =
-    -- Element.layoutWith
-    --     { options =
-    --         [--Internal.RenderModeOption Internal.NoStaticStyleSheet
-    --         ]
-    --     }
-    --     []
-    -- <|
-    Element.el [] <|
+    Element.layoutWith
+        { options =
+            [ Internal.RenderModeOption Internal.NoStaticStyleSheet
+            ]
+        }
+        []
+    <|
         Element.row
             [ --     Font.color yellow
               Background.color purple
@@ -93,10 +93,11 @@ overlappingStyles i =
             )
 
 
+repeatedEmptyStyles : Int -> Html msg
 repeatedEmptyStyles i =
     Element.layoutWith
         { options =
-            [--Internal.RenderModeOption Internal.NoStaticStyleSheet
+            [ Internal.RenderModeOption Internal.NoStaticStyleSheet
             ]
         }
         []
@@ -118,10 +119,11 @@ repeatedEmptyStyles i =
             )
 
 
+repeatedStyles : Int -> Html msg
 repeatedStyles i =
     Element.layoutWith
         { options =
-            [--Internal.RenderModeOption Internal.NoStaticStyleSheet
+            [ Internal.RenderModeOption Internal.NoStaticStyleSheet
             ]
         }
         []
