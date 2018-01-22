@@ -763,7 +763,7 @@ Which will look something like
 -}
 paragraph : List (Attribute msg) -> List (Element msg) -> Element msg
 paragraph attrs children =
-    Internal.element Internal.noStyleSheet Internal.asParagraph (Just "p") attrs (Internal.Unkeyed children)
+    Internal.element Internal.noStyleSheet Internal.asParagraph (Just "p") (Internal.adjustParagraphSpacing attrs) (Internal.Unkeyed children)
 
 
 {-| Now that we have a paragraph, we need someway to attach a bunch of paragraph's together.

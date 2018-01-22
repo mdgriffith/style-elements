@@ -958,6 +958,62 @@ gatherAttributes attr gathered =
                             gathered
 
 
+floorAtZero : Int -> Int
+floorAtZero x =
+    if x > 0 then
+        x
+    else
+        0
+
+
+{-| Paragraph's use a slightly different mode of spacing, which is that it's gives every child a margin of 1/2 of the spacing value for that axis.
+
+This means paragraph's with spacing must have padding that is at least the same size
+
+-}
+adjustParagraphSpacing : List (Attribute msg) -> List (Attribute msg)
+adjustParagraphSpacing attrs =
+    let
+        adjust ( x, y ) attribute =
+            case attribute of
+                StyleClass (PaddingStyle top right bottom left) ->
+                    StyleClass
+                        (PaddingStyle
+                            (floorAtZero (top - (y // 2)))
+                            (floorAtZero (right - (x // 2)))
+                            (floorAtZero (bottom - (y // 2)))
+                            (floorAtZero (left - (x // 2)))
+                        )
+
+                _ ->
+                    attribute
+
+        spacing =
+            attrs
+                |> List.foldr
+                    (\x acc ->
+                        case acc of
+                            Just x ->
+                                Just x
+
+                            Nothing ->
+                                case x of
+                                    StyleClass (SpacingStyle x y) ->
+                                        Just ( x, y )
+
+                                    _ ->
+                                        Nothing
+                    )
+                    Nothing
+    in
+    case spacing of
+        Nothing ->
+            attrs
+
+        Just ( x, y ) ->
+            List.map (adjust ( x, y )) attrs
+
+
 type alias TransformationAlias a =
     { a
         | rotate : Maybe ( Float, Float, Float, Float )
@@ -2086,6 +2142,18 @@ toStyleSheetString options stylesheet =
                         , renderStyle force maybePseudo (class ++ ".page > .se") [ Property "margin-top" (toString y ++ "px") ]
                         , renderStyle force maybePseudo (class ++ ".page > .self-left") [ Property "margin-right" (toString x ++ "px") ]
                         , renderStyle force maybePseudo (class ++ ".page > .self-right") [ Property "margin-left" (toString x ++ "px") ]
+                        , renderStyle force
+                            maybePseudo
+                            (class ++ ".paragraph > .se")
+                            [ Property "margin-right" (toString (toFloat x / 2) ++ "px")
+                            , Property "margin-left" (toString (toFloat x / 2) ++ "px")
+                            ]
+                        , renderStyle force
+                            maybePseudo
+                            (class ++ ".paragraph > .se")
+                            [ Property "margin-bottom" (toString (toFloat y / 2) ++ "px")
+                            , Property "margin-top" (toString (toFloat y / 2) ++ "px")
+                            ]
                         ]
 
                 PaddingStyle top right bottom left ->
