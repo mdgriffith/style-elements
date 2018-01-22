@@ -966,6 +966,7 @@ type alias TransformationAlias a =
     }
 
 
+addScale : a -> b -> c -> { d | scale : Maybe ( a, b, c ) } -> { d | scale : Maybe ( a, b, c ) }
 addScale x y z transformation =
     case transformation.scale of
         Nothing ->
@@ -978,6 +979,7 @@ addScale x y z transformation =
             transformation
 
 
+addRotate : a -> b -> c -> d -> { e | rotate : Maybe ( a, b, c, d ) } -> { e | rotate : Maybe ( a, b, c, d ) }
 addRotate x y z angle transformation =
     case transformation.rotate of
         Nothing ->
@@ -1332,6 +1334,11 @@ type EmbedStyle
     | OnlyDynamic OptionRecord
 
 
+noStyleSheet : EmbedStyle
+noStyleSheet =
+    NoStyleSheet
+
+
 element : EmbedStyle -> LayoutContext -> Maybe String -> List (Attribute msg) -> Children (Element msg) -> Element msg
 element embedMode context node attributes children =
     (contextClasses context :: attributes)
@@ -1458,7 +1465,7 @@ asElement embedMode children context rendered =
                                 Keyed keyed ->
                                     Keyed <|
                                         ( "static-stylesheet", Internal.Style.rulesElement )
-                                            :: ( "static-stylesheet", toStyleSheet options styles )
+                                            :: ( "dynamic-stylesheet", toStyleSheet options styles )
                                             :: keyed
 
                                 Unkeyed unkeyed ->
@@ -1473,7 +1480,7 @@ asElement embedMode children context rendered =
                                 Keyed keyed ->
                                     Keyed <|
                                         ( "static-stylesheet", Internal.Style.rulesElement )
-                                            :: ( "static-stylesheet", toStyleSheet options styles )
+                                            :: ( "dynamic-stylesheet", toStyleSheet options styles )
                                             :: ( "nearby-elements-pls-pls-pls-pls-be-unique", nearby )
                                             :: keyed
 
@@ -1504,7 +1511,7 @@ asElement embedMode children context rendered =
                             case htmlChildren of
                                 Keyed keyed ->
                                     Keyed <|
-                                        ( "static-stylesheet", toStyleSheet options styles )
+                                        ( "dynamic-stylesheet", toStyleSheet options styles )
                                             :: keyed
 
                                 Unkeyed unkeyed ->
@@ -1518,7 +1525,7 @@ asElement embedMode children context rendered =
                             case htmlChildren of
                                 Keyed keyed ->
                                     Keyed <|
-                                        ( "static-stylesheet", toStyleSheet options styles )
+                                        ( "dynamic-stylesheet", toStyleSheet options styles )
                                             :: ( "nearby-elements-pls-pls-pls-pls-be-unique", nearby )
                                             :: keyed
 

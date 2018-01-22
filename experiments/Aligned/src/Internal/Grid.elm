@@ -50,7 +50,7 @@ relative node attributes around =
             Internal.getSpacing attributes ( 5, 5 )
 
         make positioned =
-            Internal.element Internal.NoStyleSheet
+            Internal.element Internal.noStyleSheet
                 Internal.asEl
                 Nothing
                 positioned.attrs
@@ -59,7 +59,7 @@ relative node attributes around =
         ( template, children ) =
             createGrid ( sX, sY ) around
     in
-    Internal.element Internal.NoStyleSheet
+    Internal.element Internal.noStyleSheet
         Internal.asGrid
         node
         (-- :: Element.width Element.shrink
@@ -172,7 +172,7 @@ createGrid ( spacingX, spacingY ) nearby =
       ]
     , List.filterMap identity
         [ Just <|
-            Internal.element Internal.NoStyleSheet
+            Internal.element Internal.noStyleSheet
                 Internal.asEl
                 Nothing
                 [ Internal.StyleClass
@@ -210,21 +210,21 @@ build rowCoord colCoord spacingX spacingY positioned =
     in
     case positioned.layout of
         GridElement ->
-            Internal.element Internal.NoStyleSheet
+            Internal.element Internal.noStyleSheet
                 Internal.asColumn
                 Nothing
                 attributes
                 (Internal.Unkeyed <| Internal.columnEdgeFillers positioned.child)
 
         Row ->
-            Internal.element Internal.NoStyleSheet
+            Internal.element Internal.noStyleSheet
                 Internal.asRow
                 Nothing
                 attributes
                 (Internal.Unkeyed <| Internal.rowEdgeFillers positioned.child)
 
         Column ->
-            Internal.element Internal.NoStyleSheet
+            Internal.element Internal.noStyleSheet
                 Internal.asColumn
                 Nothing
                 attributes

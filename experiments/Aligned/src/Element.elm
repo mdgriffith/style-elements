@@ -4,6 +4,8 @@ module Element
         , Column
         , Element
         , FocusStyle
+        , IndexedColumn
+        , IndexedTable
         , Length
         , Link
         , Option
@@ -37,6 +39,7 @@ module Element
         , html
         , image
         , inFront
+        , indexedTable
         , layout
         , layoutWith
         , link
@@ -98,6 +101,8 @@ Text needs it's own layout primitives.
 ## Data Table
 
 @docs Table, Column, table
+
+@docs IndexedTable, IndexedColumn, indexedTable
 
 
 ## Rendering
@@ -463,7 +468,7 @@ text content =
 -}
 el : List (Attribute msg) -> Element msg -> Element msg
 el attrs child =
-    Internal.element Internal.NoStyleSheet
+    Internal.element Internal.noStyleSheet
         Internal.asEl
         Nothing
         (width shrink
@@ -482,7 +487,7 @@ el attrs child =
 row : List (Attribute msg) -> List (Element msg) -> Element msg
 row attrs children =
     Internal.element
-        Internal.NoStyleSheet
+        Internal.noStyleSheet
         Internal.asRow
         Nothing
         (Internal.Class "x-content-align" "content-center-x"
@@ -496,7 +501,7 @@ row attrs children =
 {-| -}
 column : List (Attribute msg) -> List (Element msg) -> Element msg
 column attrs children =
-    Internal.element Internal.NoStyleSheet
+    Internal.element Internal.noStyleSheet
         Internal.asColumn
         Nothing
         (Internal.Class "y-content-align" "content-top"
@@ -563,15 +568,72 @@ We could render it using
             ]
         }
 
+**Note:** Sometimes you might not have a list of records directly in your model. In this case it can be really nice to write a function that transforms some part of your model into a list of records before feeding it into `Element.table`.
+
 -}
 table : List (Attribute msg) -> Table data msg -> Element msg
 table attrs config =
+    tableHelper attrs
+        { data = config.data
+        , columns =
+            List.map InternalColumn config.columns
+        }
+
+
+{-| -}
+type alias IndexedTable records msg =
+    { data : List records
+    , columns : List (IndexedColumn records msg)
+    }
+
+
+{-| -}
+type alias IndexedColumn record msg =
+    { header : Element msg
+    , view : Int -> record -> Element msg
+    }
+
+
+{-| Same as `Element.table` except the `view` for each column will also receive the row index as well as the record.
+-}
+indexedTable : List (Attribute msg) -> IndexedTable data msg -> Element msg
+indexedTable attrs config =
+    tableHelper attrs
+        { data = config.data
+        , columns =
+            List.map InternalIndexedColumn config.columns
+        }
+
+
+{-| -}
+type alias InternalTable records msg =
+    { data : List records
+    , columns : List (InternalTableColumn records msg)
+    }
+
+
+{-| -}
+type InternalTableColumn record msg
+    = InternalIndexedColumn (IndexedColumn record msg)
+    | InternalColumn (Column record msg)
+
+
+tableHelper : List (Attribute msg) -> InternalTable data msg -> Element msg
+tableHelper attrs config =
     let
         ( sX, sY ) =
             Internal.getSpacing attrs ( 0, 0 )
 
+        columnHeader col =
+            case col of
+                InternalIndexedColumn colConfig ->
+                    colConfig.header
+
+                InternalColumn colConfig ->
+                    colConfig.header
+
         maybeHeaders =
-            List.map .header config.columns
+            List.map columnHeader config.columns
                 |> (\headers ->
                         if List.all ((==) Internal.Empty) headers then
                             Nothing
@@ -589,7 +651,7 @@ table attrs config =
 
         onGrid row column el =
             Internal.element
-                Internal.NoStyleSheet
+                Internal.noStyleSheet
                 Internal.asEl
                 Nothing
                 [ Internal.StyleClass
@@ -603,13 +665,23 @@ table attrs config =
                 ]
                 (Internal.Unkeyed [ el ])
 
-        add cell column cursor =
-            { cursor
-                | elements =
-                    onGrid cursor.row cursor.column (column.view cell)
-                        :: cursor.elements
-                , column = cursor.column + 1
-            }
+        add cell columnConfig cursor =
+            case columnConfig of
+                InternalIndexedColumn column ->
+                    { cursor
+                        | elements =
+                            onGrid cursor.row cursor.column (column.view cursor.row cell)
+                                :: cursor.elements
+                        , column = cursor.column + 1
+                    }
+
+                InternalColumn column ->
+                    { cursor
+                        | elements =
+                            onGrid cursor.row cursor.column (column.view cell)
+                                :: cursor.elements
+                        , column = cursor.column + 1
+                    }
 
         build columns rowData cursor =
             let
@@ -635,7 +707,7 @@ table attrs config =
                 }
                 config.data
     in
-    Internal.element Internal.NoStyleSheet
+    Internal.element Internal.noStyleSheet
         Internal.asGrid
         Nothing
         (width fill
@@ -691,7 +763,7 @@ Which will look something like
 -}
 paragraph : List (Attribute msg) -> List (Element msg) -> Element msg
 paragraph attrs children =
-    Internal.element Internal.NoStyleSheet Internal.asParagraph (Just "p") attrs (Internal.Unkeyed children)
+    Internal.element Internal.noStyleSheet Internal.asParagraph (Just "p") attrs (Internal.Unkeyed children)
 
 
 {-| Now that we have a paragraph, we need someway to attach a bunch of paragraph's together.
@@ -716,7 +788,7 @@ Which will result in something like:
 textColumn : List (Attribute msg) -> List (Element msg) -> Element msg
 textColumn attrs children =
     Internal.element
-        Internal.NoStyleSheet
+        Internal.noStyleSheet
         Internal.asTextColumn
         Nothing
         (width (px 650) :: attrs)
@@ -743,14 +815,14 @@ image attrs { src, description } =
                                 False
                     )
     in
-    Internal.element Internal.NoStyleSheet
+    Internal.element Internal.noStyleSheet
         Internal.asEl
         Nothing
         (clip
             :: attrs
         )
         (Internal.Unkeyed
-            [ Internal.element Internal.NoStyleSheet
+            [ Internal.element Internal.noStyleSheet
                 Internal.asEl
                 (Just "img")
                 (imageAttributes
@@ -783,14 +855,14 @@ decorativeImage attrs { src } =
                                 False
                     )
     in
-    Internal.element Internal.NoStyleSheet
+    Internal.element Internal.noStyleSheet
         Internal.asEl
         Nothing
         (clip
             :: attrs
         )
         (Internal.Unkeyed
-            [ Internal.element Internal.NoStyleSheet
+            [ Internal.element Internal.noStyleSheet
                 Internal.asEl
                 (Just "img")
                 (imageAttributes
@@ -820,7 +892,7 @@ type alias Link msg =
 -}
 link : List (Attribute msg) -> Link msg -> Element msg
 link attrs { url, label } =
-    Internal.element Internal.NoStyleSheet
+    Internal.element Internal.noStyleSheet
         Internal.asEl
         (Just "a")
         (Internal.Attr (Html.Attributes.href url)
@@ -837,7 +909,7 @@ link attrs { url, label } =
 {-| -}
 newTabLink : List (Attribute msg) -> Link msg -> Element msg
 newTabLink attrs { url, label } =
-    Internal.element Internal.NoStyleSheet
+    Internal.element Internal.noStyleSheet
         Internal.asEl
         (Just "a")
         (Internal.Attr (Html.Attributes.href url)
@@ -856,7 +928,7 @@ newTabLink attrs { url, label } =
 -}
 download : List (Attribute msg) -> Link msg -> Element msg
 download attrs { url, label } =
-    Internal.element Internal.NoStyleSheet
+    Internal.element Internal.noStyleSheet
         Internal.asEl
         (Just "a")
         (Internal.Attr (Html.Attributes.href url)
@@ -874,7 +946,7 @@ download attrs { url, label } =
 -}
 downloadAs : List (Attribute msg) -> { label : Element msg, filename : String, url : String } -> Element msg
 downloadAs attrs { url, filename, label } =
-    Internal.element Internal.NoStyleSheet
+    Internal.element Internal.noStyleSheet
         Internal.asEl
         (Just "a")
         (Internal.Attr (Html.Attributes.href url)

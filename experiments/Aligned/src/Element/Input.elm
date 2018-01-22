@@ -93,7 +93,7 @@ type Placeholder msg
 placeholder : List (Attribute msg) -> Element msg -> Placeholder msg
 placeholder attrs child =
     Placeholder <|
-        Internal.element Internal.NoStyleSheet
+        Internal.element Internal.noStyleSheet
             Internal.asEl
             Nothing
             (Element.height Element.fill
@@ -212,7 +212,7 @@ The `onPress` handler will be fired either `onClick` or when the element is focu
 -}
 button : List (Attribute msg) -> Button msg -> Element msg
 button attrs { onPress, label } =
-    Internal.element Internal.NoStyleSheet
+    Internal.element Internal.noStyleSheet
         Internal.asEl
         -- We don't explicitly label this node as a button,
         -- because buttons fire a bunch of times when you hold down the enter key.
@@ -254,7 +254,7 @@ checkbox : List (Attribute msg) -> Checkbox msg -> Element msg
 checkbox attrs { label, icon, checked, onChange, notice } =
     let
         input =
-            Internal.element Internal.NoStyleSheet
+            Internal.element Internal.noStyleSheet
                 Internal.asEl
                 (Just "div")
                 [ Internal.Attr <|
@@ -584,7 +584,7 @@ textHelper textType attrs textOptions =
                             False
 
         inputElement =
-            Internal.element Internal.NoStyleSheet
+            Internal.element Internal.noStyleSheet
                 Internal.asEl
                 (Just "input")
                 (List.concat
@@ -605,11 +605,11 @@ textHelper textType attrs textOptions =
                     inputElement
 
                 Just (Placeholder placeholder) ->
-                    Internal.element Internal.NoStyleSheet
+                    Internal.element Internal.noStyleSheet
                         Internal.asEl
                         Nothing
                         [ Element.inFront (textOptions.text == "") <|
-                            Internal.element Internal.NoStyleSheet
+                            Internal.element Internal.noStyleSheet
                                 Internal.asEl
                                 Nothing
                                 (Font.color charcoal
@@ -810,7 +810,7 @@ multilineHelper spellchecked attrs textOptions =
 
                 Just (Placeholder placeholder) ->
                     [ Element.inFront (textOptions.text == "") <|
-                        Internal.element Internal.NoStyleSheet
+                        Internal.element Internal.noStyleSheet
                             Internal.asEl
                             Nothing
                             (Font.color charcoal :: inputPadding)
@@ -818,13 +818,13 @@ multilineHelper spellchecked attrs textOptions =
                     ]
 
         input =
-            Internal.element Internal.NoStyleSheet
+            Internal.element Internal.noStyleSheet
                 Internal.asEl
                 Nothing
                 placeholderInFront
             <|
                 Internal.Unkeyed
-                    [ Internal.element Internal.NoStyleSheet
+                    [ Internal.element Internal.noStyleSheet
                         Internal.asEl
                         (Just "textarea")
                         (List.concat
@@ -1394,7 +1394,7 @@ type Orientation
 
 column : List (Attribute msg) -> List (Internal.Element msg) -> Internal.Element msg
 column attrs children =
-    Internal.element Internal.NoStyleSheet
+    Internal.element Internal.noStyleSheet
         Internal.asColumn
         Nothing
         (Element.height Element.shrink
@@ -1407,7 +1407,7 @@ column attrs children =
 row : List (Attribute msg) -> List (Internal.Element msg) -> Internal.Element msg
 row attrs children =
     Internal.element
-        Internal.NoStyleSheet
+        Internal.noStyleSheet
         Internal.asRow
         Nothing
         (Element.width Element.fill
