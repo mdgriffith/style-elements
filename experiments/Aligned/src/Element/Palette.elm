@@ -29,7 +29,11 @@ import Internal.Model as Internal
 
 
 
-   And in View code
+
+
+
+
+    And in View code
 
          -- pulling a value from the palette
          el
@@ -52,6 +56,31 @@ import Internal.Model as Internal
              ]
              (text "I'm styled")
 
+
+
+    Creating a fontsize Palette
+
+        For a given size, we should be able to specify the literal pixel size. We could also specify a scaling function based on window size.
+
+        Simple approach
+
+        Palette.scale (0, 20) <|
+            (\i ->
+                i
+                    -- scales the font modularly
+                    |> Scale.modular 1.3
+                    -- scales the result based on the window width
+                    -- where window.width 1200 is 1.0, on a slope of 1.3
+                    |> Scale.linear 1.3 1200 window.width
+            )
+
+
+
+
+        fontSizes : Palette CustomPalette
+        fontSizes =
+           Palette.colors CustomPalette
+               |> Palette.color purple
 
 
 
