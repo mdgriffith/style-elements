@@ -376,10 +376,6 @@ rules =
                         ]
                 )
             ]
-        , Class ("a" ++ class Any)
-            [ Prop "text-decoration" "none"
-            , Prop "color" "inherit"
-            ]
         , Class (class Root)
             [ Prop "width" "100%"
             , Prop "height" "auto"
