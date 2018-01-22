@@ -196,22 +196,19 @@ innerShadow { offset, blur, color, size } =
         }
 
 
-{-| A drop shadow will add a shadow to whatever shape you give it.
-
-So, if you apply a drop shadow to an image with an alpha channel, the shadow will appear around the edges of the non-trasparent part.
-
--}
+{-| -}
 shadow :
     { offset : ( Float, Float )
     , blur : Float
+    , size : Float
     , color : Color
     }
     -> Attribute msg
-shadow { offset, blur, color } =
-    Filter <|
-        DropShadow
-            { offset = offset
-            , size = 0
-            , blur = blur
-            , color = color
-            }
+shadow { size, offset, blur, color } =
+    BoxShadow
+        { inset = True
+        , offset = offset
+        , size = size
+        , blur = blur
+        , color = color
+        }
