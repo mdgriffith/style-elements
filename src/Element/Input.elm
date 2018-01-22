@@ -19,10 +19,6 @@ module Element.Input
         , checkbox
         , choice
         , clear
-          -- , grid
-          -- , Grid
-          -- , cell
-          -- , cellWith
         , currentPassword
         , disabled
         , dropMenu
@@ -1654,14 +1650,14 @@ selectMenu style attrs input =
                             :: Attr.width Attr.fill
                             :: attrsWithoutSpacing
                     else if input.isOpen && input.selected /= Nothing then
-                        Events.onClick (input.onUpdate CloseMenu)
+                        Events.onMouseDown (input.onUpdate CloseMenu)
                             :: pointer
                             :: Attr.verticalCenter
                             :: Attr.spread
                             :: Attr.width Attr.fill
                             :: attrsWithoutSpacing
                     else if not input.isOpen && input.selected /= Nothing then
-                        Events.onClick (input.onUpdate OpenMenu)
+                        Events.onMouseDown (input.onUpdate OpenMenu)
                             :: pointer
                             :: Attr.verticalCenter
                             :: Attr.spread
