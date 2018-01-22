@@ -26,6 +26,7 @@ init =
     , password = ""
     , agreeTOS = False
     , comment = ""
+    , lunch = Gyro
     }
 
 
@@ -34,6 +35,7 @@ type alias Form =
     , password : String
     , agreeTOS : Bool
     , comment : String
+    , lunch : Lunch
     }
 
 
@@ -42,9 +44,15 @@ type Msg
 
 
 update msg model =
-    case msg of
+    case Debug.log "msg" msg of
         Update new ->
             ( new, Cmd.none )
+
+
+type Lunch
+    = Burrito
+    | Taco
+    | Gyro
 
 
 view model =
@@ -63,21 +71,20 @@ view model =
     <|
         Element.column [ width (px 800), center, spacing 10 ]
             [ el [ Area.heading 1 ] (text "Welcome to Style Elements!")
-            , Input.username [ Background.color grey ]
+            , Input.username []
                 { text = model.username
                 , placeholder = Nothing
                 , onChange = Just (\new -> Update { model | username = new })
                 , label = Input.labelAbove [] (text "Username")
                 , notice = Nothing
                 }
-
-            -- , Input.currentPassword [ Background.color grey ]
-            --     { text = model.password
-            --     , placeholder = Nothing
-            --     , onChange = Just (\new -> Update { model | password = new })
-            --     , label = Input.labelAbove [] (text "Password")
-            --     , notice = Nothing
-            --     }
+            , Input.currentPassword []
+                { text = model.password
+                , placeholder = Nothing
+                , onChange = Just (\new -> Update { model | password = new })
+                , label = Input.labelAbove [] (text "Password")
+                , notice = Nothing
+                }
             , Input.checkbox []
                 { checked = model.agreeTOS
                 , onChange = Just (\new -> Update { model | agreeTOS = new })
@@ -85,25 +92,47 @@ view model =
                 , label = Input.labelRight [] (text "Agree to Terms of Service")
                 , notice = Nothing
                 }
-
-            -- , Input.button
-            --     [ Background.color blue
-            --     , Font.color white
-            --     , Border.color darkBlue
-            --     , paddingXY 15 5
-            --     , Border.rounded 3
-            --     ]
-            --     { onPress = Nothing
-            --     , label = Element.text "Sign in"
-            --     }
-            -- , Input.multiline
-            --     [ height shrink
-            --     , Background.color grey
-            --     ]
-            --     { text = model.comment
-            --     , placeholder = Nothing
-            --     , onChange = Just (\new -> Update { model | comment = new })
-            --     , label = Input.labelAbove [] (text "Leave a comment!")
-            --     , notice = Nothing
-            --     }
+            , Input.button
+                [ Background.color blue
+                , Font.color white
+                , Border.color darkBlue
+                , paddingXY 15 5
+                , Border.rounded 3
+                ]
+                { onPress = Nothing
+                , label = Element.text "Sign in"
+                }
+            , Input.multiline
+                [ height shrink
+                ]
+                { text = model.comment
+                , placeholder = Nothing
+                , onChange = Just (\new -> Update { model | comment = new })
+                , label = Input.labelAbove [] (text "Leave a comment!")
+                , notice = Nothing
+                }
+            , Input.radio []
+                { selected = Just model.lunch
+                , onChange = Just (\new -> Update { model | lunch = new })
+                , label = Input.labelAbove [] (text "Choose One")
+                , notice = Nothing
+                , options =
+                    [ Input.option Gyro (text "Gyro")
+                    , Input.option Burrito (text "Burrito")
+                    , Input.option Taco (text "Taco")
+                    ]
+                }
+            , Input.select []
+                { selected = Nothing
+                , onChange = Just (\new -> Update { model | lunch = new })
+                , label = Input.labelAbove [] (text "Choose One")
+                , notice = Nothing
+                , placeholder = Just (text "-")
+                , menu =
+                    Input.menuBelow []
+                        [ Input.option Gyro (text "Gyro")
+                        , Input.option Burrito (text "Burrito")
+                        , Input.option Taco (text "Taco")
+                        ]
+                }
             ]
