@@ -16,6 +16,7 @@ module Element.Font
         , lineHeight
         , monospace
         , mouseOverColor
+        , normal
         , sansSerif
         , serif
         , shadow
@@ -84,7 +85,7 @@ module Element.Font
 
 ## Font Styles
 
-@docs underline, strike, italic, bold, light, weight
+@docs underline, strike, italic, bold, light, weight, normal
 
 
 ## Shadows
@@ -94,7 +95,8 @@ module Element.Font
 -}
 
 import Color exposing (Color)
-import Internal.Model as Internal exposing (Attribute(..), Style(..))
+import Element exposing (Attribute)
+import Internal.Model as Internal
 
 
 {-| -}
@@ -105,13 +107,13 @@ type alias Font =
 {-| -}
 color : Color -> Attribute msg
 color fontColor =
-    StyleClass (Colored ("font-color-" ++ Internal.formatColorClass fontColor) "color" fontColor)
+    Internal.StyleClass (Internal.Colored ("font-color-" ++ Internal.formatColorClass fontColor) "color" fontColor)
 
 
 {-| -}
 mouseOverColor : Color -> Attribute msg
 mouseOverColor fontColor =
-    Internal.hover (Colored ("hover-font-color-" ++ Internal.formatColorClass fontColor) "color" fontColor)
+    Internal.hover (Internal.Colored ("hover-font-color-" ++ Internal.formatColorClass fontColor) "color" fontColor)
 
 
 {-|
@@ -131,33 +133,7 @@ mouseOverColor fontColor =
 -}
 family : List Font -> Attribute msg
 family families =
-    let
-        renderFontClassName font current =
-            current
-                ++ (case font of
-                        Internal.Serif ->
-                            "serif"
-
-                        Internal.SansSerif ->
-                            "sans-serif"
-
-                        Internal.Monospace ->
-                            "monospace"
-
-                        Internal.Typeface name ->
-                            name
-                                |> String.toLower
-                                |> String.words
-                                |> String.join "-"
-
-                        Internal.ImportFont name url ->
-                            name
-                                |> String.toLower
-                                |> String.words
-                                |> String.join "-"
-                   )
-    in
-    StyleClass <| Internal.FontFamily (List.foldl renderFontClassName "font-" families) families
+    Internal.StyleClass <| Internal.FontFamily (List.foldl Internal.renderFontClassName "font-" families) families
 
 
 {-| -}
@@ -194,7 +170,7 @@ external { url, name } =
 -}
 size : Int -> Attribute msg
 size size =
-    StyleClass (Single ("font-size-" ++ toString size) "font-size" (toString size ++ "px"))
+    Internal.StyleClass (Internal.Single ("font-size-" ++ toString size) "font-size" (toString size ++ "px"))
 
 
 {-| This is the only unitless value in the library that isn't `px`.
@@ -208,15 +184,15 @@ This means the final lineHeight in px is:
 -}
 lineHeight : Float -> Attribute msg
 lineHeight =
-    StyleClass << LineHeight
+    Internal.StyleClass << Internal.LineHeight
 
 
 {-| In `px`.
 -}
 letterSpacing : Float -> Attribute msg
 letterSpacing offset =
-    StyleClass <|
-        Single
+    Internal.StyleClass <|
+        Internal.Single
             ("letter-spacing-" ++ Internal.floatClass offset)
             "letter-spacing"
             (toString offset ++ "px")
@@ -226,15 +202,15 @@ letterSpacing offset =
 -}
 wordSpacing : Float -> Attribute msg
 wordSpacing offset =
-    StyleClass <|
-        Single ("word-spacing-" ++ Internal.floatClass offset) "word-spacing" (toString offset ++ "px")
+    Internal.StyleClass <|
+        Internal.Single ("word-spacing-" ++ Internal.floatClass offset) "word-spacing" (toString offset ++ "px")
 
 
 {-| -}
 weight : Int -> Attribute msg
 weight fontWeight =
-    StyleClass <|
-        Single ("font-weight-" ++ toString fontWeight) "font-weight" (toString fontWeight)
+    Internal.StyleClass <|
+        Internal.Single ("font-weight-" ++ toString fontWeight) "font-weight" (toString fontWeight)
 
 
 {-| Align the font to the left.
@@ -299,6 +275,16 @@ bold =
 light : Attribute msg
 light =
     Internal.class "text-light"
+
+
+{-| This will reset bold, italic, strikethrough and underline.
+
+It's not often needed.
+
+-}
+normal : Attribute msg
+normal =
+    Internal.class "text-normal"
 
 
 {-| -}
