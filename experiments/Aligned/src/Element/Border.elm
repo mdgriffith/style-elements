@@ -206,7 +206,7 @@ shadow :
     -> Attribute msg
 shadow { size, offset, blur, color } =
     BoxShadow
-        { inset = True
+        { inset = False
         , offset = offset
         , size = size
         , blur = blur
