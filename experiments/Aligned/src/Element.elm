@@ -2,6 +2,7 @@ module Element
     exposing
         ( Attribute
         , Column
+        , Device
         , Element
         , FocusStyle
         , IndexedColumn
@@ -20,17 +21,18 @@ module Element
         , below
         , center
         , centerY
+        , classifyDevice
         , clip
         , clipX
         , clipY
         , column
         , decorativeImage
-        , description
         , download
         , downloadAs
         , el
         , empty
         , fill
+        , fillBetween
         , fillPortion
         , focusStyle
         , forceHover
@@ -45,6 +47,7 @@ module Element
         , link
         , map
         , mapAttribute
+        , modular
         , mouseOverScale
         , moveDown
         , moveLeft
@@ -119,12 +122,12 @@ Text needs it's own layout primitives.
 
 # Attributes
 
-@docs Attribute, hidden, description, pointer
+@docs Attribute, hidden, pointer
 
 
 ## Width and Height
 
-@docs width, height, Length, px, shrink, fill, fillPortion
+@docs width, height, Length, px, shrink, fill, fillPortion, fillBetween
 
 
 ## Padding and Spacing
@@ -215,6 +218,16 @@ If these are present, the element will add a scrollbar if necessary.
 @docs scrollbars, scrollbarY, scrollbarX
 
 
+## Responsiveness
+
+@docs Device, classifyDevice
+
+
+## Scaling
+
+@docs modular
+
+
 ## Mapping
 
 @docs map, mapAttribute
@@ -226,9 +239,10 @@ If these are present, the element will add a scrollbar if necessary.
 
 -}
 
+-- import Element.Font as Font
+
 import Color exposing (Color)
 import Element.Background as Background
-import Element.Font as Font
 import Html exposing (Html)
 import Html.Attributes
 import Internal.Model as Internal
@@ -300,9 +314,21 @@ fill =
     Internal.Fill 1
 
 
+{-| Fill the available space as long as it's inbetween the pixel bounds.
+-}
+fillBetween : { min : Maybe Int, max : Maybe Int } -> Length
+fillBetween { min, max } =
+    Internal.FillBetween
+        { portion = 1
+        , min = min
+        , max = max
+        }
 
--- between =
---     Internal.Between
+
+{-| -}
+fillPortionBetween : { portion : Int, min : Maybe Int, max : Maybe Int } -> Length
+fillPortionBetween =
+    Internal.FillBetween
 
 
 {-| Sometimes you may not want to split available space evenly. In this case you can use `fillPortion` to define which elements should have what portion of the available space.
@@ -328,19 +354,11 @@ layout =
 layoutWith : { options : List Option } -> List (Attribute msg) -> Element msg -> Html msg
 layoutWith { options } attrs child =
     Internal.renderRoot options
-        (Background.color Color.blue
-            :: Font.color Color.white
-            :: Font.size 20
-            :: Font.family
-                [ Font.typeface "Open Sans"
-                , Font.typeface "Helvetica"
-                , Font.typeface "Verdana"
-                , Font.sansSerif
-                ]
+        (Background.color Color.white
             :: Internal.htmlClass "style-elements se el"
             :: Internal.Class "x-content-align" "content-center-x"
             :: Internal.Class "y-content-align" "content-center-y"
-            :: attrs
+            :: (Internal.rootStyle ++ attrs)
         )
         child
 
@@ -510,7 +528,7 @@ column attrs children =
         Internal.asColumn
         Nothing
         (Internal.Class "y-content-align" "content-top"
-            :: Internal.Class "x-content-align" "content-center-x"
+            :: Internal.Class "x-content-align" "content-left"
             :: height fill
             :: width fill
             :: attrs
@@ -675,7 +693,16 @@ tableHelper attrs config =
                 InternalIndexedColumn column ->
                     { cursor
                         | elements =
-                            onGrid cursor.row cursor.column (column.view cursor.row cell)
+                            onGrid cursor.row
+                                cursor.column
+                                (column.view
+                                    (if maybeHeaders == Nothing then
+                                        cursor.row - 1
+                                     else
+                                        cursor.row - 2
+                                    )
+                                    cell
+                                )
                                 :: cursor.elements
                         , column = cursor.column + 1
                     }
@@ -966,12 +993,6 @@ downloadAs attrs { url, filename, label } =
 
 
 {-| -}
-description : String -> Attribute msg
-description =
-    Internal.Describe << Internal.Label
-
-
-{-| -}
 below : Bool -> Element msg -> Attribute msg
 below on element =
     if on then
@@ -1201,12 +1222,55 @@ pointer =
     Internal.Class "cursor" "cursor-pointer"
 
 
-type Device
-    = Device
+{-| -}
+type alias Device =
+    { width : Int
+    , height : Int
+    , phone : Bool
+    , tablet : Bool
+    , desktop : Bool
+    , bigDesktop : Bool
+    , portrait : Bool
+    }
 
 
-{-| <meta name="viewport" content="width=device-width, initial-scale=1">
+{-| Takes in a Window.Size and returns a device profile which can be used for responsiveness.
 -}
-classifyDevice : { window | width : Int } -> Device
-classifyDevice window =
-    Device
+classifyDevice : { window | height : Int, width : Int } -> Device
+classifyDevice { width, height } =
+    { width = width
+    , height = height
+    , phone = width <= 600
+    , tablet = width > 600 && width <= 1200
+    , desktop = width > 1200 && width <= 1800
+    , bigDesktop = width > 1800
+    , portrait = width < height
+    }
+
+
+{-| When designing it's nice to use a modular scale to set spacial rythms.
+scaled =
+Scale.modular 16 1.25
+
+A modular scale starts with a number, and multiplies it by a ratio a number of times.
+Then, when setting font sizes you can use:
+
+       Font.size (scaled 1) -- results in 16
+
+       Font.size (scaled 2) -- 16 * 1.25 results in 20
+
+       Font.size (scaled 4) -- 16 * 1.25 ^ (4 - 1) results in 31.25
+
+We can also provide negative numbers to scale below 16px.
+
+       Font.size (scaled -1) -- 16 * 1.25 ^ (-1) results in 12.8
+
+-}
+modular : Float -> Float -> Int -> Float
+modular normal ratio scale =
+    if scale == 0 then
+        normal
+    else if scale < 0 then
+        normal * ratio ^ toFloat scale
+    else
+        normal * ratio ^ (toFloat scale - 1)

@@ -225,14 +225,11 @@ type Length
     = Px Int
     | Content
     | Fill Int
-
-
-
--- | Between
---     { value : Length
---     , min : Maybe Int
---     , max : Maybe Int
---     }
+    | FillBetween
+        { portion : Int
+        , min : Maybe Int
+        , max : Maybe Int
+        }
 
 
 type Axis
@@ -622,6 +619,48 @@ gatherAttributes attr gathered =
                                 , styles =
                                     Single (".se.row > " ++ (styleName <| "width-fill-" ++ toString portion)) "flex-grow" (toString (portion * 100000)) :: gathered.styles
                             }
+
+                    FillBetween fill ->
+                        let
+                            minimum =
+                                Maybe.map renderMin fill.min
+
+                            maximum =
+                                Maybe.map renderMax fill.max
+
+                            renderMin px =
+                                ( "min-width-" ++ intToString px, Single (".min-width-" ++ intToString px) "min-width" (intToString px ++ "px") )
+
+                            renderMax px =
+                                ( ".max-width-" ++ intToString px, Single (".max-width-" ++ intToString px) "max-width" (intToString px ++ "px") )
+
+                            base =
+                                Just
+                                    ( case "width-fill-portion width-fill-" ++ toString fill.portion
+                                    , Single (".se.row > " ++ (styleName <| "width-fill-" ++ toString fill.portion)) "flex-grow" (toString (fill.portion * 100000))
+                                    )
+
+                            classes =
+                                String.join " " <|
+                                    List.filterMap (Maybe.map Tuple.first)
+                                        [ minimum
+                                        , maximum
+                                        , base
+                                        ]
+
+                            styles =
+                                List.filterMap (Maybe.map Tuple.second)
+                                    [ minimum
+                                    , maximum
+                                    , base
+                                    ]
+                        in
+                        { gathered
+                            | width = Just width
+                            , attributes = className classes :: gathered.attributes
+                            , styles =
+                                styles ++ gathered.styles
+                        }
             else
                 gathered
 
@@ -654,6 +693,48 @@ gatherAttributes attr gathered =
                                 , styles =
                                     Single (".se.column > " ++ (styleName <| "height-fill-" ++ toString portion)) "flex-grow" (toString (portion * 100000)) :: gathered.styles
                             }
+
+                    FillBetween fill ->
+                        let
+                            minimum =
+                                Maybe.map renderMin fill.min
+
+                            maximum =
+                                Maybe.map renderMax fill.max
+
+                            renderMin px =
+                                ( "min-height-" ++ intToString px, Single (".min-height-" ++ intToString px) "min-height" (intToString px ++ "px") )
+
+                            renderMax px =
+                                ( ".max-height-" ++ intToString px, Single (".max-height-" ++ intToString px) "max-height" (intToString px ++ "px") )
+
+                            base =
+                                Just
+                                    ( "height-fill-portion height-fill-" ++ toString fill.portion
+                                    , Single (".se.column > " ++ (styleName <| "height-fill-" ++ toString fill.portion)) "flex-grow" (toString (fill.portion * 100000))
+                                    )
+
+                            classes =
+                                String.join " " <|
+                                    List.filterMap (Maybe.map Tuple.first)
+                                        [ minimum
+                                        , maximum
+                                        , base
+                                        ]
+
+                            styles =
+                                List.filterMap (Maybe.map Tuple.second)
+                                    [ minimum
+                                    , maximum
+                                    , base
+                                    ]
+                        in
+                        { gathered
+                            | height = Just height
+                            , attributes = className classes :: gathered.attributes
+                            , styles =
+                                styles ++ gathered.styles
+                        }
             else
                 gathered
 
@@ -1925,6 +2006,51 @@ type alias Shadow =
     }
 
 
+rootStyle : List (Attribute msg)
+rootStyle =
+    let
+        families =
+            [ Typeface "Open Sans"
+            , Typeface "Helvetica"
+            , Typeface "Verdana"
+            , SansSerif
+            ]
+    in
+    [ StyleClass (Colored ("font-color-" ++ formatColorClass Color.darkCharcoal) "color" Color.darkCharcoal)
+    , StyleClass (Single "font-size-20" "font-size" "20px")
+    , StyleClass <|
+        FontFamily (List.foldl renderFontClassName "font-" families)
+            families
+    ]
+
+
+renderFontClassName : Font -> String -> String
+renderFontClassName font current =
+    current
+        ++ (case font of
+                Serif ->
+                    "serif"
+
+                SansSerif ->
+                    "sans-serif"
+
+                Monospace ->
+                    "monospace"
+
+                Typeface name ->
+                    name
+                        |> String.toLower
+                        |> String.words
+                        |> String.join "-"
+
+                ImportFont name url ->
+                    name
+                        |> String.toLower
+                        |> String.words
+                        |> String.join "-"
+           )
+
+
 
 -- renderStyles : Element msg -> ( Set String, List Style ) -> ( Set String, List Style )
 -- renderStyles el ( cache, existing ) =
@@ -1943,7 +2069,7 @@ renderFocusStyle :
     FocusStyle
     -> Style
 renderFocusStyle focus =
-    Style ".se:focus .focusable > *:not(.unfocusable), .se.focus-exactly:focus"
+    Style ".se:focus .focusable, .se.focusable:focus"
         (List.filterMap identity
             [ Maybe.map (\color -> Property "border-color" (formatColor color)) focus.borderColor
             , Maybe.map (\color -> Property "background-color" (formatColor color)) focus.backgroundColor
@@ -2227,7 +2353,21 @@ toStyleSheetString options stylesheet =
                                     "auto"
 
                                 Fill i ->
-                                    toString i ++ "fr"
+                                    intToString i ++ "fr"
+
+                                FillBetween fill ->
+                                    case ( fill.min, fill.max ) of
+                                        ( Nothing, Nothing ) ->
+                                            intToString fill.portion ++ "fr"
+
+                                        ( Just minimum, Nothing ) ->
+                                            "minmax(" ++ intToString minimum ++ "px, " ++ intToString fill.portion ++ "fr)"
+
+                                        ( Nothing, Just maximum ) ->
+                                            "minmax(" ++ intToString fill.portion ++ "fr, " ++ intToString maximum ++ "px)"
+
+                                        ( Just minimum, Just maximum ) ->
+                                            "minmax(" ++ intToString minimum ++ "px, " ++ intToString maximum ++ "px)"
 
                         msColumns =
                             template.columns
@@ -2386,6 +2526,26 @@ lengthClassName x =
 
         Fill i ->
             intToString i ++ "fr"
+
+        FillBetween bounds ->
+            let
+                renderedMin =
+                    case bounds.min of
+                        Nothing ->
+                            ""
+
+                        Just m ->
+                            "-" ++ intToString m
+
+                renderedMax =
+                    case bounds.max of
+                        Nothing ->
+                            ""
+
+                        Just m ->
+                            "-" ++ intToString m
+            in
+            intToString bounds.portion ++ "fr" ++ renderedMin ++ renderedMax
 
 
 
