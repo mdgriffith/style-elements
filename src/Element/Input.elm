@@ -360,7 +360,11 @@ type TextKind
     | TextArea
 
 
-{-| -}
+{-| A plain text input.
+
+_NOTE_ Due to a bug in `virtual-dom`, this text input needs to use `textKey`.
+
+-}
 text : style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
 text =
     textHelper Plain []
