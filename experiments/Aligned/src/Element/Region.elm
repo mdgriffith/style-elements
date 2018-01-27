@@ -1,8 +1,9 @@
-module Element.Area
+module Element.Region
     exposing
         ( announce
         , announceUrgently
         , aside
+        , description
         , footer
         , heading
         , mainContent
@@ -12,7 +13,7 @@ module Element.Area
 {-|
 
 
-# Area Annotations
+# Region Annotations
 
 This module is meant to make accessibility easy! They're sign posts that accessibility software like screen readers can use to navigate your app.
 
@@ -27,9 +28,11 @@ Here's an example of annotating your navigation area:
             [-- ..your navigation links
             ]
 
-@docs mainContent, navigation, heading
+@docs mainContent, navigation, heading, aside, footer
 
-@docs announce, announceUrgently, aside, footer
+@docs description
+
+@docs announce, announceUrgently
 
 -}
 
@@ -105,3 +108,9 @@ announceUrgently =
 announce : Attribute msg
 announce =
     Internal.Describe LivePolite
+
+
+{-| -}
+description : String -> Attribute msg
+description =
+    Internal.Describe << Internal.Label
