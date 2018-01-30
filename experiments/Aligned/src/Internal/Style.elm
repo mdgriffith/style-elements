@@ -351,6 +351,29 @@ viewportRulesElement =
     Html.node "style" [] [ Html.text viewportRules ]
 
 
+describeText : String -> List Rule -> Rule
+describeText cls props =
+    Descriptor cls
+        (List.map makeImportant props
+            ++ [ Child ".text"
+                    props
+               , Child ".el"
+                    props
+               , Child ".el > .text"
+                    props
+               ]
+        )
+
+
+makeImportant rule =
+    case rule of
+        Prop name prop ->
+            Prop name (prop ++ " !important")
+
+        _ ->
+            rule
+
+
 rules : String
 rules =
     render
@@ -362,6 +385,16 @@ rules =
         , Class ".se:focus"
             [ Prop "outline" "none"
             ]
+
+        --  , Class ".sefoc"
+        --     [ Prop "outline" "none"
+        --     , Prop "transition"
+        --         (String.join ", " <|
+        --             List.map (\x -> x ++ " 160ms")
+        --                 [ "opacity"
+        --                 ]
+        --         )
+        --     ]
         , Class ".se:focus .se.show-on-focus"
             [ Prop "opacity" "1"
             , Prop "pointer-events" "auto"
@@ -384,7 +417,6 @@ rules =
         , Class (class Any)
             [ Prop "position" "relative"
             , Prop "border" "none"
-            , Prop "text-decoration" "none"
             , Prop "flex-shrink" "0"
             , Prop "display" "flex"
             , Prop "flex-direction" "row"
@@ -397,11 +429,17 @@ rules =
             , Prop "padding" "0"
             , Prop "border-width" "0"
             , Prop "border-style" "solid"
+
+            -- inheritable font properties
             , Prop "font-size" "inherit"
             , Prop "color" "inherit"
             , Prop "font-family" "inherit"
             , Prop "line-height" "inherit"
+
+            -- Noninheritable font props
             , Prop "font-weight" "normal"
+            , Prop "text-decoration" "none"
+            , Prop "font-style" "normal"
             , Descriptor ".no-text-selection"
                 [ Prop "user-select" "none"
                 , Prop "-ms-user-select" "none"
@@ -541,35 +579,46 @@ rules =
                                     , Prop "z-index" "0"
                                     , Prop "pointer-events" "auto"
                                     ]
-            , Descriptor ".bold"
-                [ Prop "font-weight" "700"
-                , Child ".text"
-                    [ Prop "font-weight" "700"
-                    ]
+            , describeText ".text-thin"
+                [ Prop "font-weight" "100"
                 ]
-            , Descriptor ".text-light"
+            , describeText ".text-extra-light"
+                [ Prop "font-weight" "200"
+                ]
+            , describeText ".text-light"
                 [ Prop "font-weight" "300"
-                , Child ".text"
-                    [ Prop "font-weight" "300"
-                    ]
                 ]
-            , Descriptor ".italic"
+            , describeText ".text-normal-weight"
+                [ Prop "font-weight" "400"
+                ]
+            , describeText ".text-medium"
+                [ Prop "font-weight" "500"
+                ]
+            , describeText ".text-semi-bold"
+                [ Prop "font-weight" "600"
+                ]
+            , describeText ".bold"
+                [ Prop "font-weight" "700"
+                ]
+            , describeText ".text-extra-bold"
+                [ Prop "font-weight" "800"
+                ]
+            , describeText ".text-heavy"
+                [ Prop "font-weight" "900"
+                ]
+            , describeText ".italic"
                 [ Prop "font-style" "italic"
-                , Child ".text"
-                    [ Prop "font-style" "italic"
-                    ]
                 ]
-            , Descriptor ".strike"
+            , describeText ".strike"
                 [ Prop "text-decoration" "line-through"
-                , Child ".text"
-                    [ Prop "text-decoration" "line-through"
-                    ]
                 ]
-            , Descriptor ".underline"
+            , describeText ".underline"
                 [ Prop "text-decoration" "underline"
-                , Child ".text"
-                    [ Prop "text-decoration" "underline"
-                    ]
+                , Prop "text-decoration-skip-ink" "auto"
+                , Prop "text-decoration-skip" "ink"
+                ]
+            , describeText ".text-unitalicized"
+                [ Prop "font-style" "normal"
                 ]
             , Descriptor ".text-justify"
                 [ Prop "text-align" "justify"
@@ -601,6 +650,18 @@ rules =
             [ Prop "display" "flex"
             , Prop "flex-direction" "column"
             , Prop "white-space" "pre"
+            , Descriptor ".se-button"
+                -- Special default for text in a button.
+                -- This is overridden is they put the text inside an `el`
+                [ Child ".text"
+                    [ Descriptor ".height-fill"
+                        [ Prop "flex-grow" "0"
+                        ]
+                    , Descriptor ".width-fill"
+                        [ Prop "align-self" "auto !important"
+                        ]
+                    ]
+                ]
             , Child ".height-content"
                 [ Prop "height" "auto"
                 ]

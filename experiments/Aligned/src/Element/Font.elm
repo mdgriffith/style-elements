@@ -7,24 +7,30 @@ module Element.Font
         , center
         , color
         , external
+        , extraBold
+        , extraLight
         , family
         , glow
+        , hairline
+        , heavy
         , italic
         , justify
         , letterSpacing
         , light
         , lineHeight
+        , medium
         , monospace
         , mouseOverColor
-        , normal
+        , regular
         , sansSerif
+        , semiBold
         , serif
         , shadow
         , size
         , strike
         , typeface
         , underline
-        , weight
+        , unitalicized
         , wordSpacing
         )
 
@@ -85,7 +91,12 @@ module Element.Font
 
 ## Font Styles
 
-@docs underline, strike, italic, bold, light, weight, normal
+@docs underline, strike, italic, unitalicized
+
+
+## Font Weight
+
+@docs heavy, extraBold, bold, semiBold, medium, regular, light, extraLight, hairline
 
 
 ## Shadows
@@ -277,14 +288,53 @@ light =
     Internal.class "text-light"
 
 
-{-| This will reset bold, italic, strikethrough and underline.
+{-| -}
+hairline : Attribute msg
+hairline =
+    Internal.class "text-thin"
 
-It's not often needed.
 
+{-| -}
+extraLight : Attribute msg
+extraLight =
+    Internal.class "text-extra-light"
+
+
+{-| -}
+regular : Attribute msg
+regular =
+    Internal.class "text-normal-weight"
+
+
+{-| -}
+semiBold : Attribute msg
+semiBold =
+    Internal.class "text-semi-bold"
+
+
+{-| -}
+medium : Attribute msg
+medium =
+    Internal.class "text-medium"
+
+
+{-| -}
+extraBold : Attribute msg
+extraBold =
+    Internal.class "text-extra-bold"
+
+
+{-| -}
+heavy : Attribute msg
+heavy =
+    Internal.class "text-heavy"
+
+
+{-| This will reset bold and italic.
 -}
-normal : Attribute msg
-normal =
-    Internal.class "text-normal"
+unitalicized : Attribute msg
+unitalicized =
+    Internal.class "text-unitalicized"
 
 
 {-| -}
