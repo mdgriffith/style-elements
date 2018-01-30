@@ -774,20 +774,6 @@ gatherAttributes attr gathered =
 
         Nearby location on elem ->
             let
-                nearbyGroup =
-                    case gathered.nearbys of
-                        Nothing ->
-                            { above = Nothing
-                            , below = Nothing
-                            , right = Nothing
-                            , left = Nothing
-                            , infront = Nothing
-                            , behind = Nothing
-                            }
-
-                        Just x ->
-                            x
-
                 styles =
                     case elem of
                         Empty ->
@@ -801,25 +787,6 @@ gatherAttributes attr gathered =
 
                         Styled styled ->
                             Just <| gathered.styles ++ styled.styles
-
-                addIfEmpty existing =
-                    case existing of
-                        Nothing ->
-                            case elem of
-                                Empty ->
-                                    Nothing
-
-                                Text str ->
-                                    Just ( on, textElement str )
-
-                                Unstyled html ->
-                                    Just ( on, html asEl )
-
-                                Styled styled ->
-                                    Just ( on, styled.html Nothing asEl )
-
-                        _ ->
-                            existing
             in
             { gathered
                 | styles =
@@ -830,37 +797,7 @@ gatherAttributes attr gathered =
                         Just newStyles ->
                             newStyles
                 , nearbys =
-                    Just <|
-                        case location of
-                            Above ->
-                                { nearbyGroup
-                                    | above = addIfEmpty nearbyGroup.above
-                                }
-
-                            Below ->
-                                { nearbyGroup
-                                    | below = addIfEmpty nearbyGroup.below
-                                }
-
-                            OnRight ->
-                                { nearbyGroup
-                                    | right = addIfEmpty nearbyGroup.right
-                                }
-
-                            OnLeft ->
-                                { nearbyGroup
-                                    | left = addIfEmpty nearbyGroup.left
-                                }
-
-                            InFront ->
-                                { nearbyGroup
-                                    | infront = addIfEmpty nearbyGroup.infront
-                                }
-
-                            Behind ->
-                                { nearbyGroup
-                                    | behind = addIfEmpty nearbyGroup.behind
-                                }
+                    Maybe.map ((::) ( location, on, elem )) gathered.nearbys
             }
 
         AlignX x ->
@@ -1200,7 +1137,7 @@ type alias Gathered msg =
     , borders : Borders
     , width : Maybe Length
     , height : Maybe Length
-    , nearbys : Maybe (NearbyGroup msg)
+    , nearbys : Maybe (List ( Location, Bool, Element msg ))
     , node : NodeName
     , filters : Maybe String
     , boxShadows : Maybe String
@@ -1245,39 +1182,35 @@ type alias TransformationGroup =
 
 {-| Because of how it's constructed, we know that NearbyGroup is nonempty
 -}
-renderNearbyGroupAbsolute : NearbyGroup msg -> Html msg
-renderNearbyGroupAbsolute nearby =
+renderNearbyGroupAbsolute : List ( Location, Bool, Element msg ) -> Html msg
+renderNearbyGroupAbsolute nearbys =
     let
-        create ( location, node ) =
-            case node of
-                Nothing ->
-                    Nothing
+        create ( location, on, elem ) =
+            Html.div
+                [ Html.Attributes.class <|
+                    locationClass location
+                        ++ (if not on then
+                                " hidden"
+                            else
+                                ""
+                           )
+                ]
+                [ case elem of
+                    Empty ->
+                        Html.text ""
 
-                Just ( on, el ) ->
-                    Just <|
-                        Html.div
-                            [ Html.Attributes.class <|
-                                locationClass location
-                                    ++ (if not on then
-                                            " hidden"
-                                        else
-                                            ""
-                                       )
+                    Text str ->
+                        textElement str
 
-                            -- , Html.Attributes.class ""
-                            ]
-                            [ el ]
+                    Unstyled html ->
+                        html asEl
+
+                    Styled styled ->
+                        styled.html Nothing asEl
+                ]
     in
     Html.div [ Html.Attributes.class "se el nearby" ]
-        (List.filterMap create
-            [ ( Above, nearby.above )
-            , ( Below, nearby.below )
-            , ( OnLeft, nearby.left )
-            , ( OnRight, nearby.right )
-            , ( InFront, nearby.infront )
-            , ( Behind, nearby.behind )
-            ]
-        )
+        (List.map create nearbys)
 
 
 {-| -}
