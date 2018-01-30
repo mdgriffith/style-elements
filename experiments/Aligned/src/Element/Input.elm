@@ -1,15 +1,12 @@
 module Element.Input
     exposing
-        ( Button
-        , Checkbox
-        , Label
+        ( Label
           -- , Menu
           -- , Notice
         , Option
         , Placeholder
         , Radio
           -- , Select
-        , Text
         , button
         , checkbox
         , currentPassword
@@ -39,7 +36,6 @@ module Element.Input
         , search
           -- , select
         , spellChecked
-        , spellCheckedMultiline
         , text
         , username
         )
@@ -49,15 +45,15 @@ module Element.Input
 
 ## Inputs
 
-@docs button, Button
+@docs button
 
-@docs checkbox, Checkbox
+@docs checkbox
 
-@docs text, Text, Placeholder, placeholder, username, newPassword, currentPassword, email, search, spellChecked
+@docs text, Placeholder, placeholder, username, newPassword, currentPassword, email, search, spellChecked
 
-@docs multiline, spellCheckedMultiline
+@docs multiline
 
-@docs radio, radioRow, Radio, Option, option, optionWith
+@docs Radio, radio, radioRow, Option, option, optionWith
 
 
 ## Labels
@@ -177,13 +173,6 @@ errorBelow =
     Notice Internal.Grid.Below
 
 
-{-| -}
-type alias Button msg =
-    { onPress : Maybe msg
-    , label : Element msg
-    }
-
-
 {-| A standard button.
 
 The `onPress` handler will be fired either `onClick` or when the element is focused and the enter key has been pressed.
@@ -198,7 +187,13 @@ The `onPress` handler will be fired either `onClick` or when the element is focu
 `onPress` takes a `Maybe msg`. If you provide the value `Nothing`, then the button will be disabled.
 
 -}
-button : List (Attribute msg) -> Button msg -> Element msg
+button :
+    List (Attribute msg)
+    ->
+        { onPress : Maybe msg
+        , label : Element msg
+        }
+    -> Element msg
 button attrs { onPress, label } =
     Internal.element Internal.noStyleSheet
         Internal.asEl
@@ -237,14 +232,19 @@ type alias Checkbox msg =
     , icon : Maybe (Element msg)
     , checked : Bool
     , label : Label msg
-
-    -- , invalid : Bool
-    -- , notice : Maybe (Notice msg)
     }
 
 
 {-| -}
-checkbox : List (Attribute msg) -> Checkbox msg -> Element msg
+checkbox :
+    List (Attribute msg)
+    ->
+        { onChange : Maybe (Bool -> msg)
+        , icon : Maybe (Element msg)
+        , checked : Bool
+        , label : Label msg
+        }
+    -> Element msg
 checkbox attrs { label, icon, checked, onChange } =
     let
         input =
@@ -465,16 +465,28 @@ place position el group =
 --         input.label
 --         input.notice
 --         controls
+-- type TextType
+--     = Plain
+--     | Username
+--     | NewPassword
+--     | CurrentPassword
+--     | Email
+--     | Search
+--     | SpellChecked
+--     | Multiline
+--     | SpellCheckedMultiline
 
 
-type TextType
-    = Plain
-    | Username
-    | NewPassword
-    | CurrentPassword
-    | Email
-    | Search
-    | SpellChecked
+type alias TextInput =
+    { type_ : TextKind
+    , spellchecked : Bool
+    , autofill : Maybe String
+    }
+
+
+type TextKind
+    = TextInputNode String
+    | TextArea
 
 
 {-| -}
@@ -486,21 +498,37 @@ type alias Text msg =
     }
 
 
-{-| -}
-textDefault : Text msg
-textDefault =
-    { onChange = Nothing
-    , text = ""
-    , placeholder = Nothing
-    , label = labelAbove [] (Element.text "My Input")
-    }
+{-|
+
+    attributes
+
+    <parent>
+        attribute::width/height fill
+        attribtue::alignment
+        attribute::spacing
+        attribute::fontsize/family/lineheight
+        <el-wrapper>
+                attribute::nearby(placeholder)
+                attribute::width/height fill
+                inFront ->
+                    placeholder
+                        attribute::padding
 
 
-textHelper : TextType -> List (Attribute msg) -> Text msg -> Element msg
-textHelper textType attrs textOptions =
+            <input>
+                textarea ->
+                    special height for height-content
+                        attribtue::padding
+                        attribute::lineHeight
+                attributes
+        <label>
+
+-}
+textHelper : TextInput -> List (Attribute msg) -> Text msg -> Element msg
+textHelper textInput attrs textOptions =
     let
         attributes =
-            Element.width Element.fill :: attrs
+            Element.width Element.fill :: (defaultTextBoxStyle ++ attrs)
 
         behavior =
             case textOptions.onChange of
@@ -510,40 +538,99 @@ textHelper textType attrs textOptions =
                 Just checkMsg ->
                     [ Internal.Attr (Html.Events.onInput checkMsg) ]
 
-        textTypeAttr =
-            case textType of
-                Plain ->
-                    [ Internal.Attr (Html.Attributes.type_ "text")
-                    ]
+        ( inputNode, inputAttrs, inputChildren ) =
+            case textInput.type_ of
+                TextInputNode inputType ->
+                    ( "input"
+                    , [ value textOptions.text
+                      , Internal.Attr (Html.Attributes.type_ inputType)
+                      , spellcheck textInput.spellchecked
+                      , case textInput.autofill of
+                            Nothing ->
+                                Internal.NoAttribute
 
-                SpellChecked ->
-                    [ Internal.Attr (Html.Attributes.type_ "text")
-                    , spellcheck True
-                    ]
+                            Just fill ->
+                                autofill fill
+                      ]
+                        ++ attributes
+                    , []
+                    )
 
-                Username ->
-                    [ Internal.Attr (Html.Attributes.type_ "text")
-                    , autofill "username"
-                    ]
+                TextArea ->
+                    let
+                        ( maybePadding, heightContent, maybeLineHeight, adjustedAttributes ) =
+                            attributes
+                                |> List.foldr
+                                    (\attr ( pad, height, lh, newAttrs ) ->
+                                        case attr of
+                                            Internal.Describe _ ->
+                                                -- Skip
+                                                ( pad, height, lh, newAttrs )
 
-                NewPassword ->
-                    [ Internal.Attr (Html.Attributes.type_ "password")
-                    , autofill "new-password"
-                    ]
+                                            Internal.Height val ->
+                                                case height of
+                                                    Nothing ->
+                                                        case val of
+                                                            Internal.Content ->
+                                                                ( pad, Just val, lh, Internal.class "overflow-hidden" :: newAttrs )
 
-                CurrentPassword ->
-                    [ Internal.Attr (Html.Attributes.type_ "password")
-                    , autofill "current-password"
-                    ]
+                                                            _ ->
+                                                                ( pad, Just val, lh, newAttrs )
 
-                Email ->
-                    [ Internal.Attr (Html.Attributes.type_ "email")
-                    , autofill "email"
-                    ]
+                                                    Just i ->
+                                                        ( pad, height, lh, newAttrs )
 
-                Search ->
-                    [ Internal.Attr (Html.Attributes.type_ "search")
-                    ]
+                                            Internal.StyleClass (Internal.LineHeight lineHeight) ->
+                                                ( pad, height, lh, newAttrs )
+
+                                            Internal.StyleClass (Internal.PaddingStyle t r b l) ->
+                                                case pad of
+                                                    Nothing ->
+                                                        ( Just ( t, r, b, l ), height, lh, attr :: newAttrs )
+
+                                                    _ ->
+                                                        ( pad, height, lh, newAttrs )
+
+                                            _ ->
+                                                ( pad, height, lh, attr :: newAttrs )
+                                    )
+                                    ( Nothing, Nothing, Nothing, [] )
+
+                        lineHeight =
+                            Maybe.withDefault 1.5 maybeLineHeight
+                    in
+                    ( "textarea"
+                    , [ spellcheck textInput.spellchecked
+                      , maybeLineHeight
+                            |> Maybe.map (Internal.StyleClass << Internal.LineHeight)
+                            |> Maybe.withDefault (Internal.StyleClass (Internal.LineHeight 1.5))
+                      , Maybe.map autofill textInput.autofill
+                            |> Maybe.withDefault Internal.NoAttribute
+                      , case heightContent of
+                            Nothing ->
+                                Internal.NoAttribute
+
+                            Just Internal.Content ->
+                                let
+                                    newlineCount =
+                                        String.lines textOptions.text
+                                            |> List.length
+                                            |> toFloat
+                                            |> (\x ->
+                                                    if x < 1 then
+                                                        1
+                                                    else
+                                                        x
+                                               )
+                                in
+                                multilineContentHeight newlineCount lineHeight maybePadding
+
+                            Just x ->
+                                Internal.Height x
+                      ]
+                        ++ adjustedAttributes
+                    , [ Internal.unstyled (Html.text textOptions.text) ]
+                    )
 
         attributesFromChild =
             Internal.get attributes <|
@@ -571,6 +658,16 @@ textHelper textType attrs textOptions =
                             True
 
                         Internal.StyleClass (Internal.FontFamily _ _) ->
+                            True
+
+                        _ ->
+                            False
+
+        nearbys =
+            Internal.get attributes <|
+                \attr ->
+                    case attr of
+                        Internal.Nearby _ _ _ ->
                             True
 
                         _ ->
@@ -596,10 +693,10 @@ textHelper textType attrs textOptions =
                 Nothing
                 (case textOptions.placeholder of
                     Nothing ->
-                        []
+                        nearbys ++ parentAttributes
 
                     Just (Placeholder placeholderAttrs placeholder) ->
-                        [ Element.inFront (textOptions.text == "") <|
+                        (Element.inFront (String.trim textOptions.text == "") <|
                             Internal.element Internal.noStyleSheet
                                 Internal.asEl
                                 Nothing
@@ -616,24 +713,21 @@ textHelper textType attrs textOptions =
                                     [ placeholder
                                     ]
                                 )
-                        ]
+                        )
+                            :: (parentAttributes ++ nearbys)
                 )
                 (Internal.Unkeyed <|
                     [ Internal.element Internal.noStyleSheet
                         Internal.asEl
-                        (Just "input")
+                        (Just inputNode)
                         (List.concat
-                            [ [ value textOptions.text
-                              , defaultTextPadding
-                              , Internal.Class "focus" "focusable"
+                            [ [ Internal.Class "focus" "focusable"
                               ]
-                            , defaultTextBoxStyle
-                            , textTypeAttr
+                            , inputAttrs
                             , behavior
-                            , attributes
                             ]
                         )
-                        (Internal.Unkeyed [])
+                        (Internal.Unkeyed inputChildren)
                     ]
                 )
     in
@@ -643,253 +737,206 @@ textHelper textType attrs textOptions =
         inputElement
 
 
+{-| Manually calculate height for a <textarea>
+-}
+multilineContentHeight : Float -> Float -> Maybe ( number, a, number, b ) -> Internal.Attribute msg
+multilineContentHeight newlineCount lineHeight maybePadding =
+    let
+        heightValue count =
+            case maybePadding of
+                Nothing ->
+                    toString (count * lineHeight) ++ "em"
+
+                Just ( t, r, b, l ) ->
+                    "calc(" ++ toString (count * lineHeight) ++ "em + " ++ toString (t + b) ++ "px)"
+    in
+    Internal.StyleClass
+        (Internal.Single ("textarea-height-" ++ toString newlineCount)
+            "height"
+            (heightValue newlineCount)
+        )
+
+
 {-| -}
-text : List (Attribute msg) -> Text msg -> Element msg
+text :
+    List (Attribute msg)
+    ->
+        { onChange : Maybe (String -> msg)
+        , text : String
+        , placeholder : Maybe (Placeholder msg)
+        , label : Label msg
+        }
+    -> Element msg
 text =
-    textHelper Plain
+    textHelper
+        { type_ = TextInputNode "text"
+        , spellchecked = False
+        , autofill = Nothing
+        }
 
 
 {-| -}
-spellChecked : List (Attribute msg) -> Text msg -> Element msg
+spellChecked :
+    List (Attribute msg)
+    ->
+        { onChange : Maybe (String -> msg)
+        , text : String
+        , placeholder : Maybe (Placeholder msg)
+        , label : Label msg
+        }
+    -> Element msg
 spellChecked =
-    textHelper SpellChecked
+    textHelper
+        { type_ = TextInputNode "text"
+        , spellchecked = True
+        , autofill = Nothing
+        }
 
 
 {-| -}
-search : List (Attribute msg) -> Text msg -> Element msg
+search :
+    List (Attribute msg)
+    ->
+        { onChange : Maybe (String -> msg)
+        , text : String
+        , placeholder : Maybe (Placeholder msg)
+        , label : Label msg
+        }
+    -> Element msg
 search =
-    textHelper Search
+    textHelper
+        { type_ = TextInputNode "search"
+        , spellchecked = False
+        , autofill = Nothing
+        }
 
 
 {-| A password input that allows the browser to autofill.
 
 It's `newPassword` instead of just `password` because it gives the browser a hint on what type of password input it is.
 
+A password takes all the arguments a normal `Input.text` would, and also `show`, which will remove the password mask (e.g. `****` vs `pass1234`)
+
 -}
-newPassword : List (Attribute msg) -> Text msg -> Element msg
-newPassword =
-    textHelper NewPassword
+newPassword :
+    List (Attribute msg)
+    ->
+        { onChange : Maybe (String -> msg)
+        , text : String
+        , placeholder : Maybe (Placeholder msg)
+        , label : Label msg
+        , show : Bool
+        }
+    -> Element msg
+newPassword attrs pass =
+    textHelper
+        { type_ =
+            TextInputNode <|
+                if pass.show then
+                    "text"
+                else
+                    "password"
+        , spellchecked = False
+        , autofill = Just "new-password"
+        }
+        attrs
+        { onChange = pass.onChange
+        , text = pass.text
+        , placeholder = pass.placeholder
+        , label = pass.label
+        }
 
 
 {-| -}
-currentPassword : List (Attribute msg) -> Text msg -> Element msg
-currentPassword =
-    textHelper CurrentPassword
+currentPassword :
+    List (Attribute msg)
+    ->
+        { onChange : Maybe (String -> msg)
+        , text : String
+        , placeholder : Maybe (Placeholder msg)
+        , label : Label msg
+        , show : Bool
+        }
+    -> Element msg
+currentPassword attrs pass =
+    textHelper
+        { type_ =
+            TextInputNode <|
+                if pass.show then
+                    "text"
+                else
+                    "password"
+        , spellchecked = False
+        , autofill = Just "current-password"
+        }
+        attrs
+        { onChange = pass.onChange
+        , text = pass.text
+        , placeholder = pass.placeholder
+        , label = pass.label
+        }
 
 
 {-| -}
-username : List (Attribute msg) -> Text msg -> Element msg
+username :
+    List (Attribute msg)
+    ->
+        { onChange : Maybe (String -> msg)
+        , text : String
+        , placeholder : Maybe (Placeholder msg)
+        , label : Label msg
+        }
+    -> Element msg
 username =
-    textHelper Username
+    textHelper
+        { type_ = TextInputNode "text"
+        , spellchecked = False
+        , autofill = Just "username"
+        }
 
 
 {-| -}
-email : List (Attribute msg) -> Text msg -> Element msg
+email :
+    List (Attribute msg)
+    ->
+        { onChange : Maybe (String -> msg)
+        , text : String
+        , placeholder : Maybe (Placeholder msg)
+        , label : Label msg
+        }
+    -> Element msg
 email =
-    textHelper Email
+    textHelper
+        { type_ = TextInputNode "email"
+        , spellchecked = False
+        , autofill = Just "email"
+        }
 
 
 {-| -}
-multilineHelper : Bool -> List (Attribute msg) -> Text msg -> Element msg
-multilineHelper spellChecked attrs textOptions =
-    let
-        attributes =
-            Element.height Element.shrink :: Element.width Element.fill :: defaultTextBoxStyle ++ attrs
-
-        behavior =
-            case textOptions.onChange of
-                Nothing ->
-                    [ Internal.Attr (Html.Attributes.disabled True) ]
-
-                Just checkMsg ->
-                    [ Internal.Attr (Html.Events.onInput checkMsg) ]
-
-        -- Special height calculator
-        -- Height content needs to be translated into a special class
-        -- descriptions are also disallowed
-        ( padding, heightContent, maybeLineHeight, adjustedAttributes ) =
-            attributes
-                |> List.foldr
-                    (\attr ( pad, height, lh, newAttrs ) ->
-                        case attr of
-                            Internal.Describe _ ->
-                                ( pad, height, lh, newAttrs )
-
-                            Internal.Height val ->
-                                case height of
-                                    Nothing ->
-                                        ( pad, Just val, lh, newAttrs )
-
-                                    Just i ->
-                                        ( pad, height, lh, newAttrs )
-
-                            Internal.StyleClass (Internal.LineHeight lineHeight) ->
-                                ( pad, height, lh, newAttrs )
-
-                            Internal.StyleClass (Internal.PaddingStyle t r b l) ->
-                                case pad of
-                                    Nothing ->
-                                        ( Just ( t, r, b, l ), height, lh, attr :: newAttrs )
-
-                                    _ ->
-                                        ( pad, height, lh, newAttrs )
-
-                            _ ->
-                                ( pad, height, lh, attr :: newAttrs )
-                    )
-                    ( Nothing, Nothing, Nothing, [] )
-
-        withHeight =
-            case heightContent of
-                Just Internal.Content ->
-                    let
-                        lineHeight =
-                            Maybe.withDefault 1.5 maybeLineHeight
-
-                        newlineCount =
-                            String.lines textOptions.text
-                                |> List.length
-                                |> toFloat
-                                |> (\x ->
-                                        if x < 1 then
-                                            1
-                                        else
-                                            x
-                                   )
-
-                        heightValue count =
-                            case padding of
-                                Nothing ->
-                                    toString (count * lineHeight) ++ "em"
-
-                                Just ( t, r, b, l ) ->
-                                    "calc(" ++ toString (count * lineHeight) ++ "em + " ++ toString (t + b) ++ "px)"
-
-                        heightClass =
-                            Internal.StyleClass
-                                (Internal.Single ("textarea-height-" ++ toString newlineCount)
-                                    "height"
-                                    (heightValue newlineCount)
-                                )
-                    in
-                    Internal.class "overflow-hidden" :: heightClass :: adjustedAttributes
-
-                Just h ->
-                    Internal.Height h :: adjustedAttributes
-
-                _ ->
-                    adjustedAttributes
-
-        attributesFromChild =
-            Internal.get (Element.width Element.fill :: attributes) <|
-                \attr ->
-                    case attr of
-                        Internal.Width (Internal.Fill _) ->
-                            True
-
-                        Internal.Height (Internal.Fill _) ->
-                            True
-
-                        Internal.AlignX _ ->
-                            True
-
-                        Internal.AlignY _ ->
-                            True
-
-                        Internal.StyleClass (Internal.SpacingStyle _ _) ->
-                            True
-
-                        Internal.StyleClass (Internal.LineHeight _) ->
-                            True
-
-                        Internal.StyleClass (Internal.FontSize _) ->
-                            True
-
-                        Internal.StyleClass (Internal.FontFamily _ _) ->
-                            True
-
-                        _ ->
-                            False
-
-        inputPadding =
-            Internal.get attributes <|
-                \attr ->
-                    case attr of
-                        Internal.StyleClass (Internal.PaddingStyle _ _ _ _) ->
-                            True
-
-                        _ ->
-                            False
-
-        input =
-            Internal.element Internal.noStyleSheet
-                Internal.asEl
-                Nothing
-                (case textOptions.placeholder of
-                    Nothing ->
-                        [ Maybe.map Internal.Height heightContent
-                            |> Maybe.withDefault Internal.NoAttribute
-                        ]
-
-                    Just (Placeholder placeholderAttrs placeholder) ->
-                        [ Maybe.map Internal.Height heightContent
-                            |> Maybe.withDefault Internal.NoAttribute
-                        , Element.inFront (textOptions.text == "") <|
-                            Internal.element Internal.noStyleSheet
-                                Internal.asEl
-                                Nothing
-                                (Font.color charcoal
-                                    :: Internal.Class "text-selection" "no-text-selection"
-                                    :: defaultTextPadding
-                                    :: Internal.Class "cursor" "cursor-text"
-                                    :: Element.height Element.fill
-                                    :: Element.width Element.fill
-                                    :: (inputPadding
-                                            ++ placeholderAttrs
-                                       )
-                                )
-                                (Internal.Unkeyed
-                                    [ placeholder
-                                    ]
-                                )
-                        ]
-                )
-                (Internal.Unkeyed <|
-                    [ Internal.element Internal.noStyleSheet
-                        Internal.asEl
-                        (Just "textarea")
-                        (List.concat
-                            [ [ value textOptions.text
-                              , Internal.Class "focus" "focusable"
-                              , spellcheck spellChecked
-                              , case maybeLineHeight of
-                                    Nothing ->
-                                        Font.lineHeight 1.5
-
-                                    Just i ->
-                                        Font.lineHeight i
-                              ]
-                            , behavior
-                            , withHeight
-                            ]
-                        )
-                        (Internal.Unkeyed [ Internal.unstyled (Html.text textOptions.text) ])
-                    ]
-                )
-    in
-    applyLabel attributesFromChild textOptions.label input
-
-
-{-| -}
-multiline : List (Attribute msg) -> Text msg -> Element msg
-multiline =
-    multilineHelper False
-
-
-{-| -}
-spellCheckedMultiline : List (Attribute msg) -> Text msg -> Element msg
-spellCheckedMultiline =
-    multilineHelper True
+multiline :
+    List (Attribute msg)
+    ->
+        { onChange : Maybe (String -> msg)
+        , text : String
+        , placeholder : Maybe (Placeholder msg)
+        , label : Label msg
+        , spellcheck : Bool
+        }
+    -> Element msg
+multiline attrs multiline =
+    textHelper
+        { type_ =
+            TextArea
+        , spellchecked = multiline.spellcheck
+        , autofill = Nothing
+        }
+        attrs
+        { onChange = multiline.onChange
+        , text = multiline.text
+        , placeholder = multiline.placeholder
+        , label = multiline.label
+        }
 
 
 applyLabel : List (Attribute msg) -> Label msg -> Element msg -> Element msg
@@ -1013,27 +1060,6 @@ optionWith value view =
     Option value view
 
 
-
--- case status of
---     Idle ->
---     Focused ->
---         Element.el
---             [ Element.width (Element.px 14)
---             , Element.height (Element.px 14)
---             , Background.color lightBlue
---             , Border.rounded 7
---             ]
---             Element.empty
---     Selected ->
---         Element.el
---             [ Element.width (Element.px 14)
---             , Element.height (Element.px 14)
---             , Background.color blue
---             , Border.rounded 7
---             ]
---             Element.empty
-
-
 {-|
 
     Input.radio
@@ -1073,6 +1099,7 @@ radioRow =
     radioHelper Row
 
 
+defaultRadioOption : Element msg -> OptionState -> Element msg
 defaultRadioOption optionLabel status =
     Element.row
         [ Element.spacing 10
@@ -1175,34 +1202,6 @@ radioHelper orientation attrs input =
                 ]
                 (view status)
 
-        -- Element.row
-        --     [ spacing
-        --     , Element.pointer
-        --     , case input.onChange of
-        --         Nothing ->
-        --             Internal.NoAttribute
-        --         Just send ->
-        --             Events.onClick (send value)
-        --     , case status of
-        --         Selected ->
-        --             Internal.class "focusable"
-        --         _ ->
-        --             Internal.NoAttribute
-        --     , case status of
-        --         Selected ->
-        --             Internal.Attr <|
-        --                 Html.Attributes.attribute "aria-checked"
-        --                     "true"
-        --         _ ->
-        --             Internal.Attr <|
-        --                 Html.Attributes.attribute "aria-checked"
-        --                     "false"
-        --     , Internal.Attr <|
-        --         Html.Attributes.attribute "role" "radio"
-        --     ]
-        --     [ icon status
-        --     , Element.el [ Element.width Element.fill, Internal.class "unfocusable" ] text
-        --     ]
         optionArea =
             case orientation of
                 Row ->
