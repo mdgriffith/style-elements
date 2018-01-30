@@ -1951,7 +1951,8 @@ rootStyle =
             , SansSerif
             ]
     in
-    [ StyleClass (Colored ("font-color-" ++ formatColorClass Color.darkCharcoal) "color" Color.darkCharcoal)
+    [ StyleClass (Colored ("bg-color-" ++ formatColorClass (Color.rgba 255 255 255 0)) "background-color" (Color.rgba 255 255 255 0))
+    , StyleClass (Colored ("font-color-" ++ formatColorClass Color.darkCharcoal) "color" Color.darkCharcoal)
     , StyleClass (Single "font-size-20" "font-size" "20px")
     , StyleClass <|
         FontFamily (List.foldl renderFontClassName "font-" families)
