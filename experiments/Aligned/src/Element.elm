@@ -355,8 +355,7 @@ layout =
 layoutWith : { options : List Option } -> List (Attribute msg) -> Element msg -> Html msg
 layoutWith { options } attrs child =
     Internal.renderRoot options
-        (Background.color Color.white
-            :: Internal.htmlClass "style-elements se el"
+        (Internal.htmlClass "style-elements se el"
             :: Internal.Class "x-content-align" "content-center-x"
             :: Internal.Class "y-content-align" "content-center-y"
             :: (Internal.rootStyle ++ attrs)
