@@ -55,6 +55,7 @@ module Element
         , moveUp
         , newTabLink
         , noHover
+        , noStaticStyleSheet
         , onLeft
         , onRight
         , padding
@@ -110,7 +111,7 @@ Text needs it's own layout primitives.
 
 ## Rendering
 
-@docs layout, layoutWith, Option, forceHover, noHover, focusStyle, FocusStyle
+@docs layout, layoutWith, Option, noStaticStyleSheet, forceHover, noHover, focusStyle, FocusStyle
 
 
 # Links and Images
@@ -366,6 +367,18 @@ layoutWith { options } attrs child =
 {-| -}
 type alias Option =
     Internal.Option
+
+
+{-| Style elements embeds two StyleSheets, one that is constant, and one that changes dynamically based on styles collected from the elments being rendered.
+
+This option will stop the static/constant stylesheet from rendering.
+
+Make sure to render the constant/static stylesheet at least once on your page!
+
+-}
+noStaticStyleSheet : Option
+noStaticStyleSheet =
+    Internal.RenderModeOption Internal.NoStaticStyleSheet
 
 
 {-| -}
