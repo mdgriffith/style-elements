@@ -385,16 +385,6 @@ rules =
         , Class ".se:focus"
             [ Prop "outline" "none"
             ]
-
-        --  , Class ".sefoc"
-        --     [ Prop "outline" "none"
-        --     , Prop "transition"
-        --         (String.join ", " <|
-        --             List.map (\x -> x ++ " 160ms")
-        --                 [ "opacity"
-        --                 ]
-        --         )
-        --     ]
         , Class ".se:focus .se.show-on-focus"
             [ Prop "opacity" "1"
             , Prop "pointer-events" "auto"
@@ -413,6 +403,12 @@ rules =
             [ Prop "width" "100%"
             , Prop "height" "auto"
             , Prop "min-height" "100%"
+            , Descriptor ".se.el.height-content"
+                [ Prop "height" "100%"
+                , Child ".height-fill"
+                    [ Prop "height" "100%"
+                    ]
+                ]
             ]
         , Class (class Any)
             [ Prop "position" "relative"
@@ -474,12 +470,19 @@ rules =
                 ]
             , Descriptor ".scrollbars"
                 [ Prop "overflow" "auto"
+                , Prop "flex-shrink" "1"
                 ]
             , Descriptor ".scrollbars-x"
                 [ Prop "overflow-x" "auto"
+                , Descriptor ".row"
+                    [ Prop "flex-shrink" "1"
+                    ]
                 ]
             , Descriptor ".scrollbars-y"
                 [ Prop "overflow-y" "auto"
+                , Descriptor ".column"
+                    [ Prop "flex-shrink" "1"
+                    ]
                 ]
             , Descriptor ".clip"
                 [ Prop "overflow" "hidden"
