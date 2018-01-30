@@ -636,7 +636,7 @@ gatherAttributes attr gathered =
 
                             base =
                                 Just
-                                    ( case "width-fill-portion width-fill-" ++ toString fill.portion
+                                    ( "width-fill-portion width-fill-" ++ toString fill.portion
                                     , Single (".se.row > " ++ (styleName <| "width-fill-" ++ toString fill.portion)) "flex-grow" (toString (fill.portion * 100000))
                                     )
 
@@ -1263,6 +1263,8 @@ renderNearbyGroupAbsolute nearby =
                                         else
                                             ""
                                        )
+
+                            -- , Html.Attributes.class ""
                             ]
                             [ el ]
     in
