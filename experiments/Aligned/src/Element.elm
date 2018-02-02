@@ -19,7 +19,7 @@ module Element
         , attribute
         , behind
         , below
-        , center
+        , centerX
         , centerY
         , classifyDevice
         , clip
@@ -157,14 +157,14 @@ Here's what we can expect.
 
 Alignment can be used to align an `Element` within another `Element`.
 
-    Element.el [ center, alignTop ] (text "I'm centered and aligned top!")
+    Element.el [ centerX, alignTop ] (text "I'm centered and aligned top!")
 
 If alignment is set on elements in a layout such as `row`, then the element will push the other elements in that direction. Here's an example.
 
     Element.row []
         [ Element.el [] Element.empty
         , Element.el [ alignLeft ] Element.empty
-        , Element.el [ center ] Element.empty
+        , Element.el [ centerX ] Element.empty
         , Element.el [ alignRight ] Element.empty
         ]
 
@@ -174,7 +174,7 @@ will result in a layout like
 
 Where there are two elements on the left, one in the center, and on on the right.
 
-@docs center, centerY, alignLeft, alignRight, alignTop, alignBottom
+@docs centerX, centerY, alignLeft, alignRight, alignTop, alignBottom
 
 
 ## Nearby Elements
@@ -215,7 +215,7 @@ Clip the content if it overflows.
 
 If these are present, the element will add a scrollbar if necessary.
 
-@docs scrollbars, scrollbarY, scrollbarX
+@docs scrollbars, scrollbarX, scrollbarY
 
 
 ## Responsiveness
@@ -235,7 +235,7 @@ If these are present, the element will add a scrollbar if necessary.
 
 ## Compatibility
 
-@docs html, attribute
+@docs html, htmlAttribute
 
 -}
 
@@ -270,8 +270,8 @@ html =
 
 
 {-| -}
-attribute : Html.Attribute msg -> Attribute msg
-attribute =
+htmlAttribute : Html.Attribute msg -> Attribute msg
+htmlAttribute =
     Internal.Attr
 
 
@@ -1122,8 +1122,8 @@ paddingEach { top, right, bottom, left } =
 
 
 {-| -}
-center : Attribute msg
-center =
+centerX : Attribute msg
+centerX =
     Internal.AlignX Internal.CenterX
 
 
