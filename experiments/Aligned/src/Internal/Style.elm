@@ -452,7 +452,7 @@ rules =
             , Descriptor ".capture-pointer-events"
                 [ Prop "pointer-events" "nauto"
                 ]
-            , Descriptor ".hover-transition"
+            , Descriptor ".transition"
                 [ Prop "transition"
                     (String.join ", " <|
                         List.map (\x -> x ++ " 160ms")
@@ -461,6 +461,7 @@ rules =
                             , "filter"
                             , "background-color"
                             , "color"
+                            , "font-size"
                             ]
                     )
                 ]
@@ -941,6 +942,9 @@ rules =
             ]
         , Class (class Page)
             [ Prop "display" "block"
+            , Child (class Any ++ ":first-child")
+                [ Prop "margin" "0 !important"
+                ]
 
             -- clear spacing of any subsequent element if an element is float-left
             , Child (class Any ++ selfName (Self Left) ++ ":first-child + .se")
