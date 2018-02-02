@@ -20,7 +20,6 @@ module Element.Font
         , lineHeight
         , medium
         , monospace
-        , mouseOverColor
         , regular
         , sansSerif
         , semiBold
@@ -57,7 +56,7 @@ module Element.Font
 
 **Note**: `Font.color`, `Font.size`, `Font.family`, and `Font.lineHeight` are all inherited, meaning you can set them at the top of your view and all subsequent nodes will have that value.
 
-@docs color, mouseOverColor, size, lineHeight
+@docs color, size, lineHeight
 
 
 ## Typefaces
@@ -121,10 +120,11 @@ color fontColor =
     Internal.StyleClass (Internal.Colored ("font-color-" ++ Internal.formatColorClass fontColor) "color" fontColor)
 
 
-{-| -}
-mouseOverColor : Color -> Attribute msg
-mouseOverColor fontColor =
-    Internal.hover (Internal.Colored ("hover-font-color-" ++ Internal.formatColorClass fontColor) "color" fontColor)
+
+-- {-| -}
+-- mouseOverColor : Color -> Attribute msg
+-- mouseOverColor fontColor =
+--     Internal.hover (Internal.Colored ("hover-font-color-" ++ Internal.formatColorClass fontColor) "color" fontColor)
 
 
 {-|
@@ -217,11 +217,12 @@ wordSpacing offset =
         Internal.Single ("word-spacing-" ++ Internal.floatClass offset) "word-spacing" (toString offset ++ "px")
 
 
-{-| -}
-weight : Int -> Attribute msg
-weight fontWeight =
-    Internal.StyleClass <|
-        Internal.Single ("font-weight-" ++ toString fontWeight) "font-weight" (toString fontWeight)
+
+-- {-| -}
+-- weight : Int -> Attribute msg
+-- weight fontWeight =
+--     Internal.StyleClass <|
+--         Internal.Single ("font-weight-" ++ toString fontWeight) "font-weight" (toString fontWeight)
 
 
 {-| Align the font to the left.

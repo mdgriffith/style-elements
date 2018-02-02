@@ -248,30 +248,27 @@ checkbox :
 checkbox attrs { label, icon, checked, onChange } =
     let
         input =
-            Internal.element Internal.noStyleSheet
-                Internal.asEl
-                (Just "div")
-                [ Internal.Attr <|
+            ( Just "div"
+            , [ Internal.Attr <|
                     Html.Attributes.attribute "role" "checkbox"
-                , Internal.Attr <|
+              , Internal.Attr <|
                     Html.Attributes.attribute "aria-checked" <|
                         if checked then
                             "true"
                         else
                             "false"
+              , Element.centerY
+              , Element.height Element.fill
+              , Element.width Element.shrink
+              ]
+            , [ case icon of
+                    Nothing ->
+                        defaultCheckbox checked
 
-                -- , Internal.class "focusable"
-                , Element.centerY
-                ]
-                (Internal.Unkeyed
-                    [ case icon of
-                        Nothing ->
-                            defaultCheckbox checked
-
-                        Just actualIcon ->
-                            actualIcon
-                    ]
-                )
+                    Just actualIcon ->
+                        actualIcon
+              ]
+            )
 
         attributes =
             (case onChange of
@@ -297,10 +294,10 @@ checkbox attrs { label, icon, checked, onChange } =
         ({ right = Nothing
          , left = Nothing
          , primary = input
-         , primaryWidth = Internal.Content
          , defaultWidth = Internal.Fill 1
          , below = Nothing
          , above = Nothing
+         , inFront = Nothing
          }
             |> (\group ->
                     case label of
@@ -407,6 +404,21 @@ place position el group =
                                 { el
                                     | child = el.child ++ existing.child
                                     , layout = Internal.Grid.Column
+                                }
+                    }
+
+        Internal.Grid.InFront ->
+            case group.inFront of
+                Nothing ->
+                    { group | inFront = Just el }
+
+                Just existing ->
+                    { group
+                        | inFront =
+                            Just
+                                { el
+                                    | child = el.child ++ existing.child
+                                    , layout = Internal.Grid.GridElement
                                 }
                     }
 
@@ -688,52 +700,54 @@ textHelper textInput attrs textOptions =
                             False
 
         inputElement =
-            Internal.element Internal.noStyleSheet
-                Internal.asEl
-                Nothing
-                (case textOptions.placeholder of
-                    Nothing ->
-                        nearbys ++ parentAttributes
-
-                    Just (Placeholder placeholderAttrs placeholder) ->
-                        (Element.inFront (String.trim textOptions.text == "") <|
-                            Internal.element Internal.noStyleSheet
-                                Internal.asEl
-                                Nothing
-                                (Font.color charcoal
-                                    :: Internal.Class "text-selection" "no-text-selection"
-                                    :: defaultTextPadding
-                                    :: Element.height Element.fill
-                                    :: Element.width Element.fill
-                                    :: (inputPadding
-                                            ++ placeholderAttrs
-                                       )
-                                )
-                                (Internal.Unkeyed
-                                    [ placeholder
-                                    ]
-                                )
-                        )
-                            :: (parentAttributes ++ nearbys)
-                )
-                (Internal.Unkeyed <|
-                    [ Internal.element Internal.noStyleSheet
-                        Internal.asEl
-                        (Just inputNode)
-                        (List.concat
-                            [ [ Internal.Class "focus" "focusable"
-                              ]
-                            , inputAttrs
-                            , behavior
-                            ]
-                        )
-                        (Internal.Unkeyed inputChildren)
-                    ]
-                )
+            ( Just inputNode
+            , List.concat
+                [ [ Internal.Class "focus" "focusable"
+                  ]
+                , inputAttrs
+                , behavior
+                ]
+            , inputChildren
+            )
     in
-    applyLabel
-        (Internal.Class "cursor" "cursor-text" :: parentAttributes)
-        textOptions.label
+    onGrid (Internal.Class "cursor" "cursor-text" :: parentAttributes)
+        (List.filterMap identity
+            [ case textOptions.label of
+                Label pos attrs child ->
+                    Just ( pos, attrs, child )
+            , case textOptions.placeholder of
+                Nothing ->
+                    case nearbys of
+                        [] ->
+                            Nothing
+
+                        actualNearbys ->
+                            Just
+                                ( Internal.Grid.InFront
+                                , actualNearbys
+                                , Internal.Empty
+                                )
+
+                -- nearbys
+                Just (Placeholder placeholderAttrs placeholder) ->
+                    if String.trim textOptions.text == "" then
+                        Just
+                            ( Internal.Grid.InFront
+                            , Font.color charcoal
+                                :: Internal.Class "text-selection" "no-text-selection"
+                                :: defaultTextPadding
+                                :: Element.height Element.fill
+                                :: Element.width Element.fill
+                                :: (inputPadding
+                                        ++ nearbys
+                                        ++ placeholderAttrs
+                                   )
+                            , placeholder
+                            )
+                    else
+                        Nothing
+            ]
+        )
         inputElement
 
 
@@ -980,48 +994,83 @@ applyLabel attrs label input =
                         attrs
                         (Internal.Unkeyed [ labelElement, input ])
 
+                Internal.Grid.InFront ->
+                    Internal.element Internal.noStyleSheet
+                        Internal.asRow
+                        (Just "label")
+                        attrs
+                        (Internal.Unkeyed [ labelElement, input ])
 
-{-| -}
-positionLabels : List (Attribute msg) -> Label msg -> Maybe (Notice msg) -> Element msg -> Element msg
-positionLabels attributes label notice input =
+
+onGrid attributes elementsOnGrid input =
+    let
+        emptyPositioned =
+            { right = Nothing
+            , left = Nothing
+            , primary = input
+            , defaultWidth = Internal.Content
+            , below = Nothing
+            , above = Nothing
+            , inFront = Nothing
+            }
+
+        gatherPositioned ( pos, attrs, child ) group =
+            place pos
+                { layout = Internal.Grid.GridElement
+                , child = [ child ]
+                , attrs = Element.alignLeft :: attrs
+                , width = 1
+                , height = 1
+                }
+                group
+    in
     Internal.Grid.relative (Just "label")
         attributes
-        ({ right = Nothing
-         , left = Nothing
-         , primary = input
-         , primaryWidth = Internal.Fill 1
-         , defaultWidth = Internal.Content
-         , below = Nothing
-         , above = Nothing
-         }
-            |> (\group ->
-                    case label of
-                        Label position labelAttrs child ->
-                            place position
-                                { layout = Internal.Grid.GridElement
-                                , child = [ child ]
-                                , attrs = Element.alignLeft :: labelAttrs
-                                , width = 1
-                                , height = 1
-                                }
-                                group
-               )
-            |> (\group ->
-                    case notice of
-                        Nothing ->
-                            group
+        (List.foldl gatherPositioned emptyPositioned elementsOnGrid)
 
-                        Just (Notice position labelAttrs child) ->
-                            place position
-                                { layout = Internal.Grid.GridElement
-                                , child = [ child ]
-                                , attrs = Element.alignLeft :: labelAttrs
-                                , width = 1
-                                , height = 1
-                                }
-                                group
-               )
-        )
+
+
+-- {-| -}
+-- positionLabels : List (Attribute msg) -> Label msg -> Maybe (Notice msg) -> Element msg -> Element msg
+-- positionLabels attributes label notice input =
+--     Internal.Grid.relative (Just "label")
+--         attributes
+--         ({ right = Nothing
+--          , left = Nothing
+--          , primary = input
+--          , primaryWidth = Internal.Fill 1
+--          , defaultWidth = Internal.Content
+--          , below = Nothing
+--          , above = Nothing
+--          , inFront = Nothing
+--          }
+--             |> (\group ->
+--                     case label of
+--                         Label position labelAttrs child ->
+--                             place position
+--                                 { layout = Internal.Grid.GridElement
+--                                 , child = [ child ]
+--                                 , attrs = Element.alignLeft :: labelAttrs
+--                                 , width = 1
+--                                 , height = 1
+--                                 }
+--                                 group
+--                )
+--             |> (\group ->
+--                     case notice of
+--                         Nothing ->
+--                             group
+--                         Just (Notice position labelAttrs child) ->
+--                             place position
+--                                 { layout = Internal.Grid.GridElement
+--                                 , child = [ child ]
+--                                 , attrs = Element.alignLeft :: labelAttrs
+--                                 , width = 1
+--                                 , height = 1
+--                                 }
+--                                 group
+--                )
+--         )
 
 
 {-| -}
@@ -1816,8 +1865,8 @@ defaultCheckbox : Bool -> Element msg
 defaultCheckbox checked =
     Element.el
         [ Internal.class "focusable"
-        , Element.width (Element.px 12)
-        , Element.height (Element.px 12)
+        , Element.width (Element.px 14)
+        , Element.height (Element.px 14)
 
         -- , Font.family
         --     [ Font.typeface "georgia"
@@ -1854,7 +1903,20 @@ defaultCheckbox checked =
                 1
         ]
         (if checked then
-            Element.text "✓"
+            Element.el
+                [ Border.color white
+                , Element.height (Element.px 6)
+                , Element.width (Element.px 9)
+                , Element.rotate (degrees -45)
+                , Element.moveUp 1
+                , Border.widthEach
+                    { top = 0
+                    , left = 2
+                    , bottom = 2
+                    , right = 0
+                    }
+                ]
+                Element.empty
          else
             Element.empty
         )

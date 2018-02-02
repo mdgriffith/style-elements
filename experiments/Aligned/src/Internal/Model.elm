@@ -34,62 +34,6 @@ type LayoutContext
     | AsTextColumn
 
 
-
-{- Constants -}
-
-
-asGrid : LayoutContext
-asGrid =
-    AsGrid
-
-
-asRow : LayoutContext
-asRow =
-    AsRow
-
-
-asColumn : LayoutContext
-asColumn =
-    AsColumn
-
-
-asEl : LayoutContext
-asEl =
-    AsEl
-
-
-asParagraph : LayoutContext
-asParagraph =
-    AsParagraph
-
-
-asTextColumn : LayoutContext
-asTextColumn =
-    AsTextColumn
-
-
-contextClasses : LayoutContext -> Attribute msg
-contextClasses context =
-    case context of
-        AsRow ->
-            htmlClass "se row"
-
-        AsColumn ->
-            htmlClass "se column"
-
-        AsEl ->
-            htmlClass "se el"
-
-        AsGrid ->
-            htmlClass "se grid"
-
-        AsParagraph ->
-            htmlClass "se paragraph"
-
-        AsTextColumn ->
-            htmlClass "se page"
-
-
 type Aligned
     = Unaligned
     | Aligned (Maybe HAlign) (Maybe VAlign)
@@ -107,17 +51,13 @@ type VAlign
     | Bottom
 
 
-hover : Style -> Attribute msg
-hover style =
-    StyleClass (PseudoSelector Hover style)
-
-
 type Style
     = Style String (List Property)
       --       class  prop   val
     | LineHeight Float
     | FontFamily String (List Font)
     | FontSize Int
+      -- classname, prop, value
     | Single String String String
     | Colored String String Color
     | SpacingStyle Int Int
@@ -133,12 +73,14 @@ type Style
         , width : Int
         , height : Int
         }
-    | PseudoSelector PseudoClass Style
+    | Transform Transformation
+    | PseudoSelector PseudoClass (List Style)
 
 
 type PseudoClass
     = Focus
     | Hover
+    | Active
 
 
 type Font
@@ -160,19 +102,18 @@ type Transformation
 
 
 type Attribute msg
-    = Attr (Html.Attribute msg)
+    = NoAttribute
+    | Attr (Html.Attribute msg)
     | Describe Description
       -- invalidation key and literal class
     | Class String String
       -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
     | StyleClass Style
-      -- Descriptions will add aria attributes and if the element is not a link, may set the node type.
     | AlignY VAlign
     | AlignX HAlign
     | Width Length
     | Height Length
     | Nearby Location Bool (Element msg)
-    | Transform (Maybe PseudoClass) Transformation
     | TextShadow
         { offset : ( Float, Float )
         , blur : Float
@@ -186,7 +127,6 @@ type Attribute msg
         , color : Color
         }
     | Filter FilterType
-    | NoAttribute
 
 
 type Description
@@ -245,72 +185,6 @@ type Location
     | OnLeft
     | InFront
     | Behind
-
-
-map : (msg -> msg1) -> Element msg -> Element msg1
-map fn el =
-    case el of
-        Styled styled ->
-            Styled
-                { styles = styled.styles
-                , html = \add context -> Html.map fn <| styled.html add context
-                }
-
-        Unstyled html ->
-            Unstyled (Html.map fn << html)
-
-        Text str ->
-            Text str
-
-        Empty ->
-            Empty
-
-
-mapAttr : (msg -> msg1) -> Attribute msg -> Attribute msg1
-mapAttr fn attr =
-    case attr of
-        NoAttribute ->
-            NoAttribute
-
-        Describe description ->
-            Describe description
-
-        AlignX x ->
-            AlignX x
-
-        AlignY y ->
-            AlignY y
-
-        Width x ->
-            Width x
-
-        Height x ->
-            Height x
-
-        -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
-        Class x y ->
-            Class x y
-
-        StyleClass style ->
-            StyleClass style
-
-        Nearby location on element ->
-            Nearby location on (map fn element)
-
-        Transform pseudo trans ->
-            Transform pseudo trans
-
-        Attr htmlAttr ->
-            Attr (Html.Attributes.map fn htmlAttr)
-
-        TextShadow shadow ->
-            TextShadow shadow
-
-        BoxShadow shadow ->
-            BoxShadow shadow
-
-        Filter filter ->
-            Filter filter
 
 
 class : String -> Attribute msg
@@ -510,6 +384,141 @@ noAreas attrs =
     List.filter notAnArea attrs
 
 
+{-| replace a
+-}
+addIfNothing val existing =
+    case existing of
+        Nothing ->
+            val
+
+        x ->
+            x
+
+
+emptyTransformationStates =
+    { focus = Nothing
+    , hover = Nothing
+    , normal = Nothing
+    , active = Nothing
+    }
+
+
+emptyTransformGroup =
+    { translate = Nothing
+    , rotate = Nothing
+    , scale = Nothing
+    }
+
+
+stackOn : Maybe PseudoClass -> Transformation -> Gathered msg -> Gathered msg
+stackOn maybePseudo transform gathered =
+    let
+        states =
+            Maybe.withDefault emptyTransformationStates gathered.transform
+    in
+    case maybePseudo of
+        Nothing ->
+            let
+                normal =
+                    states.normal
+            in
+            { gathered
+                | transform =
+                    Just
+                        { states
+                            | normal =
+                                normal
+                                    |> Maybe.withDefault emptyTransformGroup
+                                    |> stackTransforms transform
+                                    |> Just
+                        }
+            }
+
+        Just Hover ->
+            let
+                hover =
+                    states.hover
+            in
+            { gathered
+                | transform =
+                    Just
+                        { states
+                            | hover =
+                                hover
+                                    |> Maybe.withDefault emptyTransformGroup
+                                    |> stackTransforms transform
+                                    |> Just
+                        }
+            }
+
+        Just Active ->
+            let
+                active =
+                    states.active
+            in
+            { gathered
+                | transform =
+                    Just
+                        { states
+                            | active =
+                                active
+                                    |> Maybe.withDefault emptyTransformGroup
+                                    |> stackTransforms transform
+                                    |> Just
+                        }
+            }
+
+        Just focus ->
+            let
+                focus =
+                    states.focus
+            in
+            { gathered
+                | transform =
+                    Just
+                        { states
+                            | focus =
+                                focus
+                                    |> Maybe.withDefault emptyTransformGroup
+                                    |> stackTransforms transform
+                                    |> Just
+                        }
+            }
+
+
+{-| -}
+stackTransforms : Transformation -> TransformationGroup -> TransformationGroup
+stackTransforms transform group =
+    case transform of
+        Move mx my mz ->
+            case group.translate of
+                Nothing ->
+                    { group
+                        | translate =
+                            Just ( mx, my, mz )
+                    }
+
+                Just ( existingX, existingY, existingZ ) ->
+                    { group
+                        | translate =
+                            Just
+                                ( addIfNothing mx existingX
+                                , addIfNothing my existingY
+                                , addIfNothing mz existingZ
+                                )
+                    }
+
+        Rotate x y z angle ->
+            { group
+                | rotate = addIfNothing (Just ( x, y, z, angle )) group.rotate
+            }
+
+        Scale x y z ->
+            { group
+                | scale = addIfNothing (Just ( x, y, z )) group.scale
+            }
+
+
 gatherAttributes : Attribute msg -> Gathered msg -> Gathered msg
 gatherAttributes attr gathered =
     let
@@ -521,8 +530,11 @@ gatherAttributes attr gathered =
 
         formatStyleClass style =
             case style of
+                Transform x ->
+                    Transform x
+
                 PseudoSelector selector style ->
-                    PseudoSelector selector (formatStyleClass style)
+                    PseudoSelector selector (List.map formatStyleClass style)
 
                 Style class props ->
                     Style (styleName class) props
@@ -572,23 +584,52 @@ gatherAttributes attr gathered =
 
         StyleClass style ->
             let
-                key =
-                    styleKey style
-            in
-            if Set.member key gathered.has then
-                gathered
-            else
-                { gathered
-                    | attributes =
-                        case style of
-                            PseudoSelector Hover _ ->
-                                VirtualDom.property "className" (Json.string "hover-transition") :: className (getStyleName style) :: gathered.attributes
+                addNormalStyle styleProp gatheredProps =
+                    let
+                        key =
+                            styleKey styleProp
+                    in
+                    if Set.member key gatheredProps.has then
+                        gatheredProps
+                    else
+                        { gatheredProps
+                            | attributes =
+                                case styleProp of
+                                    PseudoSelector _ _ ->
+                                        VirtualDom.property "className" (Json.string "transition") :: className (getStyleName styleProp) :: gatheredProps.attributes
 
-                            _ ->
-                                className (getStyleName style) :: gathered.attributes
-                    , styles = formatStyleClass style :: gathered.styles
-                    , has = Set.insert key gathered.has
-                }
+                                    _ ->
+                                        className (getStyleName styleProp) :: gatheredProps.attributes
+                            , styles = formatStyleClass styleProp :: gatheredProps.styles
+                            , has = Set.insert key gatheredProps.has
+                        }
+            in
+            case style of
+                Transform transformation ->
+                    stackOn Nothing transformation gathered
+
+                PseudoSelector pseudo props ->
+                    let
+                        ( transformationProps, otherProps ) =
+                            List.partition (\x -> forTransforms x /= Nothing) props
+
+                        forTransforms attr =
+                            case attr of
+                                Transform x ->
+                                    Just x
+
+                                _ ->
+                                    Nothing
+
+                        withTransforms =
+                            transformationProps
+                                |> List.filterMap forTransforms
+                                |> List.foldr (stackOn (Just pseudo)) gathered
+                    in
+                    addNormalStyle (PseudoSelector pseudo otherProps) withTransforms
+
+                _ ->
+                    addNormalStyle style gathered
 
         Width width ->
             if gathered.width == Nothing then
@@ -761,7 +802,7 @@ gatherAttributes attr gathered =
                         { gathered | node = addNodeName "h6" gathered.node }
 
                 Button ->
-                    { gathered | attributes = Html.Attributes.attribute "aria-role" "button" :: gathered.attributes }
+                    { gathered | attributes = Html.Attributes.attribute "role" "button" :: gathered.attributes }
 
                 Label label ->
                     { gathered | attributes = Html.Attributes.attribute "aria-label" label :: gathered.attributes }
@@ -797,7 +838,12 @@ gatherAttributes attr gathered =
                         Just newStyles ->
                             newStyles
                 , nearbys =
-                    Maybe.map ((::) ( location, on, elem )) gathered.nearbys
+                    case gathered.nearbys of
+                        Nothing ->
+                            Just [ ( location, on, elem ) ]
+
+                        Just nearby ->
+                            Just (( location, on, elem ) :: nearby)
             }
 
         AlignX x ->
@@ -857,131 +903,6 @@ gatherAttributes attr gathered =
 
                 Just existing ->
                     { gathered | textShadows = Just (formatTextShadow shadow ++ ", " ++ existing) }
-
-        Transform pseudoClass transform ->
-            case transform of
-                Move mx my mz ->
-                    case pseudoClass of
-                        Nothing ->
-                            case gathered.transform of
-                                Nothing ->
-                                    { gathered
-                                        | transform =
-                                            Just
-                                                { translate =
-                                                    Just ( mx, my, mz )
-                                                , scale = Nothing
-                                                , rotate = Nothing
-                                                }
-                                    }
-
-                                Just transformation ->
-                                    { gathered
-                                        | transform = Just (addTranslate mx my mz transformation)
-                                    }
-
-                        Just Hover ->
-                            case gathered.transformHover of
-                                Nothing ->
-                                    { gathered
-                                        | transformHover =
-                                            Just
-                                                { translate =
-                                                    Just ( mx, my, mz )
-                                                , scale = Nothing
-                                                , rotate = Nothing
-                                                }
-                                    }
-
-                                Just transformation ->
-                                    { gathered
-                                        | transformHover = Just (addTranslate mx my mz transformation)
-                                    }
-
-                        Just Focus ->
-                            gathered
-
-                Rotate x y z angle ->
-                    case pseudoClass of
-                        Nothing ->
-                            case gathered.transform of
-                                Nothing ->
-                                    { gathered
-                                        | transform =
-                                            Just
-                                                { rotate =
-                                                    Just ( x, y, z, angle )
-                                                , scale = Nothing
-                                                , translate = Nothing
-                                                }
-                                    }
-
-                                Just transformation ->
-                                    { gathered
-                                        | transform = Just (addRotate x y z angle transformation)
-                                    }
-
-                        Just Hover ->
-                            case gathered.transformHover of
-                                Nothing ->
-                                    { gathered
-                                        | transformHover =
-                                            Just
-                                                { rotate =
-                                                    Just ( x, y, z, angle )
-                                                , scale = Nothing
-                                                , translate = Nothing
-                                                }
-                                    }
-
-                                Just transformation ->
-                                    { gathered
-                                        | transformHover = Just (addRotate x y z angle transformation)
-                                    }
-
-                        Just Focus ->
-                            gathered
-
-                Scale x y z ->
-                    case pseudoClass of
-                        Nothing ->
-                            case gathered.transform of
-                                Nothing ->
-                                    { gathered
-                                        | transform =
-                                            Just
-                                                { scale =
-                                                    Just ( x, y, z )
-                                                , rotate = Nothing
-                                                , translate = Nothing
-                                                }
-                                    }
-
-                                Just transformation ->
-                                    { gathered
-                                        | transform = Just (addScale x y z transformation)
-                                    }
-
-                        Just Hover ->
-                            case gathered.transformHover of
-                                Nothing ->
-                                    { gathered
-                                        | transformHover =
-                                            Just
-                                                { scale =
-                                                    Just ( x, y, z )
-                                                , rotate = Nothing
-                                                , translate = Nothing
-                                                }
-                                    }
-
-                                Just transformation ->
-                                    { gathered
-                                        | transformHover = Just (addScale x y z transformation)
-                                    }
-
-                        Just Focus ->
-                            gathered
 
 
 floorAtZero : Int -> Int
@@ -1048,61 +969,6 @@ type alias TransformationAlias a =
     }
 
 
-addScale : a -> b -> c -> { d | scale : Maybe ( a, b, c ) } -> { d | scale : Maybe ( a, b, c ) }
-addScale x y z transformation =
-    case transformation.scale of
-        Nothing ->
-            { transformation
-                | scale =
-                    Just ( x, y, z )
-            }
-
-        _ ->
-            transformation
-
-
-addRotate : a -> b -> c -> d -> { e | rotate : Maybe ( a, b, c, d ) } -> { e | rotate : Maybe ( a, b, c, d ) }
-addRotate x y z angle transformation =
-    case transformation.rotate of
-        Nothing ->
-            { transformation
-                | rotate =
-                    Just ( x, y, z, angle )
-            }
-
-        _ ->
-            transformation
-
-
-addTranslate : Maybe a -> Maybe a1 -> Maybe a2 -> { b | translate : Maybe ( Maybe a, Maybe a1, Maybe a2 ) } -> { b | translate : Maybe ( Maybe a, Maybe a1, Maybe a2 ) }
-addTranslate mx my mz transformation =
-    case transformation.translate of
-        Nothing ->
-            { transformation
-                | translate =
-                    Just ( mx, my, mz )
-            }
-
-        Just ( existingX, existingY, existingZ ) ->
-            let
-                addIfNothing val existing =
-                    case existing of
-                        Nothing ->
-                            val
-
-                        x ->
-                            x
-            in
-            { transformation
-                | translate =
-                    Just
-                        ( addIfNothing mx existingX
-                        , addIfNothing my existingY
-                        , addIfNothing mz existingZ
-                        )
-            }
-
-
 type NodeName
     = Generic
     | NodeName String
@@ -1131,20 +997,34 @@ type Borders
 
 
 type alias Gathered msg =
-    { attributes : List (Html.Attribute msg)
+    { node : NodeName
+    , attributes : List (Html.Attribute msg)
     , styles : List Style
     , alignment : Aligned
     , borders : Borders
     , width : Maybe Length
     , height : Maybe Length
     , nearbys : Maybe (List ( Location, Bool, Element msg ))
-    , node : NodeName
     , filters : Maybe String
     , boxShadows : Maybe String
     , textShadows : Maybe String
-    , transform : Maybe TransformationGroup
-    , transformHover : Maybe TransformationGroup
+    , transform : Maybe (Decorated TransformationGroup)
     , has : Set String
+    }
+
+
+type alias Decorated x =
+    { focus : Maybe x
+    , hover : Maybe x
+    , normal : Maybe x
+    , active : Maybe x
+    }
+
+
+type alias TransformationGroup =
+    { rotate : Maybe ( Float, Float, Float, Float )
+    , translate : Maybe ( Maybe Float, Maybe Float, Maybe Float )
+    , scale : Maybe ( Float, Float, Float )
     }
 
 
@@ -1165,18 +1045,10 @@ initGathered maybeNodeName =
                 NodeName name
     , nearbys = Nothing
     , transform = Nothing
-    , transformHover = Nothing
     , filters = Nothing
     , boxShadows = Nothing
     , textShadows = Nothing
     , has = Set.empty
-    }
-
-
-type alias TransformationGroup =
-    { rotate : Maybe ( Float, Float, Float, Float )
-    , translate : Maybe ( Maybe Float, Maybe Float, Maybe Float )
-    , scale : Maybe ( Float, Float, Float )
     }
 
 
@@ -1238,8 +1110,8 @@ className x =
 
 
 {-| -}
-renderTransformationGroup : Maybe ( String, String ) -> { a | rotate : Maybe ( Float, Float, Float, Float ), scale : Maybe ( Float, Float, Float ), translate : Maybe ( Maybe Float, Maybe Float, Maybe Float ) } -> Maybe ( String, Style )
-renderTransformationGroup maybePostfix group =
+renderTransformationGroup : Maybe PseudoClass -> TransformationGroup -> Maybe ( String, Style )
+renderTransformationGroup maybePseudo group =
     let
         translate =
             flip Maybe.map
@@ -1310,52 +1182,56 @@ renderTransformationGroup maybePostfix group =
                     String.join " " trans
 
                 ( classOnElement, classInStylesheet ) =
-                    case maybePostfix of
+                    case maybePseudo of
                         Nothing ->
                             ( "transform-" ++ name
                             , ".transform-" ++ name
                             )
 
-                        Just ( postfix, pseudostate ) ->
-                            ( "transform-" ++ name ++ "-" ++ postfix
-                            , "." ++ "transform-" ++ name ++ "-" ++ postfix ++ ":" ++ pseudostate
-                            )
+                        Just pseudo ->
+                            case pseudo of
+                                Hover ->
+                                    ( "transform-" ++ name ++ "-hover"
+                                    , ".transform-" ++ name ++ "-hover:hover"
+                                    )
+
+                                Focus ->
+                                    ( "transform-" ++ name ++ "-focus"
+                                    , ".transform-" ++ name ++ "-focus:focus, .se:focus ~ .transform-" ++ name ++ "-focus"
+                                    )
+
+                                Active ->
+                                    ( "transform-" ++ name ++ "-active"
+                                    , ".transform-" ++ name ++ "-active:active"
+                                    )
             in
             Just ( classOnElement, Single classInStylesheet "transform" transforms )
 
 
-formatTransformations : Gathered msg -> Gathered msg
-formatTransformations gathered =
+finalize : Gathered msg -> Gathered msg
+finalize gathered =
     let
+        add new ( classes, styles ) =
+            case new of
+                Nothing ->
+                    ( classes, styles )
+
+                Just ( newClass, newStyle ) ->
+                    ( newClass :: classes
+                    , newStyle :: styles
+                    )
+
         addTransform ( classes, styles ) =
             case gathered.transform of
                 Nothing ->
                     ( classes, styles )
 
                 Just transform ->
-                    case renderTransformationGroup Nothing transform of
-                        Nothing ->
-                            ( classes, styles )
-
-                        Just ( name, transformStyle ) ->
-                            ( name :: classes
-                            , transformStyle :: styles
-                            )
-
-        addHoverTransform ( classes, styles ) =
-            case gathered.transformHover of
-                Nothing ->
                     ( classes, styles )
-
-                Just transform ->
-                    case renderTransformationGroup (Just ( "hover", "hover" )) transform of
-                        Nothing ->
-                            ( classes, styles )
-
-                        Just ( name, transformStyle ) ->
-                            ( name :: classes
-                            , transformStyle :: styles
-                            )
+                        |> add (Maybe.andThen (renderTransformationGroup Nothing) transform.normal)
+                        |> add (Maybe.andThen (renderTransformationGroup (Just Focus)) transform.focus)
+                        |> add (Maybe.andThen (renderTransformationGroup (Just Hover)) transform.hover)
+                        |> add (Maybe.andThen (renderTransformationGroup (Just Active)) transform.active)
 
         addFilters ( classes, styles ) =
             case gathered.filters of
@@ -1408,7 +1284,6 @@ formatTransformations gathered =
                 |> addBoxShadows
                 |> addTextShadows
                 |> addTransform
-                |> addHoverTransform
     in
     { gathered
         | styles = styles
@@ -1432,7 +1307,7 @@ element : EmbedStyle -> LayoutContext -> Maybe String -> List (Attribute msg) ->
 element embedMode context node attributes children =
     (contextClasses context :: attributes)
         |> List.foldr gatherAttributes (initGathered node)
-        |> formatTransformations
+        |> finalize
         |> asElement embedMode children context
 
 
@@ -1777,9 +1652,6 @@ filter attrs =
                         ( x :: found, has )
 
                     TextShadow shadow ->
-                        ( x :: found, has )
-
-                    Transform _ _ ->
                         ( x :: found, has )
             )
             ( [], Set.empty )
@@ -2167,7 +2039,27 @@ toStyleSheetString options stylesheet =
                     selector ++ "{" ++ List.foldl (renderProps force) "" props ++ "\n}"
 
                 Just pseudo ->
-                    selector ++ ":" ++ pseudo ++ " {" ++ List.foldl (renderProps force) "" props ++ "\n}"
+                    case pseudo of
+                        Hover ->
+                            selector ++ ":hover {" ++ List.foldl (renderProps force) "" props ++ "\n}"
+
+                        Focus ->
+                            let
+                                renderedProps =
+                                    List.foldl (renderProps force) "" props
+                            in
+                            selector
+                                ++ ":focus {"
+                                ++ renderedProps
+                                ++ "\n}"
+                                ++ ".se:focus ~"
+                                ++ selector
+                                ++ "  {"
+                                ++ renderedProps
+                                ++ "\n}"
+
+                        Active ->
+                            selector ++ ":active {" ++ List.foldl (renderProps force) "" props ++ "\n}"
 
         renderStyleRule rule maybePseudo force =
             case rule of
@@ -2399,21 +2291,32 @@ toStyleSheetString options stylesheet =
                     in
                     base ++ supports
 
-                PseudoSelector class style ->
-                    case class of
-                        Focus ->
-                            renderStyleRule style (Just "focus") False
+                PseudoSelector class styles ->
+                    let
+                        renderPseudoRule style =
+                            case class of
+                                Focus ->
+                                    renderStyleRule style (Just Focus) False
 
-                        Hover ->
-                            case options.hover of
-                                NoHover ->
-                                    ""
+                                Active ->
+                                    renderStyleRule style (Just Active) False
 
-                                AllowHover ->
-                                    renderStyleRule style (Just "hover") False
+                                Hover ->
+                                    case options.hover of
+                                        NoHover ->
+                                            ""
 
-                                ForceHover ->
-                                    renderStyleRule style Nothing True
+                                        AllowHover ->
+                                            renderStyleRule style (Just Hover) False
+
+                                        ForceHover ->
+                                            renderStyleRule style Nothing True
+                    in
+                    List.map renderPseudoRule styles
+                        |> String.join " "
+
+                Transform _ ->
+                    ""
 
         renderTopLevels rule =
             case rule of
@@ -2740,6 +2643,9 @@ psuedoClassName class =
         Hover ->
             "hover"
 
+        Active ->
+            "active"
+
 
 {-| This is a key to know which styles should override which other styles.
 -}
@@ -2777,7 +2683,10 @@ styleKey style =
             "grid-position"
 
         PseudoSelector class style ->
-            psuedoClassName class ++ styleKey style
+            psuedoClassName class ++ (String.join "" <| List.map styleKey style)
+
+        Transform _ ->
+            "transform"
 
 
 isInt : Int -> Int
@@ -2840,7 +2749,12 @@ getStyleName style =
                 ++ toString pos.height
 
         PseudoSelector selector subStyle ->
-            getStyleName subStyle
+            psuedoClassName selector
+                :: List.map getStyleName subStyle
+                |> String.join " "
+
+        Transform _ ->
+            "transformation"
 
 
 locationClass : Location -> String
@@ -2863,3 +2777,126 @@ locationClass location =
 
         Behind ->
             "se el behind"
+
+
+
+{- Constants -}
+
+
+asGrid : LayoutContext
+asGrid =
+    AsGrid
+
+
+asRow : LayoutContext
+asRow =
+    AsRow
+
+
+asColumn : LayoutContext
+asColumn =
+    AsColumn
+
+
+asEl : LayoutContext
+asEl =
+    AsEl
+
+
+asParagraph : LayoutContext
+asParagraph =
+    AsParagraph
+
+
+asTextColumn : LayoutContext
+asTextColumn =
+    AsTextColumn
+
+
+contextClasses : LayoutContext -> Attribute msg
+contextClasses context =
+    case context of
+        AsRow ->
+            htmlClass "se row"
+
+        AsColumn ->
+            htmlClass "se column"
+
+        AsEl ->
+            htmlClass "se el"
+
+        AsGrid ->
+            htmlClass "se grid"
+
+        AsParagraph ->
+            htmlClass "se paragraph"
+
+        AsTextColumn ->
+            htmlClass "se page"
+
+
+
+{- Mapping -}
+
+
+map : (msg -> msg1) -> Element msg -> Element msg1
+map fn el =
+    case el of
+        Styled styled ->
+            Styled
+                { styles = styled.styles
+                , html = \add context -> Html.map fn <| styled.html add context
+                }
+
+        Unstyled html ->
+            Unstyled (Html.map fn << html)
+
+        Text str ->
+            Text str
+
+        Empty ->
+            Empty
+
+
+mapAttr : (msg -> msg1) -> Attribute msg -> Attribute msg1
+mapAttr fn attr =
+    case attr of
+        NoAttribute ->
+            NoAttribute
+
+        Describe description ->
+            Describe description
+
+        AlignX x ->
+            AlignX x
+
+        AlignY y ->
+            AlignY y
+
+        Width x ->
+            Width x
+
+        Height x ->
+            Height x
+
+        -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
+        Class x y ->
+            Class x y
+
+        StyleClass style ->
+            StyleClass style
+
+        Nearby location on element ->
+            Nearby location on (map fn element)
+
+        Attr htmlAttr ->
+            Attr (Html.Attributes.map fn htmlAttr)
+
+        TextShadow shadow ->
+            TextShadow shadow
+
+        BoxShadow shadow ->
+            BoxShadow shadow
+
+        Filter filter ->
+            Filter filter

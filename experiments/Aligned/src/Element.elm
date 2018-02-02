@@ -48,7 +48,6 @@ module Element
         , map
         , mapAttribute
         , modular
-        , mouseOverScale
         , moveDown
         , moveLeft
         , moveRight
@@ -205,7 +204,7 @@ This is very useful for things like dropdown menus or tooltips.
 
 ## Adjustment
 
-@docs moveRight, moveUp, moveLeft, moveDown, rotate, scale, mouseOverScale
+@docs moveRight, moveUp, moveLeft, moveDown, rotate, scale
 
 
 ## Clipping and Scrollbars
@@ -240,10 +239,7 @@ If these are present, the element will add a scrollbar if necessary.
 
 -}
 
--- import Element.Font as Font
-
 import Color exposing (Color)
-import Element.Background as Background
 import Html exposing (Html)
 import Html.Attributes
 import Internal.Model as Internal
@@ -1059,19 +1055,20 @@ height =
 {-| -}
 scale : Float -> Attribute msg
 scale n =
-    Internal.Transform Nothing (Internal.Scale n n 1)
+    Internal.StyleClass (Internal.Transform (Internal.Scale n n 1))
 
 
-{-| -}
-mouseOverScale : Float -> Attribute msg
-mouseOverScale n =
-    Internal.Transform (Just Internal.Hover) (Internal.Scale n n 1)
+
+-- {-| -}
+-- mouseOverScale : Float -> Attribute msg
+-- mouseOverScale n =
+--     Internal.Transform (Just Internal.Hover) (Internal.Scale n n 1)
 
 
 {-| -}
 rotate : Float -> Attribute msg
 rotate angle =
-    Internal.Transform Nothing (Internal.Rotate 0 0 1 angle)
+    Internal.StyleClass (Internal.Transform (Internal.Rotate 0 0 1 angle))
 
 
 
@@ -1084,25 +1081,25 @@ rotate angle =
 {-| -}
 moveUp : Float -> Attribute msg
 moveUp y =
-    Internal.Transform Nothing (Internal.Move Nothing (Just (negate y)) Nothing)
+    Internal.StyleClass (Internal.Transform (Internal.Move Nothing (Just (negate y)) Nothing))
 
 
 {-| -}
 moveDown : Float -> Attribute msg
 moveDown y =
-    Internal.Transform Nothing (Internal.Move Nothing (Just y) Nothing)
+    Internal.StyleClass (Internal.Transform (Internal.Move Nothing (Just y) Nothing))
 
 
 {-| -}
 moveRight : Float -> Attribute msg
 moveRight x =
-    Internal.Transform Nothing (Internal.Move (Just x) Nothing Nothing)
+    Internal.StyleClass (Internal.Transform (Internal.Move (Just x) Nothing Nothing))
 
 
 {-| -}
 moveLeft : Float -> Attribute msg
 moveLeft x =
-    Internal.Transform Nothing (Internal.Move (Just (negate x)) Nothing Nothing)
+    Internal.StyleClass (Internal.Transform (Internal.Move (Just (negate x)) Nothing Nothing))
 
 
 {-| -}
@@ -1180,6 +1177,16 @@ However for some layouts, like `textColumn`, you may want to set a different spa
 spacingXY : Int -> Int -> Attribute msg
 spacingXY x y =
     Internal.StyleClass (Internal.SpacingStyle x y)
+
+
+{-| Make an element transparent, though still taking up space and clickable.
+-}
+transparent : Bool -> Attribute msg
+transparent on =
+    if on then
+        Internal.class "transparent"
+    else
+        Internal.NoAttribute
 
 
 {-| -}

@@ -6,7 +6,6 @@ module Element.Border
         , glow
         , innerGlow
         , innerShadow
-        , mouseOverColor
         , roundEach
         , rounded
         , shadow
@@ -18,7 +17,7 @@ module Element.Border
 
 {-| Border Properties
 
-@docs color, mouseOverColor
+@docs color
 
 
 # Border Widths
@@ -49,10 +48,11 @@ color clr =
     StyleClass (Colored ("border-color-" ++ formatColorClass clr) "border-color" clr)
 
 
-{-| -}
-mouseOverColor : Color -> Attribute msg
-mouseOverColor clr =
-    hover (Colored ("hover-border-color-" ++ formatColorClass clr) "border-color" clr)
+
+-- {-| -}
+-- mouseOverColor : Color -> Attribute msg
+-- mouseOverColor clr =
+--     hover (Colored ("hover-border-color-" ++ formatColorClass clr) "border-color" clr)
 
 
 {-| -}

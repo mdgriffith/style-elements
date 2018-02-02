@@ -4,7 +4,6 @@ module Element.Background
         , fittedImage
         , gradient
         , image
-        , mouseOverColor
         , tiled
         , tiledX
         , tiledY
@@ -12,7 +11,7 @@ module Element.Background
 
 {-|
 
-@docs color, mouseOverColor, gradient
+@docs color, gradient
 
 @docs image, fittedImage, tiled, tiledX, tiledY
 
@@ -22,11 +21,11 @@ import Color exposing (Color)
 import Internal.Model exposing (..)
 
 
-{-| The background will change to this color when the mouse is over it.
--}
-mouseOverColor : Color -> Attribute msg
-mouseOverColor clr =
-    hover (Colored ("hover-bg-" ++ formatColorClass clr) "background-color" clr)
+-- {-| The background will change to this color when the mouse is over it.
+-- -}
+-- mouseOverColor : Color -> Attribute msg
+-- mouseOverColor clr =
+--     hover (Colored ("hover-bg-" ++ formatColorClass clr) "background-color" clr)
 
 
 {-| -}
