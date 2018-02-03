@@ -101,7 +101,7 @@ type Transformation
     | Scale Float Float Float
 
 
-type Attribute msg
+type Attribute aligned msg
     = NoAttribute
     | Attr (Html.Attribute msg)
     | Describe Description
@@ -109,8 +109,8 @@ type Attribute msg
     | Class String String
       -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
     | StyleClass Style
-    | AlignY VAlign
-    | AlignX HAlign
+    | AlignY aligned VAlign
+    | AlignX aligned HAlign
     | Width Length
     | Height Length
     | Nearby Location Bool (Element msg)
@@ -187,7 +187,7 @@ type Location
     | Behind
 
 
-class : String -> Attribute msg
+class : String -> Attribute aligned msg
 class x =
     Class x x
 
@@ -370,7 +370,7 @@ alignYName align =
             "self-center-y"
 
 
-noAreas : List (Attribute msg) -> List (Attribute msg)
+noAreas : List (Attribute aligned msg) -> List (Attribute aligned msg)
 noAreas attrs =
     let
         notAnArea a =
@@ -519,7 +519,7 @@ stackTransforms transform group =
             }
 
 
-gatherAttributes : Attribute msg -> Gathered msg -> Gathered msg
+gatherAttributes : Attribute aligned msg -> Gathered msg -> Gathered msg
 gatherAttributes attr gathered =
     let
         className name =
@@ -846,7 +846,7 @@ gatherAttributes attr gathered =
                             Just (( location, on, elem ) :: nearby)
             }
 
-        AlignX x ->
+        AlignX _ x ->
             case gathered.alignment of
                 Unaligned ->
                     { gathered
@@ -863,7 +863,7 @@ gatherAttributes attr gathered =
                         , alignment = Aligned (Just x) y
                     }
 
-        AlignY y ->
+        AlignY _ y ->
             case gathered.alignment of
                 Unaligned ->
                     { gathered
@@ -918,7 +918,7 @@ floorAtZero x =
 This means paragraph's with spacing must have padding that is at least the same size
 
 -}
-adjustParagraphSpacing : List (Attribute msg) -> List (Attribute msg)
+adjustParagraphSpacing : List (Attribute aligned msg) -> List (Attribute aligned msg)
 adjustParagraphSpacing attrs =
     let
         adjust ( x, y ) attribute =
@@ -1303,7 +1303,7 @@ noStyleSheet =
     NoStyleSheet
 
 
-element : EmbedStyle -> LayoutContext -> Maybe String -> List (Attribute msg) -> Children (Element msg) -> Element msg
+element : EmbedStyle -> LayoutContext -> Maybe String -> List (Attribute aligned msg) -> Children (Element msg) -> Element msg
 element embedMode context node attributes children =
     (contextClasses context :: attributes)
         |> List.foldr gatherAttributes (initGathered node)
@@ -1594,7 +1594,7 @@ keyedColumnEdgeFillers children =
 This doesn't reduce equivalent attributes completely.
 
 -}
-filter : List (Attribute msg) -> List (Attribute msg)
+filter : List (Attribute aligned msg) -> List (Attribute aligned msg)
 filter attrs =
     Tuple.first <|
         List.foldr
@@ -1633,13 +1633,13 @@ filter attrs =
                     Nearby location on elem ->
                         ( x :: found, has )
 
-                    AlignX _ ->
+                    AlignX _ _ ->
                         if Set.member "align-x" has then
                             ( found, has )
                         else
                             ( x :: found, Set.insert "align-x" has )
 
-                    AlignY _ ->
+                    AlignY _ _ ->
                         if Set.member "align-y" has then
                             ( found, has )
                         else
@@ -1658,7 +1658,7 @@ filter attrs =
             attrs
 
 
-get : List (Attribute msg) -> (Attribute msg -> Bool) -> List (Attribute msg)
+get : List (Attribute aligned msg) -> (Attribute aligned msg -> Bool) -> List (Attribute aligned msg)
 get attrs isAttr =
     attrs
         |> filter
@@ -1672,7 +1672,7 @@ get attrs isAttr =
             []
 
 
-getSpacing : List (Attribute msg) -> ( Int, Int ) -> ( Int, Int )
+getSpacing : List (Attribute aligned msg) -> ( Int, Int ) -> ( Int, Int )
 getSpacing attrs default =
     attrs
         |> List.foldr
@@ -1693,7 +1693,7 @@ getSpacing attrs default =
         |> Maybe.withDefault default
 
 
-getSpacingAttribute : List (Attribute msg) -> ( Int, Int ) -> Attribute msg1
+getSpacingAttribute : List (Attribute aligned msg) -> ( Int, Int ) -> Attribute aligned msg1
 getSpacingAttribute attrs default =
     attrs
         |> List.foldr
@@ -1762,7 +1762,7 @@ toHtml options el =
 
 
 {-| -}
-renderRoot : List Option -> List (Attribute msg) -> Element msg -> Html msg
+renderRoot : List Option -> List (Attribute aligned msg) -> Element msg -> Html msg
 renderRoot optionList attributes child =
     let
         options =
@@ -1813,7 +1813,7 @@ type alias Shadow =
     }
 
 
-rootStyle : List (Attribute msg)
+rootStyle : List (Attribute aligned msg)
 rootStyle =
     let
         families =
@@ -1975,7 +1975,7 @@ optionsToRecord options =
             options
 
 
-htmlClass : String -> Attribute msg
+htmlClass : String -> Attribute aligned msg
 htmlClass cls =
     Attr <| VirtualDom.property "className" (Json.string cls)
 
@@ -2813,7 +2813,7 @@ asTextColumn =
     AsTextColumn
 
 
-contextClasses : LayoutContext -> Attribute msg
+contextClasses : LayoutContext -> Attribute aligned msg
 contextClasses context =
     case context of
         AsRow ->
@@ -2858,7 +2858,7 @@ map fn el =
             Empty
 
 
-mapAttr : (msg -> msg1) -> Attribute msg -> Attribute msg1
+mapAttr : (msg -> msg1) -> Attribute aligned msg -> Attribute aligned msg1
 mapAttr fn attr =
     case attr of
         NoAttribute ->
@@ -2867,11 +2867,11 @@ mapAttr fn attr =
         Describe description ->
             Describe description
 
-        AlignX x ->
-            AlignX x
+        AlignX a x ->
+            AlignX a x
 
-        AlignY y ->
-            AlignY y
+        AlignY a y ->
+            AlignY a y
 
         Width x ->
             Width x
@@ -2900,3 +2900,84 @@ mapAttr fn attr =
 
         Filter filter ->
             Filter filter
+
+
+mapAttrFromStyle : (msg -> msg1) -> Attribute Never msg -> Attribute () msg1
+mapAttrFromStyle fn attr =
+    case attr of
+        NoAttribute ->
+            NoAttribute
+
+        Describe description ->
+            Describe description
+
+        AlignX a x ->
+            AlignX () x
+
+        AlignY a y ->
+            AlignY () y
+
+        Width x ->
+            Width x
+
+        Height x ->
+            Height x
+
+        -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
+        Class x y ->
+            Class x y
+
+        StyleClass style ->
+            StyleClass style
+
+        Nearby location on element ->
+            Nearby location on (map fn element)
+
+        Attr htmlAttr ->
+            Attr (Html.Attributes.map fn htmlAttr)
+
+        TextShadow shadow ->
+            TextShadow shadow
+
+        BoxShadow shadow ->
+            BoxShadow shadow
+
+        Filter filter ->
+            Filter filter
+
+
+unwrapDecorations : List (Attribute Never Never) -> List Style
+unwrapDecorations =
+    List.filterMap (onlyStyles << removeNever)
+
+
+removeNever : Attribute Never Never -> Attribute () msg
+removeNever style =
+    mapAttrFromStyle Basics.never style
+
+
+tag : String -> Style -> Style
+tag label style =
+    case style of
+        Single class prop val ->
+            Single (label ++ "-" ++ class) prop val
+
+        Colored class prop val ->
+            Colored (label ++ "-" ++ class) prop val
+
+        x ->
+            x
+
+
+
+-- Internal.StyleClass <| Internal.PseudoSelector Internal.Hover (List.map (tagAs "hover") decs)
+
+
+onlyStyles : Attribute aligned msg -> Maybe Style
+onlyStyles attr =
+    case attr of
+        StyleClass style ->
+            Just style
+
+        _ ->
+            Nothing

@@ -105,7 +105,7 @@ module Element.Font
 -}
 
 import Color exposing (Color)
-import Element exposing (Attribute)
+import Element exposing (Attr, Attribute)
 import Internal.Model as Internal
 
 
@@ -115,16 +115,9 @@ type alias Font =
 
 
 {-| -}
-color : Color -> Attribute msg
+color : Color -> Attr decorative msg
 color fontColor =
     Internal.StyleClass (Internal.Colored ("font-color-" ++ Internal.formatColorClass fontColor) "color" fontColor)
-
-
-
--- {-| -}
--- mouseOverColor : Color -> Attribute msg
--- mouseOverColor fontColor =
---     Internal.hover (Internal.Colored ("hover-font-color-" ++ Internal.formatColorClass fontColor) "color" fontColor)
 
 
 {-|
@@ -179,7 +172,7 @@ external { url, name } =
 
 {-| Font sizes are always given as `px`.
 -}
-size : Int -> Attribute msg
+size : Int -> Attr decorative msg
 size size =
     Internal.StyleClass (Internal.Single ("font-size-" ++ toString size) "font-size" (toString size ++ "px"))
 
@@ -193,7 +186,7 @@ This means the final lineHeight in px is:
       Font.size * Font.lineHeight == lineHeightInPx
 
 -}
-lineHeight : Float -> Attribute msg
+lineHeight : Float -> Attr decorative msg
 lineHeight =
     Internal.StyleClass << Internal.LineHeight
 
@@ -215,14 +208,6 @@ wordSpacing : Float -> Attribute msg
 wordSpacing offset =
     Internal.StyleClass <|
         Internal.Single ("word-spacing-" ++ Internal.floatClass offset) "word-spacing" (toString offset ++ "px")
-
-
-
--- {-| -}
--- weight : Int -> Attribute msg
--- weight fontWeight =
---     Internal.StyleClass <|
---         Internal.Single ("font-weight-" ++ toString fontWeight) "font-weight" (toString fontWeight)
 
 
 {-| Align the font to the left.
@@ -344,7 +329,7 @@ shadow :
     , blur : Float
     , color : Color
     }
-    -> Internal.Attribute msg
+    -> Attr decorative msg
 shadow { offset, blur, color } =
     Internal.TextShadow
         { offset = offset
@@ -355,7 +340,7 @@ shadow { offset, blur, color } =
 
 {-| A glow is just a simplified shadow
 -}
-glow : Color -> Float -> Internal.Attribute msg
+glow : Color -> Float -> Attr decorative msg
 glow color size =
     Internal.TextShadow
         { offset = ( 0, 0 )

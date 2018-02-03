@@ -452,6 +452,12 @@ rules =
             , Descriptor ".capture-pointer-events"
                 [ Prop "pointer-events" "nauto"
                 ]
+            , Descriptor ".transparent"
+                [ Prop "opacity" "0"
+                ]
+            , Descriptor ".opaque"
+                [ Prop "opacity" "1"
+                ]
             , Descriptor ".transition"
                 [ Prop "transition"
                     (String.join ", " <|

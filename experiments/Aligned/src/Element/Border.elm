@@ -30,49 +30,53 @@ module Element.Border
 @docs solid, dashed, dotted
 
 
-# Rounded Border
+# Rounded Corners
 
 @docs rounded, roundEach
+
+
+# Shadows
 
 @docs glow, innerGlow, shadow, innerShadow
 
 -}
 
 import Color exposing (Color)
-import Internal.Model exposing (..)
+import Element exposing (Attr, Attribute)
+import Internal.Model as Internal
 
 
 {-| -}
-color : Color -> Attribute msg
+color : Color -> Attr decorative msg
 color clr =
-    StyleClass (Colored ("border-color-" ++ formatColorClass clr) "border-color" clr)
+    Internal.StyleClass (Internal.Colored ("border-color-" ++ Internal.formatColorClass clr) "border-color" clr)
 
 
 
 -- {-| -}
 -- mouseOverColor : Color -> Attribute msg
 -- mouseOverColor clr =
---     hover (Colored ("hover-border-color-" ++ formatColorClass clr) "border-color" clr)
+--     hover (Colored ("hover-border-color-" ++ Internal.formatColorClass clr) "border-color" clr)
 
 
 {-| -}
 width : Int -> Attribute msg
 width v =
-    StyleClass (Single ("border-" ++ toString v) "border-width" (toString v ++ "px"))
+    Internal.StyleClass (Internal.Single ("border-" ++ toString v) "border-width" (toString v ++ "px"))
 
 
 {-| Set horizontal and vertical borders.
 -}
 widthXY : Int -> Int -> Attribute msg
 widthXY x y =
-    StyleClass (Single ("border-" ++ toString x ++ "-" ++ toString y) "border-width" (toString y ++ "px " ++ toString x ++ "px"))
+    Internal.StyleClass (Internal.Single ("border-" ++ toString x ++ "-" ++ toString y) "border-width" (toString y ++ "px " ++ toString x ++ "px"))
 
 
 {-| -}
 widthEach : { bottom : Int, left : Int, right : Int, top : Int } -> Attribute msg
 widthEach { bottom, top, left, right } =
-    StyleClass
-        (Single ("border-" ++ toString top ++ "-" ++ toString right ++ toString bottom ++ "-" ++ toString left)
+    Internal.StyleClass
+        (Internal.Single ("border-" ++ toString top ++ "-" ++ toString right ++ toString bottom ++ "-" ++ toString left)
             "border-width"
             (toString top
                 ++ "px "
@@ -97,33 +101,33 @@ widthEach { bottom, top, left, right } =
 {-| -}
 solid : Attribute msg
 solid =
-    Class "border" "border-solid"
+    Internal.Class "border" "border-solid"
 
 
 {-| -}
 dashed : Attribute msg
 dashed =
-    Class "border" "border-dashed"
+    Internal.Class "border" "border-dashed"
 
 
 {-| -}
 dotted : Attribute msg
 dotted =
-    Class "border" "border-dotted"
+    Internal.Class "border" "border-dotted"
 
 
 {-| Round all corners.
 -}
 rounded : Int -> Attribute msg
 rounded radius =
-    StyleClass (Single ("border-radius-" ++ toString radius) "border-radius" (toString radius ++ "px"))
+    Internal.StyleClass (Internal.Single ("border-radius-" ++ toString radius) "border-radius" (toString radius ++ "px"))
 
 
 {-| -}
 roundEach : { topLeft : Int, topRight : Int, bottomLeft : Int, bottomRight : Int } -> Attribute msg
 roundEach { topLeft, topRight, bottomLeft, bottomRight } =
-    StyleClass
-        (Single ("border-radius-" ++ toString topLeft ++ "-" ++ toString topRight ++ toString bottomLeft ++ "-" ++ toString bottomRight)
+    Internal.StyleClass
+        (Internal.Single ("border-radius-" ++ toString topLeft ++ "-" ++ toString topRight ++ toString bottomLeft ++ "-" ++ toString bottomRight)
             "border-radius"
             (toString topLeft
                 ++ "px "
@@ -139,7 +143,7 @@ roundEach { topLeft, topRight, bottomLeft, bottomRight } =
 
 {-| A simple glow by specifying the color and size.
 -}
-glow : Color -> Float -> Attribute msg
+glow : Color -> Float -> Attr decorative msg
 glow color size =
     box
         { offset = ( 0, 0 )
@@ -150,7 +154,7 @@ glow color size =
 
 
 {-| -}
-innerGlow : Color -> Float -> Attribute msg
+innerGlow : Color -> Float -> Attr decorative msg
 innerGlow color size =
     innerShadow
         { offset = ( 0, 0 )
@@ -167,9 +171,9 @@ box :
     , blur : Float
     , color : Color
     }
-    -> Attribute msg
+    -> Attr decorative msg
 box { offset, blur, color, size } =
-    BoxShadow
+    Internal.BoxShadow
         { inset = False
         , offset = offset
         , size = size
@@ -185,9 +189,9 @@ innerShadow :
     , blur : Float
     , color : Color
     }
-    -> Attribute msg
+    -> Attr decorative msg
 innerShadow { offset, blur, color, size } =
-    BoxShadow
+    Internal.BoxShadow
         { inset = True
         , offset = offset
         , size = size
@@ -203,9 +207,9 @@ shadow :
     , size : Float
     , color : Color
     }
-    -> Attribute msg
+    -> Attr decorative msg
 shadow { size, offset, blur, color } =
-    BoxShadow
+    Internal.BoxShadow
         { inset = False
         , offset = offset
         , size = size

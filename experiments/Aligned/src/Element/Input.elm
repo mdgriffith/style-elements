@@ -205,7 +205,7 @@ button attrs { onPress, label } =
         (Element.width Element.shrink
             :: Element.height Element.shrink
             :: Element.centerY
-            :: Element.center
+            :: Element.centerX
             :: Internal.Class "x-content-align" "content-center-x"
             :: Internal.Class "y-content-align" "content-center-y"
             :: Internal.Class "button" "se-button"
@@ -344,7 +344,7 @@ checkbox attrs { label, icon, checked, onChange } =
         )
 
 
-place : Internal.Grid.RelativePosition -> Internal.Grid.PositionedElement msg -> Internal.Grid.Around msg -> Internal.Grid.Around msg
+place : Internal.Grid.RelativePosition -> Internal.Grid.PositionedElement aligned msg -> Internal.Grid.Around aligned msg -> Internal.Grid.Around aligned msg
 place position el group =
     case position of
         Internal.Grid.Above ->
@@ -654,10 +654,10 @@ textHelper textInput attrs textOptions =
                         Internal.Height (Internal.Fill _) ->
                             True
 
-                        Internal.AlignX _ ->
+                        Internal.AlignX _ _ ->
                             True
 
-                        Internal.AlignY _ ->
+                        Internal.AlignY _ _ ->
                             True
 
                         Internal.StyleClass (Internal.SpacingStyle _ _) ->
@@ -753,7 +753,7 @@ textHelper textInput attrs textOptions =
 
 {-| Manually calculate height for a <textarea>
 -}
-multilineContentHeight : Float -> Float -> Maybe ( number, a, number, b ) -> Internal.Attribute msg
+multilineContentHeight : Float -> Float -> Maybe ( number, a, number, b ) -> Attribute msg
 multilineContentHeight newlineCount lineHeight maybePadding =
     let
         heightValue count =
@@ -1729,7 +1729,7 @@ onKey desiredCode msg =
         isKey
 
 
-preventKeydown : Int -> a -> Internal.Attribute a
+preventKeydown : Int -> a -> Attribute a
 preventKeydown desiredCode msg =
     let
         decode code =

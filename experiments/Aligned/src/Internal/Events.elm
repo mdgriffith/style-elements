@@ -21,8 +21,9 @@ module Internal.Events
 
 -}
 
+import Element exposing (Attribute)
 import Html.Events
-import Internal.Model as Internal exposing (Attribute(..))
+import Internal.Model as Internal
 import Json.Decode as Json
 import VirtualDom
 
@@ -62,7 +63,7 @@ you have the power! Here is how `onClick` is defined for example:
 
     import Json.Decode as Json
 
-    onClick : msg -> Attribute msg
+    onClick : msg -> Internal.Attribute msg
     onClick message =
         on "click" (Json.succeed message)
 
@@ -81,14 +82,14 @@ It really does help!
 -}
 on : String -> Json.Decoder msg -> Attribute msg
 on event decode =
-    Attr <| Html.Events.on event decode
+    Internal.Attr <| Html.Events.on event decode
 
 
 {-| Same as `on` but you can set a few options.
 -}
 onWithOptions : String -> Html.Events.Options -> Json.Decoder msg -> Attribute msg
 onWithOptions event options decode =
-    Attr <| Html.Events.onWithOptions event options decode
+    Internal.Attr <| Html.Events.onWithOptions event options decode
 
 
 
@@ -129,7 +130,7 @@ defaultOptions =
 
     import Json.Decode as Json
 
-    onInput : (String -> msg) -> Attribute msg
+    onInput : (String -> msg) -> Internal.Attribute msg
     onInput tagger =
         on "input" (Json.map tagger targetValue)
 
@@ -147,7 +148,7 @@ targetValue =
 
     import Json.Decode as Json
 
-    onCheck : (Bool -> msg) -> Attribute msg
+    onCheck : (Bool -> msg) -> Internal.Attribute msg
     onCheck tagger =
         on "input" (Json.map tagger targetChecked)
 
@@ -162,7 +163,7 @@ keyboard listeners like this:
 
     import Json.Decode as Json
 
-    onKeyUp : (Int -> msg) -> Attribute msg
+    onKeyUp : (Int -> msg) -> Internal.Attribute msg
     onKeyUp tagger =
         on "keyup" (Json.map tagger keyCode)
 

@@ -18,55 +18,49 @@ module Element.Background
 -}
 
 import Color exposing (Color)
-import Internal.Model exposing (..)
-
-
--- {-| The background will change to this color when the mouse is over it.
--- -}
--- mouseOverColor : Color -> Attribute msg
--- mouseOverColor clr =
---     hover (Colored ("hover-bg-" ++ formatColorClass clr) "background-color" clr)
+import Element exposing (Attr, Attribute)
+import Internal.Model as Internal
 
 
 {-| -}
-color : Color -> Attribute msg
+color : Color -> Attr decorative msg
 color clr =
-    StyleClass (Colored ("bg-" ++ formatColorClass clr) "background-color" clr)
+    Internal.StyleClass (Internal.Colored ("bg-" ++ Internal.formatColorClass clr) "background-color" clr)
 
 
 {-| A background image that keeps it's natural width and height.
 -}
 image : String -> Attribute msg
 image src =
-    StyleClass (Single ("bg-image-" ++ className src) "background" ("url(\"" ++ src ++ "\") top left / contain no-repeat"))
+    Internal.StyleClass (Internal.Single ("bg-image-" ++ Internal.className src) "background" ("url(\"" ++ src ++ "\") top left / contain no-repeat"))
 
 
 {-| Scale the image to fit the size of the element while maintaining proportions and cropping the overflow.
 -}
 fittedImage : String -> Attribute msg
 fittedImage src =
-    StyleClass (Single ("bg-fitted-image-" ++ className src) "background" ("url(\"" ++ src ++ "\") top left / cover no-repeat"))
+    Internal.StyleClass (Internal.Single ("bg-fitted-image-" ++ Internal.className src) "background" ("url(\"" ++ src ++ "\") top left / cover no-repeat"))
 
 
 {-| Tile an image in the x and y axes.
 -}
 tiled : String -> Attribute msg
 tiled src =
-    StyleClass (Single ("bg-image-" ++ className src) "background" ("url(\"" ++ src ++ "\") repeat"))
+    Internal.StyleClass (Internal.Single ("bg-image-" ++ Internal.className src) "background" ("url(\"" ++ src ++ "\") repeat"))
 
 
 {-| Tile an image in the x axis.
 -}
 tiledX : String -> Attribute msg
 tiledX src =
-    StyleClass (Single ("bg-image-" ++ className src) "background" ("url(\"" ++ src ++ "\") repeat-x"))
+    Internal.StyleClass (Internal.Single ("bg-image-" ++ Internal.className src) "background" ("url(\"" ++ src ++ "\") repeat-x"))
 
 
 {-| Tile an image in the y axis.
 -}
 tiledY : String -> Attribute msg
 tiledY src =
-    StyleClass (Single ("bg-image-" ++ className src) "background" ("url(\"" ++ src ++ "\") repeat-y"))
+    Internal.StyleClass (Internal.Single ("bg-image-" ++ Internal.className src) "background" ("url(\"" ++ src ++ "\") repeat-y"))
 
 
 type Direction
@@ -108,10 +102,10 @@ The colors will be evenly spaced.
 -}
 gradient : Float -> List Color -> Attribute msg
 gradient angle colors =
-    StyleClass <|
-        Single ("bg-gradient-" ++ (String.join "-" <| floatClass angle :: List.map formatColorClass colors))
+    Internal.StyleClass <|
+        Internal.Single ("bg-gradient-" ++ (String.join "-" <| Internal.floatClass angle :: List.map Internal.formatColorClass colors))
             "background"
-            ("linear-gradient(" ++ (String.join ", " <| (toString angle ++ "rad") :: List.map formatColor colors) ++ ")")
+            ("linear-gradient(" ++ (String.join ", " <| (toString angle ++ "rad") :: List.map Internal.formatColor colors) ++ ")")
 
 
 
