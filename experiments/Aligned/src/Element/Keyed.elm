@@ -1,6 +1,16 @@
 module Element.Keyed exposing (column, el, row)
 
-{-|
+{-| Notes from the `Html.Keyed` on how keyed works:
+
+    A keyed node helps optimize cases where children are getting added, moved, removed, etc. Common examples include:
+
+        - The user can delete items from a list.
+        - The user can create new items in a list.
+        - You can sort a list based on name or date or whatever.
+
+    When you use a keyed node, every child is paired with a string identifier. This makes it possible for the underlying diffing algorithm to reuse nodes more efficiently.
+
+This means if a key is changed between renders, then the diffing step will be skipped and the node will be forced to rerender.
 
 @docs el, column, row
 
@@ -19,7 +29,7 @@ el attrs child =
         (width Element.shrink
             :: height Element.shrink
             -- :: centerY
-            :: Element.center
+            :: Element.centerX
             :: Internal.Class "x-content-align" "content-center-x"
             :: Internal.Class "y-content-align" "content-center-y"
             :: attrs
