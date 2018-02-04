@@ -81,6 +81,7 @@ module Element
         , table
         , text
         , textColumn
+        , transparent
         , width
         )
 
@@ -127,7 +128,7 @@ Text needs it's own layout primitives.
 
 # Attributes
 
-@docs Attribute, hidden, pointer
+@docs Attribute, hidden, transparent, pointer
 
 @docs width, height, Length, px, shrink, fill, fillPortion, fillBetween
 
@@ -1191,12 +1192,12 @@ spacingXY x y =
 
 {-| Make an element transparent, though still taking up space and clickable.
 -}
-transparent : Bool -> Attribute msg
+transparent : Bool -> Attr decorative msg
 transparent on =
     if on then
-        Internal.Class "transparency" "transparent"
+        Internal.StyleClass (Internal.Single "transparency" "opacity" "0")
     else
-        Internal.Class "transparency" "opaque"
+        Internal.StyleClass (Internal.Single "transparency" "opacity" "1")
 
 
 {-| -}
@@ -1310,15 +1311,21 @@ mouseOver : List Decoration -> Attribute msg
 mouseOver decs =
     Internal.StyleClass <|
         Internal.PseudoSelector Internal.Hover
-            (List.map (Internal.tag "hover") (Internal.unwrapDecorations decs))
+            (decs
+                |> Internal.unwrapDecorations
+                |> List.map (Internal.tag "hover")
+            )
 
 
 {-| -}
 mouseDown : List Decoration -> Attribute msg
 mouseDown decs =
     Internal.StyleClass <|
-        Internal.PseudoSelector Internal.Focus
-            (List.map (Internal.tag "active") (Internal.unwrapDecorations decs))
+        Internal.PseudoSelector Internal.Active
+            (decs
+                |> Internal.unwrapDecorations
+                |> List.map (Internal.tag "active")
+            )
 
 
 {-| -}
@@ -1326,4 +1333,7 @@ focused : List Decoration -> Attribute msg
 focused decs =
     Internal.StyleClass <|
         Internal.PseudoSelector Internal.Focus
-            (List.map (Internal.tag "focus") (Internal.unwrapDecorations decs))
+            (decs
+                |> Internal.unwrapDecorations
+                |> List.map (Internal.tag "focus")
+            )
