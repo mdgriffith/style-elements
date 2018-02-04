@@ -2033,15 +2033,22 @@ toStyleSheetString options stylesheet =
                                 renderedProps =
                                     List.foldl (renderProps force) "" props
                             in
-                            selector
-                                ++ ":focus {"
-                                ++ renderedProps
-                                ++ "\n}"
-                                ++ ".se:focus ~"
-                                ++ selector
-                                ++ "  {"
-                                ++ renderedProps
-                                ++ "\n}"
+                            String.join "\n"
+                                [ selector
+                                    ++ ":focus {"
+                                    ++ renderedProps
+                                    ++ "\n}"
+                                , ".se:focus ~ "
+                                    ++ selector
+                                    ++ "  {"
+                                    ++ renderedProps
+                                    ++ "\n}"
+                                , ".se:focus "
+                                    ++ selector
+                                    ++ "  {"
+                                    ++ renderedProps
+                                    ++ "\n}"
+                                ]
 
                         Active ->
                             selector ++ ":active {" ++ List.foldl (renderProps force) "" props ++ "\n}"
