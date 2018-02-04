@@ -1134,37 +1134,37 @@ paddingEach { top, right, bottom, left } =
 {-| -}
 centerX : Attribute msg
 centerX =
-    Internal.AlignX () Internal.CenterX
+    Internal.AlignX Internal.CenterX
 
 
 {-| -}
 centerY : Attribute msg
 centerY =
-    Internal.AlignY () Internal.CenterY
+    Internal.AlignY Internal.CenterY
 
 
 {-| -}
 alignTop : Attribute msg
 alignTop =
-    Internal.AlignY () Internal.Top
+    Internal.AlignY Internal.Top
 
 
 {-| -}
 alignBottom : Attribute msg
 alignBottom =
-    Internal.AlignY () Internal.Bottom
+    Internal.AlignY Internal.Bottom
 
 
 {-| -}
 alignLeft : Attribute msg
 alignLeft =
-    Internal.AlignX () Internal.Left
+    Internal.AlignX Internal.Left
 
 
 {-| -}
 alignRight : Attribute msg
 alignRight =
-    Internal.AlignX () Internal.Right
+    Internal.AlignX Internal.Right
 
 
 {-| -}

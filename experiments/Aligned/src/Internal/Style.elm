@@ -1,6 +1,5 @@
 module Internal.Style exposing (..)
 
-import Dict
 import Html
 
 
@@ -456,6 +455,30 @@ rules =
                 [ Prop "opacity" "0"
                 ]
             , Descriptor ".opaque"
+                [ Prop "opacity" "1"
+                ]
+            , Descriptor ".hover-transparent:hover"
+                [ Prop "opacity" "0"
+                ]
+            , Descriptor ".hover-opaque:hover"
+                [ Prop "opacity" "1"
+                ]
+            , Descriptor ".hover-transparent:hover"
+                [ Prop "opacity" "0"
+                ]
+            , Descriptor ".hover-opaque:hover"
+                [ Prop "opacity" "1"
+                ]
+            , Descriptor ".focus-transparent:focus"
+                [ Prop "opacity" "0"
+                ]
+            , Descriptor ".focus-opaque:focus"
+                [ Prop "opacity" "1"
+                ]
+            , Descriptor ".active-transparent:active"
+                [ Prop "opacity" "0"
+                ]
+            , Descriptor ".active-opaque:active"
                 [ Prop "opacity" "1"
                 ]
             , Descriptor ".transition"

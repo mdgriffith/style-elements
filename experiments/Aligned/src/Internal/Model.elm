@@ -2,8 +2,6 @@ module Internal.Model exposing (..)
 
 {-| -}
 
--- import VirtualCss
-
 import Color exposing (Color)
 import Html exposing (Html)
 import Html.Attributes
@@ -109,8 +107,8 @@ type Attribute aligned msg
     | Class String String
       -- invalidation key "border-color" as opposed to "border-color-10-10-10" that will be the key for the class
     | StyleClass Style
-    | AlignY aligned VAlign
-    | AlignX aligned HAlign
+    | AlignY VAlign
+    | AlignX HAlign
     | Width Length
     | Height Length
     | Nearby Location Bool (Element msg)
@@ -185,6 +183,61 @@ type Location
     | OnLeft
     | InFront
     | Behind
+
+
+type alias TransformationAlias a =
+    { a
+        | rotate : Maybe ( Float, Float, Float, Float )
+        , translate : Maybe ( Maybe Float, Maybe Float, Maybe Float )
+        , scale : Maybe ( Float, Float, Float )
+    }
+
+
+type NodeName
+    = Generic
+    | NodeName String
+    | Embedded String String
+
+
+type alias NearbyGroup msg =
+    { above : Maybe ( Bool, Html msg )
+    , below : Maybe ( Bool, Html msg )
+    , right : Maybe ( Bool, Html msg )
+    , left : Maybe ( Bool, Html msg )
+    , infront : Maybe ( Bool, Html msg )
+    , behind : Maybe ( Bool, Html msg )
+    }
+
+
+type alias Gathered msg =
+    { node : NodeName
+    , attributes : List (Html.Attribute msg)
+    , styles : List Style
+    , alignment : Aligned
+    , width : Maybe Length
+    , height : Maybe Length
+    , nearbys : Maybe (List ( Location, Bool, Element msg ))
+    , filters : Maybe String
+    , boxShadows : Maybe String
+    , textShadows : Maybe String
+    , transform : Maybe (Decorated TransformationGroup)
+    , has : Set String
+    }
+
+
+type alias Decorated x =
+    { focus : Maybe x
+    , hover : Maybe x
+    , normal : Maybe x
+    , active : Maybe x
+    }
+
+
+type alias TransformationGroup =
+    { rotate : Maybe ( Float, Float, Float, Float )
+    , translate : Maybe ( Maybe Float, Maybe Float, Maybe Float )
+    , scale : Maybe ( Float, Float, Float )
+    }
 
 
 class : String -> Attribute aligned msg
@@ -846,7 +899,7 @@ gatherAttributes attr gathered =
                             Just (( location, on, elem ) :: nearby)
             }
 
-        AlignX _ x ->
+        AlignX x ->
             case gathered.alignment of
                 Unaligned ->
                     { gathered
@@ -863,7 +916,7 @@ gatherAttributes attr gathered =
                         , alignment = Aligned (Just x) y
                     }
 
-        AlignY _ y ->
+        AlignY y ->
             case gathered.alignment of
                 Unaligned ->
                     { gathered
@@ -961,80 +1014,12 @@ adjustParagraphSpacing attrs =
             List.map (adjust ( x, y )) attrs
 
 
-type alias TransformationAlias a =
-    { a
-        | rotate : Maybe ( Float, Float, Float, Float )
-        , translate : Maybe ( Maybe Float, Maybe Float, Maybe Float )
-        , scale : Maybe ( Float, Float, Float )
-    }
-
-
-type NodeName
-    = Generic
-    | NodeName String
-    | Embedded String String
-
-
-type alias NearbyGroup msg =
-    { above : Maybe ( Bool, Html msg )
-    , below : Maybe ( Bool, Html msg )
-    , right : Maybe ( Bool, Html msg )
-    , left : Maybe ( Bool, Html msg )
-    , infront : Maybe ( Bool, Html msg )
-    , behind : Maybe ( Bool, Html msg )
-    }
-
-
-type Borders
-    = NoBorders
-    | AllBorders Int
-    | EachBorders
-        { left : Int
-        , top : Int
-        , bottom : Int
-        , right : Int
-        }
-
-
-type alias Gathered msg =
-    { node : NodeName
-    , attributes : List (Html.Attribute msg)
-    , styles : List Style
-    , alignment : Aligned
-    , borders : Borders
-    , width : Maybe Length
-    , height : Maybe Length
-    , nearbys : Maybe (List ( Location, Bool, Element msg ))
-    , filters : Maybe String
-    , boxShadows : Maybe String
-    , textShadows : Maybe String
-    , transform : Maybe (Decorated TransformationGroup)
-    , has : Set String
-    }
-
-
-type alias Decorated x =
-    { focus : Maybe x
-    , hover : Maybe x
-    , normal : Maybe x
-    , active : Maybe x
-    }
-
-
-type alias TransformationGroup =
-    { rotate : Maybe ( Float, Float, Float, Float )
-    , translate : Maybe ( Maybe Float, Maybe Float, Maybe Float )
-    , scale : Maybe ( Float, Float, Float )
-    }
-
-
 initGathered : Maybe String -> Gathered msg
 initGathered maybeNodeName =
     { attributes = []
     , styles = []
     , width = Nothing
     , height = Nothing
-    , borders = NoBorders
     , alignment = Unaligned
     , node =
         case maybeNodeName of
@@ -1633,13 +1618,13 @@ filter attrs =
                     Nearby location on elem ->
                         ( x :: found, has )
 
-                    AlignX _ _ ->
+                    AlignX _ ->
                         if Set.member "align-x" has then
                             ( found, has )
                         else
                             ( x :: found, Set.insert "align-x" has )
 
-                    AlignY _ _ ->
+                    AlignY _ ->
                         if Set.member "align-y" has then
                             ( found, has )
                         else
@@ -2387,19 +2372,6 @@ lengthClassName x =
             intToString bounds.portion ++ "fr" ++ renderedMin ++ renderedMax
 
 
-
--- Between { value, min, max } ->
---     case (min, max) ->
---         (Nothing, Nothing) ->
---             lengthClassName value
---         (Just minimum, Nothing) ->
---             lengthClassName value ++ "-min-" ++ intToString minimum
---         (Nothing, Just maximum) ->
---             lengthClassName value ++ "-max-" ++ intToString maximum
---         (Just minimum, Just maximum) ->
---             lengthClassName value ++ "-min-" ++ intToString minimum ++ "-max-" ++ intToString maximum
-
-
 formatDropShadow : { d | blur : a, color : Color, offset : ( b, c ) } -> String
 formatDropShadow shadow =
     String.join " "
@@ -2635,6 +2607,7 @@ formatColorClass color =
 --                 |> always ()
 
 
+psuedoClassName : PseudoClass -> String
 psuedoClassName class =
     case class of
         Focus ->
@@ -2867,11 +2840,11 @@ mapAttr fn attr =
         Describe description ->
             Describe description
 
-        AlignX a x ->
-            AlignX a x
+        AlignX x ->
+            AlignX x
 
-        AlignY a y ->
-            AlignY a y
+        AlignY y ->
+            AlignY y
 
         Width x ->
             Width x
@@ -2911,11 +2884,11 @@ mapAttrFromStyle fn attr =
         Describe description ->
             Describe description
 
-        AlignX a x ->
-            AlignX () x
+        AlignX x ->
+            AlignX x
 
-        AlignY a y ->
-            AlignY () y
+        AlignY y ->
+            AlignY y
 
         Width x ->
             Width x
@@ -2967,10 +2940,6 @@ tag label style =
 
         x ->
             x
-
-
-
--- Internal.StyleClass <| Internal.PseudoSelector Internal.Hover (List.map (tagAs "hover") decs)
 
 
 onlyStyles : Attribute aligned msg -> Maybe Style

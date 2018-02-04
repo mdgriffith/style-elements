@@ -654,10 +654,10 @@ textHelper textInput attrs textOptions =
                         Internal.Height (Internal.Fill _) ->
                             True
 
-                        Internal.AlignX _ _ ->
+                        Internal.AlignX _ ->
                             True
 
-                        Internal.AlignY _ _ ->
+                        Internal.AlignY _ ->
                             True
 
                         Internal.StyleClass (Internal.SpacingStyle _ _) ->
