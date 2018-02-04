@@ -430,11 +430,11 @@ rules =
             , Prop "color" "inherit"
             , Prop "font-family" "inherit"
             , Prop "line-height" "inherit"
+            , Prop "font-weight" "inherit"
 
-            -- Noninheritable font props
-            , Prop "font-weight" "normal"
+            -- Text decoration is *mandatorily inherited* in the css spec.  There's no way to change this
             , Prop "text-decoration" "none"
-            , Prop "font-style" "normal"
+            , Prop "font-style" "inherit"
             , Descriptor ".no-text-selection"
                 [ Prop "user-select" "none"
                 , Prop "-ms-user-select" "none"
@@ -612,45 +612,45 @@ rules =
                                     , Prop "z-index" "0"
                                     , Prop "pointer-events" "auto"
                                     ]
-            , describeText ".text-thin"
+            , Descriptor ".text-thin"
                 [ Prop "font-weight" "100"
                 ]
-            , describeText ".text-extra-light"
+            , Descriptor ".text-extra-light"
                 [ Prop "font-weight" "200"
                 ]
-            , describeText ".text-light"
+            , Descriptor ".text-light"
                 [ Prop "font-weight" "300"
                 ]
-            , describeText ".text-normal-weight"
+            , Descriptor ".text-normal-weight"
                 [ Prop "font-weight" "400"
                 ]
-            , describeText ".text-medium"
+            , Descriptor ".text-medium"
                 [ Prop "font-weight" "500"
                 ]
-            , describeText ".text-semi-bold"
+            , Descriptor ".text-semi-bold"
                 [ Prop "font-weight" "600"
                 ]
-            , describeText ".bold"
+            , Descriptor ".bold"
                 [ Prop "font-weight" "700"
                 ]
-            , describeText ".text-extra-bold"
+            , Descriptor ".text-extra-bold"
                 [ Prop "font-weight" "800"
                 ]
-            , describeText ".text-heavy"
+            , Descriptor ".text-heavy"
                 [ Prop "font-weight" "900"
                 ]
-            , describeText ".italic"
+            , Descriptor ".italic"
                 [ Prop "font-style" "italic"
                 ]
-            , describeText ".strike"
+            , Descriptor ".strike"
                 [ Prop "text-decoration" "line-through"
                 ]
-            , describeText ".underline"
+            , Descriptor ".underline"
                 [ Prop "text-decoration" "underline"
                 , Prop "text-decoration-skip-ink" "auto"
                 , Prop "text-decoration-skip" "ink"
                 ]
-            , describeText ".text-unitalicized"
+            , Descriptor ".text-unitalicized"
                 [ Prop "font-style" "normal"
                 ]
             , Descriptor ".text-justify"
