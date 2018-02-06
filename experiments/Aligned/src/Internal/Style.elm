@@ -202,28 +202,28 @@ class cls =
             ".se"
 
         Single ->
-            ".el"
+            ".se.el"
 
         Row ->
-            ".row"
+            ".se.row"
 
         Column ->
-            ".column"
+            ".se.column"
 
         Page ->
-            ".page"
+            ".se.page"
 
         Paragraph ->
-            ".paragraph"
+            ".se.paragraph"
 
         Text ->
-            ".text"
+            ".se.text"
 
         Grid ->
-            ".grid"
+            ".se.grid"
 
         Spacer ->
-            ".spacer"
+            ".se.spacer"
 
 
 type Intermediate
@@ -384,20 +384,21 @@ rules =
         , Class ".se:focus"
             [ Prop "outline" "none"
             ]
-        , Class ".se:focus .se.show-on-focus"
-            [ Prop "opacity" "1"
-            , Prop "pointer-events" "auto"
-            ]
-        , Class ".se.show-on-focus"
-            [ Prop "opacity" "0"
-            , Prop "pointer-events" "none"
-            , Prop "transition"
-                (String.join ", " <|
-                    List.map (\x -> x ++ " 160ms")
-                        [ "opacity"
-                        ]
-                )
-            ]
+
+        -- , Class ".se:focus .se.show-on-focus"
+        --     [ Prop "opacity" "1"
+        --     , Prop "pointer-events" "auto"
+        --     ]
+        -- , Class ".se.show-on-focus"
+        --     [ Prop "opacity" "0"
+        --     , Prop "pointer-events" "none"
+        --     , Prop "transition"
+        --         (String.join ", " <|
+        --             List.map (\x -> x ++ " 160ms")
+        --                 [ "opacity"
+        --                 ]
+        --         )
+        --     ]
         , Class (class Root)
             [ Prop "width" "100%"
             , Prop "height" "auto"
@@ -432,7 +433,7 @@ rules =
             , Prop "line-height" "inherit"
             , Prop "font-weight" "inherit"
 
-            -- Text decoration is *mandatorily inherited* in the css spec.  There's no way to change this
+            -- Text decoration is *mandatorily inherited* in the css spec.  There's no way to change this.
             , Prop "text-decoration" "none"
             , Prop "font-style" "inherit"
             , Descriptor ".no-text-selection"
@@ -1084,10 +1085,10 @@ rules =
                             , []
                             )
             ]
-        , Class ".ignore"
+        , Class ".se.ignore"
             [ Prop "margin" "0 !important"
             ]
-        , Class ".hidden"
+        , Class ".se.hidden"
             [ Prop "display" "none"
             ]
         ]
