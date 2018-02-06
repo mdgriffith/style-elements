@@ -35,11 +35,12 @@ module Element
         , fill
         , fillBetween
         , fillPortion
+        , fillPortionBetween
         , focusStyle
         , focused
         , forceHover
         , height
-        , hidden
+          -- , hidden
         , html
         , htmlAttribute
         , image
@@ -88,33 +89,33 @@ module Element
 {-|
 
 
-## Basic Elements
+# Basic Elements
 
 @docs Element, Attribute, empty, text, el
 
 
-## Rows and Columns
+# Rows and Columns
 
 Rows and columns are the most common layouts.
 
 @docs row, column
 
 
-## Text Layout
+# Text Layout
 
 Text needs it's own layout primitives.
 
 @docs paragraph, textColumn
 
 
-## Data Table
+# Data Table
 
 @docs Table, Column, table
 
 @docs IndexedTable, IndexedColumn, indexedTable
 
 
-## Rendering
+# Rendering
 
 @docs layout, layoutWith, Option, noStaticStyleSheet, forceHover, noHover, focusStyle, FocusStyle
 
@@ -128,9 +129,9 @@ Text needs it's own layout primitives.
 
 # Attributes
 
-@docs Attribute, hidden, transparent, pointer
+@docs Attribute, transparent, pointer
 
-@docs width, height, Length, px, shrink, fill, fillPortion, fillBetween
+@docs width, height, Length, px, shrink, fill, fillPortion, fillBetween, fillPortionBetween
 
 
 ## Padding and Spacing
@@ -203,14 +204,14 @@ This is very useful for things like dropdown menus or tooltips.
 @docs above, below, onRight, onLeft, inFront, behind
 
 
-# Adjustment
-
-@docs moveRight, moveUp, moveLeft, moveDown, rotate, scale
-
-
 # Temporary Styling
 
 @docs Attr, Decoration, mouseOver, mouseDown, focused
+
+
+# Adjustment
+
+@docs moveRight, moveUp, moveLeft, moveDown, rotate, scale
 
 
 # Clipping and Scrollbars
@@ -253,7 +254,6 @@ import Internal.Model as Internal
 
 {-| The basic building block of your layout. Here we create a
 
-    import Background
     import Element
 
     view =
@@ -264,15 +264,16 @@ type alias Element msg =
     Internal.Element msg
 
 
-{-| -}
-type alias Attr decorative msg =
-    Internal.Attribute decorative msg
-
-
 {-| Standard attribute which cannot be a decoration.
 -}
 type alias Attribute msg =
     Internal.Attribute () msg
+
+
+{-| This is a special attribute that counts as both a `Attribute msg` and a `Decoration`.
+-}
+type alias Attr decorative msg =
+    Internal.Attribute decorative msg
 
 
 {-| Only decorations
@@ -316,7 +317,8 @@ px =
     Internal.Px
 
 
-{-| -}
+{-| Shrink to an element to fit it's contents.
+-}
 shrink : Length
 shrink =
     Internal.Content
@@ -329,7 +331,7 @@ fill =
     Internal.Fill 1
 
 
-{-| Fill the available space as long as it's inbetween the pixel bounds.
+{-| Fill the available space as long as it's between the pixel bounds.
 -}
 fillBetween : { min : Maybe Int, max : Maybe Int } -> Length
 fillBetween { min, max } =
@@ -522,7 +524,6 @@ el attrs child =
         Nothing
         (width shrink
             :: height shrink
-            -- :: centerY
             :: centerX
             :: Internal.Class "x-content-align" "content-center-x"
             :: Internal.Class "y-content-align" "content-center-y"
@@ -539,7 +540,7 @@ row attrs children =
         Internal.noStyleSheet
         Internal.asRow
         Nothing
-        (Internal.Class "x-content-align" "content-center-x"
+        (Internal.Class "x-content-align" "content-left"
             :: Internal.Class "y-content-align" "content-center-y"
             :: width fill
             :: attrs
@@ -1082,13 +1083,6 @@ rotate angle =
     Internal.StyleClass (Internal.Transform (Internal.Rotate 0 0 1 angle))
 
 
-
--- {-| -}
--- mouseOverRotate : Float -> Attribute msg
--- mouseOverRotate angle =
---     Internal.Transform (Just Internal.Hover) (Internal.Rotate 0 0 1 angle)
-
-
 {-| -}
 moveUp : Float -> Attr decorative msg
 moveUp y =
@@ -1190,23 +1184,30 @@ spacingXY x y =
     Internal.StyleClass (Internal.SpacingStyle x y)
 
 
-{-| Make an element transparent, though still taking up space and clickable.
+{-| Make an element transparent and have it ignore any mouse or touch events.
+
+It will stil take up space.
+
+If you need to completely not render an element
+
 -}
 transparent : Bool -> Attr decorative msg
 transparent on =
+    -- TODO: add pointer-events: none; to transparent items, and don't set pointer events otherwise.
     if on then
-        Internal.StyleClass (Internal.Single "transparency" "opacity" "0")
+        Internal.StyleClass (Internal.Single "transparency-0" "opacity" "0")
     else
-        Internal.StyleClass (Internal.Single "transparency" "opacity" "1")
+        Internal.StyleClass (Internal.Single "transparency-1" "opacity" "1")
 
 
-{-| -}
-hidden : Bool -> Attribute msg
-hidden on =
-    if on then
-        Internal.class "hidden"
-    else
-        Internal.NoAttribute
+
+-- {-| -}
+-- hidden : Bool -> Attribute msg
+-- hidden on =
+--     if on then
+--         Internal.class "hidden"
+--     else
+--         Internal.NoAttribute
 
 
 {-| -}
