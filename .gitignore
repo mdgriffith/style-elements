@@ -12,3 +12,5 @@ benchmarks/rendering/staging
 ohno.png
 
 *.notes
+
+elm.js
