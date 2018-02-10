@@ -409,6 +409,15 @@ rules =
                     [ Prop "height" "100%"
                     ]
                 ]
+            , Descriptor ".wireframe .el"
+                [ Prop "outline" "2px dashed black"
+                ]
+            , Descriptor ".wireframe .row"
+                [ Prop "outline" "2px dashed black"
+                ]
+            , Descriptor ".wireframe .column"
+                [ Prop "outline" "2px dashed black"
+                ]
             ]
         , Class (class Any)
             [ Prop "position" "relative"
@@ -752,6 +761,11 @@ rules =
             , Prop "width" "100%"
             , Prop "height" "100%"
             , Prop "pointer-events" "none"
+            , Prop "margin" "0 !important"
+            , Adjacent ".se"
+                [ Prop "margin-top" "0"
+                , Prop "margin-left" "0"
+                ]
             ]
         , Class ".modal"
             [ Prop "position" "fixed"
@@ -794,7 +808,9 @@ rules =
             , Child ".container"
                 [ Prop "flex-grow" "0"
                 , Prop "flex-basis" "0"
-                , Prop "height" "100%"
+
+                -- , Prop "height" "100%"
+                , Prop "align-self" "stretch"
                 ]
             , Child "alignLeft:last-of-type.align-container-left"
                 [ Prop "flex-grow" "1"
@@ -936,6 +952,7 @@ rules =
                 [ Prop "flex-grow" "0"
                 , Prop "flex-basis" "auto"
                 , Prop "width" "100%"
+                , Prop "align-self" "stretch !important"
                 ]
             , Descriptor ".space-evenly"
                 [ Prop "justify-content" "space-between"
