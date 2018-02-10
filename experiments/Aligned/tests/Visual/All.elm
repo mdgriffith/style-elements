@@ -28,7 +28,7 @@ main =
             [ singleAlignment
             , rowAlignment
             , columnAlignment
-            , aboveElement
+            , nearbyElements
             , columnSpacing
             , rowSpacing
             , el [ height (px 200) ] empty
@@ -110,7 +110,7 @@ rowAlignment =
         rowContainer attrs children =
             row ([ spacing 20, height (px 100) ] ++ attrs) children
     in
-    column []
+    column [ width (px 500) ]
         [ el [] (text "Alignment Within a Row")
         , rowContainer []
             [ box [] ]
@@ -121,8 +121,8 @@ rowAlignment =
             ]
         , rowContainer []
             [ box []
-            , box [ alignLeft ]
-            , box [ centerX ]
+            , box []
+            , box [ alignRight ]
             ]
         , rowContainer []
             [ box []
@@ -130,16 +130,45 @@ rowAlignment =
             , box []
             ]
         , rowContainer []
+            [ box [ alignRight ]
+            , box []
+            , box []
+            ]
+        , text "center X"
+        , rowContainer []
+            [ box [ centerX ]
+            , box []
+            , box []
+            ]
+        , rowContainer []
             [ box []
-            , box [ alignLeft ]
+            , box [ centerX ]
+            , box []
+            ]
+        , rowContainer []
+            [ box []
+            , box []
+            , box [ centerX ]
+            ]
+        , text "left x right"
+        , rowContainer []
+            [ box [ alignLeft ]
+            , box []
+            , box [ alignRight ]
+            ]
+        , text "left center right"
+        , rowContainer []
+            [ box [ alignLeft ]
             , box [ centerX ]
             , box [ alignRight ]
             ]
+        , text "vertical alignment"
         , rowContainer []
             [ box [ alignTop ]
             , box [ centerY ]
             , box [ alignBottom ]
             ]
+        , text "all alignments alignment"
         , rowContainer []
             [ box [ alignLeft, alignTop ]
             , box [ centerX, centerY ]
@@ -154,7 +183,7 @@ columnAlignment =
             column ([ spacing 20, width (px 100), height (px 500) ] ++ attrs) children
     in
     column
-        []
+        [ width fill ]
         [ el [] (text "Alignment Within a Column")
         , row []
             [ colContainer []
@@ -165,21 +194,98 @@ columnAlignment =
                 , box []
                 ]
             , colContainer []
-                [ box [ alignRight ]
-                , box [ alignLeft ]
+                [ box [ alignLeft ]
                 , box [ centerX ]
+                , box [ alignRight ]
                 ]
             ]
         , row []
             [ colContainer []
                 [ box []
+                , box []
+                , box []
+                ]
+            , colContainer []
+                [ box []
+                , box []
                 , box [ alignBottom ]
+                ]
+            , colContainer []
+                [ box []
+                , box [ alignBottom ]
+                , box []
+                ]
+            , colContainer []
+                [ box [ alignBottom ]
+                , box []
+                , box []
+                ]
+            ]
+        , text "with centerY override"
+        , row []
+            [ colContainer []
+                [ box []
+                , box []
+                , box []
+                ]
+            , colContainer []
+                [ box []
+                , box []
+                , box [ alignBottom ]
+                ]
+            , colContainer []
+                [ box []
+                , box [ alignBottom ]
+                , box [ centerY ]
+                ]
+            , colContainer []
+                [ box [ alignBottom ]
+                , box [ centerY ]
+                , box [ centerY ]
+                ]
+            ]
+        , text "centerY"
+        , row []
+            [ colContainer [ height fill ]
+                [ box [ centerY ]
+                ]
+            , colContainer []
+                [ box []
+                , box [ centerY ]
                 , box []
                 ]
             , colContainer []
                 [ box []
                 , box []
                 , box [ centerY ]
+                ]
+            ]
+        , text "multiple centerY"
+        , row [ height (px 800) ]
+            [ colContainer [ height fill ]
+                [ box []
+                , box [ centerY ]
+                , box [ centerY ]
+                , box [ centerY ]
+                , box [ centerY ]
+                , box [ alignBottom ]
+                ]
+            , colContainer [ height fill ]
+                [ box []
+                , box [ centerY ]
+                , box []
+                ]
+            , colContainer [ height fill ]
+                [ box []
+                , box []
+                , box [ centerY ]
+                ]
+            ]
+        , text "top, center, bottom"
+        , row []
+            [ colContainer []
+                [ box [ alignTop ]
+                , box []
                 , box [ alignBottom ]
                 ]
             , colContainer []
@@ -193,10 +299,29 @@ columnAlignment =
                 , box [ alignRight, alignBottom ]
                 ]
             ]
+        , el [ width fill ] (text "Column in a Row")
+        , row [ width fill, height fill, spacing 20 ]
+            [ box [ alignLeft, alignTop ]
+            , column [ alignLeft, alignTop, spacing 20, width shrink ]
+                [ box []
+                , box []
+                , box []
+                ]
+            , colContainer [ alignLeft, alignTop, height shrink ]
+                [ box []
+                , box []
+                , box []
+                ]
+            , colContainer []
+                [ box [ alignRight ]
+                , box [ centerX ]
+                , box [ alignLeft ]
+                ]
+            ]
         ]
 
 
-aboveElement =
+nearbyElements =
     let
         transparentBox attrs =
             el ([ width (px 50), height (px 50), Background.color (rgba 52 101 164 0.8) ] ++ attrs) empty
@@ -285,7 +410,7 @@ aboveElement =
                 ]
     in
     column
-        []
+        [ centerX ]
         [ el [] (text "Nearby Elements")
         , nearby above box
         , nearby below box
@@ -330,7 +455,8 @@ rowSpacing =
         []
         [ el [] (text "Spacing within a row")
         , column []
-            [ colContainer []
+            [ box []
+            , colContainer []
                 [ box [] ]
             , colContainer []
                 [ box []
@@ -342,6 +468,5 @@ rowSpacing =
                 , box []
                 , box []
                 ]
-            , box []
             ]
         ]
