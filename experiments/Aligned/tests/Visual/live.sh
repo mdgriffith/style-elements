@@ -1,0 +1,1 @@
+elm-live All.elm --output=elm.js --open
