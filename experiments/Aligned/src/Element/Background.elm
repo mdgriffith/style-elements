@@ -28,18 +28,18 @@ color clr =
     Internal.StyleClass (Internal.Colored ("bg-" ++ Internal.formatColorClass clr) "background-color" clr)
 
 
-{-| A background image that keeps it's natural width and height.
+{-| A centered background image that keeps it's natural propostions, but scales to fit the space.
 -}
 image : String -> Attribute msg
 image src =
-    Internal.StyleClass (Internal.Single ("bg-image-" ++ Internal.className src) "background" ("url(\"" ++ src ++ "\") top left / contain no-repeat"))
+    Internal.StyleClass (Internal.Single ("bg-image-" ++ Internal.className src) "background" ("url(\"" ++ src ++ "\") center / contain no-repeat"))
 
 
 {-| Scale the image to fit the size of the element while maintaining proportions and cropping the overflow.
 -}
 fittedImage : String -> Attribute msg
 fittedImage src =
-    Internal.StyleClass (Internal.Single ("bg-fitted-image-" ++ Internal.className src) "background" ("url(\"" ++ src ++ "\") top left / cover no-repeat"))
+    Internal.StyleClass (Internal.Single ("bg-fitted-image-" ++ Internal.className src) "background" ("url(\"" ++ src ++ "\") center / cover no-repeat"))
 
 
 {-| Tile an image in the x and y axes.
