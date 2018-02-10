@@ -2926,12 +2926,12 @@ mapAttrFromStyle fn attr =
             Filter filter
 
 
-unwrapDecorations : List (Attribute Never Never) -> List Style
+unwrapDecorations : List (Attribute Never msg) -> List Style
 unwrapDecorations =
     List.filterMap (onlyStyles << removeNever)
 
 
-removeNever : Attribute Never Never -> Attribute () msg
+removeNever : Attribute Never msg -> Attribute () msg
 removeNever style =
     mapAttrFromStyle Basics.never style
 

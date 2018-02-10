@@ -40,7 +40,7 @@ module Element
         , focused
         , forceHover
         , height
-          -- , hidden
+        , hidden
         , html
         , htmlAttribute
         , image
@@ -129,7 +129,7 @@ Text needs it's own layout primitives.
 
 # Attributes
 
-@docs Attribute, transparent, pointer
+@docs Attribute, transparent, hidden, pointer
 
 @docs width, height, Length, px, shrink, fill, fillPortion, fillBetween, fillPortionBetween
 
@@ -278,8 +278,8 @@ type alias Attr decorative msg =
 
 {-| Only decorations
 -}
-type alias Decoration =
-    Internal.Attribute Never Never
+type alias Decoration msg =
+    Internal.Attribute Never msg
 
 
 {-| -}
@@ -524,7 +524,6 @@ el attrs child =
         Nothing
         (width shrink
             :: height shrink
-            :: centerX
             :: Internal.Class "x-content-align" "content-center-x"
             :: Internal.Class "y-content-align" "content-center-y"
             :: attrs
@@ -543,6 +542,7 @@ row attrs children =
         (Internal.Class "x-content-align" "content-left"
             :: Internal.Class "y-content-align" "content-center-y"
             :: width fill
+            :: height shrink
             :: attrs
         )
         (Internal.Unkeyed <| Internal.rowEdgeFillers children)
@@ -557,7 +557,7 @@ column attrs children =
         (Internal.Class "y-content-align" "content-top"
             :: Internal.Class "x-content-align" "content-left"
             :: height fill
-            :: width fill
+            :: width shrink
             :: attrs
         )
         (Internal.Unkeyed <| Internal.columnEdgeFillers children)
@@ -958,8 +958,8 @@ link attrs { url, label } =
             :: Internal.Attr (Html.Attributes.rel "noopener noreferrer")
             :: width shrink
             :: height shrink
-            :: centerY
-            :: centerX
+            :: Internal.Class "x-content-align" "content-center-x"
+            :: Internal.Class "y-content-align" "content-center-y"
             :: attrs
         )
         (Internal.Unkeyed [ label ])
@@ -976,8 +976,8 @@ newTabLink attrs { url, label } =
             :: Internal.Attr (Html.Attributes.target "_blank")
             :: width shrink
             :: height shrink
-            :: centerY
-            :: centerX
+            :: Internal.Class "x-content-align" "content-center-x"
+            :: Internal.Class "y-content-align" "content-center-y"
             :: attrs
         )
         (Internal.Unkeyed [ label ])
@@ -994,8 +994,8 @@ download attrs { url, label } =
             :: Internal.Attr (Html.Attributes.download True)
             :: width shrink
             :: height shrink
-            :: centerY
-            :: centerX
+            :: Internal.Class "x-content-align" "content-center-x"
+            :: Internal.Class "y-content-align" "content-center-y"
             :: attrs
         )
         (Internal.Unkeyed [ label ])
@@ -1012,8 +1012,8 @@ downloadAs attrs { url, filename, label } =
             :: Internal.Attr (Html.Attributes.downloadAs filename)
             :: width shrink
             :: height shrink
-            :: centerY
-            :: centerX
+            :: Internal.Class "x-content-align" "content-center-x"
+            :: Internal.Class "y-content-align" "content-center-y"
             :: attrs
         )
         (Internal.Unkeyed [ label ])
@@ -1200,14 +1200,13 @@ transparent on =
         Internal.StyleClass (Internal.Single "transparency-1" "opacity" "1")
 
 
-
--- {-| -}
--- hidden : Bool -> Attribute msg
--- hidden on =
---     if on then
---         Internal.class "hidden"
---     else
---         Internal.NoAttribute
+{-| -}
+hidden : Bool -> Attribute msg
+hidden on =
+    if on then
+        Internal.class "hidden"
+    else
+        Internal.NoAttribute
 
 
 {-| -}
@@ -1308,7 +1307,7 @@ modular normal ratio scale =
 
 
 {-| -}
-mouseOver : List Decoration -> Attribute msg
+mouseOver : List (Decoration msg) -> Attribute msg
 mouseOver decs =
     Internal.StyleClass <|
         Internal.PseudoSelector Internal.Hover
@@ -1319,7 +1318,7 @@ mouseOver decs =
 
 
 {-| -}
-mouseDown : List Decoration -> Attribute msg
+mouseDown : List (Decoration msg) -> Attribute msg
 mouseDown decs =
     Internal.StyleClass <|
         Internal.PseudoSelector Internal.Active
@@ -1330,7 +1329,7 @@ mouseDown decs =
 
 
 {-| -}
-focused : List Decoration -> Attribute msg
+focused : List (Decoration msg) -> Attribute msg
 focused decs =
     Internal.StyleClass <|
         Internal.PseudoSelector Internal.Focus
