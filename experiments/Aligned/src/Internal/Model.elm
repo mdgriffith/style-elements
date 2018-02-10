@@ -295,7 +295,7 @@ renderNode { alignment, attributes, node, width, height } children styles contex
                                 keyed
 
                             Just stylesheet ->
-                                ( "stylesheet-pls-pls-pls-be-unique"
+                                ( "stylesheet"
                                 , VirtualDom.node "style" [ Html.Attributes.class "stylesheet" ] [ Html.text stylesheet ]
                                 )
                                     :: keyed
@@ -334,17 +334,20 @@ renderNode { alignment, attributes, node, width, height } children styles contex
 
                 _ ->
                     case alignment of
-                        Unaligned ->
-                            html
-
-                        Aligned (Just Left) _ ->
-                            VirtualDom.node "alignLeft"
-                                [ Html.Attributes.class "se el container align-container-left content-center-y" ]
-                                [ html ]
-
+                        -- Unaligned ->
+                        --     html
+                        -- Aligned (Just Left) _ ->
+                        --     VirtualDom.node "alignLeft"
+                        --         [ Html.Attributes.class "se el container align-container-left content-center-y" ]
+                        --         [ html ]
                         Aligned (Just Right) _ ->
                             VirtualDom.node "alignRight"
                                 [ Html.Attributes.class "se el container align-container-right content-center-y" ]
+                                [ html ]
+
+                        Aligned (Just CenterX) _ ->
+                            VirtualDom.node "centerX"
+                                [ Html.Attributes.class "se el container align-container-center-x content-center-y" ]
                                 [ html ]
 
                         _ ->
@@ -357,19 +360,21 @@ renderNode { alignment, attributes, node, width, height } children styles contex
 
                 _ ->
                     case alignment of
-                        Unaligned ->
-                            VirtualDom.node "alignTop"
-                                [ Html.Attributes.class "se el container align-container-top" ]
-                                [ html ]
-
-                        Aligned _ Nothing ->
-                            VirtualDom.node "alignTop"
-                                [ Html.Attributes.class "se el container align-container-top" ]
-                                [ html ]
-
-                        Aligned _ (Just Top) ->
-                            VirtualDom.node "alignTop"
-                                [ Html.Attributes.class "se el container align-container-top" ]
+                        -- Unaligned ->
+                        --     VirtualDom.node "alignTop"
+                        --         [ Html.Attributes.class "se el container align-container-top" ]
+                        --         [ html ]
+                        -- Aligned _ Nothing ->
+                        --     VirtualDom.node "alignTop"
+                        --         [ Html.Attributes.class "se el container align-container-top" ]
+                        --         [ html ]
+                        -- Aligned _ (Just Top) ->
+                        --     VirtualDom.node "alignTop"
+                        --         [ Html.Attributes.class "se el container align-container-top" ]
+                        --         [ html ]
+                        Aligned _ (Just CenterY) ->
+                            VirtualDom.node "centerY"
+                                [ Html.Attributes.class "se el container align-container-center-y" ]
                                 [ html ]
 
                         Aligned _ (Just Bottom) ->
@@ -1385,7 +1390,7 @@ asElement embedMode children context rendered =
                         Just nearby ->
                             case htmlChildren of
                                 Keyed keyed ->
-                                    Keyed <| ( "nearby-elements-pls-pls-pls-pls-be-unique", nearby ) :: keyed
+                                    Keyed <| ( "nearby-elements-pls", nearby ) :: keyed
 
                                 Unkeyed unkeyed ->
                                     Unkeyed (nearby :: unkeyed)
@@ -1430,7 +1435,7 @@ asElement embedMode children context rendered =
                                     Keyed <|
                                         ( "static-stylesheet", Internal.Style.rulesElement )
                                             :: ( "dynamic-stylesheet", toStyleSheet options styles )
-                                            :: ( "nearby-elements-pls-pls-pls-pls-be-unique", nearby )
+                                            :: ( "nearby-elements-pls", nearby )
                                             :: keyed
 
                                 Unkeyed unkeyed ->
@@ -1475,7 +1480,7 @@ asElement embedMode children context rendered =
                                 Keyed keyed ->
                                     Keyed <|
                                         ( "dynamic-stylesheet", toStyleSheet options styles )
-                                            :: ( "nearby-elements-pls-pls-pls-pls-be-unique", nearby )
+                                            :: ( "nearby-elements-pls", nearby )
                                             :: keyed
 
                                 Unkeyed unkeyed ->
@@ -1492,17 +1497,52 @@ asElement embedMode children context rendered =
                 )
 
 
+
+-- rowEdgeFillers : List (Element msg) -> List (Element msg)
+-- rowEdgeFillers children =
+--     unstyled
+--         (VirtualDom.node "alignLeft"
+--             [ Html.Attributes.class "se container align-container-left content-center-y spacer unfocusable" ]
+--             []
+--         )
+--         :: children
+--         ++ [ unstyled
+--                 (VirtualDom.node "alignRight"
+--                     [ Html.Attributes.class "se container align-container-right content-center-y spacer unfocusable" ]
+--                     []
+--                 )
+--            ]
+-- keyedRowEdgeFillers : List ( String, Element msg ) -> List ( String, Element msg )
+-- keyedRowEdgeFillers children =
+--     ( "left-filler-node"
+--     , unstyled
+--         (VirtualDom.node "alignLeft"
+--             [ Html.Attributes.class "se container align-container-left content-center-y spacer unfocusable" ]
+--             []
+--         )
+--     )
+--         :: children
+--         ++ [ ( "right-filler-node"
+--              , unstyled
+--                 (VirtualDom.node "alignRight"
+--                     [ Html.Attributes.class "se container align-container-right content-center-y spacer unfocusable" ]
+--                     []
+--                 )
+--              )
+--            ]
+
+
 rowEdgeFillers : List (Element msg) -> List (Element msg)
 rowEdgeFillers children =
-    unstyled
-        (VirtualDom.node "alignLeft"
-            [ Html.Attributes.class "se container align-container-left content-center-y spacer unfocusable" ]
-            []
-        )
-        :: children
+    children
         ++ [ unstyled
+                (VirtualDom.node "div"
+                    [ Html.Attributes.class "se container align-container-left teleporting-spacer unfocusable" ]
+                    []
+                )
+           , unstyled
                 (VirtualDom.node "alignRight"
-                    [ Html.Attributes.class "se container align-container-right content-center-y spacer unfocusable" ]
+                    [ Html.Attributes.class "se container align-container-right spacer unfocusable" ]
                     []
                 )
            ]
@@ -1510,18 +1550,18 @@ rowEdgeFillers children =
 
 keyedRowEdgeFillers : List ( String, Element msg ) -> List ( String, Element msg )
 keyedRowEdgeFillers children =
-    ( "left-filler-node-pls-pls-pls-be-unique"
-    , unstyled
-        (VirtualDom.node "alignLeft"
-            [ Html.Attributes.class "se container align-container-left content-center-y spacer unfocusable" ]
-            []
-        )
-    )
-        :: children
-        ++ [ ( "right-filler-node-pls-pls-pls-be-unique"
+    children
+        ++ [ ( "teleporting-left-filler-node"
+             , unstyled
+                (VirtualDom.node "div"
+                    [ Html.Attributes.class "se container align-container-left teleporting-spacer" ]
+                    []
+                )
+             )
+           , ( "right-filler-node"
              , unstyled
                 (VirtualDom.node "alignRight"
-                    [ Html.Attributes.class "se container align-container-right content-center-y spacer unfocusable" ]
+                    [ Html.Attributes.class "se container align-container-right spacer" ]
                     []
                 )
              )
@@ -1530,11 +1570,6 @@ keyedRowEdgeFillers children =
 
 columnEdgeFillers : List (Element msg) -> List (Element msg)
 columnEdgeFillers children =
-    -- unstyled <|
-    -- (VirtualDom.node "alignTop"
-    --     [ Html.Attributes.class "se container align-container-top spacer" ]
-    --     []
-    -- ) ::
     children
         ++ [ unstyled
                 (VirtualDom.node "div"
@@ -1551,20 +1586,15 @@ columnEdgeFillers children =
 
 keyedColumnEdgeFillers : List ( String, Element msg ) -> List ( String, Element msg )
 keyedColumnEdgeFillers children =
-    -- unstyled <|
-    -- (VirtualDom.node "alignTop"
-    --     [ Html.Attributes.class "se container align-container-top spacer" ]
-    --     []
-    -- ) ::
     children
-        ++ [ ( "teleporting-top-filler-node-pls-pls-pls-be-unique"
+        ++ [ ( "teleporting-top-filler-node"
              , unstyled
                 (VirtualDom.node "div"
                     [ Html.Attributes.class "se container align-container-top teleporting-spacer" ]
                     []
                 )
              )
-           , ( "bottom-filler-node-pls-pls-pls-be-unique"
+           , ( "bottom-filler-node"
              , unstyled
                 (VirtualDom.node "alignBottom"
                     [ Html.Attributes.class "se container align-container-bottom spacer" ]
@@ -2926,12 +2956,12 @@ mapAttrFromStyle fn attr =
             Filter filter
 
 
-unwrapDecorations : List (Attribute Never msg) -> List Style
+unwrapDecorations : List (Attribute Never Never) -> List Style
 unwrapDecorations =
     List.filterMap (onlyStyles << removeNever)
 
 
-removeNever : Attribute Never msg -> Attribute () msg
+removeNever : Attribute Never Never -> Attribute () msg
 removeNever style =
     mapAttrFromStyle Basics.never style
 

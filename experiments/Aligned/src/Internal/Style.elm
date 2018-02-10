@@ -784,6 +784,12 @@ rules =
                     [ Prop "flex-basis" "auto"
                     ]
                 ]
+            , Child ".se:first-child"
+                [ Prop "margin-left" "0 !important"
+                ]
+            , Child ".se.teleporting-spacer"
+                [ Prop "margin-left" "0 !important"
+                ]
             , Child ".height-fill"
                 [ --Prop "height" "100%"
                   -- alignTop, centerY, and alignBottom need to be disabled
@@ -818,6 +824,47 @@ rules =
             , Child "alignRight:first-of-type.align-container-right"
                 [ Prop "flex-grow" "1"
                 ]
+
+            -- Working Area
+            -- first center y
+            , Child "centerX:first-of-type.align-container-center-x"
+                [ Prop "flex-grow" "1"
+
+                -- , Prop "justify-content" "flex-end"
+                , Child ".self-center-y"
+                    [ Prop "margin-bottom" "0 !important"
+                    ]
+                ]
+            , Child "centerX:last-of-type.align-container-center-x"
+                [ Prop "flex-grow" "1"
+
+                -- , Prop "justify-content" "flex-start"
+                , Child ".self-center-y"
+                    [ Prop "margin-top" "0 !important"
+                    ]
+                ]
+
+            -- lonley centerX
+            , Child "centerX:only-of-type.align-container-center-x"
+                [ Prop "flex-grow" "1"
+                , Child ".self-center-y"
+                    [ Prop "margin-top" "auto !important"
+                    , Prop "margin-bottom" "auto !important"
+                    ]
+                ]
+
+            -- alignBottom's after a centerX should not grow
+            , Child "centerX:last-of-type.align-container-center-x ~ alignRight"
+                [ Prop "flex-grow" "0"
+                ]
+
+            -- centerX's after an alignBottom should be ignored
+            , Child "alignRight:first-of-type.align-container-right ~ centerX.align-container-center-x"
+                -- Bottom alignment always overrides center alignment
+                [ Prop "flex-grow" "0"
+                ]
+
+            -- End Working Area
             , describeAlignment <|
                 \alignment ->
                     case alignment of
@@ -903,6 +950,50 @@ rules =
             , Child ".teleporting-spacer"
                 [ Prop "flex-grow" "0"
                 ]
+
+            -- WORKIGN AREA
+            -- first center y
+            , Child "centerY:first-of-type.align-container-center-y"
+                [ Prop "flex-grow" "1"
+
+                -- , Prop "justify-content" "flex-end"
+                , Child ".self-center-y"
+                    [ Prop "margin-bottom" "0 !important"
+                    ]
+                ]
+            , Child "centerY:last-of-type.align-container-center-y"
+                [ Prop "flex-grow" "1"
+
+                -- , Prop "justify-content" "flex-start"
+                , Child ".self-center-y"
+                    [ Prop "margin-top" "0 !important"
+                    ]
+                ]
+
+            -- lonley centerY
+            , Child "centerY:only-of-type.align-container-center-y"
+                [ Prop "flex-grow" "1"
+                , Child ".self-center-y"
+                    [ Prop "margin-top" "auto !important"
+                    , Prop "margin-bottom" "auto !important"
+                    ]
+                ]
+
+            -- alignBottom's after a centerY should not grow
+            , Child "centerY:last-of-type.align-container-center-y ~ alignBottom"
+                [ Prop "flex-grow" "0"
+                ]
+
+            -- centerY's after an alignBottom should be ignored
+            , Child "alignBottom:first-of-type.align-container-bottom ~ centerY.align-container-center-y"
+                -- Bottom alignment always overrides center alignment
+                [ Prop "flex-grow" "0"
+                ]
+
+            -- , Child "alignRight:first-of-type.align-container-right"
+            --     [ Prop "flex-grow" "1"
+            --     ]
+            -- END WORKING AREA
             , Child ".se.self-center-y:first-child ~ .teleporting-spacer"
                 [ Prop "flex-grow" "1"
                 , Prop "order" "-1"
