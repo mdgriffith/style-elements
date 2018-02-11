@@ -70,6 +70,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
+import Element.Region as Region
 import Html
 import Html.Attributes
 import Html.Events
@@ -273,10 +274,13 @@ checkbox attrs { label, icon, checked, onChange } =
         attributes =
             (case onChange of
                 Nothing ->
-                    [ Internal.Attr (Html.Attributes.disabled True) ]
+                    [ Internal.Attr (Html.Attributes.disabled True)
+                    , Region.announce
+                    ]
 
                 Just checkMsg ->
                     [ Internal.Attr (Html.Events.onClick (checkMsg (not checked)))
+                    , Region.announce
                     , onKeyLookup <|
                         \code ->
                             if code == enter then
@@ -687,6 +691,7 @@ textHelper textInput attrs textOptions =
 
         parentAttributes =
             Element.spacing 5
+                :: Region.announce
                 :: attributesFromChild
 
         inputPadding =
@@ -1307,12 +1312,13 @@ radioHelper orientation attrs input =
     applyLabel
         (case input.onChange of
             Nothing ->
-                [ Element.alignLeft ]
+                [ Element.alignLeft, Region.announce ]
 
             Just onChange ->
                 List.filterMap identity
                     [ Just Element.alignLeft
                     , Just (tabindex 0)
+                    , Just Region.announce
                     , Just <|
                         Internal.Attr <|
                             Html.Attributes.attribute "role" "radiogroup"
