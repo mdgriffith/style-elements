@@ -900,7 +900,7 @@ spanAll name =
 {-| Turn an element into a link.
 
     link "http://zombo.com"
-        <| el MyStyle (text "Welcome to Zombocom")
+        <| el MyStyle [] (text "Welcome to Zombocom")
 
 Wraps an element in an `<a>` and sets the href. `rel` properties are set to `noopener` and `noreferrer`.
 
