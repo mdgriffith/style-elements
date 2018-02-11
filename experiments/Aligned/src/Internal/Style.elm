@@ -795,6 +795,11 @@ rules =
                   -- alignTop, centerY, and alignBottom need to be disabled
                   Prop "align-self" "stretch !important"
                 ]
+            , Child ".height-fill-portion"
+                [ --Prop "height" "100%"
+                  -- alignTop, centerY, and alignBottom need to be disabled
+                  Prop "align-self" "stretch !important"
+                ]
             , Child ".width-fill"
                 [ Prop "flex-grow" "100000"
                 ]
@@ -919,6 +924,11 @@ rules =
                 [ Prop "flex-grow" "100000"
                 ]
             , Child ".width-fill"
+                [ --Prop "width" "100%"
+                  -- alignLeft, alignRight, centerX need to be disabled
+                  Prop "align-self" "stretch !important"
+                ]
+            , Child ".width-fill-portion"
                 [ --Prop "width" "100%"
                   -- alignLeft, alignRight, centerX need to be disabled
                   Prop "align-self" "stretch !important"
