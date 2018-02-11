@@ -278,8 +278,8 @@ type alias Attr decorative msg =
 
 {-| Only decorations
 -}
-type alias Decoration msg =
-    Internal.Attribute Never msg
+type alias Decoration =
+    Internal.Attribute Never Never
 
 
 {-| -}
@@ -1307,7 +1307,7 @@ modular normal ratio scale =
 
 
 {-| -}
-mouseOver : List (Decoration msg) -> Attribute msg
+mouseOver : List Decoration -> Attribute msg
 mouseOver decs =
     Internal.StyleClass <|
         Internal.PseudoSelector Internal.Hover
@@ -1318,7 +1318,7 @@ mouseOver decs =
 
 
 {-| -}
-mouseDown : List (Decoration msg) -> Attribute msg
+mouseDown : List Decoration -> Attribute msg
 mouseDown decs =
     Internal.StyleClass <|
         Internal.PseudoSelector Internal.Active
@@ -1329,7 +1329,7 @@ mouseDown decs =
 
 
 {-| -}
-focused : List (Decoration msg) -> Attribute msg
+focused : List Decoration -> Attribute msg
 focused decs =
     Internal.StyleClass <|
         Internal.PseudoSelector Internal.Focus
