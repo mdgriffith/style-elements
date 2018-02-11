@@ -205,8 +205,6 @@ button attrs { onPress, label } =
         Nothing
         (Element.width Element.shrink
             :: Element.height Element.shrink
-            :: Element.centerY
-            :: Element.centerX
             :: Internal.Class "x-content-align" "content-center-x"
             :: Internal.Class "y-content-align" "content-center-y"
             :: Internal.Class "button" "se-button"
