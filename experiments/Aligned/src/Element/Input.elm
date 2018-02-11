@@ -552,6 +552,25 @@ textHelper textInput attrs textOptions =
                 Just checkMsg ->
                     [ Internal.Attr (Html.Events.onInput checkMsg) ]
 
+        lineHeight =
+            if textInput.type_ == TextArea then
+                attrs
+                    |> List.filterMap
+                        (\x ->
+                            case x of
+                                Internal.StyleClass (Internal.LineHeight x) ->
+                                    Just x
+
+                                _ ->
+                                    Nothing
+                        )
+                    |> List.reverse
+                    |> List.head
+                    |> Maybe.withDefault 1.5
+                    |> (Internal.StyleClass << Internal.LineHeight)
+            else
+                Internal.NoAttribute
+
         ( inputNode, inputAttrs, inputChildren ) =
             case textInput.type_ of
                 TextInputNode inputType ->
@@ -739,6 +758,7 @@ textHelper textInput attrs textOptions =
                             , Font.color charcoal
                                 :: Internal.Class "text-selection" "no-text-selection"
                                 :: defaultTextPadding
+                                :: lineHeight
                                 :: Element.height Element.fill
                                 :: Element.width Element.fill
                                 :: (inputPadding
