@@ -736,7 +736,7 @@ labelBelow =
 
 {-| Put the focus on this input when the page loads.
 
-Only one input should ahve this option turned on.
+Only one input should have this option turned on.
 
 -}
 focusOnLoad : Option style variation msg
