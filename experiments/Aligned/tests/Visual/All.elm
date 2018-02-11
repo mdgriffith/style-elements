@@ -8,9 +8,55 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
+import Element.Input as Input
+import Element.Region as Region
+import Html
 
 
 main =
+    Html.program
+        { init = ( init, Cmd.none )
+        , view = view
+        , update = update
+        , subscriptions = \_ -> Sub.none
+        }
+
+
+init =
+    { username = ""
+    , password = ""
+    , agreeTOS = False
+    , comment = ""
+    , lunch = Gyro
+    }
+
+
+type alias Form =
+    { username : String
+    , password : String
+    , agreeTOS : Bool
+    , comment : String
+    , lunch : Lunch
+    }
+
+
+type Msg
+    = Update Form
+
+
+update msg model =
+    case Debug.log "msg" msg of
+        Update new ->
+            ( new, Cmd.none )
+
+
+type Lunch
+    = Burrito
+    | Taco
+    | Gyro
+
+
+view model =
     Element.layout
         [ Font.family
             [ Font.external
@@ -25,14 +71,36 @@ main =
             , width (px 800)
             , centerX
             ]
-            [ singleAlignment
+            [ textElements
+            , singleAlignment
             , rowAlignment
             , columnAlignment
             , nearbyElements
             , columnSpacing
             , rowSpacing
+            , tableElements
+            , signInForm model
             , el [ height (px 200) ] empty
             ]
+
+
+textElements =
+    let
+        txt =
+            text "I'm a lumberjack and I'm ok"
+
+        short =
+            text "lumber"
+    in
+    column [ width fill, spacing 50, paddingXY 0 100 ]
+        [ txt
+        , el [] txt
+        , el [ width fill ] txt
+        , row [ spacing 50 ]
+            [ short, short, short ]
+        , column [ spacing 50 ]
+            [ txt, txt, txt ]
+        ]
 
 
 box attrs =
@@ -299,6 +367,27 @@ columnAlignment =
                 , box [ alignRight, alignBottom ]
                 ]
             ]
+        , text "using text nodes"
+        , row []
+            [ colContainer []
+                [ text "yup"
+                ]
+            , colContainer []
+                [ text "yup"
+                , text "yup"
+                , text "yup"
+                ]
+            , colContainer []
+                [ box [ centerY ]
+                , text "yup"
+                , text "yup"
+                ]
+            , colContainer []
+                [ box [ alignBottom ]
+                , text "yup"
+                , text "yup"
+                ]
+            ]
         , el [ width fill ] (text "Column in a Row")
         , row [ width fill, height fill, spacing 20 ]
             [ box [ alignLeft, alignTop ]
@@ -470,3 +559,252 @@ rowSpacing =
                 ]
             ]
         ]
+
+
+tableElements =
+    let
+        data =
+            [ { firstName = "David"
+              , lastName = "Bowie"
+              }
+            , { firstName = "Florence"
+              , lastName = "Welch"
+              }
+            ]
+    in
+    column [ spacing 20, width fill, paddingXY 0 30 ]
+        [ text "Tables With Headers"
+        , table []
+            { data = data
+            , columns =
+                [ { header = text "First Name"
+                  , view =
+                        \row -> text row.firstName
+                  }
+                , { header = text "Last Name"
+                  , view =
+                        \row -> text row.lastName
+                  }
+                ]
+            }
+        , text "Without Headers"
+        , table []
+            { data = data
+            , columns =
+                [ { header = empty
+                  , view =
+                        \row -> text row.firstName
+                  }
+                , { header = empty
+                  , view =
+                        \row -> text row.lastName
+                  }
+                ]
+            }
+        , text "With Spacing and Styling"
+        , table
+            [ Background.color blue
+            , spacing 20
+            , padding 30
+            ]
+            { data = data
+            , columns =
+                [ { header =
+                        el [ Font.color white ] <|
+                            text "First Name"
+                  , view =
+                        \row -> el [ Background.color lightGrey ] <| text row.firstName
+                  }
+                , { header = el [ Font.color white ] <| text "Last Name"
+                  , view =
+                        \row ->
+                            el [ Background.color lightGrey ] <|
+                                text row.lastName
+                  }
+                ]
+            }
+        , text "Indexed Table With Spacing and Styling"
+        , indexedTable
+            [ Background.color blue
+            , spacing 20
+            , padding 30
+            ]
+            { data = data
+            , columns =
+                [ { header =
+                        el [ Font.color white ] <|
+                            text "Index"
+                  , view =
+                        \i row -> el [ Background.color lightGrey ] <| text (toString i)
+                  }
+                , { header =
+                        el [ Font.color white ] <|
+                            text "First Name"
+                  , view =
+                        \i row -> el [ Background.color lightGrey ] <| text row.firstName
+                  }
+                , { header = el [ Font.color white ] <| text "Last Name"
+                  , view =
+                        \i row ->
+                            el [ Background.color lightGrey ] <|
+                                text row.lastName
+                  }
+                ]
+            }
+        ]
+
+
+signInForm model =
+    let
+        label str =
+            Input.labelLeft
+                [ width (fillPortion 1)
+                , Font.alignRight
+                , paddingXY 12 7
+                , Font.bold
+                ]
+                (text str)
+    in
+    Element.column
+        [ width fill
+        , height shrink
+        , centerY
+        , centerX
+        , spacing 36
+        , padding 10
+        , Background.color white
+        ]
+        [ el
+            [ Region.heading 1
+            , alignLeft
+            , Font.size 36
+            ]
+            (text "Sign in and Choose Lunch!")
+        , Input.radioRow [ width (fillPortion 4), spacing 15 ]
+            { selected = Just model.lunch
+            , onChange = Just (\new -> Update { model | lunch = new })
+            , label =
+                label "What would you like for lunch?"
+            , options =
+                [ Input.option Gyro (text "Gyro")
+                , Input.option Burrito (text "Burrito")
+                , Input.option Taco (text "Taco")
+                ]
+            }
+        , Input.username
+            [ width (fillPortion 4)
+            , below True
+                (el
+                    [ Font.color red
+                    , Font.size 14
+                    , alignLeft
+                    ]
+                    (text "This one is le wrong")
+                )
+            ]
+            { text = model.username
+            , placeholder = Nothing --Just (Input.placeholder [] (text "Extra hot sauce?"))
+            , onChange = Just (\new -> Update { model | username = new })
+            , label =
+                label "username"
+            }
+        , Input.currentPassword [ width (fillPortion 4) ]
+            { text = model.password
+            , placeholder = Nothing
+            , onChange = Just (\new -> Update { model | password = new })
+            , label = label "Password"
+            , show = False
+            }
+        , Input.multiline
+            [ height shrink
+            , width (fillPortion 4)
+            ]
+            { text = model.comment
+            , placeholder = Just (Input.placeholder [] (text "Leave a comment?"))
+            , onChange = Just (\new -> Update { model | comment = new })
+            , label =
+                Input.labelLeft
+                    [ width (fillPortion 1)
+                    , Font.alignRight
+                    , Font.bold
+                    , paddingXY 12 7
+                    ]
+                    (text "Question")
+            , spellcheck = False
+            }
+        , Element.row
+            [ Font.bold
+            , alignLeft
+            , below True <|
+                Input.radio
+                    [ width (fillPortion 4)
+                    , transparent True
+                    , spacing 15
+                    , focused
+                        [ transparent False
+                        ]
+                    ]
+                    { selected = Just model.lunch
+                    , onChange = Just (\new -> Update { model | lunch = new })
+                    , label =
+                        Input.labelAbove
+                            [ transparent True
+                            , focused
+                                [ transparent False
+                                ]
+                            ]
+                            (text "What would you like for lunch?")
+                    , options =
+                        [ Input.option Gyro (text "Gyro")
+                        , Input.option Burrito (text "Burrito")
+                        , Input.option Taco (text "Taco")
+                        ]
+                    }
+            ]
+            [ el [ alignLeft, Font.bold ] <| text "Selection"
+            ]
+        , Input.checkbox
+            []
+            { checked = model.agreeTOS
+            , onChange = Just (\new -> Update { model | agreeTOS = new })
+            , icon = Nothing
+            , label = Input.labelRight [] (text "Agree to Terms of Service")
+            }
+        , Input.button
+            [ Background.color blue
+            , Font.color white
+            , Border.color darkBlue
+            , paddingXY 15 5
+            , Border.rounded 3
+            , alignLeft
+            , width (fillPortion 4)
+            ]
+            { onPress = Nothing
+            , label = Element.text "Place your lunch order!"
+            }
+        ]
+
+
+
+-- , Element.row []
+--     [ Element.el [ Element.width Element.fill ] Element.empty
+--     , Input.checkbox
+--         [ width (fillPortion 4) ]
+--         { checked = model.agreeTOS
+--         , onChange = Just (\new -> Update { model | agreeTOS = new })
+--         , icon = Nothing
+--         , label = Input.labelRight [] (text "Agree to Terms of Service")
+--         }
+--     ]
+-- , Input.button
+--     [ Background.color blue
+--     , Font.color white
+--     , Border.color darkBlue
+--     , paddingXY 15 5
+--     , Border.rounded 3
+--     , alignLeft
+--     -- , width fill
+--     ]
+--     { onPress = Nothing
+--     , label = Element.text "Place your lunch order!"
+--     }
