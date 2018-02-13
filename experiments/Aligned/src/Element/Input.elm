@@ -209,7 +209,7 @@ button attrs { onPress, label } =
             :: Internal.Class "y-content-align" "content-center-y"
             :: Internal.Class "button" "se-button"
             :: Element.pointer
-            :: Internal.class "focusable"
+            :: focusDefault attrs
             :: Internal.Describe Internal.Button
             :: Internal.Attr (Html.Attributes.tabindex 0)
             :: (case onPress of
@@ -223,6 +223,22 @@ button attrs { onPress, label } =
                )
         )
         (Internal.Unkeyed [ label ])
+
+
+focusDefault attrs =
+    if List.any hasFocusStyle attrs then
+        Internal.NoAttribute
+    else
+        Internal.class "focusable"
+
+
+hasFocusStyle attr =
+    case attr of
+        Internal.StyleClass (Internal.PseudoSelector Internal.Focus _) ->
+            True
+
+        _ ->
+            False
 
 
 {-| -}
@@ -724,7 +740,7 @@ textHelper textInput attrs textOptions =
         inputElement =
             ( Just inputNode
             , List.concat
-                [ [ Internal.Class "focus" "focusable"
+                [ [ focusDefault attrs
                   ]
                 , inputAttrs
                 , behavior
@@ -1326,16 +1342,104 @@ radioHelper orientation attrs input =
 
                         AfterFound ->
                             ( found, prev, nxt )
+
+        inputVisible =
+            List.isEmpty <|
+                Internal.get attrs <|
+                    \attr ->
+                        case attr of
+                            Internal.StyleClass (Internal.Transparency _ _) ->
+                                True
+
+                            Internal.Class "hidden" "hidden" ->
+                                True
+
+                            _ ->
+                                False
+
+        labelVisible =
+            case input.label of
+                Label orientation labelAttrs _ ->
+                    List.isEmpty <|
+                        Internal.get labelAttrs <|
+                            \attr ->
+                                case attr of
+                                    Internal.StyleClass (Internal.Transparency _ _) ->
+                                        True
+
+                                    Internal.Class "hidden" "hidden" ->
+                                        True
+
+                                    _ ->
+                                        False
+
+        hideIfEverythingisInvisible =
+            if not labelVisible && not inputVisible then
+                let
+                    pseudos =
+                        flip List.filterMap attrs <|
+                            \attr ->
+                                case attr of
+                                    Internal.StyleClass style ->
+                                        case style of
+                                            Internal.PseudoSelector pseudo styles ->
+                                                let
+                                                    transparent =
+                                                        List.filter forTransparency styles
+
+                                                    forTransparency psuedoStyle =
+                                                        case psuedoStyle of
+                                                            Internal.Transparency _ _ ->
+                                                                True
+
+                                                            _ ->
+                                                                False
+                                                in
+                                                case transparent of
+                                                    [] ->
+                                                        Nothing
+
+                                                    _ ->
+                                                        Just <| Internal.StyleClass <| Internal.PseudoSelector pseudo transparent
+
+                                            _ ->
+                                                Nothing
+
+                                    _ ->
+                                        Nothing
+                in
+                Internal.StyleClass (Internal.Transparency "transparent" 1.0) :: pseudos
+            else
+                []
+
+        events =
+            Internal.get
+                attrs
+            <|
+                \attr ->
+                    case attr of
+                        Internal.Width (Internal.Fill _) ->
+                            True
+
+                        Internal.Height (Internal.Fill _) ->
+                            True
+
+                        Internal.Attr _ ->
+                            True
+
+                        _ ->
+                            False
     in
     applyLabel
         (case input.onChange of
             Nothing ->
-                [ Element.alignLeft, Region.announce ]
+                Element.alignLeft :: Region.announce :: hideIfEverythingisInvisible ++ events
 
             Just onChange ->
                 List.filterMap identity
                     [ Just Element.alignLeft
                     , Just (tabindex 0)
+                    , Just (Internal.class "focus")
                     , Just Region.announce
                     , Just <|
                         Internal.Attr <|
@@ -1367,6 +1471,8 @@ radioHelper orientation attrs input =
                                             Nothing
                                 )
                     ]
+                    ++ events
+                    ++ hideIfEverythingisInvisible
         )
         input.label
         optionArea
