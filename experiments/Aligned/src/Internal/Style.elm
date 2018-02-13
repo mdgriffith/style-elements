@@ -609,7 +609,10 @@ rules =
                                     , Prop "left" "0"
                                     , Prop "top" "0"
                                     , Prop "z-index" "10"
-                                    , Prop "pointer-events" "auto"
+                                    , Prop "pointer-events" "none"
+                                    , Child ".se"
+                                        [ Prop "pointer-events" "auto"
+                                        ]
                                     ]
 
                             Behind ->
@@ -620,7 +623,10 @@ rules =
                                     , Prop "left" "0"
                                     , Prop "top" "0"
                                     , Prop "z-index" "0"
-                                    , Prop "pointer-events" "auto"
+                                    , Prop "pointer-events" "none"
+                                    , Child ".se"
+                                        [ Prop "pointer-events" "auto"
+                                        ]
                                     ]
             , Descriptor ".text-thin"
                 [ Prop "font-weight" "100"
