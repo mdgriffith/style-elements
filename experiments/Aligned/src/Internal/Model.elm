@@ -73,6 +73,8 @@ type Style
         }
     | Transform Transformation
     | PseudoSelector PseudoClass (List Style)
+    | Transparency String Float
+    | Shadows String String
 
 
 type PseudoClass
@@ -591,6 +593,9 @@ gatherAttributes attr gathered =
                 Transform x ->
                     Transform x
 
+                Shadows x y ->
+                    Shadows x y
+
                 PseudoSelector selector style ->
                     PseudoSelector selector (List.map formatStyleClass style)
 
@@ -623,6 +628,9 @@ gatherAttributes attr gathered =
 
                 FontSize i ->
                     FontSize i
+
+                Transparency name o ->
+                    Transparency name o
     in
     case attr of
         NoAttribute ->
@@ -2071,7 +2079,7 @@ toStyleSheetString options stylesheet =
                                     ++ "\n}"
                                 , ".se:focus ~ "
                                     ++ selector
-                                    ++ "  {"
+                                    ++ ":not(.focus)  {"
                                     ++ renderedProps
                                     ++ "\n}"
                                 , ".se:focus "
@@ -2088,6 +2096,38 @@ toStyleSheetString options stylesheet =
             case rule of
                 Style selector props ->
                     renderStyle force maybePseudo selector props
+
+                Shadows name prop ->
+                    renderStyle force
+                        maybePseudo
+                        ("." ++ name)
+                        [ Property "box-shadow" prop
+                        ]
+
+                Transparency name transparency ->
+                    let
+                        opacity =
+                            (round (transparency * 100)
+                                // 100
+                            )
+                                |> min 1
+                                |> max 0
+                                |> (\x -> 1 - x)
+                    in
+                    if opacity <= 0 then
+                        renderStyle force
+                            maybePseudo
+                            ("." ++ name)
+                            [ Property "opacity" "0"
+                            , Property "pointer-events" "none"
+                            ]
+                    else
+                        renderStyle force
+                            maybePseudo
+                            ("." ++ name)
+                            [ Property "opacity" (toString opacity)
+                            , Property "pointer-events" "auto"
+                            ]
 
                 FontSize i ->
                     renderStyle force
@@ -2663,6 +2703,12 @@ psuedoClassName class =
 styleKey : Style -> String
 styleKey style =
     case style of
+        Shadows _ _ ->
+            "shadows"
+
+        Transparency name x ->
+            "transparency"
+
         Style class _ ->
             class
 
@@ -2708,6 +2754,12 @@ isInt x =
 getStyleName : Style -> String
 getStyleName style =
     case style of
+        Shadows name _ ->
+            name
+
+        Transparency name o ->
+            name
+
         Style class _ ->
             class
 
@@ -2958,8 +3010,33 @@ mapAttrFromStyle fn attr =
 
 
 unwrapDecorations : List (Attribute Never Never) -> List Style
-unwrapDecorations =
-    List.filterMap (onlyStyles << removeNever)
+unwrapDecorations attrs =
+    let
+        joinShadows x styles =
+            case x of
+                Shadows name shadowProps ->
+                    case styles.shadows of
+                        Nothing ->
+                            { styles | shadows = Just ( name, shadowProps ) }
+
+                        Just ( existingName, existingShadow ) ->
+                            { styles | shadows = Just ( existingName ++ name, existingShadow ++ ", " ++ shadowProps ) }
+
+                _ ->
+                    { styles | styles = x :: styles.styles }
+
+        addShadow styles =
+            case styles.shadows of
+                Nothing ->
+                    styles.styles
+
+                Just ( shadowName, shadowProps ) ->
+                    Shadows shadowName shadowProps :: styles.styles
+    in
+    attrs
+        |> List.filterMap (onlyStyles << removeNever)
+        |> List.foldr joinShadows { shadows = Nothing, styles = [] }
+        |> addShadow
 
 
 removeNever : Attribute Never Never -> Attribute () msg
@@ -2976,6 +3053,12 @@ tag label style =
         Colored class prop val ->
             Colored (label ++ "-" ++ class) prop val
 
+        Style class props ->
+            Style (label ++ "-" ++ class) props
+
+        Transparency class o ->
+            Transparency (label ++ "-" ++ class) o
+
         x ->
             x
 
@@ -2985,6 +3068,20 @@ onlyStyles attr =
     case attr of
         StyleClass style ->
             Just style
+
+        TextShadow shadow ->
+            let
+                stringName =
+                    formatTextShadow shadow
+            in
+            Just <| Shadows ("txt-shadow-" ++ className stringName) stringName
+
+        BoxShadow shadow ->
+            let
+                stringName =
+                    formatBoxShadow shadow
+            in
+            Just <| Shadows ("box-shadow-" ++ className stringName) stringName
 
         _ ->
             Nothing

@@ -63,6 +63,7 @@ module Element
         , noStaticStyleSheet
         , onLeft
         , onRight
+        , opacity
         , padding
         , paddingEach
         , paddingXY
@@ -129,7 +130,7 @@ Text needs it's own layout primitives.
 
 # Attributes
 
-@docs Attribute, transparent, hidden, pointer
+@docs Attribute, transparent, opacity, hidden, pointer
 
 @docs width, height, Length, px, shrink, fill, fillPortion, fillBetween, fillPortionBetween
 
@@ -557,7 +558,7 @@ column attrs children =
         (Internal.Class "y-content-align" "content-top"
             :: Internal.Class "x-content-align" "content-left"
             :: height fill
-            :: width shrink
+            :: width fill
             :: attrs
         )
         (Internal.Unkeyed <| Internal.columnEdgeFillers children)
@@ -1193,11 +1194,44 @@ If you need to completely not render an element
 -}
 transparent : Bool -> Attr decorative msg
 transparent on =
-    -- TODO: add pointer-events: none; to transparent items, and don't set pointer events otherwise.
     if on then
-        Internal.StyleClass (Internal.Single "transparency-0" "opacity" "0")
+        Internal.StyleClass (Internal.Transparency "transparent" 1.0)
+        -- Internal.StyleClass
+        --     (Internal.Style "transparency-0"
+        --         [ Internal.Property "opacity" "0"
+        --         , Internal.Property "pointer-events" "none"
+        --         ]
+        --     )
     else
-        Internal.StyleClass (Internal.Single "transparency-1" "opacity" "1")
+        Internal.StyleClass (Internal.Transparency "visible" 0.0)
+
+
+
+-- Internal.StyleClass (Internal.Single "transparency-1" "opacity" "1")
+-- Internal.StyleClass
+--     (Internal.Style "transparency-1"
+--         [ Internal.Property "opacity" "1"
+--         , Internal.Property "pointer-events" "auto"
+--         ]
+--     )
+
+
+{-| -}
+opacity : Float -> Attr decorative msg
+opacity o =
+    Internal.StyleClass <| Internal.Transparency ("transparency-" ++ Internal.floatClass o) o
+
+
+
+-- let
+--     val =
+--         (round (alpha * 100)
+--             // 100
+--         )
+--             |> min 1
+--             |> max 0
+-- in
+-- Internal.StyleClass (Internal.Single ("transparency-" ++ toString val) "opacity" (toString val))
 
 
 {-| -}
