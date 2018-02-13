@@ -4,13 +4,17 @@ module Main exposing (..)
 -}
 
 import Color exposing (..)
+import Dom
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
+import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
 import Html
+import Html.Attributes
+import Task
 
 
 main =
@@ -26,6 +30,8 @@ init =
     { username = ""
     , password = ""
     , agreeTOS = False
+    , menuOpen = False
+    , menuFocused = False
     , comment = ""
     , lunch = Gyro
     }
@@ -36,18 +42,36 @@ type alias Form =
     , password : String
     , agreeTOS : Bool
     , comment : String
+    , menuOpen : Bool
+    , menuFocused : Bool
     , lunch : Lunch
     }
 
 
 type Msg
     = Update Form
+    | Focus String
+    | LoseFocus String
+    | NoOp
 
 
 update msg model =
     case Debug.log "msg" msg of
+        NoOp ->
+            ( model, Cmd.none )
+
         Update new ->
             ( new, Cmd.none )
+
+        Focus id ->
+            ( { model | menuFocused = True }
+            , Task.attempt (always NoOp) (Dom.focus id)
+            )
+
+        LoseFocus id ->
+            ( { model | menuFocused = False }
+            , Task.attempt (always NoOp) (Dom.blur id)
+            )
 
 
 type Lunch
@@ -413,7 +437,15 @@ columnAlignment =
 nearbyElements =
     let
         transparentBox attrs =
-            el ([ width (px 50), height (px 50), Background.color (rgba 52 101 164 0.8) ] ++ attrs) empty
+            el
+                ([ Font.color white
+                 , width (px 50)
+                 , height (px 50)
+                 , Background.color (rgba 52 101 164 0.8)
+                 ]
+                    ++ attrs
+                )
+                (text "hi")
 
         nearby location box =
             row [ height (px 100), width fill, spacing 50 ]
@@ -680,7 +712,21 @@ signInForm model =
             , Font.size 36
             ]
             (text "Sign in and Choose Lunch!")
-        , Input.radioRow [ width (fillPortion 4), spacing 15 ]
+        , Input.radioRow
+            [ width (fillPortion 4)
+            , spacing 15
+            ]
+            { selected = Just model.lunch
+            , onChange = Just (\new -> Update { model | lunch = new })
+            , label =
+                label "What would you like for lunch?"
+            , options =
+                [ Input.option Gyro (text "Gyro")
+                , Input.option Burrito (text "Burrito")
+                , Input.option Taco (text "Taco")
+                ]
+            }
+        , Input.radio [ width fill, spacing 15 ]
             { selected = Just model.lunch
             , onChange = Just (\new -> Update { model | lunch = new })
             , label =
@@ -693,6 +739,9 @@ signInForm model =
             }
         , Input.username
             [ width (fillPortion 4)
+            , focused
+                [ Border.color red
+                ]
             , below True
                 (el
                     [ Font.color red
@@ -708,7 +757,13 @@ signInForm model =
             , label =
                 label "username"
             }
-        , Input.currentPassword [ width (fillPortion 4) ]
+        , Input.currentPassword
+            [ width (fillPortion 4)
+            , focused
+                [ Border.glow red 5
+                , Border.glow blue 5
+                ]
+            ]
             { text = model.password
             , placeholder = Nothing
             , onChange = Just (\new -> Update { model | password = new })
@@ -732,14 +787,26 @@ signInForm model =
                     (text "Question")
             , spellcheck = False
             }
-        , Element.row
-            [ Font.bold
-            , alignLeft
+        , el
+            [ Events.onClick
+                (if not model.menuFocused then
+                    Focus "my-select-menu"
+                 else
+                    LoseFocus "my-select-menu"
+                )
             , below True <|
                 Input.radio
                     [ width (fillPortion 4)
-                    , transparent True
+                    , htmlAttribute (Html.Attributes.id "my-select-menu")
+                    , Events.onFocus (Update { model | menuFocused = True })
+                    , Events.onLoseFocus (Update { model | menuFocused = False })
+                    , Background.color white
+                    , Border.color grey
+                    , Border.width 1
+                    , padding 15
                     , spacing 15
+                    , pointer
+                    , transparent True
                     , focused
                         [ transparent False
                         ]
@@ -748,12 +815,10 @@ signInForm model =
                     , onChange = Just (\new -> Update { model | lunch = new })
                     , label =
                         Input.labelAbove
-                            [ transparent True
-                            , focused
-                                [ transparent False
-                                ]
+                            [ hidden True
                             ]
-                            (text "What would you like for lunch?")
+                        <|
+                            text "What would you like for lunch?"
                     , options =
                         [ Input.option Gyro (text "Gyro")
                         , Input.option Burrito (text "Burrito")
@@ -761,14 +826,84 @@ signInForm model =
                         ]
                     }
             ]
-            [ el [ alignLeft, Font.bold ] <| text "Selection"
+          <|
+            el
+                [ alignLeft
+                , Font.bold
+                , pointer
+                ]
+            <|
+                case model.lunch of
+                    Gyro ->
+                        text "What would you like for lunch? - Gyro"
+
+                    Burrito ->
+                        text "What would you like for lunch? - Burrito"
+
+                    Taco ->
+                        text "What would you like for lunch? -Taco"
+        , Input.radio
+            [ width (fillPortion 4)
+            , Background.color white
+            , Border.color grey
+            , Border.width 1
+            , padding 15
+            , spacing 15
+            , pointer
+            , transparent True
+            , focused
+                [ transparent False
+                ]
             ]
+            { selected = Just model.lunch
+            , onChange = Just (\new -> Update { model | lunch = new })
+            , label =
+                Input.labelAbove
+                    []
+                <|
+                    el [ alignLeft, Font.bold ] <|
+                        case model.lunch of
+                            Gyro ->
+                                text "What would you like for lunch? - Gyro"
+
+                            Burrito ->
+                                text "What would you like for lunch? - Burrito"
+
+                            Taco ->
+                                text "What would you like for lunch? -Taco"
+            , options =
+                [ Input.option Gyro (text "Gyro")
+                , Input.option Burrito (text "Burrito")
+                , Input.option Taco (text "Taco")
+                ]
+            }
         , Input.checkbox
-            []
+            [ Border.width 1
+            , focused
+                [ Border.glow red 5
+                ]
+            ]
             { checked = model.agreeTOS
             , onChange = Just (\new -> Update { model | agreeTOS = new })
             , icon = Nothing
             , label = Input.labelRight [] (text "Agree to Terms of Service")
+            }
+        , Input.multiline
+            [ height shrink
+            ]
+            { text = model.comment
+            , placeholder = Just (Input.placeholder [] (text "Leave a comment?"))
+            , onChange = Just (\new -> Update { model | comment = new })
+            , label =
+                Input.labelAbove
+                    [ width (fillPortion 1)
+
+                    -- , Font.alignRight
+                    , Font.bold
+                    , paddingXY 12 7
+                    ]
+                    (text "Question")
+            , spellcheck = False
             }
         , Input.button
             [ Background.color blue
@@ -776,11 +911,10 @@ signInForm model =
             , Border.color darkBlue
             , paddingXY 15 5
             , Border.rounded 3
-            , alignLeft
             , width (fillPortion 4)
             ]
             { onPress = Nothing
-            , label = Element.text "Place your lunch order!"
+            , label = el [] <| Element.text "Place your lunch order!"
             }
         ]
 
