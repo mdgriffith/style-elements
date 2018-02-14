@@ -428,7 +428,7 @@ rules =
             , Prop "flex-basis" "auto"
             , Prop "resize" "none"
 
-            -- , Prop "flex-basis" "0"
+            -- , Prop "flex-basis" "0%"
             , Prop "box-sizing" "border-box"
             , Prop "margin" "0"
             , Prop "padding" "0"
@@ -785,7 +785,7 @@ rules =
             [ Prop "display" "flex"
             , Prop "flex-direction" "row"
             , Child (class Any)
-                [ Prop "flex-basis" "0"
+                [ Prop "flex-basis" "0%"
                 , Descriptor ".width-exact"
                     [ Prop "flex-basis" "auto"
                     ]
@@ -824,7 +824,7 @@ rules =
                 ]
             , Child ".container"
                 [ Prop "flex-grow" "0"
-                , Prop "flex-basis" "0"
+                , Prop "flex-basis" "0%"
 
                 -- , Prop "height" "100%"
                 , Prop "align-self" "stretch"
