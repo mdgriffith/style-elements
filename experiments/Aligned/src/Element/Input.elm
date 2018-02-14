@@ -587,6 +587,17 @@ textHelper textInput attrs textOptions =
             else
                 Internal.NoAttribute
 
+        noNearbys =
+            List.filter (not << forNearby) attributes
+
+        forNearby attr =
+            case attr of
+                Internal.Nearby _ _ _ ->
+                    True
+
+                _ ->
+                    False
+
         ( inputNode, inputAttrs, inputChildren ) =
             case textInput.type_ of
                 TextInputNode inputType ->
@@ -601,7 +612,7 @@ textHelper textInput attrs textOptions =
                             Just fill ->
                                 autofill fill
                       ]
-                        ++ attributes
+                        ++ noNearbys
                     , []
                     )
 
@@ -1268,7 +1279,12 @@ radioHelper orientation attrs input =
             in
             Element.el
                 [ Element.pointer
-                , Element.width Element.fill
+                , case orientation of
+                    Row ->
+                        Element.width Element.shrink
+
+                    Column ->
+                        Element.width Element.fill
                 , case input.onChange of
                     Nothing ->
                         Internal.NoAttribute
@@ -2038,6 +2054,8 @@ defaultCheckbox checked =
                 , Element.height (Element.px 6)
                 , Element.width (Element.px 9)
                 , Element.rotate (degrees -45)
+                , Element.centerX
+                , Element.centerY
                 , Element.moveUp 1
                 , Border.widthEach
                     { top = 0
