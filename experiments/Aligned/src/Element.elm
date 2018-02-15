@@ -525,8 +525,8 @@ el attrs child =
         Nothing
         (width shrink
             :: height shrink
-            :: Internal.Class "x-content-align" "content-center-x"
-            :: Internal.Class "y-content-align" "content-center-y"
+            -- :: Internal.Class "x-content-align" "content-center-x"
+            -- :: Internal.Class "y-content-align" "content-center-y"
             :: attrs
         )
         (Internal.Unkeyed [ child ])
@@ -696,7 +696,7 @@ tableHelper attrs config =
             Internal.StyleClass <|
                 Internal.GridTemplateStyle
                     { spacing = ( px sX, px sY )
-                    , columns = List.repeat (List.length config.columns) Internal.Content
+                    , columns = List.repeat (List.length config.columns) (Internal.Fill 1)
                     , rows = List.repeat (List.length config.data) Internal.Content
                     }
 
@@ -771,7 +771,6 @@ tableHelper attrs config =
         Internal.asGrid
         Nothing
         (width fill
-            :: centerX
             :: template
             :: attrs
         )
