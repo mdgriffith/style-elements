@@ -108,6 +108,7 @@ view model =
             ]
 
 
+textElements : Element msg
 textElements =
     let
         txt =
@@ -143,25 +144,29 @@ tinyBox attrs =
         empty
 
 
+container : Element msg -> Element msg
 container =
     el [ width (px 100), height (px 100) ]
 
 
 {-| Alignment of an el within an other el
 -}
+singleAlignment : Element msg
 singleAlignment =
     column []
         [ el [] (text "Alignment Within an El")
         , container <|
             box []
+        , text "alignLeft, centerX, alignRight"
         , row [ spacing 20 ]
             [ container <|
-                box [ centerX ]
-            , container <|
                 box [ alignLeft ]
+            , container <|
+                box [ centerX ]
             , container <|
                 box [ alignRight ]
             ]
+        , text "top, centerY, bottom"
         , row [ spacing 20 ]
             [ container <|
                 box [ alignTop ]
@@ -170,27 +175,30 @@ singleAlignment =
             , container <|
                 box [ alignBottom ]
             ]
+        , text "align top ++ alignments"
         , row [ spacing 20 ]
             [ container <|
-                box [ alignTop, centerX ]
-            , container <|
                 box [ alignTop, alignLeft ]
+            , container <|
+                box [ alignTop, centerX ]
             , container <|
                 box [ alignTop, alignRight ]
             ]
+        , text "centerY ++ alignments"
         , row [ spacing 20 ]
             [ container <|
-                box [ centerY, centerX ]
-            , container <|
                 box [ centerY, alignLeft ]
+            , container <|
+                box [ centerY, centerX ]
             , container <|
                 box [ centerY, alignRight ]
             ]
+        , text "alignBottom ++ alignments"
         , row [ spacing 20 ]
             [ container <|
-                box [ alignBottom, centerX ]
-            , container <|
                 box [ alignBottom, alignLeft ]
+            , container <|
+                box [ alignBottom, centerX ]
             , container <|
                 box [ alignBottom, alignRight ]
             ]
@@ -604,7 +612,7 @@ tableElements =
               }
             ]
     in
-    column [ spacing 20, width fill, paddingXY 0 30 ]
+    column [ spacing 20, width fill, paddingXY 1 30 ]
         [ text "Tables With Headers"
         , table []
             { data = data
@@ -730,7 +738,7 @@ signInForm model =
             { selected = Just model.lunch
             , onChange = Just (\new -> Update { model | lunch = new })
             , label =
-                label "What would you like for lunch?"
+                Input.labelAbove [ Font.bold ] (text "What would you like for lunch?")
             , options =
                 [ Input.option Gyro (text "Gyro")
                 , Input.option Burrito (text "Burrito")
