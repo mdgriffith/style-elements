@@ -2241,7 +2241,9 @@ toStyleSheetString options stylesheet =
                                     toString px ++ "px"
 
                                 Content ->
-                                    "auto"
+                                    -- "1fr"
+                                    -- "auto"
+                                    "max-content"
 
                                 Fill i ->
                                     intToString i ++ "fr"
