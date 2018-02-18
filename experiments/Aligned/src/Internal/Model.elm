@@ -2107,12 +2107,9 @@ toStyleSheetString options stylesheet =
                 Transparency name transparency ->
                     let
                         opacity =
-                            (round (transparency * 100)
-                                // 100
-                            )
+                            (1 - transparency)
                                 |> min 1
                                 |> max 0
-                                |> (\x -> 1 - x)
                     in
                     if opacity <= 0 then
                         renderStyle force

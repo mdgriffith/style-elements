@@ -1218,7 +1218,7 @@ transparent on =
 {-| -}
 opacity : Float -> Attr decorative msg
 opacity o =
-    Internal.StyleClass <| Internal.Transparency ("transparency-" ++ Internal.floatClass o) o
+    Internal.StyleClass <| Internal.Transparency ("transparency-" ++ Internal.floatClass (1 - o)) (1 - o)
 
 
 
