@@ -564,6 +564,9 @@ rules =
                                     , Child ".height-fill"
                                         [ Prop "height" "auto"
                                         ]
+                                    , Child ".width-fill"
+                                        [ Prop "width" "100%"
+                                        ]
                                     , Child ".se"
                                         [ Prop "position" "absolute"
                                         , Prop "bottom" "0"
