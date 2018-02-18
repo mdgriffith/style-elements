@@ -11,6 +11,7 @@ import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import Element.Lazy
 import Element.Region as Region
 import Html
 import Html.Attributes
@@ -82,7 +83,8 @@ type Lunch
 
 view model =
     Element.layout
-        [ Font.family
+        [ htmlAttribute (Html.Attributes.class "wireframe")
+        , Font.family
             [ Font.external
                 { url = "https://fonts.googleapis.com/css?family=Source+Code+Pro"
                 , name = "Source Code Pro"
@@ -96,6 +98,12 @@ view model =
             , centerX
             ]
             [ textElements
+            , widths
+            , transparency
+            , text "Lazy Time!"
+            , Element.Lazy.lazy (always textElements) ()
+            , Element.Lazy.lazy lazyWithNearby ()
+            , Element.Lazy.lazy lazyWithoutNearby ()
             , singleAlignment
             , rowAlignment
             , columnAlignment
@@ -106,6 +114,140 @@ view model =
             , signInForm model
             , el [ height (px 200) ] empty
             ]
+
+
+widths =
+    column [ spacing 32 ]
+        [ el [ Background.color blue, height (px 200), width fill ] (text "width fill")
+        , el [ Background.color blue, height (px 200), width (px 200) ] (text "width 200 px")
+        , el [ Background.color blue, height (px 200), width shrink ] (text "width shrink")
+        , text "rows"
+        , row [ spacing 32 ]
+            [ box []
+            , box []
+            , box []
+            ]
+        , row [ spacing 32, width fill ]
+            [ box []
+            , box []
+            , box []
+            ]
+        , row [ spacing 32, width (px 500) ]
+            [ box []
+            , box []
+            , box []
+            ]
+        , row [ spacing 32, width shrink ]
+            [ box []
+            , box []
+            , box []
+            ]
+        , text "within a row"
+        , row [ spacing 32 ]
+            [ box [ width fill ]
+            , box [ width (px 200) ]
+            , el [ Background.color blue, width shrink, height (px 50) ] (text "shrink me")
+            ]
+        , row [ spacing 32 ]
+            [ box [ width fill ]
+            , box [ width (fillPortion 2) ]
+            , box [ width (fillPortion 3) ]
+            ]
+        , text "columns"
+        , column [ spacing 32 ]
+            [ box []
+            , box []
+            , box []
+            ]
+        , column [ spacing 32, width fill ]
+            [ box []
+            , box []
+            , box []
+            ]
+        , column [ spacing 32, width (px 500) ]
+            [ box []
+            , box []
+            , box []
+            ]
+        , column [ spacing 32, width shrink ]
+            [ box []
+            , box []
+            , box []
+            ]
+        , text "within a column"
+        , column [ spacing 32 ]
+            [ box [ width fill ]
+            , box [ width (px 200) ]
+            , el [ Background.color blue, width shrink, height (px 50) ] (text "shrink me")
+            ]
+        , column [ spacing 32 ]
+            [ box [ width fill ]
+            , box [ width (fillPortion 2) ]
+            , box [ width (fillPortion 3) ]
+            ]
+        , text "widths for text layouts"
+        , textColumn []
+            [ box [ width fill ]
+            , box [ width (px 200) ]
+            , el [ Background.color blue, width shrink, height (px 50) ] (text "shrink me")
+            , el [ Background.color blue ] (text "shrink me")
+            , el [ Background.color blue ] (text "shrink me")
+            , el [ Background.color blue ] (text "shrink me")
+            ]
+        , paragraph []
+            [ text "unstyled"
+            , box [ width fill ]
+            , box [ width (px 200) ]
+            , el [ Background.color blue, width shrink, height (px 50) ] (text "shrink me")
+            , el [ Background.color blue ] (text "shrink me")
+            , el [ Background.color blue ] (text "shrink me")
+            , el [ Background.color blue ] (text "shrink me")
+            ]
+        ]
+
+
+lazyWithNearby _ =
+    column
+        [ spacing 32
+        , onRight True (box [])
+        ]
+        [ box [], box [], box [] ]
+
+
+lazyWithoutNearby _ =
+    column
+        [ spacing 32
+        ]
+        [ box [], box [], box [] ]
+
+
+transparency =
+    column [ paddingXY 0 100, spacing 16 ]
+        [ text "transparency"
+        , row [ spacing 16 ]
+            [ box [ transparent True ]
+            , box [ transparent False ]
+            ]
+        , text "transparency with hover"
+        , row [ spacing 16 ]
+            [ box
+                [ transparent True
+                , mouseOver [ Background.color green ]
+                ]
+            , box
+                [ transparent False
+                , mouseOver [ Background.color green ]
+                ]
+            ]
+        , text "all opacities"
+        , row [ spacing 16 ]
+            [ box [ opacity 0 ]
+            , box [ opacity 0.25 ]
+            , box [ opacity 0.5 ]
+            , box [ opacity 0.75 ]
+            , box [ opacity 1.0 ]
+            ]
+        ]
 
 
 textElements : Element msg
@@ -125,7 +267,49 @@ textElements =
             [ short, short, short ]
         , column [ spacing 50 ]
             [ txt, txt, txt ]
+        , text "text layouts"
+        , textColumn
+            [ Background.color darkCharcoal
+            , Font.color white
+            , spacing 32
+            , padding 64
+            ]
+            [ box [ alignRight ]
+            , paragraph [] [ text lorem ]
+            , box [ alignLeft ]
+            , paragraph [] [ text lorem ]
+            ]
+        , textColumn
+            [ Background.color darkCharcoal
+            , Font.color white
+            , spacingXY 32 64
+            , padding 64
+            ]
+            [ box [ alignRight ]
+            , paragraph [] [ text lorem ]
+            , box [ alignLeft ]
+            , paragraph [] [ text lorem ]
+            ]
+        , textColumn
+            [ Background.color darkCharcoal
+            , Font.color white
+            , spacingXY 32 64
+            , padding 64
+            ]
+            [ box [ alignRight ]
+            , paragraph [] [ text lorem ]
+            , box [ alignLeft ]
+            , paragraph [] [ box [ alignLeft ], text lorem ]
+            ]
         ]
+
+
+lorem =
+    """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis volutpat libero condimentum sapien ullamcorper cursus. Phasellus placerat nisl eu arcu bibendum pharetra. Morbi at nulla velit. Suspendisse sit amet condimentum ante. Sed libero mauris, ultrices ut sapien sed, imperdiet malesuada urna. Mauris malesuada nec magna eu ornare. """
+
+
+sentence =
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
 
 
 box attrs =
@@ -455,98 +639,107 @@ nearbyElements =
                 )
                 (text "hi")
 
-        nearby location box =
-            row [ height (px 100), width fill, spacing 50 ]
-                [ box []
-                , box
-                    [ location True
-                        (el
-                            [ width (px 20)
-                            , height (px 20)
-                            , Background.color darkCharcoal
-                            ]
-                            empty
-                        )
-                    ]
-                , box
-                    [ location True
-                        (el
-                            [ width (px 20)
-                            , height (px 20)
-                            , alignLeft
-                            , Background.color darkCharcoal
-                            ]
-                            empty
-                        )
-                    ]
-                , box
-                    [ location True
-                        (el
-                            [ width (px 20)
-                            , height (px 20)
-                            , alignRight
-                            , Background.color darkCharcoal
-                            ]
-                            empty
-                        )
-                    ]
-                , box
-                    [ location True
-                        (el
-                            [ width (px 20)
-                            , height (px 20)
-                            , alignTop
-                            , Background.color darkCharcoal
-                            ]
-                            empty
-                        )
-                    ]
-                , box
-                    [ location True
-                        (el
-                            [ width (px 20)
-                            , height (px 20)
-                            , alignBottom
-                            , Background.color darkCharcoal
-                            ]
-                            empty
-                        )
-                    ]
-                , box
-                    [ location True
-                        (el
-                            [ width (px 20)
-                            , height (px 20)
-                            , centerY
-                            , Background.color darkCharcoal
-                            ]
-                            empty
-                        )
-                    ]
-                , box
-                    [ location True
-                        (el
-                            [ --width fill
-                              width (px 20)
-                            , height fill
-
-                            -- , height (px 20)
-                            , Background.color darkCharcoal
-                            ]
-                            empty
-                        )
+        nearby location name box =
+            column []
+                [ text name
+                , row [ height (px 100), width fill, spacing 50 ]
+                    [ box
+                        [ location True
+                            (el
+                                [ width (px 20)
+                                , height (px 20)
+                                , Background.color darkCharcoal
+                                ]
+                                empty
+                            )
+                        ]
+                    , box
+                        [ location True
+                            (el
+                                [ width (px 20)
+                                , height (px 20)
+                                , alignLeft
+                                , Background.color darkCharcoal
+                                ]
+                                empty
+                            )
+                        ]
+                    , box
+                        [ location True
+                            (el
+                                [ width (px 20)
+                                , height (px 20)
+                                , alignRight
+                                , Background.color darkCharcoal
+                                ]
+                                empty
+                            )
+                        ]
+                    , box
+                        [ location True
+                            (el
+                                [ width (px 20)
+                                , height (px 20)
+                                , alignTop
+                                , Background.color darkCharcoal
+                                ]
+                                empty
+                            )
+                        ]
+                    , box
+                        [ location True
+                            (el
+                                [ width (px 20)
+                                , height (px 20)
+                                , alignBottom
+                                , Background.color darkCharcoal
+                                ]
+                                empty
+                            )
+                        ]
+                    , box
+                        [ location True
+                            (el
+                                [ width (px 20)
+                                , height (px 20)
+                                , centerY
+                                , Background.color darkCharcoal
+                                ]
+                                empty
+                            )
+                        ]
+                    , box
+                        [ location True
+                            (el
+                                [ width (px 20)
+                                , height fill
+                                , Background.color darkCharcoal
+                                ]
+                                empty
+                            )
+                        ]
+                    , box
+                        [ location True
+                            (el
+                                [ width fill
+                                , height (px 20)
+                                , Background.color darkCharcoal
+                                ]
+                                empty
+                            )
+                        ]
                     ]
                 ]
     in
     column
         [ centerX ]
         [ el [] (text "Nearby Elements")
-        , nearby above box
-        , nearby below box
-        , nearby inFront box
-        , nearby onRight box
-        , nearby onLeft box
-        , nearby behind transparentBox
+        , nearby above "above" box
+        , nearby below "below" box
+        , nearby inFront "inFront" box
+        , nearby onRight "onRight" box
+        , nearby onLeft "onLeft" box
+        , nearby behind "behind" transparentBox
         ]
 
 
@@ -920,6 +1113,20 @@ signInForm model =
             , paddingXY 15 5
             , Border.rounded 3
             , width (fillPortion 4)
+            ]
+            { onPress = Nothing
+            , label = el [] <| Element.text "Place your lunch order!"
+            }
+        , Input.button
+            [ Background.color blue
+            , Font.color white
+            , Border.color darkBlue
+            , paddingXY 15 5
+            , Border.rounded 3
+            , width (fillPortion 4)
+            , mouseDown
+                [ Background.color green
+                ]
             ]
             { onPress = Nothing
             , label = el [] <| Element.text "Place your lunch order!"
