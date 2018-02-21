@@ -849,7 +849,7 @@ textColumn attrs children =
         Internal.noStyleSheet
         Internal.asTextColumn
         Nothing
-        (width (px 650) :: attrs)
+        (width (px 550) :: attrs)
         (Internal.Unkeyed children)
 
 
