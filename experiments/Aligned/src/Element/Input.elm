@@ -1614,13 +1614,13 @@ select attrs input =
                     Menu orientation attrs options ->
                         case orientation of
                             MenuAbove ->
-                                Element.above True
+                                Element.above
                                     (column (Internal.class "show-on-focus" :: Background.color white :: attrs)
                                         (List.map renderOption options)
                                     )
 
                             MenuBelow ->
-                                Element.below True
+                                Element.below
                                     (column (Internal.class "show-on-focus" :: Background.color white :: attrs)
                                         (List.map renderOption options)
                                     )

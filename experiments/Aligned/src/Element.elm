@@ -40,7 +40,6 @@ module Element
         , focused
         , forceHover
         , height
-        , hidden
         , html
         , htmlAttribute
         , image
@@ -63,7 +62,6 @@ module Element
         , noStaticStyleSheet
         , onLeft
         , onRight
-        , opacity
         , padding
         , paddingEach
         , paddingXY
@@ -83,6 +81,7 @@ module Element
         , table
         , text
         , textColumn
+        , transparency
         , transparent
         , width
         )
@@ -130,7 +129,7 @@ Text needs it's own layout primitives.
 
 # Attributes
 
-@docs Attribute, transparent, opacity, hidden, pointer
+@docs Attribute, transparent, transparency, pointer
 
 @docs width, height, Length, px, shrink, fill, fillPortion, fillBetween, fillPortionBetween
 
@@ -1020,43 +1019,39 @@ downloadAs attrs { url, filename, label } =
 
 
 {-| -}
-below : Bool -> Element msg -> Attribute msg
-below on element =
-    if on then
-        Internal.Nearby Internal.Below on element
-    else
-        Internal.NoAttribute
-
-
-{-| `above` takes a `Bool` first so that you can easily toggle showing and hiding the element.
--}
-above : Bool -> Element msg -> Attribute msg
-above on element =
-    Internal.Nearby Internal.Above on element
+below : Element msg -> Attribute msg
+below element =
+    Internal.Nearby Internal.Below True element
 
 
 {-| -}
-onRight : Bool -> Element msg -> Attribute msg
-onRight on element =
-    Internal.Nearby Internal.OnRight on element
+above : Element msg -> Attribute msg
+above element =
+    Internal.Nearby Internal.Above True element
 
 
 {-| -}
-onLeft : Bool -> Element msg -> Attribute msg
-onLeft on element =
-    Internal.Nearby Internal.OnLeft on element
+onRight : Element msg -> Attribute msg
+onRight element =
+    Internal.Nearby Internal.OnRight True element
 
 
 {-| -}
-inFront : Bool -> Element msg -> Attribute msg
-inFront on element =
-    Internal.Nearby Internal.InFront on element
+onLeft : Element msg -> Attribute msg
+onLeft element =
+    Internal.Nearby Internal.OnLeft True element
 
 
 {-| -}
-behind : Bool -> Element msg -> Attribute msg
-behind on element =
-    Internal.Nearby Internal.Behind on element
+inFront : Element msg -> Attribute msg
+inFront element =
+    Internal.Nearby Internal.InFront True element
+
+
+{-| -}
+behind : Element msg -> Attribute msg
+behind element =
+    Internal.Nearby Internal.Behind True element
 
 
 {-| -}
@@ -1184,62 +1179,31 @@ spacingXY x y =
     Internal.StyleClass (Internal.SpacingStyle x y)
 
 
-{-| Make an element transparent and have it ignore any mouse or touch events.
-
-It will stil take up space.
-
-If you need to completely not render an element
-
+{-| Make an element transparent and have it ignore any mouse or touch events, though it will stil take up space.
 -}
 transparent : Bool -> Attr decorative msg
 transparent on =
     if on then
         Internal.StyleClass (Internal.Transparency "transparent" 1.0)
-        -- Internal.StyleClass
-        --     (Internal.Style "transparency-0"
-        --         [ Internal.Property "opacity" "0"
-        --         , Internal.Property "pointer-events" "none"
-        --         ]
-        --     )
     else
         Internal.StyleClass (Internal.Transparency "visible" 0.0)
 
 
-
--- Internal.StyleClass (Internal.Single "transparency-1" "opacity" "1")
--- Internal.StyleClass
---     (Internal.Style "transparency-1"
---         [ Internal.Property "opacity" "1"
---         , Internal.Property "pointer-events" "auto"
---         ]
---     )
-
-
-{-| -}
-opacity : Float -> Attr decorative msg
-opacity o =
-    Internal.StyleClass <| Internal.Transparency ("transparency-" ++ Internal.floatClass (1 - o)) (1 - o)
+{-| A capped value between 0.0 and 1.0, where 1.0 is transparent and 0.0 is fully opaque.
+-}
+transparency : Float -> Attr decorative msg
+transparency o =
+    Internal.StyleClass <| Internal.Transparency ("transparency-" ++ Internal.floatClass o) o
 
 
 
--- let
---     val =
---         (round (alpha * 100)
---             // 100
---         )
---             |> min 1
---             |> max 0
--- in
--- Internal.StyleClass (Internal.Single ("transparency-" ++ toString val) "opacity" (toString val))
-
-
-{-| -}
-hidden : Bool -> Attribute msg
-hidden on =
-    if on then
-        Internal.class "hidden"
-    else
-        Internal.NoAttribute
+-- {-| -}
+-- hidden : Bool -> Attribute msg
+-- hidden on =
+--     if on then
+--         Internal.class "hidden"
+--     else
+--         Internal.NoAttribute
 
 
 {-| -}
