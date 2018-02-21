@@ -18,6 +18,7 @@ module Element
         , alignLeft
         , alignRight
         , alignTop
+        , alpha
         , behind
         , below
         , centerX
@@ -81,7 +82,6 @@ module Element
         , table
         , text
         , textColumn
-        , transparency
         , transparent
         , width
         )
@@ -129,7 +129,7 @@ Text needs it's own layout primitives.
 
 # Attributes
 
-@docs Attribute, transparent, transparency, pointer
+@docs Attribute, transparent, alpha, pointer
 
 @docs width, height, Length, px, shrink, fill, fillPortion, fillBetween, fillPortionBetween
 
@@ -1189,11 +1189,21 @@ transparent on =
         Internal.StyleClass (Internal.Transparency "visible" 0.0)
 
 
-{-| A capped value between 0.0 and 1.0, where 1.0 is transparent and 0.0 is fully opaque.
+{-| A capped value between 0.0 and 1.0, where 0.0 is transparent and 1.0 is fully opaque.
+
+Semantically equavalent to html opacity.
+
 -}
-transparency : Float -> Attr decorative msg
-transparency o =
-    Internal.StyleClass <| Internal.Transparency ("transparency-" ++ Internal.floatClass o) o
+alpha : Float -> Attr decorative msg
+alpha o =
+    let
+        transparency =
+            o
+                |> max 0.0
+                |> min 1.0
+                |> (\x -> 1 - x)
+    in
+    Internal.StyleClass <| Internal.Transparency ("transparency-" ++ Internal.floatClass transparency) transparency
 
 
 
