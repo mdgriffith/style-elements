@@ -739,7 +739,7 @@ gatherAttributes attr gathered =
                                 ( "min-width-" ++ intToString px, Single (".min-width-" ++ intToString px) "min-width" (intToString px ++ "px") )
 
                             renderMax px =
-                                ( ".max-width-" ++ intToString px, Single (".max-width-" ++ intToString px) "max-width" (intToString px ++ "px") )
+                                ( "max-width-" ++ intToString px, Single (".max-width-" ++ intToString px) "max-width" (intToString px ++ "px") )
 
                             base =
                                 Just
