@@ -2290,7 +2290,7 @@ toStyleSheetString options stylesheet =
                             "grid-column-gap:" ++ toGridLength (Tuple.first template.spacing) ++ ";"
 
                         gapY =
-                            "grid-row-gap:" ++ toGridLength (Tuple.first template.spacing) ++ ";"
+                            "grid-row-gap:" ++ toGridLength (Tuple.second template.spacing) ++ ";"
 
                         modernGrid =
                             class ++ "{" ++ columns ++ rows ++ gapX ++ gapY ++ "}"
