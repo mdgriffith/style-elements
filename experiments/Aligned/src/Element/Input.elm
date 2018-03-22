@@ -3,7 +3,7 @@ module Element.Input
         ( Label
           -- , Menu
           -- , Notice
-        , Option
+        , Option(..)
         , Placeholder
         , Radio
           -- , Select
