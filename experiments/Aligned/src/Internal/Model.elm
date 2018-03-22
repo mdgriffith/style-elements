@@ -1479,8 +1479,7 @@ asElement embedMode children context rendered =
 
                                 Unkeyed unkeyed ->
                                     Unkeyed
-                                        (Internal.Style.rulesElement
-                                            :: toStyleSheet options styles
+                                        (toStyleSheet options styles
                                             :: unkeyed
                                         )
 
@@ -1791,8 +1790,16 @@ renderRoot optionList attributes child =
     let
         options =
             optionsToRecord optionList
+
+        embedStyle =
+            case options.mode of
+                NoStaticStyleSheet ->
+                    OnlyDynamic options
+
+                _ ->
+                    StaticRootAndDynamic options
     in
-    element (StaticRootAndDynamic options) asEl Nothing attributes (Unkeyed [ child ])
+    element embedStyle asEl Nothing attributes (Unkeyed [ child ])
         |> toHtml options
 
 
