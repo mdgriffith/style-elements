@@ -185,6 +185,40 @@ widths =
             , box [ width (fillPortion 2) ]
             , box [ width (fillPortion 3) ]
             ]
+        , text "Width Fill Between"
+        , text "Max at 200"
+        , el [ width fill, height (px 60) ]
+            (box
+                [ width
+                    (fillBetween
+                        { min = Just 20
+                        , max = Just 200
+                        }
+                    )
+                ]
+            )
+        , text "Fill between 20 and 200"
+        , el [ width (px 150), height (px 60) ]
+            (box
+                [ width
+                    (fillBetween
+                        { min = Just 20
+                        , max = Just 200
+                        }
+                    )
+                ]
+            )
+        , text "Min at 20"
+        , el [ width (px 10), height (px 60) ]
+            (box
+                [ width
+                    (fillBetween
+                        { min = Just 20
+                        , max = Just 200
+                        }
+                    )
+                ]
+            )
         , text "widths for text layouts"
         , textColumn []
             [ box [ width fill ]
