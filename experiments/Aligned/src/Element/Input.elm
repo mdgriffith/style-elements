@@ -1626,7 +1626,7 @@ select attrs input =
                                     )
                  )
                     :: Border.width 1
-                    :: Border.color lightGrey
+                    :: Border.color darkGrey
                     :: Border.rounded 5
                     :: defaultTextPadding
                     :: Element.width Element.fill
@@ -1995,7 +1995,7 @@ defaultTextBoxStyle : List (Attribute msg)
 defaultTextBoxStyle =
     [ defaultTextPadding
     , Border.rounded 3
-    , Border.color lightGrey
+    , Border.color darkGrey
     , Background.color white
     , Border.width 1
     , Element.spacing 3
