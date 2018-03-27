@@ -24,5 +24,5 @@ main =
         ]
     <|
         el
-            []
+            [ centerX, centerY ]
             (text "Hello stylish friend!")
