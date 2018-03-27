@@ -1,1 +1,0 @@
-elm-live ProperAlignment.elm --open --pushstate
