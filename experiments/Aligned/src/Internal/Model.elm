@@ -408,26 +408,26 @@ alignXName : HAlign -> String
 alignXName align =
     case align of
         Left ->
-            "self-left"
+            "aligned-horizontally self-left"
 
         Right ->
-            "self-right"
+            "aligned-horizontally self-right"
 
         CenterX ->
-            "self-center-x"
+            "aligned-horizontally self-center-x"
 
 
 alignYName : VAlign -> String
 alignYName align =
     case align of
         Top ->
-            "self-top"
+            "aligned-vertically self-top"
 
         Bottom ->
-            "self-bottom"
+            "aligned-vertically self-bottom"
 
         CenterY ->
-            "self-center-y"
+            "aligned-vertically self-center-y"
 
 
 noAreas : List (Attribute aligned msg) -> List (Attribute aligned msg)
@@ -743,7 +743,7 @@ gatherAttributes attr gathered =
 
                             base =
                                 Just
-                                    ( "width-fill-portion width-fill-" ++ toString fill.portion
+                                    ( "width-fill-between width-fill-" ++ toString fill.portion
                                     , Single (".se.row > " ++ (styleName <| "width-fill-" ++ toString fill.portion)) "flex-grow" (toString (fill.portion * 100000))
                                     )
 
@@ -817,7 +817,7 @@ gatherAttributes attr gathered =
 
                             base =
                                 Just
-                                    ( "height-fill-portion height-fill-" ++ toString fill.portion
+                                    ( "height-fill-between height-fill-" ++ toString fill.portion
                                     , Single (".se.column > " ++ (styleName <| "height-fill-" ++ toString fill.portion)) "flex-grow" (toString (fill.portion * 100000))
                                     )
 

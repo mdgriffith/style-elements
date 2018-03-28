@@ -1,5 +1,7 @@
 module Internal.Style exposing (..)
 
+{-| -}
+
 import Html
 
 
@@ -27,6 +29,10 @@ type StyleClasses
     | Text
     | Grid
     | Spacer
+
+
+
+-- lengths
 
 
 alignments =
@@ -145,6 +151,10 @@ locationName loc =
             ".behind"
 
 
+
+-- describeWidth values =
+
+
 describeAlignment values =
     let
         createDescription alignment =
@@ -161,6 +171,65 @@ describeAlignment values =
     in
     Batch <|
         List.concatMap createDescription alignments
+
+
+type Length
+    = Shrink
+    | Fill
+
+
+lengths =
+    [ Shrink
+    , Fill
+    ]
+
+
+type Dimension
+    = Width
+    | Height
+
+
+dimensionToString x =
+    case x of
+        Width ->
+            "width"
+
+        Height ->
+            "height"
+
+
+lenToString : Length -> String
+lenToString len =
+    case len of
+        Shrink ->
+            "content"
+
+        Fill ->
+            "fill"
+
+
+describeLength dimension lenValue =
+    let
+        name =
+            dimensionToString dimension
+
+        renderLengthRule len =
+            Child ("." ++ name ++ "-" ++ lenToString len)
+                [ lenValue len
+                ]
+    in
+    Batch
+        (List.map renderLengthRule lengths)
+
+
+
+-- , Child ".width-fill"
+--         [ -- alignLeft, alignRight, centerX are overridden by width.
+--           Prop "align-self" "stretch !important"
+--         ]
+--     , Child ".width-content"
+--         [ Prop "align-self" "left"
+--         ]
 
 
 gridAlignments values =
@@ -724,8 +793,8 @@ rules =
                 [ -- alignLeft, alignRight, centerX are overridden by width.
                   Prop "align-self" "stretch !important"
                 ]
-            , Descriptor ".width-content"
-                [ Prop "width" "auto"
+            , Child ".width-content"
+                [ Prop "align-self" "left"
                 ]
             , describeAlignment <|
                 \alignment ->
@@ -808,6 +877,12 @@ rules =
                 [ --Prop "height" "100%"
                   -- alignTop, centerY, and alignBottom need to be disabled
                   Prop "align-self" "stretch !important"
+                ]
+            , Child ".height-fill-between"
+                [ Prop "align-self" "stretch"
+                , Descriptor ".aligned-vertically"
+                    [ Prop "height" "100%"
+                    ]
                 ]
             , Child ".width-fill"
                 [ Prop "flex-grow" "100000"
@@ -933,14 +1008,21 @@ rules =
                 [ Prop "flex-grow" "100000"
                 ]
             , Child ".width-fill"
-                [ --Prop "width" "100%"
-                  -- alignLeft, alignRight, centerX need to be disabled
+                [ -- alignLeft, alignRight, centerX need to be disabled
                   Prop "align-self" "stretch !important"
                 ]
             , Child ".width-fill-portion"
-                [ --Prop "width" "100%"
-                  -- alignLeft, alignRight, centerX need to be disabled
+                [ -- alignLeft, alignRight, centerX need to be disabled
                   Prop "align-self" "stretch !important"
+                ]
+            , Child ".width-fill-between"
+                [ Prop "align-self" "stretch"
+                , Descriptor ".aligned-horizontally"
+                    [ Prop "width" "100%"
+                    ]
+                ]
+            , Child ".width-content"
+                [ Prop "align-self" "left"
                 ]
             , Child ".se:first-child"
                 [ Prop "margin-top" "0 !important"
