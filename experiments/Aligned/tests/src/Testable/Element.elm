@@ -17,6 +17,11 @@ import Expect
 import Testable
 
 
+text : String -> Testable.Element msg
+text =
+    Testable.Text
+
+
 el : List (Testable.Attr msg) -> Testable.Element msg -> Testable.Element msg
 el =
     Testable.El
@@ -50,6 +55,7 @@ textColumn =
 type Length
     = Px Int
     | Fill Int
+    | Shrink
 
 
 px : Int -> Length
@@ -60,6 +66,11 @@ px =
 fill : Length
 fill =
     Fill 1
+
+
+shrink : Length
+shrink =
+    Shrink
 
 
 fillPortion : Int -> Length
@@ -92,9 +103,31 @@ width len =
                     \context _ ->
                         let
                             spacePerPortion =
-                                context.parent.bbox.width / toFloat (List.length context.siblings + 1)
+                                context.parent.bbox.width / toFloat (List.length context.siblings)
                         in
                         Expect.equal spacePerPortion context.self.bbox.width
+                }
+
+        Shrink ->
+            Testable.LabeledTest
+                { label = "width shrink"
+                , attr = Element.width Element.shrink
+                , test =
+                    \context _ ->
+                        let
+                            childWidth child =
+                                -- TODO: add margin values to widths
+                                child.bbox.width
+
+                            totalChildren =
+                                context.children
+                                    |> List.map childWidth
+                                    |> List.sum
+
+                            horizontalPadding =
+                                context.self.bbox.padding.left + context.self.bbox.padding.right
+                        in
+                        Expect.equal (totalChildren + horizontalPadding) context.self.bbox.width
                 }
 
 
@@ -121,6 +154,28 @@ height len =
                                 context.parent.bbox.height / toFloat (List.length context.siblings + 1)
                         in
                         Expect.equal spacePerPortion context.self.bbox.height
+                }
+
+        Shrink ->
+            Testable.LabeledTest
+                { label = "height shrink"
+                , attr = Element.height Element.shrink
+                , test =
+                    \context _ ->
+                        let
+                            childHeight child =
+                                -- TODO: add margin values to heights
+                                child.bbox.height
+
+                            totalChildren =
+                                context.children
+                                    |> List.map childHeight
+                                    |> List.sum
+
+                            horizontalPadding =
+                                context.self.bbox.padding.left + context.self.bbox.padding.right
+                        in
+                        Expect.equal (totalChildren + horizontalPadding) context.self.bbox.height
                 }
 
 
@@ -183,7 +238,9 @@ alignLeft =
         , attr = Element.alignLeft
         , test =
             \found _ ->
-                if List.length found.siblings == 0 then
+                if List.any ((==) found.location) [ Just Testable.OnLeft, Just Testable.OnRight ] then
+                    Expect.true "alignLeft doesn't apply to elements that are onLeft or onRight" True
+                else if List.length found.siblings == 0 then
                     Expect.equal found.self.bbox.left (found.parent.bbox.left + found.parent.bbox.padding.left)
                 else
                     -- TODO
@@ -196,6 +253,33 @@ alignLeft =
 
 
 {-| -}
+centerX : Testable.Attr msg
+centerX =
+    Testable.LabeledTest
+        { label = "centerX"
+        , attr = Element.centerX
+        , test =
+            \found _ ->
+                let
+                    selfCenter =
+                        found.self.bbox.left + (found.self.bbox.width / 2)
+
+                    parentCenter =
+                        found.parent.bbox.left + (found.parent.bbox.width / 2)
+                in
+                if List.any ((==) found.location) [ Just Testable.OnRight, Just Testable.OnLeft ] then
+                    Expect.true "centerY doesn't apply to elements that are onLeft or onRight" True
+                else if List.length found.siblings == 0 then
+                    Expect.equal selfCenter parentCenter
+                else
+                    -- TODO
+                    -- if there are siblings, then we want to be next to the nearest left element.
+                    -- closest left sibling + spacing -> current left
+                    Expect.equal selfCenter parentCenter
+        }
+
+
+{-| -}
 alignRight : Testable.Attr msg
 alignRight =
     Testable.LabeledTest
@@ -203,7 +287,9 @@ alignRight =
         , attr = Element.alignRight
         , test =
             \found _ ->
-                if List.length found.siblings == 0 then
+                if List.any ((==) found.location) [ Just Testable.OnLeft, Just Testable.OnRight ] then
+                    Expect.true "alignRight doesn't apply to elements that are onLeft or onRight" True
+                else if List.length found.siblings == 0 then
                     Expect.equal found.self.bbox.left (found.parent.bbox.right + found.parent.bbox.padding.right)
                 else
                     -- TODO
@@ -223,15 +309,17 @@ alignTop =
         , attr = Element.alignTop
         , test =
             \found _ ->
-                if List.length found.siblings == 0 then
+                if List.any ((==) found.location) [ Just Testable.Above, Just Testable.Below ] then
+                    Expect.true "alignTop doesn't apply to elements that are above or below" True
+                else if List.length found.siblings == 0 then
                     Expect.equal found.self.bbox.top (found.parent.bbox.top + found.parent.bbox.padding.top)
                 else
                     -- TODO
                     -- if there are siblings, then we want to be next to the nearest left element.
                     -- closest left sibling + spacing -> current left
                     Expect.equal
-                        found.self.bbox.right
-                        (found.parent.bbox.right + found.parent.bbox.padding.right)
+                        found.self.bbox.bottom
+                        found.parent.bbox.top
         }
 
 
@@ -243,15 +331,44 @@ alignBottom =
         , attr = Element.alignBottom
         , test =
             \found _ ->
-                if List.length found.siblings == 0 then
+                if List.any ((==) found.location) [ Just Testable.Above, Just Testable.Below ] then
+                    Expect.true "alignBottom doesn't apply to elements that are above or below" True
+                else if List.length found.siblings == 0 then
                     Expect.equal found.self.bbox.top (found.parent.bbox.top + found.parent.bbox.padding.top)
                 else
                     -- TODO
                     -- if there are siblings, then we want to be next to the nearest left element.
                     -- closest left sibling + spacing -> current left
                     Expect.equal
-                        found.self.bbox.right
-                        (found.parent.bbox.right + found.parent.bbox.padding.right)
+                        found.self.bbox.top
+                        found.parent.bbox.bottom
+        }
+
+
+{-| -}
+centerY : Testable.Attr msg
+centerY =
+    Testable.LabeledTest
+        { label = "centerY"
+        , attr = Element.centerY
+        , test =
+            \found _ ->
+                let
+                    selfCenter =
+                        found.self.bbox.top + (found.self.bbox.height / 2)
+
+                    parentCenter =
+                        found.parent.bbox.top + (found.parent.bbox.height / 2)
+                in
+                if List.any ((==) found.location) [ Just Testable.Above, Just Testable.Below ] then
+                    Expect.true "centerY doesn't apply to elements that are above or below" True
+                else if List.length found.siblings == 0 then
+                    Expect.equal selfCenter parentCenter
+                else
+                    -- TODO
+                    -- if there are siblings, then we want to be next to the nearest left element.
+                    -- closest left sibling + spacing -> current left
+                    Expect.equal selfCenter parentCenter
         }
 
 
