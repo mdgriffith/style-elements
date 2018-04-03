@@ -98,6 +98,7 @@ view model =
             , centerX
             ]
             [ textElements
+            , misc
             , widths
             , transparentElements
             , text "Lazy Time!"
@@ -114,6 +115,27 @@ view model =
             , signInForm model
             , el [ height (px 200) ] empty
             ]
+
+
+misc =
+    column [ spacing 32 ]
+        [ text "The following should be centered, with a fillBetween width"
+        , row
+            [ width
+                (fillBetween
+                    { min = Nothing
+                    , max = Just 360
+                    }
+                )
+            , centerX
+            , padding 15
+            , Background.color Color.lightBlue
+            , Font.bold
+            ]
+            [ el [ alignLeft ] (text "Logo")
+            , el [ alignRight ] (text "Navigation")
+            ]
+        ]
 
 
 widths =
@@ -347,7 +369,7 @@ sentence =
 
 
 box attrs =
-    el ([ width (px 50), height (px 50), Background.color blue ] ++ attrs) empty
+    el ([ mouseOver [ Background.color red ], width (px 50), height (px 50), Background.color blue ] ++ attrs) empty
 
 
 tinyBox attrs =
@@ -939,18 +961,18 @@ tableElements =
                         el [ Font.color white ] <|
                             text "Index"
                   , view =
-                        \i row -> el [ Background.color lightGrey ] <| text (toString i)
+                        \i row -> el [ Background.color lightGrey, width fill ] <| text (toString i)
                   }
                 , { header =
                         el [ Font.color white ] <|
                             text "First Name"
                   , view =
-                        \i row -> el [ Background.color lightGrey ] <| text row.firstName
+                        \i row -> el [ Background.color lightGrey, width fill ] <| text row.firstName
                   }
                 , { header = el [ Font.color white ] <| text "Last Name"
                   , view =
                         \i row ->
-                            el [ Background.color lightGrey ] <|
+                            el [ Background.color lightGrey, width fill ] <|
                                 text row.lastName
                   }
                 ]
