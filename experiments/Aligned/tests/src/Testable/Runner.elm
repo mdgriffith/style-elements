@@ -44,7 +44,7 @@ port report :
 port analyze : List String -> Cmd msg
 
 
-port styles : (List { id : String, bbox : Testable.BoundingBox, style : Testable.Style } -> msg) -> Sub msg
+port styles : (List { id : String, bbox : Testable.BoundingBox, style : List ( String, String ) } -> msg) -> Sub msg
 
 
 program : List ( String, Testable.Element Msg ) -> TestableProgram
@@ -138,7 +138,7 @@ type Msg
         (List
             { id : String
             , bbox : Testable.BoundingBox
-            , style : Testable.Style
+            , style : List ( String, String )
             }
         )
 
@@ -181,7 +181,7 @@ update msg model =
                 Just ( label, current ) ->
                     let
                         toTuple box =
-                            ( box.id, { style = box.style, bbox = box.bbox } )
+                            ( box.id, { style = Dict.fromList box.style, bbox = box.bbox } )
 
                         foundData =
                             boxes
@@ -285,6 +285,14 @@ view model =
 viewResult : WithResults (Testable.Element Msg) -> Element.Element Msg
 viewResult testable =
     let
+        failing result =
+            case Tuple.second result of
+                Nothing ->
+                    1
+
+                Just _ ->
+                    0
+
         viewSingle result =
             case result of
                 ( label, Nothing ) ->
@@ -296,20 +304,21 @@ viewResult testable =
                         , Border.rounded 3
                         ]
                     <|
-                        Element.text (label ++ " - " ++ "Success!")
+                        Element.text ("Success! - " ++ label)
 
                 ( label, Just { given, description, reason } ) ->
-                    Element.row
+                    Element.column
                         [ Background.color Color.red
                         , Font.color Color.white
                         , Element.paddingXY 20 10
                         , Element.alignLeft
-                        , Element.spacing 25
+                        , Element.width Element.shrink
+
+                        -- , Element.spacing 25
                         , Border.rounded 3
                         ]
                         [ Element.el [ Element.width Element.fill ] <| Element.text label
-
-                        -- , Element.el [ Element.width Element.fill ] <| Element.text description
+                        , Element.el [ Element.width Element.fill ] <| Element.text description
                         , Element.el [ Element.width Element.fill ] <| Element.text (toString reason)
                         ]
     in
@@ -319,8 +328,12 @@ viewResult testable =
         , Element.padding 20
         , Element.height Element.shrink
         , Element.alignLeft
+        , Element.spacing 16
         ]
-        [ Element.el [ Font.bold ] (Element.text testable.label)
+        [ Element.el [ Font.bold, Font.size 64 ] (Element.text testable.label)
         , Element.column [ Element.alignLeft, Element.spacing 20 ]
-            (List.map viewSingle testable.results)
+            (testable.results
+                |> List.sortBy failing
+                |> List.map viewSingle
+            )
         ]
