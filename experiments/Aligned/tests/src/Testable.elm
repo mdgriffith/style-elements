@@ -2,6 +2,8 @@ module Testable exposing (..)
 
 {-| -}
 
+import Color exposing (Color)
+import Debug.Watch as Debug
 import Dict exposing (Dict)
 import Element
 import Expect
@@ -19,6 +21,7 @@ type Element msg
     | Column (List (Attr msg)) (List (Element msg))
     | TextColumn (List (Attr msg)) (List (Element msg))
     | Paragraph (List (Attr msg)) (List (Element msg))
+    | Text String
     | Empty
 
 
@@ -54,6 +57,10 @@ type alias Surroundings =
     , parent : Found
     , children : List Found
     , self : Found
+
+    -- These values are needed to perform some types of tests.
+    , location : Maybe Location
+    , parentSpacing : Maybe Int
     }
 
 
@@ -65,7 +72,7 @@ type alias Found =
 
 {-| -}
 type alias Style =
-    List ( String, String )
+    Dict String String
 
 
 type alias BoundingBox =
@@ -97,28 +104,44 @@ getElementId : List Int -> Element msg -> List String
 getElementId level el =
     let
         id =
-            level
-                |> List.map toString
-                |> String.join "-"
-                |> (\x -> "se-" ++ x)
+            levelToString level
+
+        attrID attrIndex attr =
+            case attr of
+                Nearby nearby ->
+                    getElementId (attrIndex :: -1 :: level) nearby.element
+
+                _ ->
+                    []
+
+        attributeIDs attrs =
+            attrs
+                |> List.indexedMap attrID
+                |> List.concat
+
+        childrenIDs children =
+            List.concat <| List.indexedMap (\i -> getElementId (i :: level)) children
     in
     case el of
-        El _ child ->
-            id :: getElementId (0 :: level) child
+        El attrs child ->
+            id :: getElementId (0 :: level) child ++ attributeIDs attrs
 
-        Row _ children ->
-            id :: (List.concat <| List.indexedMap (\i -> getElementId (i :: level)) children)
+        Row attrs children ->
+            id :: childrenIDs children ++ attributeIDs attrs
 
-        Column _ children ->
-            id :: (List.concat <| List.indexedMap (\i -> getElementId (i :: level)) children)
+        Column attrs children ->
+            id :: childrenIDs children ++ attributeIDs attrs
 
-        TextColumn _ children ->
-            id :: (List.concat <| List.indexedMap (\i -> getElementId (i :: level)) children)
+        TextColumn attrs children ->
+            id :: childrenIDs children ++ attributeIDs attrs
 
-        Paragraph _ children ->
-            id :: (List.concat <| List.indexedMap (\i -> getElementId (i :: level)) children)
+        Paragraph attrs children ->
+            id :: childrenIDs children ++ attributeIDs attrs
 
         Empty ->
+            []
+
+        Text _ ->
             []
 
 
@@ -180,6 +203,9 @@ renderElement level el =
         Empty ->
             Element.empty
 
+        Text str ->
+            Element.text str
+
 
 renderAttribute : List Int -> Int -> Attr msg -> List (Element.Attribute msg)
 renderAttribute level attrIndex attr =
@@ -239,8 +265,15 @@ toTest label harvested el =
                 ]
 
         Just root ->
-            Test.describe label
-                (createTest [] root harvested [ 0, 0 ] el)
+            Test.describe label <|
+                createTest
+                    { siblings = []
+                    , parent = root
+                    , cache = harvested
+                    , level = [ 0, 0 ]
+                    , element = el
+                    , location = Nothing
+                    }
 
 
 levelToString : List a -> String
@@ -251,14 +284,19 @@ levelToString level =
         |> (\x -> "se-" ++ x)
 
 
-createTest : List Found -> Found -> Dict String Found -> List Int -> Element msg -> List Test
-createTest siblings parent cache level el =
+createTest :
+    { siblings : List Found
+    , parent : Found
+    , cache : Dict String Found
+    , level : List Int
+    , element : Element msg
+    , location : Maybe Location
+    }
+    -> List Test
+createTest { siblings, parent, cache, level, element, location } =
     let
         id =
-            levelToString level
-
-        maybeFound =
-            Dict.get id cache
+            Debug.log "create Test" <| levelToString level
 
         testChildren : Found -> List (Element msg) -> List Test
         testChildren found children =
@@ -308,7 +346,15 @@ createTest siblings parent cache level el =
                             remaining ++ previous
 
                 childrenTests =
-                    createTest surroundingChildren found cache (index :: level) child
+                    createTest
+                        --surroundingChildren found cache (index :: level) child
+                        { siblings = surroundingChildren
+                        , parent = found
+                        , cache = cache
+                        , level = index :: level
+                        , element = child
+                        , location = Nothing
+                        }
             in
             { index = index + 1
             , tests = tests ++ childrenTests
@@ -332,17 +378,35 @@ createTest siblings parent cache level el =
         tests self attributes children =
             let
                 findBBox elem ( i, gathered ) =
-                    case Dict.get (levelToString (i :: level)) cache of
-                        Nothing ->
-                            Debug.log "Failed to find child"
-                                ( i + 1
-                                , gathered
-                                )
-
-                        Just found ->
+                    case elem of
+                        Empty ->
                             ( i + 1
-                            , found :: gathered
+                            , gathered
                             )
+
+                        Text _ ->
+                            ( i + 1
+                            , gathered
+                            )
+
+                        _ ->
+                            case Dict.get (levelToString (i :: level)) cache of
+                                Nothing ->
+                                    let
+                                        _ =
+                                            Debug.log "el failed to find" elem
+
+                                        _ =
+                                            Debug.log "Failed to find child" (levelToString (i :: level))
+                                    in
+                                    ( i + 1
+                                    , gathered
+                                    )
+
+                                Just found ->
+                                    ( i + 1
+                                    , found :: gathered
+                                    )
 
                 childrenFoundData =
                     List.foldl findBBox ( 0, [] ) children
@@ -354,7 +418,7 @@ createTest siblings parent cache level el =
                         |> List.indexedMap
                             -- Found -> Dict String Found -> List Int -> Int -> Surroundings -> Attr msg -> List Test
                             (\i attr ->
-                                createAttributeTest parent
+                                createAttributeTest self
                                     cache
                                     level
                                     i
@@ -362,6 +426,8 @@ createTest siblings parent cache level el =
                                     , parent = parent
                                     , self = self
                                     , children = childrenFoundData
+                                    , location = location
+                                    , parentSpacing = Nothing
                                     }
                                     attr
                             )
@@ -369,45 +435,42 @@ createTest siblings parent cache level el =
             in
             attributeTests
                 ++ testChildren self children
-
-        -- childrenTests surroundings attributes children =
-        --     let
-        --         attributeTests =
-        --             List.concatMap (createAttributeTest surroundings) attributes
-        --     in
-        --     attributeTests
-        --         ++ (List.concat <|
-        --                 List.indexedMap (\i -> createTest siblings surroundings.self cache (i :: level)) children
-        --            )
     in
-    case maybeFound of
+    case Dict.get id cache of
         Nothing ->
-            case el of
+            case element of
                 Empty ->
+                    []
+
+                Text _ ->
                     []
 
                 _ ->
                     [ Test.test ("Unable to find " ++ id) (always <| Expect.fail "failed id lookup") ]
 
         Just self ->
-            case el of
-                El attrs child ->
-                    tests self attrs [ child ]
+            Debug.log "return tests" <|
+                case element of
+                    El attrs child ->
+                        tests self attrs [ child ]
 
-                Row attrs children ->
-                    tests self attrs children
+                    Row attrs children ->
+                        tests self attrs children
 
-                Column attrs children ->
-                    tests self attrs children
+                    Column attrs children ->
+                        tests self attrs children
 
-                TextColumn attrs children ->
-                    tests self attrs children
+                    TextColumn attrs children ->
+                        tests self attrs children
 
-                Paragraph attrs children ->
-                    tests self attrs children
+                    Paragraph attrs children ->
+                        tests self attrs children
 
-                Empty ->
-                    []
+                    Empty ->
+                        []
+
+                    Text str ->
+                        []
 
 
 applyLabels : List (Attr msg) -> List (Attr msg)
@@ -446,6 +509,10 @@ applyLabels attrs =
 
 createAttributeTest : Found -> Dict String Found -> List Int -> Int -> Surroundings -> Attr msg -> List Test
 createAttributeTest parent cache level attrIndex surroundings attr =
+    let
+        indexLabel =
+            levelToString (attrIndex :: level)
+    in
     case attr of
         Attr _ ->
             []
@@ -458,17 +525,14 @@ createAttributeTest parent cache level attrIndex surroundings attr =
             ]
 
         Nearby nearby ->
-            --createTest : List Found -> Found -> Dict String Found -> List Int -> Element msg -> List Test
             createTest
-                []
-                -- no siblings
-                parent
-                -- need parent
-                cache
-                -- need cache
-                (attrIndex :: -1 :: level)
-                -- need index
-                (addAttribute (AttrTest (\context -> Test.test nearby.label (nearby.test context))) nearby.element)
+                { siblings = []
+                , parent = parent
+                , cache = cache
+                , level = attrIndex :: -1 :: level
+                , location = Just nearby.location
+                , element = addAttribute (AttrTest (\context -> Test.test (nearby.label ++ "  #" ++ indexLabel) (nearby.test context))) nearby.element
+                }
 
         Batch batch ->
             batch
@@ -476,7 +540,8 @@ createAttributeTest parent cache level attrIndex surroundings attr =
                 |> List.concat
 
         LabeledTest { label, test } ->
-            [ Test.test label (test surroundings) ]
+            [ Test.test (label ++ "  #" ++ indexLabel) (test surroundings)
+            ]
 
 
 addAttribute : Attr msg -> Element msg -> Element msg
@@ -500,6 +565,9 @@ addAttribute attr el =
         Empty ->
             Empty
 
+        Text str ->
+            Text str
+
 
 runTests :
     Random.Pcg.Seed
@@ -515,8 +583,10 @@ runTests :
             )
 runTests seed tests =
     let
+        -- _ =
+        --     Debug.log "running" (List.length tests)
         results =
-            case Test.Runner.fromTest 100 seed tests of
+            case Debug.log "running test" <| Test.Runner.fromTest 100 seed tests of
                 Test.Runner.Plain rnrs ->
                     List.map run rnrs
 
@@ -527,6 +597,10 @@ runTests seed tests =
                     List.map run rnrs
 
                 Test.Runner.Invalid invalid ->
+                    let
+                        _ =
+                            Debug.log "Invalid tests" invalid
+                    in
                     []
 
         run runner =
@@ -537,3 +611,21 @@ runTests seed tests =
             List.map2 (,) runner.labels ran
     in
     List.concat results
+
+
+formatColor : Color -> String
+formatColor color =
+    let
+        { red, green, blue, alpha } =
+            Color.toRgb color
+    in
+    if alpha == 1 then
+        ("rgb(" ++ toString red)
+            ++ (", " ++ toString green)
+            ++ (", " ++ toString blue)
+            ++ ")"
+    else
+        ("rgba(" ++ toString red)
+            ++ (", " ++ toString green)
+            ++ (", " ++ toString blue)
+            ++ (", " ++ toString alpha ++ ")")
