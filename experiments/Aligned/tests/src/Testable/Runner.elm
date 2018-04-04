@@ -196,14 +196,14 @@ update msg model =
                             ( { model
                                 | stage = Finished
                                 , current = Nothing
-                                , finished = currentResults :: model.finished
+                                , finished = model.finished ++ [ currentResults ]
                               }
                             , report (prepareResults (currentResults :: model.finished))
                             )
 
                         newCurrent :: remaining ->
                             ( { model
-                                | finished = currentResults :: model.finished
+                                | finished = model.finished ++ [ currentResults ]
                                 , stage = BeginRendering
                               }
                             , Cmd.none
