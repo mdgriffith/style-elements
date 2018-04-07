@@ -163,11 +163,11 @@ runTest boxes label element =
 
 update : Msg -> Model Msg -> ( Model Msg, Cmd Msg )
 update msg model =
-    let
-        _ =
-            Debug.log "stage" model.stage
-    in
-    case Debug.log "msg" msg of
+    -- let
+    --     -- _ =
+    --     --     Debug.log "stage" model.stage
+    -- in
+    case msg of
         NoOp ->
             ( model, Cmd.none )
 
@@ -285,13 +285,16 @@ view model =
 viewResult : WithResults (Testable.Element Msg) -> Element.Element Msg
 viewResult testable =
     let
-        failing result =
+        isPassing result =
             case Tuple.second result of
                 Nothing ->
-                    1
+                    True
 
                 Just _ ->
-                    0
+                    False
+
+        ( passing, failing ) =
+            List.partition isPassing testable.results
 
         viewSingle result =
             case result of
@@ -332,8 +335,17 @@ viewResult testable =
         ]
         [ Element.el [ Font.bold, Font.size 64 ] (Element.text testable.label)
         , Element.column [ Element.alignLeft, Element.spacing 20 ]
-            (testable.results
-                |> List.sortBy failing
+            (failing
                 |> List.map viewSingle
             )
+        , Element.el
+            [ Element.alignLeft
+            , Element.spacing 20
+            , Background.color Color.green
+            , Font.color Color.white
+            , Element.paddingXY 20 10
+            , Element.alignLeft
+            , Border.rounded 3
+            ]
+            (Element.text (toString (List.length passing) ++ " tests passing!"))
         ]

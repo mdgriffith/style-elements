@@ -29,24 +29,6 @@ main =
     Testable.Runner.show view
 
 
-viewSingle : Testable.Element msg
-viewSingle =
-    el
-        [ Background.color (rgba 100 100 100 1)
-        , width (px 200)
-        , height (px 200)
-        , above
-            (el
-                [ width (px 20)
-                , height (px 20)
-                , Background.color (rgba 52 101 164 0.8)
-                ]
-                empty
-            )
-        ]
-        empty
-
-
 {-| -}
 view : Testable.Element msg
 view =
@@ -88,13 +70,14 @@ view =
                 ]
 
         nearby location name box =
-            column [ spacing 32 ]
+            column [ spacing 32, label "column" ]
                 [ text name
                 , row [ height (px 100), width fill, spacing 50 ]
                     [ box
                         [ location
                             (el
-                                [ width (px 20)
+                                [ label name
+                                , width (px 20)
                                 , height (px 20)
                                 , Background.color darkCharcoal
                                 ]
@@ -104,7 +87,8 @@ view =
                     , box
                         [ location
                             (el
-                                [ width (px 20)
+                                [ label name
+                                , width (px 20)
                                 , height (px 20)
                                 , alignLeft
                                 , Background.color darkCharcoal
@@ -115,7 +99,8 @@ view =
                     , box
                         [ location
                             (el
-                                [ width (px 20)
+                                [ label name
+                                , width (px 20)
                                 , height (px 20)
                                 , alignRight
                                 , Background.color darkCharcoal
@@ -126,7 +111,8 @@ view =
                     , box
                         [ location
                             (el
-                                [ width (px 20)
+                                [ label name
+                                , width (px 20)
                                 , height (px 20)
                                 , alignTop
                                 , Background.color darkCharcoal
@@ -137,7 +123,8 @@ view =
                     , box
                         [ location
                             (el
-                                [ width (px 20)
+                                [ label name
+                                , width (px 20)
                                 , height (px 20)
                                 , alignBottom
                                 , Background.color darkCharcoal
@@ -148,7 +135,8 @@ view =
                     , box
                         [ location
                             (el
-                                [ width (px 20)
+                                [ label name
+                                , width (px 20)
                                 , height (px 20)
                                 , centerY
                                 , Background.color darkCharcoal
@@ -158,11 +146,12 @@ view =
                         ]
                     ]
                 , text "widths/heights"
-                , row [ height (px 100), width fill, spacing 50 ]
+                , row [ height (px 100), width fill, spacing 50, label "Row" ]
                     [ box
                         [ location
                             (el
-                                [ width fill
+                                [ label name
+                                , width fill
                                 , height fill
                                 , Background.color darkCharcoal
                                 ]
@@ -172,7 +161,8 @@ view =
                     , box
                         [ location
                             (el
-                                [ width (px 20)
+                                [ label name
+                                , width (px 20)
                                 , height fill
                                 , Background.color darkCharcoal
                                 ]
@@ -180,9 +170,11 @@ view =
                             )
                         ]
                     , box
-                        [ location
+                        [ label "box"
+                        , location
                             (el
-                                [ width fill
+                                [ label name
+                                , width fill
                                 , height (px 20)
                                 , Background.color darkCharcoal
                                 ]
@@ -192,7 +184,8 @@ view =
                     , box
                         [ location
                             (el
-                                [ width (px 20)
+                                [ label name
+                                , width (px 20)
                                 , height shrink
                                 , Background.color darkCharcoal
                                 , Font.color white
@@ -203,7 +196,8 @@ view =
                     , box
                         [ location
                             (el
-                                [ width shrink
+                                [ label name
+                                , width shrink
                                 , height (px 20)
                                 , Background.color darkCharcoal
                                 , Font.color white
@@ -216,12 +210,10 @@ view =
     in
     column
         [ centerX, label "Nearby Elements" ]
-        [ --single above "above" box
-          nearby above "above" box
-
-        -- , nearby below "below" box
-        -- , nearby inFront "inFront" box
-        -- , nearby onRight "onRight" box
-        -- , nearby onLeft "onLeft" box
-        -- , nearby behind "behind" transparentBox
+        [ nearby above "above" box
+        , nearby below "below" box
+        , nearby inFront "inFront" box
+        , nearby onRight "onRight" box
+        , nearby onLeft "onLeft" box
+        , nearby behind "behind" transparentBox
         ]

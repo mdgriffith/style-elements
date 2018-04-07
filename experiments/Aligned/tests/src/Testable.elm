@@ -29,6 +29,7 @@ type Attr msg
     = Attr (Element.Attribute msg)
     | AttrTest (Surroundings -> Test)
     | Batch (List (Attr msg))
+    | Spacing Int
     | Nearby
         { location : Location
         , element : Element msg
@@ -52,6 +53,13 @@ type Location
     | Behind
 
 
+type LayoutContext
+    = IsNearby Location
+    | InRow
+    | InEl
+    | InColumn
+
+
 type alias Surroundings =
     { siblings : List Found
     , parent : Found
@@ -59,8 +67,8 @@ type alias Surroundings =
     , self : Found
 
     -- These values are needed to perform some types of tests.
-    , location : Maybe Location
-    , parentSpacing : Maybe Int
+    , location : LayoutContext
+    , parentSpacing : Int
     }
 
 
@@ -216,6 +224,9 @@ renderAttribute level attrIndex attr =
         AttrTest _ ->
             []
 
+        Spacing _ ->
+            []
+
         Label _ ->
             []
 
@@ -270,9 +281,10 @@ toTest label harvested el =
                     { siblings = []
                     , parent = root
                     , cache = harvested
+                    , parentSpacing = 0
                     , level = [ 0, 0 ]
                     , element = el
-                    , location = Nothing
+                    , location = InEl
                     }
 
 
@@ -290,13 +302,19 @@ createTest :
     , cache : Dict String Found
     , level : List Int
     , element : Element msg
-    , location : Maybe Location
+    , location : LayoutContext
+    , parentSpacing : Int
     }
     -> List Test
-createTest { siblings, parent, cache, level, element, location } =
+createTest { siblings, parent, cache, level, element, location, parentSpacing } =
     let
+        spacing =
+            getSpacing element
+                |> Maybe.withDefault 0
+
         id =
-            Debug.log "create Test" <| levelToString level
+            -- Debug.log "create Test" <|
+            levelToString level
 
         testChildren : Found -> List (Element msg) -> List Test
         testChildren found children =
@@ -347,13 +365,34 @@ createTest { siblings, parent, cache, level, element, location } =
 
                 childrenTests =
                     createTest
-                        --surroundingChildren found cache (index :: level) child
                         { siblings = surroundingChildren
                         , parent = found
                         , cache = cache
                         , level = index :: level
                         , element = child
-                        , location = Nothing
+                        , parentSpacing = spacing
+                        , location =
+                            case element of
+                                El _ _ ->
+                                    InEl
+
+                                Row _ _ ->
+                                    InRow
+
+                                Column _ _ ->
+                                    InColumn
+
+                                TextColumn _ _ ->
+                                    InColumn
+
+                                Paragraph _ _ ->
+                                    InRow
+
+                                Text _ ->
+                                    InEl
+
+                                Empty ->
+                                    InEl
                         }
             in
             { index = index + 1
@@ -427,7 +466,7 @@ createTest { siblings, parent, cache, level, element, location } =
                                     , self = self
                                     , children = childrenFoundData
                                     , location = location
-                                    , parentSpacing = Nothing
+                                    , parentSpacing = parentSpacing
                                     }
                                     attr
                             )
@@ -449,28 +488,27 @@ createTest { siblings, parent, cache, level, element, location } =
                     [ Test.test ("Unable to find " ++ id) (always <| Expect.fail "failed id lookup") ]
 
         Just self ->
-            Debug.log "return tests" <|
-                case element of
-                    El attrs child ->
-                        tests self attrs [ child ]
+            case element of
+                El attrs child ->
+                    tests self attrs [ child ]
 
-                    Row attrs children ->
-                        tests self attrs children
+                Row attrs children ->
+                    tests self attrs children
 
-                    Column attrs children ->
-                        tests self attrs children
+                Column attrs children ->
+                    tests self attrs children
 
-                    TextColumn attrs children ->
-                        tests self attrs children
+                TextColumn attrs children ->
+                    tests self attrs children
 
-                    Paragraph attrs children ->
-                        tests self attrs children
+                Paragraph attrs children ->
+                    tests self attrs children
 
-                    Empty ->
-                        []
+                Empty ->
+                    []
 
-                    Text str ->
-                        []
+                Text str ->
+                    []
 
 
 applyLabels : List (Attr msg) -> List (Attr msg)
@@ -520,6 +558,9 @@ createAttributeTest parent cache level attrIndex surroundings attr =
         Label _ ->
             []
 
+        Spacing _ ->
+            []
+
         AttrTest test ->
             [ test surroundings
             ]
@@ -529,8 +570,9 @@ createAttributeTest parent cache level attrIndex surroundings attr =
                 { siblings = []
                 , parent = parent
                 , cache = cache
+                , parentSpacing = 0
                 , level = attrIndex :: -1 :: level
-                , location = Just nearby.location
+                , location = IsNearby nearby.location
                 , element = addAttribute (AttrTest (\context -> Test.test (nearby.label ++ "  #" ++ indexLabel) (nearby.test context))) nearby.element
                 }
 
@@ -586,7 +628,7 @@ runTests seed tests =
         -- _ =
         --     Debug.log "running" (List.length tests)
         results =
-            case Debug.log "running test" <| Test.Runner.fromTest 100 seed tests of
+            case Test.Runner.fromTest 100 seed tests of
                 Test.Runner.Plain rnrs ->
                     List.map run rnrs
 
@@ -629,3 +671,46 @@ formatColor color =
             ++ (", " ++ toString green)
             ++ (", " ++ toString blue)
             ++ (", " ++ toString alpha ++ ")")
+
+
+getSpacing : Element msg -> Maybe Int
+getSpacing el =
+    let
+        getSpacingAttr attr found =
+            if found /= Nothing then
+                found
+            else
+                case attr of
+                    Spacing i ->
+                        Just i
+
+                    Batch attrs ->
+                        List.foldr getSpacingAttr Nothing attrs
+
+                    _ ->
+                        Nothing
+
+        filterAttrs attrs =
+            List.foldr getSpacingAttr Nothing attrs
+    in
+    case el of
+        El attrs _ ->
+            filterAttrs attrs
+
+        Row attrs _ ->
+            filterAttrs attrs
+
+        Column attrs _ ->
+            filterAttrs attrs
+
+        TextColumn attrs _ ->
+            filterAttrs attrs
+
+        Paragraph attrs _ ->
+            filterAttrs attrs
+
+        Empty ->
+            Nothing
+
+        Text _ ->
+            Nothing

@@ -2,9 +2,12 @@ module Tests.Basic exposing (view)
 
 {-| -}
 
+import Color exposing (Color)
 import Html
 import Testable
-import Testable.Element exposing (..)
+import Testable.Element as Element exposing (..)
+import Testable.Element.Background as Background
+import Testable.Element.Font as Font
 import Testable.Runner
 
 
@@ -17,8 +20,34 @@ main =
 {-| -}
 view : Testable.Element msg
 view =
-    Testable.Element.el
-        [ Testable.Element.width (Testable.Element.px 200)
-        , Testable.Element.height (Testable.Element.px 200)
+    row [ spacing 50, alignTop ]
+        [ el
+            [ width (px 200)
+            , height (px 200)
+            , Background.color Color.blue
+            , Font.color Color.white
+            ]
+            (text "Hello!")
+        , el
+            [ width (px 200)
+            , height (px 200)
+            , Background.color Color.blue
+            , Font.color Color.white
+            ]
+            (text "Hello!")
+        , el
+            [ width (px 200)
+            , height (px 200)
+            , Background.color Color.blue
+            , Font.color Color.white
+            , below
+                (el
+                    [ Background.color Color.grey
+                    , width (px 50)
+                    , height (px 50)
+                    ]
+                    empty
+                )
+            ]
+            (text "Hello!")
         ]
-        Testable.Element.empty
