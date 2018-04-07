@@ -377,7 +377,9 @@ alignLeft =
                 if List.member found.location [ Testable.IsNearby Testable.OnLeft, Testable.IsNearby Testable.OnRight ] then
                     Expect.true "alignLeft doesn't apply to elements that are onLeft or onRight" True
                 else if List.length found.siblings == 0 then
-                    Expect.equal found.self.bbox.left (found.parent.bbox.left + found.parent.bbox.padding.left)
+                    Expect.equal
+                        (round found.self.bbox.left)
+                        (round (found.parent.bbox.left + found.parent.bbox.padding.left))
                 else
                     case found.location of
                         Testable.InRow ->
@@ -394,13 +396,13 @@ alignLeft =
                                         |> List.sum
                             in
                             Expect.equal
-                                found.self.bbox.left
-                                (found.parent.bbox.left + (found.parent.bbox.padding.left + widthsOnLeft + spacings))
+                                (round found.self.bbox.left)
+                                (round (found.parent.bbox.left + (found.parent.bbox.padding.left + widthsOnLeft + spacings)))
 
                         _ ->
                             Expect.equal
-                                found.self.bbox.left
-                                (found.parent.bbox.left + found.parent.bbox.padding.left)
+                                (round found.self.bbox.left)
+                                (round (found.parent.bbox.left + found.parent.bbox.padding.left))
         }
 
 
