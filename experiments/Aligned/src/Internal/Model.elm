@@ -813,7 +813,7 @@ gatherAttributes attr gathered =
                                 ( "min-height-" ++ intToString px, Single (".min-height-" ++ intToString px) "min-height" (intToString px ++ "px") )
 
                             renderMax px =
-                                ( ".max-height-" ++ intToString px, Single (".max-height-" ++ intToString px) "max-height" (intToString px ++ "px") )
+                                ( "max-height-" ++ intToString px, Single (".max-height-" ++ intToString px) "max-height" (intToString px ++ "px") )
 
                             base =
                                 Just
