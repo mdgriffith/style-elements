@@ -22,5 +22,6 @@ color clr =
                             |> Dict.get "background-color"
                             |> Maybe.withDefault "notfound"
                 in
-                Expect.equal (Testable.formatColor clr) selfBackgroundColor
+                Expect.true ("Color Match - " ++ (Testable.formatColor clr ++ " vs " ++ selfBackgroundColor))
+                    (Testable.compareFormattedColor clr selfBackgroundColor)
         }

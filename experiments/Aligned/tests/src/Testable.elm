@@ -655,6 +655,30 @@ runTests seed tests =
     List.concat results
 
 
+compareFormattedColor : Color -> String -> Bool
+compareFormattedColor color expected =
+    formatColor color == expected || formatColorWithAlpha color == expected
+
+
+formatColorWithAlpha : Color -> String
+formatColorWithAlpha color =
+    let
+        { red, green, blue, alpha } =
+            Color.toRgb color
+    in
+    if alpha == 1 then
+        ("rgba(" ++ toString red)
+            ++ (", " ++ toString green)
+            ++ (", " ++ toString blue)
+            ++ ", 1"
+            ++ ")"
+    else
+        ("rgba(" ++ toString red)
+            ++ (", " ++ toString green)
+            ++ (", " ++ toString blue)
+            ++ (", " ++ toString alpha ++ ")")
+
+
 formatColor : Color -> String
 formatColor color =
     let

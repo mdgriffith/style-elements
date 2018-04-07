@@ -22,5 +22,6 @@ color clr =
                             |> Dict.get "color"
                             |> Maybe.withDefault "notfound"
                 in
-                Expect.equal (Testable.formatColor clr) selfFontColor
+                Expect.true ("Color Match - " ++ (Testable.formatColor clr ++ " vs " ++ selfFontColor))
+                    (Testable.compareFormattedColor clr selfFontColor)
         }
