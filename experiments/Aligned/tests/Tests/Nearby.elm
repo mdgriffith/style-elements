@@ -69,6 +69,17 @@ view =
                     ]
                 ]
 
+        little name attrs =
+            el
+                ([ label name
+                 , width (px 5)
+                 , height (px 5)
+                 , Background.color darkCharcoal
+                 ]
+                    ++ attrs
+                )
+                empty
+
         nearby location name box =
             column [ spacing 32, label "column" ]
                 [ text name
@@ -91,6 +102,18 @@ view =
                                 , width (px 20)
                                 , height (px 20)
                                 , alignLeft
+                                , Background.color darkCharcoal
+                                ]
+                                empty
+                            )
+                        ]
+                    , box
+                        [ location
+                            (el
+                                [ label name
+                                , width (px 20)
+                                , height (px 20)
+                                , centerX
                                 , Background.color darkCharcoal
                                 ]
                                 empty
@@ -126,7 +149,7 @@ view =
                                 [ label name
                                 , width (px 20)
                                 , height (px 20)
-                                , alignBottom
+                                , centerY
                                 , Background.color darkCharcoal
                                 ]
                                 empty
@@ -138,7 +161,7 @@ view =
                                 [ label name
                                 , width (px 20)
                                 , height (px 20)
-                                , centerY
+                                , alignBottom
                                 , Background.color darkCharcoal
                                 ]
                                 empty
@@ -207,6 +230,32 @@ view =
                         ]
                     ]
                 ]
+
+        master =
+            el [ padding 20 ] <|
+                box
+                    [ above (little "above-left" [ alignLeft ])
+                    , above (little "above-center" [ centerX ])
+                    , above (little "above-right" [ alignRight ])
+                    , below (little "below-left" [ alignLeft ])
+                    , below (little "below-center" [ centerX ])
+                    , below (little "below-right" [ alignRight ])
+                    , onRight (little "onRight-left" [ alignTop ])
+                    , onRight (little "onRight-center" [ centerY ])
+                    , onRight (little "onRight-right" [ alignBottom ])
+                    , onLeft (little "onLeft-left" [ alignTop ])
+                    , onLeft (little "onLeft-center" [ centerY ])
+                    , onLeft (little "onLeft-right" [ alignBottom ])
+                    , inFront (little "infront-left-top" [ alignTop, alignLeft ])
+                    , inFront (little "infront-center-top" [ alignTop, centerX ])
+                    , inFront (little "infront-right-top" [ alignTop, alignRight ])
+                    , inFront (little "infront-left-center" [ centerY, alignLeft ])
+                    , inFront (little "infront-center-center" [ centerY, centerX ])
+                    , inFront (little "infront-right-center" [ centerY, alignRight ])
+                    , inFront (little "infront-left-bottom" [ alignBottom, alignLeft ])
+                    , inFront (little "infront-center-bottom" [ alignBottom, centerX ])
+                    , inFront (little "infront-right-bottom" [ alignBottom, alignRight ])
+                    ]
     in
     column
         [ centerX, label "Nearby Elements" ]
@@ -216,4 +265,6 @@ view =
         , nearby onRight "onRight" box
         , nearby onLeft "onLeft" box
         , nearby behind "behind" transparentBox
+        , text "all nearbys, all alignments"
+        , master
         ]
