@@ -113,7 +113,7 @@ type Attribute aligned msg
     | AlignX HAlign
     | Width Length
     | Height Length
-    | Nearby Location Bool (Element msg)
+    | Nearby Location (Element msg)
     | TextShadow
         { offset : ( Float, Float )
         , blur : Float
@@ -218,7 +218,7 @@ type alias Gathered msg =
     , alignment : Aligned
     , width : Maybe Length
     , height : Maybe Length
-    , nearbys : Maybe (List ( Location, Bool, Element msg ))
+    , nearbys : Maybe (List ( Location, Element msg ))
     , filters : Maybe String
     , boxShadows : Maybe String
     , textShadows : Maybe String
@@ -879,7 +879,7 @@ gatherAttributes attr gathered =
                 LiveAssertive ->
                     { gathered | attributes = Html.Attributes.attribute "aria-live" "assertive" :: gathered.attributes }
 
-        Nearby location on elem ->
+        Nearby location elem ->
             let
                 styles =
                     case elem of
@@ -906,10 +906,10 @@ gatherAttributes attr gathered =
                 , nearbys =
                     case gathered.nearbys of
                         Nothing ->
-                            Just [ ( location, on, elem ) ]
+                            Just [ ( location, elem ) ]
 
                         Just nearby ->
-                            Just (( location, on, elem ) :: nearby)
+                            Just (( location, elem ) :: nearby)
             }
 
         AlignX x ->
@@ -1052,18 +1052,13 @@ initGathered maybeNodeName =
 
 {-| Because of how it's constructed, we know that NearbyGroup is nonempty
 -}
-renderNearbyGroupAbsolute : List ( Location, Bool, Element msg ) -> Html msg
+renderNearbyGroupAbsolute : List ( Location, Element msg ) -> Html msg
 renderNearbyGroupAbsolute nearbys =
     let
-        create ( location, on, elem ) =
+        create ( location, elem ) =
             Html.div
                 [ Html.Attributes.class <|
                     locationClass location
-                        ++ (if not on then
-                                " hidden"
-                            else
-                                ""
-                           )
                 ]
                 [ case elem of
                     Empty ->
@@ -1399,10 +1394,10 @@ asElement embedMode children context rendered =
                         Just nearby ->
                             case htmlChildren of
                                 Keyed keyed ->
-                                    Keyed <| ( "nearby-elements-pls", nearby ) :: keyed
+                                    Keyed <| keyed ++ [ ( "nearby-elements-pls", nearby ) ]
 
                                 Unkeyed unkeyed ->
-                                    Unkeyed (nearby :: unkeyed)
+                                    Unkeyed (unkeyed ++ [ nearby ])
             in
             case styleChildren of
                 [] ->
@@ -1444,15 +1439,15 @@ asElement embedMode children context rendered =
                                     Keyed <|
                                         ( "static-stylesheet", Internal.Style.rulesElement )
                                             :: ( "dynamic-stylesheet", toStyleSheet options styles )
-                                            :: ( "nearby-elements-pls", nearby )
                                             :: keyed
+                                            ++ [ ( "nearby-elements-pls", nearby ) ]
 
                                 Unkeyed unkeyed ->
                                     Unkeyed
                                         (Internal.Style.rulesElement
                                             :: toStyleSheet options styles
-                                            :: nearby
                                             :: unkeyed
+                                            ++ [ nearby ]
                                         )
             in
             Unstyled
@@ -1488,14 +1483,14 @@ asElement embedMode children context rendered =
                                 Keyed keyed ->
                                     Keyed <|
                                         ( "dynamic-stylesheet", toStyleSheet options styles )
-                                            :: ( "nearby-elements-pls", nearby )
                                             :: keyed
+                                            ++ [ ( "nearby-elements-pls", nearby ) ]
 
                                 Unkeyed unkeyed ->
                                     Unkeyed
                                         (toStyleSheet options styles
-                                            :: nearby
                                             :: unkeyed
+                                            ++ [ nearby ]
                                         )
             in
             Unstyled
@@ -1653,7 +1648,7 @@ filter attrs =
                         else
                             ( x :: found, Set.insert "described" has )
 
-                    Nearby location on elem ->
+                    Nearby location elem ->
                         ( x :: found, has )
 
                     AlignX _ ->
@@ -2172,24 +2167,26 @@ toStyleSheetString options stylesheet =
                     let
                         class =
                             ".spacing-" ++ toString x ++ "-" ++ toString y
+
+                        xPx =
+                            toString x ++ "px"
+
+                        yPx =
+                            toString y ++ "px"
                     in
                     List.foldl (++)
                         ""
-                        [ renderStyle force maybePseudo (class ++ ".row > .se") [ Property "margin-left" (toString x ++ "px") ]
-                        , renderStyle force maybePseudo (class ++ ".column > .se") [ Property "margin-top" (toString y ++ "px") ]
-                        , renderStyle force maybePseudo (class ++ ".page > .se") [ Property "margin-top" (toString y ++ "px") ]
-                        , renderStyle force maybePseudo (class ++ ".page > .self-left") [ Property "margin-right" (toString x ++ "px") ]
-                        , renderStyle force maybePseudo (class ++ ".page > .self-right") [ Property "margin-left" (toString x ++ "px") ]
+                        [ renderStyle force maybePseudo (class ++ ".row > .se + .se") [ Property "margin-left" xPx ]
+                        , renderStyle force maybePseudo (class ++ ".column > .se + .se") [ Property "margin-top" yPx ]
+                        , renderStyle force maybePseudo (class ++ ".page > .se + .se") [ Property "margin-top" yPx ]
+                        , renderStyle force maybePseudo (class ++ ".page > .self-left") [ Property "margin-right" xPx ]
+                        , renderStyle force maybePseudo (class ++ ".page > .self-right") [ Property "margin-left" xPx ]
                         , renderStyle force
                             maybePseudo
-                            (class ++ ".paragraph > .se")
+                            (class ++ ".paragraph > .se + .se")
                             [ Property "margin-right" (toString (toFloat x / 2) ++ "px")
                             , Property "margin-left" (toString (toFloat x / 2) ++ "px")
-                            ]
-                        , renderStyle force
-                            maybePseudo
-                            (class ++ ".paragraph > .se")
-                            [ Property "margin-bottom" (toString (toFloat y / 2) ++ "px")
+                            , Property "margin-bottom" (toString (toFloat y / 2) ++ "px")
                             , Property "margin-top" (toString (toFloat y / 2) ++ "px")
                             ]
                         ]
@@ -2955,8 +2952,8 @@ mapAttr fn attr =
         StyleClass style ->
             StyleClass style
 
-        Nearby location on element ->
-            Nearby location on (map fn element)
+        Nearby location element ->
+            Nearby location (map fn element)
 
         Attr htmlAttr ->
             Attr (Html.Attributes.map fn htmlAttr)
@@ -2999,8 +2996,8 @@ mapAttrFromStyle fn attr =
         StyleClass style ->
             StyleClass style
 
-        Nearby location on element ->
-            Nearby location on (map fn element)
+        Nearby location element ->
+            Nearby location (map fn element)
 
         Attr htmlAttr ->
             Attr (Html.Attributes.map fn htmlAttr)
