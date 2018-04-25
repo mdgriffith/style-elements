@@ -107,6 +107,7 @@ module Element.Font
 import Color exposing (Color)
 import Element exposing (Attr, Attribute)
 import Internal.Model as Internal
+import Internal.Style exposing (classes)
 
 
 {-| -}
@@ -214,113 +215,113 @@ wordSpacing offset =
 -}
 alignLeft : Attribute msg
 alignLeft =
-    Internal.class "text-left"
+    Internal.class classes.textLeft
 
 
 {-| Align the font to the right.
 -}
 alignRight : Attribute msg
 alignRight =
-    Internal.class "text-right"
+    Internal.class classes.textRight
 
 
 {-| Center align the font.
 -}
 center : Attribute msg
 center =
-    Internal.class "text-center"
+    Internal.class classes.textCenter
 
 
 {-| -}
 justify : Attribute msg
 justify =
-    Internal.class "text-justify"
+    Internal.class classes.textJustify
 
 
 
 -- {-| -}
 -- justifyAll : Attribute msg
 -- justifyAll =
---     Internal.class "text-justify-all"
+--     Internal.class classesTextJustifyAll
 
 
 {-| -}
 underline : Attribute msg
 underline =
-    Internal.class "underline"
+    Internal.class classes.underline
 
 
 {-| -}
 strike : Attribute msg
 strike =
-    Internal.class "strike"
+    Internal.class classes.strike
 
 
 {-| -}
 italic : Attribute msg
 italic =
-    Internal.class "italic"
+    Internal.class classes.italic
 
 
 {-| -}
 bold : Attribute msg
 bold =
-    Internal.class "bold"
+    Internal.class classes.bold
 
 
 {-| -}
 light : Attribute msg
 light =
-    Internal.class "text-light"
+    Internal.class classes.textLight
 
 
 {-| -}
 hairline : Attribute msg
 hairline =
-    Internal.class "text-thin"
+    Internal.class classes.textThin
 
 
 {-| -}
 extraLight : Attribute msg
 extraLight =
-    Internal.class "text-extra-light"
+    Internal.class classes.textExtraLight
 
 
 {-| -}
 regular : Attribute msg
 regular =
-    Internal.class "text-normal-weight"
+    Internal.class classes.textNormalWeight
 
 
 {-| -}
 semiBold : Attribute msg
 semiBold =
-    Internal.class "text-semi-bold"
+    Internal.class classes.textSemiBold
 
 
 {-| -}
 medium : Attribute msg
 medium =
-    Internal.class "text-medium"
+    Internal.class classes.textMedium
 
 
 {-| -}
 extraBold : Attribute msg
 extraBold =
-    Internal.class "text-extra-bold"
+    Internal.class classes.textExtraBold
 
 
 {-| -}
 heavy : Attribute msg
 heavy =
-    Internal.class "text-heavy"
+    Internal.class classes.textHeavy
 
 
 {-| This will reset bold and italic.
 -}
 unitalicized : Attribute msg
 unitalicized =
-    Internal.class "text-unitalicized"
+    Internal.class classes.textUnitalicized
 
 
 {-| -}

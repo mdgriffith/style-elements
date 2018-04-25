@@ -1,7 +1,7 @@
 module Element.Background
     exposing
         ( color
-        , fittedImage
+        , fitted
         , gradient
         , image
         , tiled
@@ -13,7 +13,12 @@ module Element.Background
 
 @docs color, gradient
 
-@docs image, fittedImage, tiled, tiledX, tiledY
+
+# Images
+
+@docs image, fitted, tiled, tiledX, tiledY
+
+**Note** if you want more control over a background image than is provided here, you should try just using a normal `Element.image` with something like `Element.behind`.
 
 -}
 
@@ -28,18 +33,18 @@ color clr =
     Internal.StyleClass (Internal.Colored ("bg-" ++ Internal.formatColorClass clr) "background-color" clr)
 
 
-{-| A centered background image that keeps it's natural propostions, but scales to fit the space.
+{-| Resize the image to fit the containing element while maintaining proportions and cropping the overflow.
 -}
 image : String -> Attribute msg
 image src =
-    Internal.StyleClass (Internal.Single ("bg-image-" ++ Internal.className src) "background" ("url(\"" ++ src ++ "\") center / contain no-repeat"))
+    Internal.StyleClass (Internal.Single ("bg-image-" ++ Internal.className src) "background" ("url(\"" ++ src ++ "\") center / cover no-repeat"))
 
 
-{-| Scale the image to fit the size of the element while maintaining proportions and cropping the overflow.
+{-| A centered background image that keeps it's natural propostions, but scales to fit the space.
 -}
-fittedImage : String -> Attribute msg
-fittedImage src =
-    Internal.StyleClass (Internal.Single ("bg-fitted-image-" ++ Internal.className src) "background" ("url(\"" ++ src ++ "\") center / cover no-repeat"))
+fitted : String -> Attribute msg
+fitted src =
+    Internal.StyleClass (Internal.Single ("bg-fitted-image-" ++ Internal.className src) "background" ("url(\"" ++ src ++ "\") center / contain no-repeat"))
 
 
 {-| Tile an image in the x and y axes.

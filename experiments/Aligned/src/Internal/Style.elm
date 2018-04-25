@@ -91,68 +91,143 @@ locations =
 selfName desc =
     case desc of
         Self Top ->
-            ".self-top"
+            dot classes.alignTop
 
         Self Bottom ->
-            ".self-bottom"
+            dot classes.alignBottom
 
         Self Right ->
-            ".self-right"
+            dot classes.alignRight
 
         Self Left ->
-            ".self-left"
+            dot classes.alignLeft
 
         Self CenterX ->
-            ".self-center-x"
+            dot classes.alignCenterX
 
         Self CenterY ->
-            ".self-center-y"
+            dot classes.alignCenterY
 
 
 contentName desc =
     case desc of
         Content Top ->
-            ".content-top"
+            dot classes.contentTop
 
         Content Bottom ->
-            ".content-bottom"
+            dot classes.contentBottom
 
         Content Right ->
-            ".content-right"
+            dot classes.contentRight
 
         Content Left ->
-            ".content-left"
+            dot classes.contentLeft
 
         Content CenterX ->
-            ".content-center-x"
+            dot classes.contentCenterX
 
         Content CenterY ->
-            ".content-center-y"
+            dot classes.contentCenterY
 
 
-locationName loc =
-    case loc of
-        Above ->
-            ".above"
+classes =
+    { root = "style-elements"
+    , any = "se"
+    , single = "el"
+    , row = "row"
+    , column = "column"
+    , page = "page"
+    , paragraph = "paragraph"
+    , text = "text"
+    , grid = "grid"
+    , spacer = "spacer"
+    , teleportingSpacer = "teleporting-spacer"
 
-        Below ->
-            ".below"
+    -- widhts/heights
+    , widthFill = "width-fill"
+    , widthContent = "width-content"
+    , widthExact = "width-exact"
+    , heightFill = "height-fill"
+    , heightContent = "height-content"
+    , heightExact = "height-exact"
 
-        OnRight ->
-            ".on-right"
+    -- nearby elements
+    , nearby = "nearby"
+    , above = "above"
+    , below = "below"
+    , onRight = "on-right"
+    , onLeft = "on-left"
+    , inFront = "infront"
+    , behind = "behind"
 
-        OnLeft ->
-            ".on-left"
+    -- alignments
+    , alignTop = "self-top"
+    , alignBottom = "self-bottom"
+    , alignRight = "self-right"
+    , alignLeft = "self-left"
+    , alignCenterX = "self-center-x"
+    , alignCenterY = "self-center-y"
 
-        Within ->
-            ".infront"
+    -- space evenly
+    , spaceEvenly = "space-evenly"
+    , container = "container"
 
-        Behind ->
-            ".behind"
+    -- content alignments
+    , contentTop = "content-top"
+    , contentBottom = "content-bottom"
+    , contentRight = "content-right"
+    , contentLeft = "content-left"
+    , contentCenterX = "content-center-x"
+    , contentCenterY = "content-center-y"
 
+    -- selection
+    , noTextSelection = "no-text-selection"
+    , cursorPointer = "cursor-pointer"
+    , cursorText = "cursor-text"
 
+    -- pointer events
+    , passPointerEvents = "pass-pointer-events"
+    , capturePointerEvents = "capture-pointer-events"
+    , transparent = "transparent"
+    , opaque = "opaque"
+    , overflowHidden = "overflow-hidden"
 
--- describeWidth values =
+    --scrollbars
+    , scrollbars = "scrollbars"
+    , scrollbarsX = "scrollbars-x"
+    , scrollbarsY = "scrollbars-y"
+    , clip = "clip"
+    , clipX = "clip-x"
+    , clipY = "clip-y"
+
+    -- borders
+    , borderNone = "border-none"
+    , borderDashed = "border-dashed"
+    , borderDotted = "border-dotted"
+    , borderSolid = "border-solid"
+
+    -- text weight
+    , textThin = "text-thin"
+    , textExtraLight = "text-extra-light"
+    , textLight = "text-light"
+    , textNormalWeight = "text-normal-weight"
+    , textMedium = "text-medium"
+    , textSemiBold = "text-semi-bold"
+    , bold = "bold"
+    , textExtraBold = "text-extra-bold"
+    , textHeavy = "text-heavy"
+    , italic = "italic"
+    , strike = "strike"
+    , underline = "underline"
+    , textUnitalicized = "text-unitalicized"
+
+    -- text alignment
+    , textJustify = "text-justify"
+    , textJustifyAll = "text-justify-all"
+    , textCenter = "text-center"
+    , textRight = "text-right"
+    , textLeft = "text-left"
+    }
 
 
 describeAlignment values =
@@ -164,7 +239,7 @@ describeAlignment values =
             in
             [ Descriptor (contentName (Content alignment)) <|
                 content
-            , Child (class Any)
+            , Child (dot classes.any)
                 [ Descriptor (selfName <| Self alignment) indiv
                 ]
             ]
@@ -223,7 +298,7 @@ describeLength dimension lenValue =
 
 
 
--- , Child ".width-fill"
+-- , Child (dot classes.widthFill)
 --         [ -- alignLeft, alignRight, centerX are overridden by width.
 --           Prop "align-self" "stretch !important"
 --         ]
@@ -235,7 +310,7 @@ describeLength dimension lenValue =
 gridAlignments values =
     let
         createDescription alignment =
-            [ Child (class Any)
+            [ Child (dot classes.any)
                 [ Descriptor (selfName <| Self alignment) (values alignment)
                 ]
             ]
@@ -259,40 +334,6 @@ type Alignment
     | Left
     | CenterX
     | CenterY
-
-
-class : StyleClasses -> String
-class cls =
-    case cls of
-        Root ->
-            ".style-elements"
-
-        Any ->
-            ".se"
-
-        Single ->
-            ".se.el"
-
-        Row ->
-            ".se.row"
-
-        Column ->
-            ".se.column"
-
-        Page ->
-            ".se.page"
-
-        Paragraph ->
-            ".se.paragraph"
-
-        Text ->
-            ".se.text"
-
-        Grid ->
-            ".se.grid"
-
-        Spacer ->
-            ".se.spacer"
 
 
 type Intermediate
@@ -433,6 +474,7 @@ describeText cls props =
         )
 
 
+makeImportant : Rule -> Rule
 makeImportant rule =
     case rule of
         Prop name prop ->
@@ -440,6 +482,10 @@ makeImportant rule =
 
         _ ->
             rule
+
+
+dot c =
+    "." ++ c
 
 
 overrides =
@@ -461,42 +507,29 @@ rules =
             , Class ".se:focus"
                 [ Prop "outline" "none"
                 ]
-
-            -- , Class ".se:focus .se.show-on-focus"
-            --     [ Prop "opacity" "1"
-            --     , Prop "pointer-events" "auto"
-            --     ]
-            -- , Class ".se.show-on-focus"
-            --     [ Prop "opacity" "0"
-            --     , Prop "pointer-events" "none"
-            --     , Prop "transition"
-            --         (String.join ", " <|
-            --             List.map (\x -> x ++ " 160ms")
-            --                 [ "opacity"
-            --                 ]
-            --         )
-            --     ]
-            , Class (class Root)
+            , Class (dot classes.root)
                 [ Prop "width" "100%"
                 , Prop "height" "auto"
                 , Prop "min-height" "100%"
                 , Descriptor ".se.el.height-content"
                     [ Prop "height" "100%"
-                    , Child ".height-fill"
+                    , Child (dot classes.heightFill)
                         [ Prop "height" "100%"
                         ]
                     ]
-                , Descriptor ".wireframe .el"
-                    [ Prop "outline" "2px dashed black"
-                    ]
-                , Descriptor ".wireframe .row"
-                    [ Prop "outline" "2px dashed black"
-                    ]
-                , Descriptor ".wireframe .column"
+                , Descriptor (".wireframe ." ++ classes.any)
                     [ Prop "outline" "2px dashed black"
                     ]
                 ]
-            , Class (class Any)
+            , Class (dot classes.spacer)
+                [ Prop "margin" "0 !important"
+                , Prop "pointer-events" "none"
+                ]
+            , Class (dot classes.teleportingSpacer)
+                [ Prop "margin" "0 !important"
+                , Prop "pointer-events" "none"
+                ]
+            , Class (dot classes.any)
                 [ Prop "position" "relative"
                 , Prop "border" "none"
                 , Prop "flex-shrink" "0"
@@ -522,26 +555,26 @@ rules =
                 -- Text decoration is *mandatorily inherited* in the css spec.  There's no way to change this.
                 , Prop "text-decoration" "none"
                 , Prop "font-style" "inherit"
-                , Descriptor ".no-text-selection"
+                , Descriptor (dot classes.noTextSelection)
                     [ Prop "user-select" "none"
                     , Prop "-ms-user-select" "none"
                     ]
-                , Descriptor ".cursor-pointer"
+                , Descriptor (dot classes.cursorPointer)
                     [ Prop "cursor" "pointer"
                     ]
-                , Descriptor ".cursor-text"
+                , Descriptor (dot classes.cursorText)
                     [ Prop "cursor" "text"
                     ]
-                , Descriptor ".pass-pointer-events"
+                , Descriptor (dot classes.passPointerEvents)
                     [ Prop "pointer-events" "none"
                     ]
-                , Descriptor ".capture-pointer-events"
+                , Descriptor (dot classes.capturePointerEvents)
                     [ Prop "pointer-events" "nauto"
                     ]
-                , Descriptor ".transparent"
+                , Descriptor (dot classes.transparent)
                     [ Prop "opacity" "0"
                     ]
-                , Descriptor ".opaque"
+                , Descriptor (dot classes.opaque)
                     [ Prop "opacity" "1"
                     ]
                 , Descriptor ".hover-transparent:hover"
@@ -581,56 +614,581 @@ rules =
                                 ]
                         )
                     ]
-                , Descriptor ".overflow-hidden"
+                , Descriptor (dot classes.overflowHidden)
                     [ Prop "overflow" "hidden"
-                    , Prop " -ms-overflow-style" "none"
+                    , Prop "-ms-overflow-style" "none"
                     ]
-                , Descriptor ".scrollbars"
+                , Descriptor (dot classes.scrollbars)
                     [ Prop "overflow" "auto"
                     , Prop "flex-shrink" "1"
                     ]
-                , Descriptor ".scrollbars-x"
+                , Descriptor (dot classes.scrollbarsX)
                     [ Prop "overflow-x" "auto"
-                    , Descriptor ".row"
+                    , Descriptor (dot classes.row)
                         [ Prop "flex-shrink" "1"
                         ]
                     ]
-                , Descriptor ".scrollbars-y"
+                , Descriptor (dot classes.scrollbarsY)
                     [ Prop "overflow-y" "auto"
-                    , Descriptor ".column"
+                    , Descriptor (dot classes.column)
                         [ Prop "flex-shrink" "1"
                         ]
                     ]
-                , Descriptor ".clip"
+                , Descriptor (dot classes.clip)
                     [ Prop "overflow" "hidden"
                     ]
-                , Descriptor ".clip-x"
+                , Descriptor (dot classes.clipX)
                     [ Prop "overflow-x" "hidden"
                     ]
-                , Descriptor ".clip-y"
+                , Descriptor (dot classes.clipY)
                     [ Prop "overflow-y" "hidden"
                     ]
-                , Descriptor ".width-content"
+                , Descriptor (dot classes.widthContent)
                     [ Prop "width" "auto"
                     ]
-                , Descriptor ".border-none"
+                , Descriptor (dot classes.borderNone)
                     [ Prop "border-width" "0"
                     ]
-                , Descriptor ".border-dashed"
+                , Descriptor (dot classes.borderDashed)
                     [ Prop "border-style" "dashed"
                     ]
-                , Descriptor ".border-dotted"
+                , Descriptor (dot classes.borderDotted)
                     [ Prop "border-style" "dotted"
                     ]
-                , Descriptor ".border-solid"
+                , Descriptor (dot classes.borderSolid)
                     [ Prop "border-style" "solid"
+                    ]
+                , Descriptor (dot classes.text)
+                    [ Prop "white-space" "pre"
+                    , Prop "display" "inline-block"
+                    ]
+
+                -- , Descriptor (dot classes.spacer)
+                --     [ Prop "pointer-events" "none"
+                --     , Adjacent (dot classes.any)
+                --         [ Prop "margin-top" "0"
+                --         , Prop "margin-left" "0"
+                --         ]
+                --     ]
+                , Descriptor (dot classes.single)
+                    [ Prop "display" "flex"
+                    , Prop "flex-direction" "column"
+                    , Prop "white-space" "pre"
+                    , Descriptor ".se-button"
+                        -- Special default for text in a button.
+                        -- This is overridden is they put the text inside an `el`
+                        [ Child (dot classes.text)
+                            [ Descriptor (dot classes.heightFill)
+                                [ Prop "flex-grow" "0"
+                                ]
+                            , Descriptor (dot classes.widthFill)
+                                [ Prop "align-self" "auto !important"
+                                ]
+                            ]
+                        ]
+                    , Child (dot classes.heightContent)
+                        [ Prop "height" "auto"
+                        ]
+                    , Child (dot classes.heightFill)
+                        [ Prop "flex-grow" "100000"
+                        ]
+                    , Child (dot classes.widthFill)
+                        [ -- alignLeft, alignRight, centerX are overridden by width.
+                          Prop "align-self" "stretch !important"
+                        ]
+                    , Child (dot classes.widthContent)
+                        [ Prop "align-self" "left"
+                        ]
+                    , describeAlignment <|
+                        \alignment ->
+                            case alignment of
+                                Top ->
+                                    ( [ Prop "justify-content" "flex-start" ]
+                                    , [ Prop "margin-bottom" "auto" ]
+                                    )
+
+                                Bottom ->
+                                    ( [ Prop "justify-content" "flex-end" ]
+                                    , [ Prop "margin-top" "auto" ]
+                                    )
+
+                                Right ->
+                                    ( [ Prop "align-items" "flex-end" ]
+                                    , [ Prop "align-self" "flex-end" ]
+                                    )
+
+                                Left ->
+                                    ( [ Prop "align-items" "flex-start" ]
+                                    , [ Prop "align-self" "flex-start" ]
+                                    )
+
+                                CenterX ->
+                                    ( [ Prop "align-items" "center" ]
+                                    , [ Prop "align-self" "center"
+                                      ]
+                                    )
+
+                                CenterY ->
+                                    ( [ Prop "justify-content" "center" ]
+                                    , [ Prop "margin-top" "auto"
+                                      , Prop "margin-bottom" "auto"
+                                      ]
+                                    )
+                    ]
+                , Descriptor (dot classes.row)
+                    [ Prop "display" "flex"
+                    , Prop "flex-direction" "row"
+                    , Child (dot classes.any)
+                        [ Prop "flex-basis" "0%"
+                        , Descriptor (dot classes.widthExact)
+                            [ Prop "flex-basis" "auto"
+                            ]
+                        ]
+
+                    -- Old Spacing Model
+                    -- , Child ".se:first-child"
+                    --     [ Prop "margin-left" "0 !important"
+                    --     ]
+                    -- , Child ".se.teleporting-spacer"
+                    --     [ Prop "margin-left" "0 !important"
+                    --     ]
+                    --  , Child (dot classes.spacer)
+                    --     [ Prop "margin-left" "0 !important"
+                    --     , Prop "height" "auto !important"
+                    --     ]
+                    -- , Child (dot classes.spacer ++ " + .se")
+                    --     [ Prop "margin-left" "0 !important"
+                    --     ]
+                    -- , Child ".stylesheet + .se"
+                    --     [ Prop "margin-left" "0 !important"
+                    --     ]
+                    -- , Child (dot classes.nearby ++ " + .se")
+                    --     [ Prop "margin-left" "0 !important"
+                    --     ]
+                    , Child (dot classes.heightFill)
+                        [ --Prop "height" "100%"
+                          -- alignTop, centerY, and alignBottom need to be disabled
+                          Prop "align-self" "stretch !important"
+                        ]
+                    , Child ".height-fill-portion"
+                        [ --Prop "height" "100%"
+                          -- alignTop, centerY, and alignBottom need to be disabled
+                          Prop "align-self" "stretch !important"
+                        ]
+                    , Child ".height-fill-between"
+                        [ Prop "align-self" "stretch"
+                        , Descriptor ".aligned-vertically"
+                            [ Prop "height" "100%"
+                            ]
+                        ]
+                    , Child (dot classes.widthFill)
+                        [ Prop "flex-grow" "100000"
+                        ]
+                    , Child (dot classes.container)
+                        [ Prop "flex-grow" "0"
+                        , Prop "flex-basis" "0%"
+
+                        -- , Prop "height" "100%"
+                        , Prop "align-self" "stretch"
+                        ]
+                    , Child "alignLeft:last-of-type.align-container-left"
+                        [ Prop "flex-grow" "1"
+                        ]
+                    , Child "alignRight:first-of-type.align-container-right"
+                        [ Prop "flex-grow" "1"
+                        ]
+
+                    -- first center y
+                    , Child "centerX:first-of-type.align-container-center-x"
+                        [ Prop "flex-grow" "1"
+
+                        -- , Prop "justify-content" "flex-end"
+                        , Child (dot classes.alignCenterY)
+                            [ Prop "margin-bottom" "0 !important"
+                            ]
+                        ]
+                    , Child "centerX:last-of-type.align-container-center-x"
+                        [ Prop "flex-grow" "1"
+
+                        -- , Prop "justify-content" "flex-start"
+                        , Child (dot classes.alignCenterY)
+                            [ Prop "margin-top" "0 !important"
+                            ]
+                        ]
+
+                    -- lonley centerX
+                    , Child "centerX:only-of-type.align-container-center-x"
+                        [ Prop "flex-grow" "1"
+                        , Child (dot classes.alignCenterY)
+                            [ Prop "margin-top" "auto !important"
+                            , Prop "margin-bottom" "auto !important"
+                            ]
+                        ]
+
+                    -- alignBottom's after a centerX should not grow
+                    , Child "centerX:last-of-type.align-container-center-x ~ alignRight"
+                        [ Prop "flex-grow" "0"
+                        ]
+
+                    -- centerX's after an alignBottom should be ignored
+                    , Child "alignRight:first-of-type.align-container-right ~ centerX.align-container-center-x"
+                        -- Bottom alignment always overrides center alignment
+                        [ Prop "flex-grow" "0"
+                        ]
+
+                    -- End Working Area
+                    , describeAlignment <|
+                        \alignment ->
+                            case alignment of
+                                Top ->
+                                    ( [ Prop "align-items" "flex-start" ]
+                                    , [ Prop "align-self" "flex-start"
+                                      ]
+                                    )
+
+                                Bottom ->
+                                    ( [ Prop "align-items" "flex-end" ]
+                                    , [ Prop "align-self" "flex-end"
+                                      ]
+                                    )
+
+                                Right ->
+                                    ( [ Prop "justify-content" "flex-end"
+                                      ]
+                                    , []
+                                    )
+
+                                Left ->
+                                    ( [ Prop "justify-content" "flex-start"
+                                      ]
+                                    , []
+                                    )
+
+                                CenterX ->
+                                    ( [ Prop "justify-content" "center"
+                                      ]
+                                    , []
+                                    )
+
+                                CenterY ->
+                                    ( [ Prop "align-items" "center" ]
+                                    , [ Prop "align-self" "center"
+                                      ]
+                                    )
+
+                    -- Must be below the alignment rules or else it interferes
+                    , Descriptor (dot classes.spaceEvenly)
+                        [ Prop "justify-content" "space-between"
+                        , Child (dot classes.spacer)
+                            [ Prop "display" "none"
+                            ]
+                        ]
+                    ]
+                , Descriptor (dot classes.column)
+                    [ Prop "display" "flex"
+                    , Prop "flex-direction" "column"
+                    , Child (dot classes.heightFill)
+                        [ Prop "flex-grow" "100000"
+                        ]
+                    , Child (dot classes.widthFill)
+                        [ -- alignLeft, alignRight, centerX need to be disabled
+                          Prop "align-self" "stretch !important"
+                        ]
+                    , Child ".width-fill-portion"
+                        [ -- alignLeft, alignRight, centerX need to be disabled
+                          Prop "align-self" "stretch !important"
+                        ]
+                    , Child ".width-fill-between"
+                        [ Prop "align-self" "stretch"
+                        , Descriptor ".aligned-horizontally"
+                            [ Prop "width" "100%"
+                            ]
+                        ]
+                    , Child (dot classes.widthContent)
+                        [ Prop "align-self" "left"
+                        ]
+
+                    -- old spacing model
+                    -- , Child ".se:first-child"
+                    --     [ Prop "margin-top" "0 !important"
+                    --     ]
+                    -- , Child ".spacer + .se"
+                    --     [ Prop "margin-top" "0"
+                    --     ]
+                    -- , Child (dot classes.spacer)
+                    --     [ Prop "margin-top" "0 !important"
+                    --     ]
+                    -- , Child ".se.teleporting-spacer"
+                    --     [ Prop "margin-top" "0 !important"
+                    --     ]
+                    -- , Child ".teleporting-spacer"
+                    --     [ Prop "flex-grow" "0"
+                    --     ]
+                    -- , Child ".stylesheet + .se"
+                    --     [ Prop "margin-top" "0"
+                    --     ]
+                    -- , Child ".nearby + .se"
+                    --     [ Prop "margin-top" "0"
+                    --     ]
+                    , Child "alignTop:last-of-type.align-container-top"
+                        [ Prop "flex-grow" "1"
+                        ]
+                    , Child "alignBottom:first-of-type.align-container-bottom"
+                        [ Prop "flex-grow" "1"
+                        ]
+
+                    -- first center y
+                    , Child "centerY:first-of-type.align-container-center-y"
+                        [ Prop "flex-grow" "1"
+
+                        -- , Prop "justify-content" "flex-end"
+                        , Child (dot classes.alignCenterY)
+                            [ Prop "margin-bottom" "0 !important"
+                            ]
+                        ]
+                    , Child "centerY:last-of-type.align-container-center-y"
+                        [ Prop "flex-grow" "1"
+
+                        -- , Prop "justify-content" "flex-start"
+                        , Child (dot classes.alignCenterY)
+                            [ Prop "margin-top" "0 !important"
+                            ]
+                        ]
+
+                    -- lonley centerY
+                    , Child "centerY:only-of-type.align-container-center-y"
+                        [ Prop "flex-grow" "1"
+                        , Child (dot classes.alignCenterY)
+                            [ Prop "margin-top" "auto !important"
+                            , Prop "margin-bottom" "auto !important"
+                            ]
+                        ]
+
+                    -- alignBottom's after a centerY should not grow
+                    , Child "centerY:last-of-type.align-container-center-y ~ alignBottom"
+                        [ Prop "flex-grow" "0"
+                        ]
+
+                    -- centerY's after an alignBottom should be ignored
+                    , Child "alignBottom:first-of-type.align-container-bottom ~ centerY.align-container-center-y"
+                        -- Bottom alignment always overrides center alignment
+                        [ Prop "flex-grow" "0"
+                        ]
+
+                    -- , Child "alignRight:first-of-type.align-container-right"
+                    --     [ Prop "flex-grow" "1"
+                    --     ]
+                    , Child ".se.self-center-y:first-child ~ .teleporting-spacer"
+                        [ Prop "flex-grow" "1"
+                        , Prop "order" "-1"
+                        ]
+                    , Child ".se.nearby + .se.self-center-y ~ .teleporting-spacer"
+                        [ Prop "flex-grow" "1"
+                        , Prop "order" "-1"
+                        ]
+                    , Child ".stylesheet + .se.self-center-y ~ .teleporting-spacer"
+                        [ Prop "flex-grow" "1"
+                        , Prop "order" "-1"
+                        ]
+                    , describeAlignment <|
+                        \alignment ->
+                            case alignment of
+                                Top ->
+                                    ( [ Prop "justify-content" "flex-start" ]
+                                    , [ Prop "margin-bottom" "auto" ]
+                                    )
+
+                                Bottom ->
+                                    ( [ Prop "justify-content" "flex-end" ]
+                                    , [ Prop "margin-top" "auto" ]
+                                    )
+
+                                Right ->
+                                    ( [ Prop "align-items" "flex-end" ]
+                                    , [ Prop "align-self" "flex-end" ]
+                                    )
+
+                                Left ->
+                                    ( [ Prop "align-items" "flex-start" ]
+                                    , [ Prop "align-self" "flex-start" ]
+                                    )
+
+                                CenterX ->
+                                    ( [ Prop "align-items" "center" ]
+                                    , [ Prop "align-self" "center"
+                                      ]
+                                    )
+
+                                CenterY ->
+                                    ( [ Prop "justify-content" "center" ]
+                                    , []
+                                    )
+                    , Child (dot classes.container)
+                        [ Prop "flex-grow" "0"
+                        , Prop "flex-basis" "auto"
+                        , Prop "width" "100%"
+                        , Prop "align-self" "stretch !important"
+                        ]
+                    , Descriptor (dot classes.spaceEvenly)
+                        [ Prop "justify-content" "space-between"
+                        , Child (dot classes.spacer)
+                            [ Prop "display" "none"
+                            ]
+                        ]
+                    ]
+                , Descriptor (dot classes.grid)
+                    [ Prop "display" "-ms-grid"
+                    , Supports ( "display", "grid" )
+                        [ ( "display", "grid" )
+                        ]
+                    , gridAlignments <|
+                        \alignment ->
+                            case alignment of
+                                Top ->
+                                    [ Prop "justify-content" "flex-start" ]
+
+                                Bottom ->
+                                    [ Prop "justify-content" "flex-end" ]
+
+                                Right ->
+                                    [ Prop "align-items" "flex-end" ]
+
+                                Left ->
+                                    [ Prop "align-items" "flex-start" ]
+
+                                CenterX ->
+                                    [ Prop "align-items" "center" ]
+
+                                CenterY ->
+                                    [ Prop "justify-content" "center" ]
+                    ]
+                , Descriptor (dot classes.page)
+                    [ Prop "display" "block"
+                    , Child (dot <| classes.any ++ ":first-child")
+                        [ Prop "margin" "0 !important"
+                        ]
+
+                    -- clear spacing of any subsequent element if an element is float-left
+                    , Child (dot <| classes.any ++ selfName (Self Left) ++ ":first-child + .se")
+                        [ Prop "margin" "0 !important"
+                        ]
+                    , Child (dot <| classes.any ++ selfName (Self Right) ++ ":first-child + .se")
+                        [ Prop "margin" "0 !important"
+                        ]
+                    , describeAlignment <|
+                        \alignment ->
+                            case alignment of
+                                Top ->
+                                    ( []
+                                    , []
+                                    )
+
+                                Bottom ->
+                                    ( []
+                                    , []
+                                    )
+
+                                Right ->
+                                    ( []
+                                    , [ Prop "float" "right"
+                                      , Descriptor ":after:"
+                                            [ Prop "content" "\"\""
+                                            , Prop "display" "table"
+                                            , Prop "clear" "both"
+                                            ]
+                                      ]
+                                    )
+
+                                Left ->
+                                    ( []
+                                    , [ Prop "float" "left"
+                                      , Descriptor ":after:"
+                                            [ Prop "content" "\"\""
+                                            , Prop "display" "table"
+                                            , Prop "clear" "both"
+                                            ]
+                                      ]
+                                    )
+
+                                CenterX ->
+                                    ( []
+                                    , []
+                                    )
+
+                                CenterY ->
+                                    ( []
+                                    , []
+                                    )
+                    ]
+                , Descriptor (dot classes.paragraph)
+                    [ Prop "display" "block"
+                    , Prop "white-space" "normal"
+                    , Child (dot classes.text)
+                        [ Prop "display" "inline"
+                        , Prop "white-space" "normal"
+                        ]
+                    , Child (dot classes.single)
+                        [ Prop "display" "inline-flex"
+                        , Prop "white-space" "normal"
+                        , Child (dot classes.text)
+                            [ Prop "display" "inline"
+                            , Prop "white-space" "normal"
+                            ]
+                        ]
+                    , Child (dot classes.row)
+                        [ Prop "display" "inline-flex"
+                        ]
+                    , Child (dot classes.column)
+                        [ Prop "display" "inline-flex"
+                        ]
+                    , Child (dot classes.grid)
+                        [ Prop "display" "inline-grid"
+                        ]
+                    , describeAlignment <|
+                        \alignment ->
+                            case alignment of
+                                Top ->
+                                    ( []
+                                    , []
+                                    )
+
+                                Bottom ->
+                                    ( []
+                                    , []
+                                    )
+
+                                Right ->
+                                    ( []
+                                    , [ Prop "float" "right" ]
+                                    )
+
+                                Left ->
+                                    ( []
+                                    , [ Prop "float" "left" ]
+                                    )
+
+                                CenterX ->
+                                    ( []
+                                    , []
+                                    )
+
+                                CenterY ->
+                                    ( []
+                                    , []
+                                    )
+                    ]
+                , Descriptor ".ignore"
+                    [ Prop "margin" "0 !important"
+                    ]
+                , Descriptor ".hidden"
+                    [ Prop "display" "none"
                     ]
                 , Batch <|
                     flip List.map locations <|
                         \loc ->
                             case loc of
                                 Above ->
-                                    Descriptor (locationName loc)
+                                    Descriptor (dot classes.above)
                                         [ Prop "position" "absolute"
                                         , Prop "top" "0"
                                         , Prop "left" "0"
@@ -638,33 +1196,33 @@ rules =
                                         , Prop "width" "100%"
                                         , Prop "z-index" "10"
                                         , Prop "pointer-events" "auto"
-                                        , Child ".height-fill"
+                                        , Child (dot classes.heightFill)
                                             [ Prop "height" "auto"
                                             ]
-                                        , Child ".width-fill"
+                                        , Child (dot classes.widthFill)
                                             [ Prop "width" "100%"
                                             ]
-                                        , Child ".se"
+                                        , Child (dot classes.any)
                                             [ Prop "position" "absolute"
                                             , Prop "bottom" "0"
                                             ]
                                         ]
 
                                 Below ->
-                                    Descriptor (locationName loc)
+                                    Descriptor (dot classes.below)
                                         [ Prop "position" "absolute"
                                         , Prop "bottom" "0"
                                         , Prop "height" "0"
                                         , Prop "width" "100%"
                                         , Prop "z-index" "10"
                                         , Prop "pointer-events" "auto"
-                                        , Child ".height-fill"
+                                        , Child (dot classes.heightFill)
                                             [ Prop "height" "auto"
                                             ]
                                         ]
 
                                 OnRight ->
-                                    Descriptor (locationName loc)
+                                    Descriptor (dot classes.onRight)
                                         [ Prop "position" "absolute"
                                         , Prop "left" "100%"
                                         , Prop "height" "100%"
@@ -673,7 +1231,7 @@ rules =
                                         ]
 
                                 OnLeft ->
-                                    Descriptor (locationName loc)
+                                    Descriptor (dot classes.onLeft)
                                         [ Prop "position" "absolute"
                                         , Prop "right" "100%"
                                         , Prop "height" "100%"
@@ -682,7 +1240,7 @@ rules =
                                         ]
 
                                 Within ->
-                                    Descriptor (locationName loc)
+                                    Descriptor (dot classes.inFront)
                                         [ Prop "position" "absolute"
                                         , Prop "width" "100%"
                                         , Prop "height" "100%"
@@ -690,13 +1248,13 @@ rules =
                                         , Prop "top" "0"
                                         , Prop "z-index" "10"
                                         , Prop "pointer-events" "none"
-                                        , Child ".se"
+                                        , Child (dot classes.any)
                                             [ Prop "pointer-events" "auto"
                                             ]
                                         ]
 
                                 Behind ->
-                                    Descriptor (locationName loc)
+                                    Descriptor (dot classes.behind)
                                         [ Prop "position" "absolute"
                                         , Prop "width" "100%"
                                         , Prop "height" "100%"
@@ -708,604 +1266,83 @@ rules =
                                             [ Prop "pointer-events" "auto"
                                             ]
                                         ]
-                , Descriptor ".text-thin"
+                , Descriptor (dot classes.textThin)
                     [ Prop "font-weight" "100"
                     ]
-                , Descriptor ".text-extra-light"
+                , Descriptor (dot classes.textExtraLight)
                     [ Prop "font-weight" "200"
                     ]
-                , Descriptor ".text-light"
+                , Descriptor (dot classes.textLight)
                     [ Prop "font-weight" "300"
                     ]
-                , Descriptor ".text-normal-weight"
+                , Descriptor (dot classes.textNormalWeight)
                     [ Prop "font-weight" "400"
                     ]
-                , Descriptor ".text-medium"
+                , Descriptor (dot classes.textMedium)
                     [ Prop "font-weight" "500"
                     ]
-                , Descriptor ".text-semi-bold"
+                , Descriptor (dot classes.textSemiBold)
                     [ Prop "font-weight" "600"
                     ]
-                , Descriptor ".bold"
+                , Descriptor (dot classes.bold)
                     [ Prop "font-weight" "700"
                     ]
-                , Descriptor ".text-extra-bold"
+                , Descriptor (dot classes.textExtraBold)
                     [ Prop "font-weight" "800"
                     ]
-                , Descriptor ".text-heavy"
+                , Descriptor (dot classes.textHeavy)
                     [ Prop "font-weight" "900"
                     ]
-                , Descriptor ".italic"
+                , Descriptor (dot classes.italic)
                     [ Prop "font-style" "italic"
                     ]
-                , Descriptor ".strike"
+                , Descriptor (dot classes.strike)
                     [ Prop "text-decoration" "line-through"
                     ]
-                , Descriptor ".underline"
+                , Descriptor (dot classes.underline)
                     [ Prop "text-decoration" "underline"
                     , Prop "text-decoration-skip-ink" "auto"
                     , Prop "text-decoration-skip" "ink"
                     ]
-                , Descriptor ".text-unitalicized"
+                , Descriptor (dot classes.textUnitalicized)
                     [ Prop "font-style" "normal"
                     ]
-                , Descriptor ".text-justify"
+                , Descriptor (dot classes.textJustify)
                     [ Prop "text-align" "justify"
                     ]
-                , Descriptor ".text-justify-all"
+                , Descriptor (dot classes.textJustifyAll)
                     [ Prop "text-align" "justify-all"
                     ]
-                , Descriptor ".text-center"
+                , Descriptor (dot classes.textCenter)
                     [ Prop "text-align" "center"
                     ]
-                , Descriptor ".text-right"
+                , Descriptor (dot classes.textRight)
                     [ Prop "text-align" "right"
                     ]
-                , Descriptor ".text-left"
+                , Descriptor (dot classes.textLeft)
                     [ Prop "text-align" "left"
                     ]
-                ]
-            , Class (class Text)
-                [ Prop "white-space" "pre"
-                , Prop "display" "inline-block"
-                ]
-            , Class (class Spacer)
-                [ Adjacent (class Any)
-                    [ Prop "margin-top" "0"
-                    , Prop "margin-left" "0"
-                    ]
-                ]
-            , Class (class Single)
-                [ Prop "display" "flex"
-                , Prop "flex-direction" "column"
-                , Prop "white-space" "pre"
-                , Descriptor ".se-button"
-                    -- Special default for text in a button.
-                    -- This is overridden is they put the text inside an `el`
-                    [ Child ".text"
-                        [ Descriptor ".height-fill"
-                            [ Prop "flex-grow" "0"
-                            ]
-                        , Descriptor ".width-fill"
-                            [ Prop "align-self" "auto !important"
-                            ]
-                        ]
-                    ]
-                , Child ".height-content"
-                    [ Prop "height" "auto"
-                    ]
-                , Child ".height-fill"
-                    [ Prop "flex-grow" "100000"
-                    ]
-                , Child ".width-fill"
-                    [ -- alignLeft, alignRight, centerX are overridden by width.
-                      Prop "align-self" "stretch !important"
-                    ]
-                , Child ".width-content"
-                    [ Prop "align-self" "left"
-                    ]
-                , describeAlignment <|
-                    \alignment ->
-                        case alignment of
-                            Top ->
-                                ( [ Prop "justify-content" "flex-start" ]
-                                , [ Prop "margin-bottom" "auto" ]
-                                )
-
-                            Bottom ->
-                                ( [ Prop "justify-content" "flex-end" ]
-                                , [ Prop "margin-top" "auto" ]
-                                )
-
-                            Right ->
-                                ( [ Prop "align-items" "flex-end" ]
-                                , [ Prop "align-self" "flex-end" ]
-                                )
-
-                            Left ->
-                                ( [ Prop "align-items" "flex-start" ]
-                                , [ Prop "align-self" "flex-start" ]
-                                )
-
-                            CenterX ->
-                                ( [ Prop "align-items" "center" ]
-                                , [ Prop "align-self" "center"
-                                  ]
-                                )
-
-                            CenterY ->
-                                ( [ Prop "justify-content" "center" ]
-                                , [ Prop "margin-top" "auto"
-                                  , Prop "margin-bottom" "auto"
-                                  ]
-                                )
-                ]
-            , Class ".nearby"
-                [ Prop "position" "absolute"
-                , Prop "top" "0"
-                , Prop "left" "0"
-                , Prop "width" "100%"
-                , Prop "height" "100%"
-                , Prop "pointer-events" "none"
-                , Prop "margin" "0 !important"
-                , Adjacent ".se"
-                    [ Prop "margin-top" "0"
-                    , Prop "margin-left" "0"
-                    ]
-                ]
-            , Class ".modal"
-                [ Prop "position" "fixed"
-                , Prop "left" "0"
-                , Prop "top" "0"
-                , Prop "width" "100%"
-                , Prop "height" "100%"
-                , Prop "pointer-events" "none"
-                ]
-            , Class (class Row)
-                [ Prop "display" "flex"
-                , Prop "flex-direction" "row"
-                , Child (class Any)
-                    [ Prop "flex-basis" "0%"
-                    , Descriptor ".width-exact"
-                        [ Prop "flex-basis" "auto"
-                        ]
-                    ]
-                , Child ".se:first-child"
-                    [ Prop "margin-left" "0 !important"
-                    ]
-                , Child ".se.teleporting-spacer"
-                    [ Prop "margin-left" "0 !important"
-                    ]
-                , Child ".height-fill"
-                    [ --Prop "height" "100%"
-                      -- alignTop, centerY, and alignBottom need to be disabled
-                      Prop "align-self" "stretch !important"
-                    ]
-                , Child ".height-fill-portion"
-                    [ --Prop "height" "100%"
-                      -- alignTop, centerY, and alignBottom need to be disabled
-                      Prop "align-self" "stretch !important"
-                    ]
-                , Child ".height-fill-between"
-                    [ Prop "align-self" "stretch"
-                    , Descriptor ".aligned-vertically"
-                        [ Prop "height" "100%"
-                        ]
-                    ]
-                , Child ".width-fill"
-                    [ Prop "flex-grow" "100000"
-                    ]
-                , Child ".spacer"
-                    [ Prop "margin-left" "0 !important"
-                    , Prop "height" "auto !important"
-                    ]
-                , Child ".spacer + .se"
-                    [ Prop "margin-left" "0 !important"
-                    ]
-                , Child ".stylesheet + .se"
-                    [ Prop "margin-left" "0 !important"
-                    ]
-                , Child ".nearby + .se"
-                    [ Prop "margin-left" "0 !important"
-                    ]
-                , Child ".container"
-                    [ Prop "flex-grow" "0"
-                    , Prop "flex-basis" "0%"
-
-                    -- , Prop "height" "100%"
-                    , Prop "align-self" "stretch"
-                    ]
-                , Child "alignLeft:last-of-type.align-container-left"
-                    [ Prop "flex-grow" "1"
-                    ]
-                , Child "alignRight:first-of-type.align-container-right"
-                    [ Prop "flex-grow" "1"
-                    ]
-
-                -- Working Area
-                -- first center y
-                , Child "centerX:first-of-type.align-container-center-x"
-                    [ Prop "flex-grow" "1"
-
-                    -- , Prop "justify-content" "flex-end"
-                    , Child ".self-center-y"
-                        [ Prop "margin-bottom" "0 !important"
-                        ]
-                    ]
-                , Child "centerX:last-of-type.align-container-center-x"
-                    [ Prop "flex-grow" "1"
-
-                    -- , Prop "justify-content" "flex-start"
-                    , Child ".self-center-y"
-                        [ Prop "margin-top" "0 !important"
-                        ]
-                    ]
-
-                -- lonley centerX
-                , Child "centerX:only-of-type.align-container-center-x"
-                    [ Prop "flex-grow" "1"
-                    , Child ".self-center-y"
-                        [ Prop "margin-top" "auto !important"
-                        , Prop "margin-bottom" "auto !important"
-                        ]
-                    ]
-
-                -- alignBottom's after a centerX should not grow
-                , Child "centerX:last-of-type.align-container-center-x ~ alignRight"
-                    [ Prop "flex-grow" "0"
-                    ]
-
-                -- centerX's after an alignBottom should be ignored
-                , Child "alignRight:first-of-type.align-container-right ~ centerX.align-container-center-x"
-                    -- Bottom alignment always overrides center alignment
-                    [ Prop "flex-grow" "0"
-                    ]
-
-                -- End Working Area
-                , describeAlignment <|
-                    \alignment ->
-                        case alignment of
-                            Top ->
-                                ( [ Prop "align-items" "flex-start" ]
-                                , [ Prop "align-self" "flex-start"
-                                  ]
-                                )
-
-                            Bottom ->
-                                ( [ Prop "align-items" "flex-end" ]
-                                , [ Prop "align-self" "flex-end"
-                                  ]
-                                )
-
-                            Right ->
-                                ( [ Prop "justify-content" "flex-end"
-                                  ]
-                                , []
-                                )
-
-                            Left ->
-                                ( [ Prop "justify-content" "flex-start"
-                                  ]
-                                , []
-                                )
-
-                            CenterX ->
-                                ( [ Prop "justify-content" "center"
-                                  ]
-                                , []
-                                )
-
-                            CenterY ->
-                                ( [ Prop "align-items" "center" ]
-                                , [ Prop "align-self" "center"
-                                  ]
-                                )
-
-                -- Must be below the alignment rules or else it interferes
-                , Descriptor ".space-evenly"
-                    [ Prop "justify-content" "space-between"
-                    , Child ".spacer"
-                        [ Prop "display" "none"
-                        ]
-                    ]
-                ]
-            , Class (class Column)
-                [ Prop "display" "flex"
-                , Prop "flex-direction" "column"
-                , Child ".height-fill"
-                    [ Prop "flex-grow" "100000"
-                    ]
-                , Child ".width-fill"
-                    [ -- alignLeft, alignRight, centerX need to be disabled
-                      Prop "align-self" "stretch !important"
-                    ]
-                , Child ".width-fill-portion"
-                    [ -- alignLeft, alignRight, centerX need to be disabled
-                      Prop "align-self" "stretch !important"
-                    ]
-                , Child ".width-fill-between"
-                    [ Prop "align-self" "stretch"
-                    , Descriptor ".aligned-horizontally"
-                        [ Prop "width" "100%"
-                        ]
-                    ]
-                , Child ".width-content"
-                    [ Prop "align-self" "left"
-                    ]
-                , Child ".se:first-child"
-                    [ Prop "margin-top" "0 !important"
-                    ]
-                , Child ".spacer + .se"
-                    [ Prop "margin-top" "0"
-                    ]
-                , Child ".se.spacer"
-                    [ Prop "margin-top" "0 !important"
-                    ]
-                , Child ".se.teleporting-spacer"
-                    [ Prop "margin-top" "0 !important"
-                    ]
-                , Child ".stylesheet + .se"
-                    [ Prop "margin-top" "0"
-                    ]
-                , Child ".nearby + .se"
-                    [ Prop "margin-top" "0"
-                    ]
-                , Child "alignTop:last-of-type.align-container-top"
-                    [ Prop "flex-grow" "1"
-                    ]
-                , Child "alignBottom:first-of-type.align-container-bottom"
-                    [ Prop "flex-grow" "1"
-                    ]
-                , Child ".teleporting-spacer"
-                    [ Prop "flex-grow" "0"
-                    ]
-
-                -- WORKIGN AREA
-                -- first center y
-                , Child "centerY:first-of-type.align-container-center-y"
-                    [ Prop "flex-grow" "1"
-
-                    -- , Prop "justify-content" "flex-end"
-                    , Child ".self-center-y"
-                        [ Prop "margin-bottom" "0 !important"
-                        ]
-                    ]
-                , Child "centerY:last-of-type.align-container-center-y"
-                    [ Prop "flex-grow" "1"
-
-                    -- , Prop "justify-content" "flex-start"
-                    , Child ".self-center-y"
-                        [ Prop "margin-top" "0 !important"
-                        ]
-                    ]
-
-                -- lonley centerY
-                , Child "centerY:only-of-type.align-container-center-y"
-                    [ Prop "flex-grow" "1"
-                    , Child ".self-center-y"
-                        [ Prop "margin-top" "auto !important"
-                        , Prop "margin-bottom" "auto !important"
-                        ]
-                    ]
-
-                -- alignBottom's after a centerY should not grow
-                , Child "centerY:last-of-type.align-container-center-y ~ alignBottom"
-                    [ Prop "flex-grow" "0"
-                    ]
-
-                -- centerY's after an alignBottom should be ignored
-                , Child "alignBottom:first-of-type.align-container-bottom ~ centerY.align-container-center-y"
-                    -- Bottom alignment always overrides center alignment
-                    [ Prop "flex-grow" "0"
-                    ]
-
-                -- , Child "alignRight:first-of-type.align-container-right"
-                --     [ Prop "flex-grow" "1"
-                --     ]
-                -- END WORKING AREA
-                , Child ".se.self-center-y:first-child ~ .teleporting-spacer"
-                    [ Prop "flex-grow" "1"
-                    , Prop "order" "-1"
-                    ]
-                , Child ".se.nearby + .se.self-center-y ~ .teleporting-spacer"
-                    [ Prop "flex-grow" "1"
-                    , Prop "order" "-1"
-                    ]
-                , Child ".stylesheet + .se.self-center-y ~ .teleporting-spacer"
-                    [ Prop "flex-grow" "1"
-                    , Prop "order" "-1"
-                    ]
-                , describeAlignment <|
-                    \alignment ->
-                        case alignment of
-                            Top ->
-                                ( [ Prop "justify-content" "flex-start" ]
-                                , [ Prop "margin-bottom" "auto" ]
-                                )
-
-                            Bottom ->
-                                ( [ Prop "justify-content" "flex-end" ]
-                                , [ Prop "margin-top" "auto" ]
-                                )
-
-                            Right ->
-                                ( [ Prop "align-items" "flex-end" ]
-                                , [ Prop "align-self" "flex-end" ]
-                                )
-
-                            Left ->
-                                ( [ Prop "align-items" "flex-start" ]
-                                , [ Prop "align-self" "flex-start" ]
-                                )
-
-                            CenterX ->
-                                ( [ Prop "align-items" "center" ]
-                                , [ Prop "align-self" "center"
-                                  ]
-                                )
-
-                            CenterY ->
-                                ( [ Prop "justify-content" "center" ]
-                                , []
-                                )
-                , Child ".container"
-                    [ Prop "flex-grow" "0"
-                    , Prop "flex-basis" "auto"
+                , Descriptor (dot classes.nearby)
+                    --".nearby"
+                    [ Prop "position" "absolute"
+                    , Prop "top" "0"
+                    , Prop "left" "0"
                     , Prop "width" "100%"
-                    , Prop "align-self" "stretch !important"
-                    ]
-                , Descriptor ".space-evenly"
-                    [ Prop "justify-content" "space-between"
-                    , Child ".spacer"
-                        [ Prop "display" "none"
+                    , Prop "height" "100%"
+                    , Prop "pointer-events" "none"
+                    , Prop "margin" "0 !important"
+                    , Adjacent ".se"
+                        [ Prop "margin-top" "0"
+                        , Prop "margin-left" "0"
                         ]
                     ]
-                ]
-            , Class (class Grid)
-                [ Prop "display" "-ms-grid"
-                , Supports ( "display", "grid" )
-                    [ ( "display", "grid" )
+                , Descriptor ".modal"
+                    [ Prop "position" "fixed"
+                    , Prop "left" "0"
+                    , Prop "top" "0"
+                    , Prop "width" "100%"
+                    , Prop "height" "100%"
+                    , Prop "pointer-events" "none"
                     ]
-                , gridAlignments <|
-                    \alignment ->
-                        case alignment of
-                            Top ->
-                                [ Prop "justify-content" "flex-start" ]
-
-                            Bottom ->
-                                [ Prop "justify-content" "flex-end" ]
-
-                            Right ->
-                                [ Prop "align-items" "flex-end" ]
-
-                            Left ->
-                                [ Prop "align-items" "flex-start" ]
-
-                            CenterX ->
-                                [ Prop "align-items" "center" ]
-
-                            CenterY ->
-                                [ Prop "justify-content" "center" ]
-                ]
-            , Class (class Page)
-                [ Prop "display" "block"
-                , Child (class Any ++ ":first-child")
-                    [ Prop "margin" "0 !important"
-                    ]
-
-                -- clear spacing of any subsequent element if an element is float-left
-                , Child (class Any ++ selfName (Self Left) ++ ":first-child + .se")
-                    [ Prop "margin" "0 !important"
-                    ]
-                , Child (class Any ++ selfName (Self Right) ++ ":first-child + .se")
-                    [ Prop "margin" "0 !important"
-                    ]
-                , describeAlignment <|
-                    \alignment ->
-                        case alignment of
-                            Top ->
-                                ( []
-                                , []
-                                )
-
-                            Bottom ->
-                                ( []
-                                , []
-                                )
-
-                            Right ->
-                                ( []
-                                , [ Prop "float" "right"
-                                  , Descriptor ":after:"
-                                        [ Prop "content" "\"\""
-                                        , Prop "display" "table"
-                                        , Prop "clear" "both"
-                                        ]
-                                  ]
-                                )
-
-                            Left ->
-                                ( []
-                                , [ Prop "float" "left"
-                                  , Descriptor ":after:"
-                                        [ Prop "content" "\"\""
-                                        , Prop "display" "table"
-                                        , Prop "clear" "both"
-                                        ]
-                                  ]
-                                )
-
-                            CenterX ->
-                                ( []
-                                , []
-                                )
-
-                            CenterY ->
-                                ( []
-                                , []
-                                )
-                ]
-            , Class (class Paragraph)
-                [ Prop "display" "block"
-                , Prop "white-space" "normal"
-                , Child (class Text)
-                    [ Prop "display" "inline"
-                    , Prop "white-space" "normal"
-                    ]
-                , Child (class Single)
-                    [ Prop "display" "inline-flex"
-                    , Prop "white-space" "normal"
-                    , Child (class Text)
-                        [ Prop "display" "inline"
-                        , Prop "white-space" "normal"
-                        ]
-                    ]
-                , Child (class Row)
-                    [ Prop "display" "inline-flex"
-                    ]
-                , Child (class Column)
-                    [ Prop "display" "inline-flex"
-                    ]
-                , Child (class Grid)
-                    [ Prop "display" "inline-grid"
-                    ]
-                , describeAlignment <|
-                    \alignment ->
-                        case alignment of
-                            Top ->
-                                ( []
-                                , []
-                                )
-
-                            Bottom ->
-                                ( []
-                                , []
-                                )
-
-                            Right ->
-                                ( []
-                                , [ Prop "float" "right" ]
-                                )
-
-                            Left ->
-                                ( []
-                                , [ Prop "float" "left" ]
-                                )
-
-                            CenterX ->
-                                ( []
-                                , []
-                                )
-
-                            CenterY ->
-                                ( []
-                                , []
-                                )
-                ]
-            , Class ".se.ignore"
-                [ Prop "margin" "0 !important"
-                ]
-            , Class ".se.hidden"
-                [ Prop "display" "none"
                 ]
             ]

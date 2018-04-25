@@ -250,6 +250,7 @@ import Color exposing (Color)
 import Html exposing (Html)
 import Html.Attributes
 import Internal.Model as Internal
+import Internal.Style exposing (classes)
 
 
 {-| The basic building block of your layout. Here we create a
@@ -539,8 +540,8 @@ row attrs children =
         Internal.noStyleSheet
         Internal.asRow
         Nothing
-        (Internal.Class "x-content-align" "content-left"
-            :: Internal.Class "y-content-align" "content-center-y"
+        (Internal.Class "x-content-align" classes.contentLeft
+            :: Internal.Class "y-content-align" classes.contentCenterY
             :: width fill
             :: height shrink
             :: attrs
@@ -554,8 +555,8 @@ column attrs children =
     Internal.element Internal.noStyleSheet
         Internal.asColumn
         Nothing
-        (Internal.Class "y-content-align" "content-top"
-            :: Internal.Class "x-content-align" "content-left"
+        (Internal.Class "y-content-align" classes.contentTop
+            :: Internal.Class "x-content-align" classes.contentLeft
             :: height fill
             :: width fill
             :: attrs
@@ -821,7 +822,11 @@ Which will look something like
 -}
 paragraph : List (Attribute msg) -> List (Element msg) -> Element msg
 paragraph attrs children =
-    Internal.element Internal.noStyleSheet Internal.asParagraph (Just "p") (Internal.adjustParagraphSpacing attrs) (Internal.Unkeyed children)
+    Internal.element Internal.noStyleSheet
+        Internal.asParagraph
+        (Just "p")
+        (Internal.adjustParagraphSpacing attrs)
+        (Internal.Unkeyed children)
 
 
 {-| Now that we have a paragraph, we need someway to attach a bunch of paragraph's together.
@@ -957,8 +962,8 @@ link attrs { url, label } =
             :: Internal.Attr (Html.Attributes.rel "noopener noreferrer")
             :: width shrink
             :: height shrink
-            :: Internal.Class "x-content-align" "content-center-x"
-            :: Internal.Class "y-content-align" "content-center-y"
+            :: Internal.Class "x-content-align" classes.contentCenterX
+            :: Internal.Class "y-content-align" classes.contentCenterY
             :: attrs
         )
         (Internal.Unkeyed [ label ])
@@ -975,8 +980,8 @@ newTabLink attrs { url, label } =
             :: Internal.Attr (Html.Attributes.target "_blank")
             :: width shrink
             :: height shrink
-            :: Internal.Class "x-content-align" "content-center-x"
-            :: Internal.Class "y-content-align" "content-center-y"
+            :: Internal.Class "x-content-align" classes.contentCenterX
+            :: Internal.Class "y-content-align" classes.contentCenterY
             :: attrs
         )
         (Internal.Unkeyed [ label ])
@@ -993,8 +998,8 @@ download attrs { url, label } =
             :: Internal.Attr (Html.Attributes.download True)
             :: width shrink
             :: height shrink
-            :: Internal.Class "x-content-align" "content-center-x"
-            :: Internal.Class "y-content-align" "content-center-y"
+            :: Internal.Class "x-content-align" classes.contentCenterX
+            :: Internal.Class "y-content-align" classes.contentCenterY
             :: attrs
         )
         (Internal.Unkeyed [ label ])
@@ -1011,8 +1016,8 @@ downloadAs attrs { url, filename, label } =
             :: Internal.Attr (Html.Attributes.downloadAs filename)
             :: width shrink
             :: height shrink
-            :: Internal.Class "x-content-align" "content-center-x"
-            :: Internal.Class "y-content-align" "content-center-y"
+            :: Internal.Class "x-content-align" classes.contentCenterX
+            :: Internal.Class "y-content-align" classes.contentCenterY
             :: attrs
         )
         (Internal.Unkeyed [ label ])
@@ -1021,37 +1026,37 @@ downloadAs attrs { url, filename, label } =
 {-| -}
 below : Element msg -> Attribute msg
 below element =
-    Internal.Nearby Internal.Below True element
+    Internal.Nearby Internal.Below element
 
 
 {-| -}
 above : Element msg -> Attribute msg
 above element =
-    Internal.Nearby Internal.Above True element
+    Internal.Nearby Internal.Above element
 
 
 {-| -}
 onRight : Element msg -> Attribute msg
 onRight element =
-    Internal.Nearby Internal.OnRight True element
+    Internal.Nearby Internal.OnRight element
 
 
 {-| -}
 onLeft : Element msg -> Attribute msg
 onLeft element =
-    Internal.Nearby Internal.OnLeft True element
+    Internal.Nearby Internal.OnLeft element
 
 
 {-| -}
 inFront : Element msg -> Attribute msg
 inFront element =
-    Internal.Nearby Internal.InFront True element
+    Internal.Nearby Internal.InFront element
 
 
 {-| -}
 behind : Element msg -> Attribute msg
 behind element =
-    Internal.Nearby Internal.Behind True element
+    Internal.Nearby Internal.Behind element
 
 
 {-| -}
@@ -1219,44 +1224,44 @@ alpha o =
 {-| -}
 scrollbars : Attribute msg
 scrollbars =
-    Internal.Class "overflow" "scrollbars"
+    Internal.Class "overflow" classes.scrollbars
 
 
 {-| -}
 scrollbarY : Attribute msg
 scrollbarY =
-    Internal.Class "overflow" "scrollbars-y"
+    Internal.Class "overflow" classes.scrollbarsY
 
 
 {-| -}
 scrollbarX : Attribute msg
 scrollbarX =
-    Internal.Class "overflow" "scrollbars-x"
+    Internal.Class "overflow" classes.scrollbarsX
 
 
 {-| -}
 clip : Attribute msg
 clip =
-    Internal.Class "overflow" "clip"
+    Internal.Class "overflow" classes.clip
 
 
 {-| -}
 clipY : Attribute msg
 clipY =
-    Internal.Class "overflow" "clip-y"
+    Internal.Class "overflow" classes.clipY
 
 
 {-| -}
 clipX : Attribute msg
 clipX =
-    Internal.Class "overflow" "clip-x"
+    Internal.Class "overflow" classes.clipX
 
 
 {-| Set the cursor to the pointer hand.
 -}
 pointer : Attribute msg
 pointer =
-    Internal.Class "cursor" "cursor-pointer"
+    Internal.Class "cursor" classes.cursorPointer
 
 
 {-| -}
