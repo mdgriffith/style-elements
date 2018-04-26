@@ -592,7 +592,7 @@ textHelper textInput attrs textOptions =
 
         forNearby attr =
             case attr of
-                Internal.Nearby _ _ _ ->
+                Internal.Nearby _ _ ->
                     True
 
                 _ ->
@@ -727,7 +727,7 @@ textHelper textInput attrs textOptions =
             Internal.get attributes <|
                 \attr ->
                     case attr of
-                        Internal.Nearby _ _ _ ->
+                        Internal.Nearby _ _ ->
                             True
 
                         _ ->
@@ -1776,86 +1776,86 @@ row attrs children =
 {-| -}
 onEnter : msg -> Attribute msg
 onEnter msg =
-    onKey 13 msg
+    onKey enter msg
 
 
 {-| -}
 onSpace : msg -> Attribute msg
 onSpace msg =
-    onKey 32 msg
+    onKey space msg
 
 
 {-| -}
 onUpArrow : msg -> Attribute msg
 onUpArrow msg =
-    onKey 38 msg
+    onKey upArrow msg
 
 
 {-| -}
 onRightArrow : msg -> Attribute msg
 onRightArrow msg =
-    onKey 39 msg
+    onKey rightArrow msg
 
 
 {-| -}
 onLeftArrow : msg -> Attribute msg
 onLeftArrow msg =
-    onKey 37 msg
+    onKey leftArrow msg
 
 
 {-| -}
 onDownArrow : msg -> Attribute msg
 onDownArrow msg =
-    onKey 40 msg
+    onKey downArrow msg
 
 
-enter : Int
+enter : String
 enter =
-    13
+    "Enter"
 
 
-tab : Int
+tab : String
 tab =
-    9
+    "Tab"
 
 
-delete : Int
+delete : String
 delete =
-    8
+    "Delete"
 
 
-backspace : Int
+backspace : String
 backspace =
-    46
+    "Backspace"
 
 
-upArrow : Int
+upArrow : String
 upArrow =
-    38
+    "ArrowUp"
 
 
-leftArrow : Int
+leftArrow : String
 leftArrow =
-    37
+    "ArrowLeft"
 
 
-rightArrow : Int
+rightArrow : String
 rightArrow =
-    39
+    "ArrowRight"
 
 
-downArrow : Int
+downArrow : String
 downArrow =
-    40
+    "ArrowDown"
 
 
-space : Int
+space : String
 space =
-    32
+    " "
 
 
 {-| -}
-onKey : Int -> msg -> Attribute msg
+onKey : String -> msg -> Attribute msg
 onKey desiredCode msg =
     let
         decode code =
@@ -1865,7 +1865,7 @@ onKey desiredCode msg =
                 Json.fail "Not the enter key"
 
         isKey =
-            Json.field "which" Json.int
+            Json.field "key" Json.string
                 |> Json.andThen decode
     in
     Events.onWithOptions "keyup"
@@ -1875,7 +1875,7 @@ onKey desiredCode msg =
         isKey
 
 
-preventKeydown : Int -> a -> Attribute a
+preventKeydown : String -> a -> Attribute a
 preventKeydown desiredCode msg =
     let
         decode code =
@@ -1885,7 +1885,7 @@ preventKeydown desiredCode msg =
                 Json.fail "Not the enter key"
 
         isKey =
-            Json.field "which" Json.int
+            Json.field "key" Json.string
                 |> Json.andThen decode
     in
     Events.onWithOptions "keydown"
@@ -1896,7 +1896,7 @@ preventKeydown desiredCode msg =
 
 
 {-| -}
-onKeyLookup : (Int -> Maybe msg) -> Attribute msg
+onKeyLookup : (String -> Maybe msg) -> Attribute msg
 onKeyLookup lookup =
     let
         decode code =
@@ -1908,7 +1908,7 @@ onKeyLookup lookup =
                     Json.succeed msg
 
         isKey =
-            Json.field "which" Json.int
+            Json.field "key" Json.string
                 |> Json.andThen decode
     in
     Events.on "keyup" isKey
