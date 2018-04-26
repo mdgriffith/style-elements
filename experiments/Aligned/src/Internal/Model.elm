@@ -1052,7 +1052,7 @@ initGathered maybeNodeName =
 
 {-| Because of how it's constructed, we know that NearbyGroup is nonempty
 -}
-renderNearbyGroupAbsolute : List ( Location, Element msg ) -> Html msg
+renderNearbyGroupAbsolute : List ( Location, Element msg ) -> List (Html msg)
 renderNearbyGroupAbsolute nearbys =
     let
         create ( location, elem ) =
@@ -1074,8 +1074,8 @@ renderNearbyGroupAbsolute nearbys =
                         styled.html Nothing asEl
                 ]
     in
-    Html.div [ Html.Attributes.class "se el nearby" ]
-        (List.map create nearbys)
+    -- Html.div [ Html.Attributes.class "se el nearby" ]
+    List.map create nearbys
 
 
 {-| -}
@@ -1394,10 +1394,10 @@ asElement embedMode children context rendered =
                         Just nearby ->
                             case htmlChildren of
                                 Keyed keyed ->
-                                    Keyed <| keyed ++ [ ( "nearby-elements-pls", nearby ) ]
+                                    Keyed <| keyed ++ List.map (\x -> ( "nearby-elements-pls", x )) nearby
 
                                 Unkeyed unkeyed ->
-                                    Unkeyed (unkeyed ++ [ nearby ])
+                                    Unkeyed (unkeyed ++ nearby)
             in
             case styleChildren of
                 [] ->
@@ -1440,14 +1440,14 @@ asElement embedMode children context rendered =
                                         ( "static-stylesheet", Internal.Style.rulesElement )
                                             :: ( "dynamic-stylesheet", toStyleSheet options styles )
                                             :: keyed
-                                            ++ [ ( "nearby-elements-pls", nearby ) ]
+                                            ++ List.map (\x -> ( "nearby-elements-pls", x )) nearby
 
                                 Unkeyed unkeyed ->
                                     Unkeyed
                                         (Internal.Style.rulesElement
                                             :: toStyleSheet options styles
                                             :: unkeyed
-                                            ++ [ nearby ]
+                                            ++ nearby
                                         )
             in
             Unstyled
@@ -1484,13 +1484,13 @@ asElement embedMode children context rendered =
                                     Keyed <|
                                         ( "dynamic-stylesheet", toStyleSheet options styles )
                                             :: keyed
-                                            ++ [ ( "nearby-elements-pls", nearby ) ]
+                                            ++ List.map (\x -> ( "nearby-elements-pls", x )) nearby
 
                                 Unkeyed unkeyed ->
                                     Unkeyed
                                         (toStyleSheet options styles
                                             :: unkeyed
-                                            ++ [ nearby ]
+                                            ++ nearby
                                         )
             in
             Unstyled
@@ -1739,7 +1739,7 @@ textElement str =
         [ VirtualDom.property "className"
             (Json.string "se text width-content height-content")
         ]
-        [ VirtualDom.text str ]
+        [ VirtualDom.text (Debug.log "text element" str) ]
 
 
 textElementFill : String -> VirtualDom.Node msg
@@ -1748,7 +1748,7 @@ textElementFill str =
         [ VirtualDom.property "className"
             (Json.string "se text width-fill height-fill")
         ]
-        [ VirtualDom.text str ]
+        [ VirtualDom.text (Debug.log "filled element" str) ]
 
 
 type Children x
@@ -2183,11 +2183,36 @@ toStyleSheetString options stylesheet =
                         , renderStyle force maybePseudo (class ++ ".page > .self-right") [ Property "margin-left" xPx ]
                         , renderStyle force
                             maybePseudo
-                            (class ++ ".paragraph > .se + .se")
-                            [ Property "margin-right" (toString (toFloat x / 2) ++ "px")
-                            , Property "margin-left" (toString (toFloat x / 2) ++ "px")
-                            , Property "margin-bottom" (toString (toFloat y / 2) ++ "px")
-                            , Property "margin-top" (toString (toFloat y / 2) ++ "px")
+                            (class ++ ".paragraph")
+                            [ Property "line-height" ("calc(1em + " ++ toString y ++ "px)")
+                            ]
+                        , renderStyle force
+                            maybePseudo
+                            (class ++ ".paragraph > .self-left")
+                            [ Property "margin-right" xPx
+                            ]
+                        , renderStyle force
+                            maybePseudo
+                            (class ++ ".paragraph > .self-right")
+                            [ Property "margin-left" xPx
+                            ]
+                        , renderStyle force
+                            maybePseudo
+                            (class ++ ".paragraph::after")
+                            [ Property "content" "''"
+                            , Property "display" "block"
+                            , Property "height" "0"
+                            , Property "width" "0"
+                            , Property "margin-top" (toString (-1 * (y // 2)) ++ "px")
+                            ]
+                        , renderStyle force
+                            maybePseudo
+                            (class ++ ".paragraph::before")
+                            [ Property "content" "''"
+                            , Property "display" "block"
+                            , Property "height" "0"
+                            , Property "width" "0"
+                            , Property "margin-bottom" (toString (-1 * (y // 2)) ++ "px")
                             ]
                         ]
 

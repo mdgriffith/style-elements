@@ -17,7 +17,7 @@ module Element.Font
         , justify
         , letterSpacing
         , light
-        , lineHeight
+          -- , lineHeight
         , medium
         , monospace
         , regular
@@ -54,9 +54,9 @@ module Element.Font
             ]
             (Element.text "Woohoo, I'm stylish text")
 
-**Note**: `Font.color`, `Font.size`, `Font.family`, and `Font.lineHeight` are all inherited, meaning you can set them at the top of your view and all subsequent nodes will have that value.
+**Note**: `Font.color`, `Font.size`, and `Font.family` are inherited, meaning you can set them at the top of your view and all subsequent nodes will have that value.
 
-@docs color, size, lineHeight
+@docs color, size
 
 
 ## Typefaces
@@ -178,18 +178,15 @@ size size =
     Internal.StyleClass (Internal.Single ("font-size-" ++ toString size) "font-size" (toString size ++ "px"))
 
 
-{-| This is the only unitless value in the library that isn't `px`.
 
-It's given as a _proportion_ of the `Font.size`.
-
-This means the final lineHeight in px is:
-
-      Font.size * Font.lineHeight == lineHeightInPx
-
--}
-lineHeight : Float -> Attr decorative msg
-lineHeight =
-    Internal.StyleClass << Internal.LineHeight
+-- {-| This is the only unitless value in the library that isn't `px`.
+-- It's given as a _proportion_ of the `Font.size`.
+-- This means the final lineHeight in px is:
+--       Font.size * Font.lineHeight == lineHeightInPx
+-- -}
+-- lineHeight : Float -> Attr decorative msg
+-- lineHeight =
+--     Internal.StyleClass << Internal.LineHeight
 
 
 {-| In `px`.

@@ -152,7 +152,7 @@ classes =
     , heightExact = "height-exact"
 
     -- nearby elements
-    , nearby = "nearby"
+    -- , nearby = "nearby"
     , above = "above"
     , below = "below"
     , onRight = "on-right"
@@ -662,14 +662,6 @@ rules =
                     [ Prop "white-space" "pre"
                     , Prop "display" "inline-block"
                     ]
-
-                -- , Descriptor (dot classes.spacer)
-                --     [ Prop "pointer-events" "none"
-                --     , Adjacent (dot classes.any)
-                --         [ Prop "margin-top" "0"
-                --         , Prop "margin-left" "0"
-                --         ]
-                --     ]
                 , Descriptor (dot classes.single)
                     [ Prop "display" "flex"
                     , Prop "flex-direction" "column"
@@ -744,27 +736,6 @@ rules =
                             [ Prop "flex-basis" "auto"
                             ]
                         ]
-
-                    -- Old Spacing Model
-                    -- , Child ".se:first-child"
-                    --     [ Prop "margin-left" "0 !important"
-                    --     ]
-                    -- , Child ".se.teleporting-spacer"
-                    --     [ Prop "margin-left" "0 !important"
-                    --     ]
-                    --  , Child (dot classes.spacer)
-                    --     [ Prop "margin-left" "0 !important"
-                    --     , Prop "height" "auto !important"
-                    --     ]
-                    -- , Child (dot classes.spacer ++ " + .se")
-                    --     [ Prop "margin-left" "0 !important"
-                    --     ]
-                    -- , Child ".stylesheet + .se"
-                    --     [ Prop "margin-left" "0 !important"
-                    --     ]
-                    -- , Child (dot classes.nearby ++ " + .se")
-                    --     [ Prop "margin-left" "0 !important"
-                    --     ]
                     , Child (dot classes.heightFill)
                         [ --Prop "height" "100%"
                           -- alignTop, centerY, and alignBottom need to be disabled
@@ -907,29 +878,6 @@ rules =
                     , Child (dot classes.widthContent)
                         [ Prop "align-self" "left"
                         ]
-
-                    -- old spacing model
-                    -- , Child ".se:first-child"
-                    --     [ Prop "margin-top" "0 !important"
-                    --     ]
-                    -- , Child ".spacer + .se"
-                    --     [ Prop "margin-top" "0"
-                    --     ]
-                    -- , Child (dot classes.spacer)
-                    --     [ Prop "margin-top" "0 !important"
-                    --     ]
-                    -- , Child ".se.teleporting-spacer"
-                    --     [ Prop "margin-top" "0 !important"
-                    --     ]
-                    -- , Child ".teleporting-spacer"
-                    --     [ Prop "flex-grow" "0"
-                    --     ]
-                    -- , Child ".stylesheet + .se"
-                    --     [ Prop "margin-top" "0"
-                    --     ]
-                    -- , Child ".nearby + .se"
-                    --     [ Prop "margin-top" "0"
-                    --     ]
                     , Child "alignTop:last-of-type.align-container-top"
                         [ Prop "flex-grow" "1"
                         ]
@@ -982,10 +930,11 @@ rules =
                         [ Prop "flex-grow" "1"
                         , Prop "order" "-1"
                         ]
-                    , Child ".se.nearby + .se.self-center-y ~ .teleporting-spacer"
-                        [ Prop "flex-grow" "1"
-                        , Prop "order" "-1"
-                        ]
+
+                    -- , Child ".se.nearby + .se.self-center-y ~ .teleporting-spacer"
+                    --     [ Prop "flex-grow" "1"
+                    --     , Prop "order" "-1"
+                    --     ]
                     , Child ".stylesheet + .se.self-center-y ~ .teleporting-spacer"
                         [ Prop "flex-grow" "1"
                         , Prop "order" "-1"
@@ -1128,7 +1077,7 @@ rules =
                         , Prop "white-space" "normal"
                         ]
                     , Child (dot classes.single)
-                        [ Prop "display" "inline-flex"
+                        [ Prop "display" "inline"
                         , Prop "white-space" "normal"
                         , Child (dot classes.text)
                             [ Prop "display" "inline"
@@ -1195,6 +1144,7 @@ rules =
                                         , Prop "height" "0"
                                         , Prop "width" "100%"
                                         , Prop "z-index" "10"
+                                        , Prop "margin" "0 !important"
                                         , Prop "pointer-events" "auto"
                                         , Child (dot classes.heightFill)
                                             [ Prop "height" "auto"
@@ -1215,6 +1165,7 @@ rules =
                                         , Prop "height" "0"
                                         , Prop "width" "100%"
                                         , Prop "z-index" "10"
+                                        , Prop "margin" "0 !important"
                                         , Prop "pointer-events" "auto"
                                         , Child (dot classes.heightFill)
                                             [ Prop "height" "auto"
@@ -1226,6 +1177,7 @@ rules =
                                         [ Prop "position" "absolute"
                                         , Prop "left" "100%"
                                         , Prop "height" "100%"
+                                        , Prop "margin" "0 !important"
                                         , Prop "z-index" "10"
                                         , Prop "pointer-events" "auto"
                                         ]
@@ -1235,6 +1187,7 @@ rules =
                                         [ Prop "position" "absolute"
                                         , Prop "right" "100%"
                                         , Prop "height" "100%"
+                                        , Prop "margin" "0 !important"
                                         , Prop "z-index" "10"
                                         , Prop "pointer-events" "auto"
                                         ]
@@ -1246,6 +1199,7 @@ rules =
                                         , Prop "height" "100%"
                                         , Prop "left" "0"
                                         , Prop "top" "0"
+                                        , Prop "margin" "0 !important"
                                         , Prop "z-index" "10"
                                         , Prop "pointer-events" "none"
                                         , Child (dot classes.any)
@@ -1260,6 +1214,7 @@ rules =
                                         , Prop "height" "100%"
                                         , Prop "left" "0"
                                         , Prop "top" "0"
+                                        , Prop "margin" "0 !important"
                                         , Prop "z-index" "0"
                                         , Prop "pointer-events" "none"
                                         , Child ".se"
@@ -1322,20 +1277,21 @@ rules =
                 , Descriptor (dot classes.textLeft)
                     [ Prop "text-align" "left"
                     ]
-                , Descriptor (dot classes.nearby)
-                    --".nearby"
-                    [ Prop "position" "absolute"
-                    , Prop "top" "0"
-                    , Prop "left" "0"
-                    , Prop "width" "100%"
-                    , Prop "height" "100%"
-                    , Prop "pointer-events" "none"
-                    , Prop "margin" "0 !important"
-                    , Adjacent ".se"
-                        [ Prop "margin-top" "0"
-                        , Prop "margin-left" "0"
-                        ]
-                    ]
+
+                -- , Descriptor (dot classes.nearby)
+                --     --".nearby"
+                --     [ Prop "position" "absolute"
+                --     , Prop "top" "0"
+                --     , Prop "left" "0"
+                --     , Prop "width" "100%"
+                --     , Prop "height" "100%"
+                --     , Prop "pointer-events" "none"
+                --     , Prop "margin" "0 !important"
+                --     , Adjacent ".se"
+                --         [ Prop "margin-top" "0"
+                --         , Prop "margin-left" "0"
+                --         ]
+                --     ]
                 , Descriptor ".modal"
                     [ Prop "position" "fixed"
                     , Prop "left" "0"
