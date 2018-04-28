@@ -327,12 +327,16 @@ renderNode { alignment, attributes, node, width, height } children styles contex
                 _ ->
                     case alignment of
                         Aligned (Just Right) _ ->
-                            VirtualDom.node "alignRight"
+                            VirtualDom.node
+                                "u"
+                                -- "alignRight"
                                 [ Html.Attributes.class "se el container align-container-right content-center-y" ]
                                 [ html ]
 
                         Aligned (Just CenterX) _ ->
-                            VirtualDom.node "centerX"
+                            VirtualDom.node
+                                "s"
+                                -- "centerX"
                                 [ Html.Attributes.class "se el container align-container-center-x content-center-y" ]
                                 [ html ]
 
@@ -347,12 +351,16 @@ renderNode { alignment, attributes, node, width, height } children styles contex
                 _ ->
                     case alignment of
                         Aligned _ (Just CenterY) ->
-                            VirtualDom.node "centerY"
+                            VirtualDom.node
+                                -- "centerY"
+                                "s"
                                 [ Html.Attributes.class "se el container align-container-center-y" ]
                                 [ html ]
 
                         Aligned _ (Just Bottom) ->
-                            VirtualDom.node "alignBottom"
+                            VirtualDom.node
+                                "u"
+                                -- "alignBottom"
                                 [ Html.Attributes.class "se el container align-container-bottom" ]
                                 [ html ]
 

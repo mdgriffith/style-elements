@@ -496,16 +496,6 @@ describeLength dimension lenValue =
         (List.map renderLengthRule lengths)
 
 
-
--- , Child (dot classes.widthFill)
---         [ -- alignLeft, alignRight, centerX are overridden by width.
---           Prop "align-self" "stretch !important"
---         ]
---     , Child ".width-content"
---         [ Prop "align-self" "left"
---         ]
-
-
 gridAlignments values =
     let
         createDescription alignment =
@@ -998,21 +988,24 @@ rules =
                         , Prop "flex-basis" "auto"
                         , Prop "align-self" "stretch"
                         ]
-                    , Child "alignLeft:last-of-type.align-container-left"
-                        [ Prop "flex-grow" "1"
-                        ]
-                    , Child "alignRight:first-of-type.align-container-right"
+
+                    -- , Child "alignLeft:last-of-type.align-container-left"
+                    --     [ Prop "flex-grow" "1"
+                    --     ]
+                    -- alignRight -> <u>
+                    --centerX -> <s>
+                    , Child "u:first-of-type.align-container-right"
                         [ Prop "flex-grow" "1"
                         ]
 
                     -- first center y
-                    , Child "centerX:first-of-type.align-container-center-x"
+                    , Child "s:first-of-type.align-container-center-x"
                         [ Prop "flex-grow" "1"
                         , Child (dot classes.alignCenterX)
                             [ Prop "margin-left" "auto !important"
                             ]
                         ]
-                    , Child "centerX:last-of-type.align-container-center-x"
+                    , Child "s:last-of-type.align-container-center-x"
                         [ Prop "flex-grow" "1"
                         , Child (dot classes.alignCenterX)
                             [ Prop "margin-right" "auto !important"
@@ -1020,7 +1013,7 @@ rules =
                         ]
 
                     -- lonley centerX
-                    , Child "centerX:only-of-type.align-container-center-x"
+                    , Child "s:only-of-type.align-container-center-x"
                         [ Prop "flex-grow" "1"
                         , Child (dot classes.alignCenterY)
                             [ Prop "margin-top" "auto !important"
@@ -1029,12 +1022,12 @@ rules =
                         ]
 
                     -- alignBottom's after a centerX should not grow
-                    , Child "centerX:last-of-type.align-container-center-x ~ alignRight"
+                    , Child "s:last-of-type.align-container-center-x ~ u"
                         [ Prop "flex-grow" "0"
                         ]
 
                     -- centerX's after an alignBottom should be ignored
-                    , Child "alignRight:first-of-type.align-container-right ~ centerX.align-container-center-x"
+                    , Child "u:first-of-type.align-container-right ~ s.align-container-center-x"
                         -- Bottom alignment always overrides center alignment
                         [ Prop "flex-grow" "0"
                         ]
@@ -1110,22 +1103,25 @@ rules =
                     , Child (dot classes.widthContent)
                         [ Prop "align-self" "left"
                         ]
-                    , Child "alignTop:last-of-type.align-container-top"
-                        [ Prop "flex-grow" "1"
-                        ]
-                    , Child "alignBottom:first-of-type.align-container-bottom"
+
+                    -- , Child "alignTop:last-of-type.align-container-top"
+                    --     [ Prop "flex-grow" "1"
+                    --     ]
+                    , Child "u:first-of-type.align-container-bottom"
                         [ Prop "flex-grow" "1"
                         ]
 
+                    -- centerY -> <s>
+                    -- alignBottom -> <u>
                     -- first center y
-                    , Child "centerY:first-of-type.align-container-center-y"
+                    , Child "s:first-of-type.align-container-center-y"
                         [ Prop "flex-grow" "1"
                         , Child (dot classes.alignCenterY)
                             [ Prop "margin-top" "auto !important"
                             , Prop "margin-bottom" "0 !important"
                             ]
                         ]
-                    , Child "centerY:last-of-type.align-container-center-y"
+                    , Child "s:last-of-type.align-container-center-y"
                         [ Prop "flex-grow" "1"
                         , Child (dot classes.alignCenterY)
                             [ Prop "margin-bottom" "auto !important"
@@ -1134,7 +1130,7 @@ rules =
                         ]
 
                     -- lonley centerY
-                    , Child "centerY:only-of-type.align-container-center-y"
+                    , Child "s:only-of-type.align-container-center-y"
                         [ Prop "flex-grow" "1"
                         , Child (dot classes.alignCenterY)
                             [ Prop "margin-top" "auto !important"
@@ -1143,19 +1139,15 @@ rules =
                         ]
 
                     -- alignBottom's after a centerY should not grow
-                    , Child "centerY:last-of-type.align-container-center-y ~ alignBottom"
+                    , Child "s:last-of-type.align-container-center-y ~ u"
                         [ Prop "flex-grow" "0"
                         ]
 
                     -- centerY's after an alignBottom should be ignored
-                    , Child "alignBottom:first-of-type.align-container-bottom ~ centerY.align-container-center-y"
+                    , Child "u:first-of-type.align-container-bottom ~ s.align-container-center-y"
                         -- Bottom alignment always overrides center alignment
                         [ Prop "flex-grow" "0"
                         ]
-
-                    -- , Child "alignRight:first-of-type.align-container-right"
-                    --     [ Prop "flex-grow" "1"
-                    --     ]
                     , Child ".se.self-center-y:first-child ~ .teleporting-spacer"
                         [ Prop "flex-grow" "1"
                         , Prop "order" "-1"
