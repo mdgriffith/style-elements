@@ -1020,17 +1020,17 @@ rules =
                         [ Prop "flex-grow" "1"
 
                         -- , Prop "justify-content" "flex-end"
-                        , Child (dot classes.alignCenterY)
-                            [ Prop "margin-bottom" "0 !important"
-                            ]
+                        -- , Child (dot classes.alignCenterY)
+                        --     [ Prop "margin-bottom" "0 !important"
+                        --     ]
                         ]
                     , Child "centerX:last-of-type.align-container-center-x"
                         [ Prop "flex-grow" "1"
 
                         -- , Prop "justify-content" "flex-start"
-                        , Child (dot classes.alignCenterY)
-                            [ Prop "margin-top" "0 !important"
-                            ]
+                        -- , Child (dot classes.alignCenterY)
+                        --     [ Prop "margin-top" "0 !important"
+                        --     ]
                         ]
 
                     -- lonley centerX
