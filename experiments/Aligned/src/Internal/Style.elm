@@ -708,9 +708,9 @@ dot c =
 
 
 overrides =
-    """@media screen and (-ms-high-contrast: active), (-ms-high-high-contrast: none) {
-  .se.row > .se { flex-basis: auto; }
-  .se.row > .se.container { flex-basis: auto; }
+    """@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  .se.row > .se { flex-basis: auto !important; }
+  .se.row > .se.container { flex-basis: auto !important; }
 }"""
 
 
@@ -771,7 +771,8 @@ rules =
                 , Prop "line-height" "inherit"
                 , Prop "font-weight" "inherit"
 
-                -- Text decoration is *mandatorily inherited* in the css spec.  There's no way to change this.
+                -- Text decoration is *mandatorily inherited* in the css spec.
+                -- There's no way to change this.  How crazy is that?
                 , Prop "text-decoration" "none"
                 , Prop "font-style" "inherit"
                 , Descriptor (dot classes.noTextSelection)
