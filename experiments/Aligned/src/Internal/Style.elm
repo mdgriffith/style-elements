@@ -925,12 +925,16 @@ rules =
                             case alignment of
                                 Top ->
                                     ( [ Prop "justify-content" "flex-start" ]
-                                    , [ Prop "margin-bottom" "auto" ]
+                                    , [ Prop "margin-bottom" "auto !important"
+                                      , Prop "margin-top" "0 !important"
+                                      ]
                                     )
 
                                 Bottom ->
                                     ( [ Prop "justify-content" "flex-end" ]
-                                    , [ Prop "margin-top" "auto" ]
+                                    , [ Prop "margin-top" "auto !important"
+                                      , Prop "margin-bottom" "0 !important"
+                                      ]
                                     )
 
                                 Right ->
@@ -950,9 +954,14 @@ rules =
                                     )
 
                                 CenterY ->
-                                    ( [ Prop "justify-content" "center" ]
-                                    , [ Prop "margin-top" "auto"
-                                      , Prop "margin-bottom" "auto"
+                                    ( [ -- Prop "justify-content" "center"
+                                        Child (dot classes.any)
+                                            [ Prop "margin-top" "auto"
+                                            , Prop "margin-bottom" "auto"
+                                            ]
+                                      ]
+                                    , [ Prop "margin-top" "auto !important"
+                                      , Prop "margin-bottom" "auto !important"
                                       ]
                                     )
                     ]
