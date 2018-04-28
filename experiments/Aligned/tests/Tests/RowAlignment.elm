@@ -26,16 +26,19 @@ box attrs =
         empty
 
 
-container =
-    el [ width (px 100), height (px 100) ]
-
-
 view =
     let
         rowContainer attrs children =
-            row ([ spacing 20, height (px 100) ] ++ attrs) children
+            row
+                ([ spacing 20
+                 , height (px 100)
+                 , Background.color lightGrey
+                 ]
+                    ++ attrs
+                )
+                children
     in
-    column [ width (px 500) ]
+    column [ width (px 500), spacing 20 ]
         [ el [] (text "Alignment Within a Row")
         , rowContainer [ label "single child" ]
             [ box [] ]

@@ -15,6 +15,7 @@ main =
     Testable.Runner.show view
 
 
+box : List (Testable.Attr msg) -> Testable.Element msg
 box attrs =
     el
         ([ width (px 50)
@@ -26,10 +27,16 @@ box attrs =
         empty
 
 
+container : Testable.Element msg -> Testable.Element msg
 container =
-    el [ width (px 100), height (px 100) ]
+    el
+        [ width (px 100)
+        , height (px 100)
+        , Background.color lightGrey
+        ]
 
 
+view : Testable.Element msg
 view =
     column []
         [ el [] (text "Alignment Within an El")
