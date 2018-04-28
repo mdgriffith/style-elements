@@ -77,6 +77,7 @@ import Html.Events
 import Internal.Events as Events
 import Internal.Grid
 import Internal.Model as Internal
+import Internal.Style exposing (classes)
 import Json.Decode as Json
 
 
@@ -205,8 +206,8 @@ button attrs { onPress, label } =
         Nothing
         (Element.width Element.shrink
             :: Element.height Element.shrink
-            :: Internal.Class "x-content-align" "content-center-x"
-            :: Internal.Class "y-content-align" "content-center-y"
+            :: Internal.Class "x-content-align" classes.contentCenterX
+            :: Internal.Class "y-content-align" classes.contentCenterY
             :: Internal.Class "button" "se-button"
             :: Element.pointer
             :: focusDefault attrs
@@ -632,7 +633,7 @@ textHelper textInput attrs textOptions =
                                                     Nothing ->
                                                         case val of
                                                             Internal.Content ->
-                                                                ( pad, Just val, lh, Internal.class "overflow-hidden" :: newAttrs )
+                                                                ( pad, Just val, lh, Internal.class classes.overflowHidden :: newAttrs )
 
                                                             _ ->
                                                                 ( pad, Just val, lh, newAttrs )
@@ -783,7 +784,7 @@ textHelper textInput attrs textOptions =
                         Just
                             ( Internal.Grid.InFront
                             , Font.color charcoal
-                                :: Internal.Class "text-selection" "no-text-selection"
+                                :: Internal.Class "text-selection" classes.noTextSelection
                                 :: defaultTextPadding
                                 :: lineHeight
                                 :: Element.height Element.fill
