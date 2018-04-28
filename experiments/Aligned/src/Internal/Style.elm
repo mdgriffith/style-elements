@@ -995,18 +995,8 @@ rules =
                         ]
                     , Child (dot classes.container)
                         [ Prop "flex-grow" "0"
-
-                        -- TODO: basis 0 or auto?
-                        -- , Prop "flex-basis" "0%"
                         , Prop "flex-basis" "auto"
-
-                        -- , Prop "height" "100%"
                         , Prop "align-self" "stretch"
-
-                        -- , Descriptor ".align-container-center-x"
-                        --     -- This fixes a bizzare issue in IE11 that I don't understand.
-                        --     [ Prop "align-self" "auto"
-                        --     ]
                         ]
                     , Child "alignLeft:last-of-type.align-container-left"
                         [ Prop "flex-grow" "1"
@@ -1018,19 +1008,15 @@ rules =
                     -- first center y
                     , Child "centerX:first-of-type.align-container-center-x"
                         [ Prop "flex-grow" "1"
-
-                        -- , Prop "justify-content" "flex-end"
-                        -- , Child (dot classes.alignCenterY)
-                        --     [ Prop "margin-bottom" "0 !important"
-                        --     ]
+                        , Child (dot classes.alignCenterX)
+                            [ Prop "margin-left" "auto !important"
+                            ]
                         ]
                     , Child "centerX:last-of-type.align-container-center-x"
                         [ Prop "flex-grow" "1"
-
-                        -- , Prop "justify-content" "flex-start"
-                        -- , Child (dot classes.alignCenterY)
-                        --     [ Prop "margin-top" "0 !important"
-                        --     ]
+                        , Child (dot classes.alignCenterX)
+                            [ Prop "margin-right" "auto !important"
+                            ]
                         ]
 
                     -- lonley centerX
@@ -1134,19 +1120,17 @@ rules =
                     -- first center y
                     , Child "centerY:first-of-type.align-container-center-y"
                         [ Prop "flex-grow" "1"
-
-                        -- , Prop "justify-content" "flex-end"
-                        -- , Child (dot classes.alignCenterY)
-                        --     [ Prop "margin-bottom" "0 !important"
-                        --     ]
+                        , Child (dot classes.alignCenterY)
+                            [ Prop "margin-top" "auto !important"
+                            , Prop "margin-bottom" "0 !important"
+                            ]
                         ]
                     , Child "centerY:last-of-type.align-container-center-y"
                         [ Prop "flex-grow" "1"
-
-                        -- , Prop "justify-content" "flex-start"
-                        -- , Child (dot classes.alignCenterY)
-                        --     [ Prop "margin-top" "0 !important"
-                        --     ]
+                        , Child (dot classes.alignCenterY)
+                            [ Prop "margin-bottom" "auto !important"
+                            , Prop "margin-top" "0 !important"
+                            ]
                         ]
 
                     -- lonley centerY
