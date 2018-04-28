@@ -1370,12 +1370,15 @@ rules =
                                         , Prop "width" "100%"
                                         , Prop "z-index" "10"
                                         , Prop "margin" "0 !important"
-                                        , Prop "pointer-events" "auto"
                                         , Child (dot classes.heightFill)
                                             [ Prop "height" "auto"
                                             ]
                                         , Child (dot classes.widthFill)
                                             [ Prop "width" "100%"
+                                            ]
+                                        , Prop "pointer-events" "none"
+                                        , Child (dot classes.any)
+                                            [ Prop "pointer-events" "auto"
                                             ]
                                         ]
 
