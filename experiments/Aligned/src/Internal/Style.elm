@@ -1365,9 +1365,8 @@ rules =
                                 Above ->
                                     Descriptor (dot classes.above)
                                         [ Prop "position" "absolute"
-                                        , Prop "top" "0"
+                                        , Prop "bottom" "100%"
                                         , Prop "left" "0"
-                                        , Prop "height" "0"
                                         , Prop "width" "100%"
                                         , Prop "z-index" "10"
                                         , Prop "margin" "0 !important"
@@ -1377,10 +1376,6 @@ rules =
                                             ]
                                         , Child (dot classes.widthFill)
                                             [ Prop "width" "100%"
-                                            ]
-                                        , Child (dot classes.any)
-                                            [ Prop "position" "absolute"
-                                            , Prop "bottom" "0"
                                             ]
                                         ]
 
