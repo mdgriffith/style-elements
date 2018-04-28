@@ -986,7 +986,10 @@ rules =
                         ]
                     , Child (dot classes.container)
                         [ Prop "flex-grow" "0"
-                        , Prop "flex-basis" "0%"
+
+                        -- TODO: basis 0 or auto?
+                        -- , Prop "flex-basis" "0%"
+                        , Prop "flex-basis" "auto"
 
                         -- , Prop "height" "100%"
                         , Prop "align-self" "stretch"
