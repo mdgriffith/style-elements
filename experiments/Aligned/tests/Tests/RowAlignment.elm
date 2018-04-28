@@ -97,10 +97,28 @@ view =
             , box [ centerY, label "Middle Child in Row" ]
             , box [ alignBottom, label "Right Child in Row" ]
             ]
-        , text "all alignments alignment"
+        , text "x and y alignments"
         , rowContainer []
             [ box [ alignLeft, alignTop, label "Left Child" ]
             , box [ centerX, centerY, label "Middle Child" ]
             , box [ alignRight, alignBottom, label "Right Child" ]
+            ]
+        , text "align Top and X alignments "
+        , rowContainer []
+            [ box [ alignLeft, alignTop, label "Left Child" ]
+            , box [ centerX, alignTop, label "Middle Child" ]
+            , box [ alignRight, alignTop, label "Right Child" ]
+            ]
+        , text "align Bottom and X alignments "
+        , rowContainer []
+            [ box [ alignLeft, alignBottom, label "Left Child" ]
+            , box [ centerX, alignBottom, label "Middle Child" ]
+            , box [ alignRight, alignBottom, label "Right Child" ]
+            ]
+        , text "centerY and X alignments "
+        , rowContainer []
+            [ box [ alignLeft, centerY, label "Left Child" ]
+            , box [ centerX, centerY, label "Middle Child" ]
+            , box [ alignRight, centerY, label "Right Child" ]
             ]
         ]

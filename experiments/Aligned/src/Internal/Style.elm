@@ -993,10 +993,11 @@ rules =
 
                         -- , Prop "height" "100%"
                         , Prop "align-self" "stretch"
-                        , Descriptor ".align-container-center-x"
-                            -- This fixes a bizzare issue in IE11 that I don't understand.
-                            [ Prop "align-self" "auto"
-                            ]
+
+                        -- , Descriptor ".align-container-center-x"
+                        --     -- This fixes a bizzare issue in IE11 that I don't understand.
+                        --     [ Prop "align-self" "auto"
+                        --     ]
                         ]
                     , Child "alignLeft:last-of-type.align-container-left"
                         [ Prop "flex-grow" "1"
