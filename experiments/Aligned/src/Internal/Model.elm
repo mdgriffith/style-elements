@@ -5,7 +5,7 @@ module Internal.Model exposing (..)
 import Color exposing (Color)
 import Html exposing (Html)
 import Html.Attributes
-import Internal.Style
+import Internal.Style exposing (classes)
 import Json.Encode as Json
 import Regex
 import Set exposing (Set)
@@ -201,16 +201,6 @@ type NodeName
     | Embedded String String
 
 
-type alias NearbyGroup msg =
-    { above : Maybe ( Bool, Html msg )
-    , below : Maybe ( Bool, Html msg )
-    , right : Maybe ( Bool, Html msg )
-    , left : Maybe ( Bool, Html msg )
-    , infront : Maybe ( Bool, Html msg )
-    , behind : Maybe ( Bool, Html msg )
-    }
-
-
 type alias Gathered msg =
     { node : NodeName
     , attributes : List (Html.Attribute msg)
@@ -336,12 +326,6 @@ renderNode { alignment, attributes, node, width, height } children styles contex
 
                 _ ->
                     case alignment of
-                        -- Unaligned ->
-                        --     html
-                        -- Aligned (Just Left) _ ->
-                        --     VirtualDom.node "alignLeft"
-                        --         [ Html.Attributes.class "se el container align-container-left content-center-y" ]
-                        --         [ html ]
                         Aligned (Just Right) _ ->
                             VirtualDom.node "alignRight"
                                 [ Html.Attributes.class "se el container align-container-right content-center-y" ]
@@ -362,18 +346,6 @@ renderNode { alignment, attributes, node, width, height } children styles contex
 
                 _ ->
                     case alignment of
-                        -- Unaligned ->
-                        --     VirtualDom.node "alignTop"
-                        --         [ Html.Attributes.class "se el container align-container-top" ]
-                        --         [ html ]
-                        -- Aligned _ Nothing ->
-                        --     VirtualDom.node "alignTop"
-                        --         [ Html.Attributes.class "se el container align-container-top" ]
-                        --         [ html ]
-                        -- Aligned _ (Just Top) ->
-                        --     VirtualDom.node "alignTop"
-                        --         [ Html.Attributes.class "se el container align-container-top" ]
-                        --         [ html ]
                         Aligned _ (Just CenterY) ->
                             VirtualDom.node "centerY"
                                 [ Html.Attributes.class "se el container align-container-center-y" ]
@@ -408,26 +380,26 @@ alignXName : HAlign -> String
 alignXName align =
     case align of
         Left ->
-            "aligned-horizontally self-left"
+            "aligned-horizontally " ++ classes.alignLeft
 
         Right ->
-            "aligned-horizontally self-right"
+            "aligned-horizontally " ++ classes.alignRight
 
         CenterX ->
-            "aligned-horizontally self-center-x"
+            "aligned-horizontally " ++ classes.alignCenterX
 
 
 alignYName : VAlign -> String
 alignYName align =
     case align of
         Top ->
-            "aligned-vertically self-top"
+            "aligned-vertically " ++ classes.alignTop
 
         Bottom ->
-            "aligned-vertically self-bottom"
+            "aligned-vertically " ++ classes.alignBottom
 
         CenterY ->
-            "aligned-vertically self-center-y"
+            "aligned-vertically " ++ classes.alignCenterY
 
 
 noAreas : List (Attribute aligned msg) -> List (Attribute aligned msg)
@@ -710,14 +682,14 @@ gatherAttributes attr gathered =
                     Content ->
                         { gathered
                             | width = Just width
-                            , attributes = className "width-content" :: gathered.attributes
+                            , attributes = className (.widthContent Internal.Style.classes) :: gathered.attributes
                         }
 
                     Fill portion ->
                         if portion == 1 then
                             { gathered
                                 | width = Just width
-                                , attributes = className "width-fill" :: gathered.attributes
+                                , attributes = className (.widthFill Internal.Style.classes) :: gathered.attributes
                             }
                         else
                             { gathered
@@ -784,14 +756,14 @@ gatherAttributes attr gathered =
                     Content ->
                         { gathered
                             | height = Just height
-                            , attributes = className "height-content" :: gathered.attributes
+                            , attributes = className (.heightContent Internal.Style.classes) :: gathered.attributes
                         }
 
                     Fill portion ->
                         if portion == 1 then
                             { gathered
                                 | height = Just height
-                                , attributes = className "height-fill" :: gathered.attributes
+                                , attributes = className (.heightFill Internal.Style.classes) :: gathered.attributes
                             }
                         else
                             { gathered
@@ -2173,32 +2145,53 @@ toStyleSheetString options stylesheet =
 
                         yPx =
                             toString y ++ "px"
+
+                        row =
+                            Internal.Style.dot (.row Internal.Style.classes)
+
+                        column =
+                            Internal.Style.dot (.column Internal.Style.classes)
+
+                        page =
+                            Internal.Style.dot (.page Internal.Style.classes)
+
+                        paragraph =
+                            Internal.Style.dot (.paragraph Internal.Style.classes)
+
+                        left =
+                            Internal.Style.dot (.alignLeft Internal.Style.classes)
+
+                        right =
+                            Internal.Style.dot (.alignRight Internal.Style.classes)
+
+                        any =
+                            Internal.Style.dot (.any Internal.Style.classes)
                     in
                     List.foldl (++)
                         ""
-                        [ renderStyle force maybePseudo (class ++ ".row > .se + .se") [ Property "margin-left" xPx ]
-                        , renderStyle force maybePseudo (class ++ ".column > .se + .se") [ Property "margin-top" yPx ]
-                        , renderStyle force maybePseudo (class ++ ".page > .se + .se") [ Property "margin-top" yPx ]
-                        , renderStyle force maybePseudo (class ++ ".page > .self-left") [ Property "margin-right" xPx ]
-                        , renderStyle force maybePseudo (class ++ ".page > .self-right") [ Property "margin-left" xPx ]
+                        [ renderStyle force maybePseudo (class ++ row ++ " > " ++ any ++ " + " ++ any) [ Property "margin-left" xPx ]
+                        , renderStyle force maybePseudo (class ++ column ++ " > " ++ any ++ " + " ++ any) [ Property "margin-top" yPx ]
+                        , renderStyle force maybePseudo (class ++ page ++ " > " ++ any ++ " + " ++ any) [ Property "margin-top" yPx ]
+                        , renderStyle force maybePseudo (class ++ page ++ " > " ++ left) [ Property "margin-right" xPx ]
+                        , renderStyle force maybePseudo (class ++ page ++ " > " ++ right) [ Property "margin-left" xPx ]
                         , renderStyle force
                             maybePseudo
-                            (class ++ ".paragraph")
+                            (class ++ paragraph)
                             [ Property "line-height" ("calc(1em + " ++ toString y ++ "px)")
                             ]
                         , renderStyle force
                             maybePseudo
-                            (class ++ ".paragraph > .self-left")
+                            (class ++ paragraph ++ " > " ++ left)
                             [ Property "margin-right" xPx
                             ]
                         , renderStyle force
                             maybePseudo
-                            (class ++ ".paragraph > .self-right")
+                            (class ++ paragraph ++ " > " ++ right)
                             [ Property "margin-left" xPx
                             ]
                         , renderStyle force
                             maybePseudo
-                            (class ++ ".paragraph::after")
+                            (class ++ paragraph ++ "::after")
                             [ Property "content" "''"
                             , Property "display" "block"
                             , Property "height" "0"
@@ -2207,7 +2200,7 @@ toStyleSheetString options stylesheet =
                             ]
                         , renderStyle force
                             maybePseudo
-                            (class ++ ".paragraph::before")
+                            (class ++ paragraph ++ "::before")
                             [ Property "content" "''"
                             , Property "display" "block"
                             , Property "height" "0"
@@ -2623,96 +2616,6 @@ formatColorClass color =
         ++ floatClass alpha
 
 
-
--- toStyleSheetVirtualCss : List Style -> ()
--- toStyleSheetVirtualCss stylesheet =
---     case stylesheet of
---         [] ->
---             ()
---         styles ->
---             let
---                 renderProps (Property key val) existing =
---                     existing ++ "\n  " ++ key ++ ": " ++ val ++ ";"
---                 renderStyle selector props =
---                     selector ++ "{" ++ List.foldl renderProps "" props ++ "\n}"
---                 _ =
---                     VirtualCss.clear ()
---                 combine style cache =
---                     case style of
---                         Style selector props ->
---                             let
---                                 _ =
---                                     VirtualCss.insert (renderStyle selector props) 0
---                             in
---                             cache
---                         Single class prop val ->
---                             if Set.member class cache then
---                                 cache
---                             else
---                                 let
---                                     _ =
---                                         VirtualCss.insert (class ++ "{" ++ prop ++ ":" ++ val ++ "}") 0
---                                 in
---                                 Set.insert class cache
---                         Colored class prop color ->
---                             if Set.member class cache then
---                                 cache
---                             else
---                                 let
---                                     _ =
---                                         VirtualCss.insert (class ++ "{" ++ prop ++ ":" ++ formatColor color ++ "}") 0
---                                 in
---                                 Set.insert class cache
---                         SpacingStyle x y ->
---                             let
---                                 class =
---                                     ".spacing-" ++ toString x ++ "-" ++ toString y
---                             in
---                             if Set.member class cache then
---                                 cache
---                             else
---                                 -- TODO!
---                                 cache
---                         -- ( rendered ++ spacingClasses class x y
---                         -- , Set.insert class cache
---                         -- )
---                         PaddingStyle top right bottom left ->
---                             let
---                                 class =
---                                     ".pad-"
---                                         ++ toString top
---                                         ++ "-"
---                                         ++ toString right
---                                         ++ "-"
---                                         ++ toString bottom
---                                         ++ "-"
---                                         ++ toString left
---                             in
---                             if Set.member class cache then
---                                 cache
---                             else
---                                 -- TODO!
---                                 cache
---                         LineHeight _ ->
---                             cache
---                         GridTemplateStyle _ ->
---                             cache
---                         GridPosition _ ->
---                             cache
---                         FontFamily _ _ ->
---                             cache
---                         FontSize _ ->
---                             cache
---                         PseudoSelector _ _ ->
---                             cache
---                 -- ( rendered ++ paddingClasses class top right bottom left
---                 -- , Set.insert class cache
---                 -- )
---             in
---             List.foldl combine Set.empty styles
---                 |> always ()
-
-
 psuedoClassName : PseudoClass -> String
 psuedoClassName class =
     case class of
@@ -2908,22 +2811,22 @@ contextClasses : LayoutContext -> Attribute aligned msg
 contextClasses context =
     case context of
         AsRow ->
-            htmlClass "se row"
+            htmlClass (classes.any ++ " " ++ classes.row)
 
         AsColumn ->
-            htmlClass "se column"
+            htmlClass (classes.any ++ " " ++ classes.column)
 
         AsEl ->
-            htmlClass "se el"
+            htmlClass (classes.any ++ " " ++ classes.single)
 
         AsGrid ->
-            htmlClass "se grid"
+            htmlClass (classes.any ++ " " ++ classes.grid)
 
         AsParagraph ->
-            htmlClass "se paragraph"
+            htmlClass (classes.any ++ " " ++ classes.paragraph)
 
         AsTextColumn ->
-            htmlClass "se page"
+            htmlClass (classes.any ++ " " ++ classes.page)
 
 
 

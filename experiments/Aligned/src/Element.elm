@@ -373,8 +373,8 @@ layoutWith : { options : List Option } -> List (Attribute msg) -> Element msg ->
 layoutWith { options } attrs child =
     Internal.renderRoot options
         (Internal.htmlClass "style-elements se el"
-            :: Internal.Class "x-content-align" "content-center-x"
-            :: Internal.Class "y-content-align" "content-center-y"
+            :: Internal.Class "x-content-align" classes.contentCenterX
+            :: Internal.Class "y-content-align" classes.contentCenterY
             :: (Internal.rootStyle ++ attrs)
         )
         child
@@ -448,39 +448,6 @@ This is useful for when you're targeting a platform that has no mouse, such as m
 forceHover : Option
 forceHover =
     Internal.HoverOption Internal.ForceHover
-
-
-
--- {-| A helper function. This:
---     when (x == 5) (text "yay, it's 5")
--- is sugar for
---     if (x == 5) then
---         text "yay, it's 5"
---     else
---         empty
--- -}
--- when : Bool -> Element msg -> Element msg
--- when bool elm =
---     if bool then
---         elm
---     else
---         empty
--- {-| Another helper function that defaults to `empty`
---     whenJust (Just ("Hi!")) text
--- is sugar for
---     case maybe of
---         Nothing ->
---             empty
---         Just x ->
---             text x
--- -}
--- whenJust : Maybe a -> (a -> Element msg) -> Element msg
--- whenJust maybe view =
---     case maybe of
---         Nothing ->
---             empty
---         Just thing ->
---             view thing
 
 
 {-| Nothing to see here!
@@ -1165,7 +1132,7 @@ alignRight =
 {-| -}
 spaceEvenly : Attribute msg
 spaceEvenly =
-    Internal.Class "x-align" "space-evenly"
+    Internal.Class "x-align" (.spaceEvenly Internal.Style.classes)
 
 
 {-| -}
