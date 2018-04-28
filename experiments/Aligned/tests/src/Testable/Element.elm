@@ -426,7 +426,9 @@ centerX =
                 if List.member found.location [ Testable.IsNearby Testable.OnRight, Testable.IsNearby Testable.OnLeft ] then
                     Expect.true "centerX doesn't apply to elements that are onLeft or onRight" True
                 else if List.length found.siblings == 0 then
-                    Expect.equal selfCenter parentCenter
+                    Expect.equal
+                        (round selfCenter)
+                        (round parentCenter)
                 else
                     case found.location of
                         Testable.InRow ->
@@ -518,7 +520,9 @@ alignTop =
                 if List.member found.location [ Testable.IsNearby Testable.Above, Testable.IsNearby Testable.Below ] then
                     Expect.true "alignTop doesn't apply to elements that are above or below" True
                 else if List.length found.siblings == 0 then
-                    Expect.equal (round found.self.bbox.top) (round (found.parent.bbox.top + found.parent.bbox.padding.top))
+                    Expect.equal
+                        (round found.self.bbox.top)
+                        (round (found.parent.bbox.top + found.parent.bbox.padding.top))
                 else
                     case found.location of
                         Testable.InColumn ->
@@ -607,7 +611,9 @@ centerY =
                 if List.member found.location [ Testable.IsNearby Testable.Above, Testable.IsNearby Testable.Below ] then
                     Expect.true "centerY doesn't apply to elements that are above or below" True
                 else if List.length found.siblings == 0 then
-                    Expect.equal selfCenter parentCenter
+                    Expect.equal
+                        (round selfCenter)
+                        (round parentCenter)
                 else
                     case found.location of
                         Testable.InColumn ->
