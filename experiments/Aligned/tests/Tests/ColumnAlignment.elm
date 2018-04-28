@@ -133,19 +133,26 @@ view =
                 ]
             ]
         , el [ width fill ] (text "Column in a Row")
-        , row [ width fill, spacing 20, label "row", spacing 20 ]
+        , row [ width fill, spacing 20, label "row" ]
             [ box [ alignLeft, alignTop, label "box" ]
             , column
                 [ alignLeft
                 , alignTop
                 , spacing 20
                 , label "column"
+                , Background.color lightGrey
                 ]
                 [ box []
                 , box []
                 , box []
                 ]
-            , column [ spacing 20, width (px 100), alignLeft, alignTop ]
+            , column
+                [ spacing 20
+                , width (px 100)
+                , alignLeft
+                , alignTop
+                , Background.color lightGrey
+                ]
                 [ box []
                 , box []
                 , box []
