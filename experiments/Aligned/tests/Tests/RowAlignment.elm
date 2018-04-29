@@ -42,6 +42,13 @@ view =
         [ el [] (text "Alignment Within a Row")
         , rowContainer [ label "single child" ]
             [ box [] ]
+        , rowContainer [ label "single child" ]
+            [ box [ centerX ] ]
+        , rowContainer [ label "single child" ]
+            [ box [ alignRight ] ]
+
+        -- , rowContainer [ label "single child" ]
+        --     [ box [] ]
         , rowContainer []
             [ box []
             , box []
