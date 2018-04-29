@@ -234,14 +234,14 @@ build rowCoord colCoord spacingX spacingY positioned =
                 Internal.asRow
                 Nothing
                 attributes
-                (Internal.Unkeyed <| Internal.rowEdgeFillers positioned.child)
+                (Internal.Unkeyed positioned.child)
 
         Column ->
             Internal.element Internal.noStyleSheet
                 Internal.asColumn
                 Nothing
                 attributes
-                (Internal.Unkeyed <| Internal.columnEdgeFillers positioned.child)
+                (Internal.Unkeyed positioned.child)
 
 
 getWidth : List (Internal.Attribute align msg) -> Maybe Internal.Length

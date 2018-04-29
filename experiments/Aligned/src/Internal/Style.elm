@@ -140,8 +140,6 @@ classes =
     , paragraph = "paragraph"
     , text = "text"
     , grid = "grid"
-    , spacer = "spacer"
-    , teleportingSpacer = "teleporting-spacer"
 
     -- widhts/heights
     , widthFill = "width-fill"
@@ -241,8 +239,6 @@ unicode =
     , paragraph = "p"
     , text = "text"
     , grid = "▦"
-    , spacer = "spacer"
-    , teleportingSpacer = "teleporting-spacer"
 
     -- widhts/heights
     , widthFill = "↔"
@@ -340,8 +336,6 @@ single =
     , paragraph = "p"
     , text = "t"
     , grid = "g"
-    , spacer = "y"
-    , teleportingSpacer = "x"
 
     -- widhts/heights
     , widthFill = "↔"
@@ -740,14 +734,6 @@ rules =
                     [ Prop "outline" "2px dashed black"
                     ]
                 ]
-            , Class (dot classes.spacer)
-                [ Prop "margin" "0 !important"
-                , Prop "pointer-events" "none"
-                ]
-            , Class (dot classes.teleportingSpacer)
-                [ Prop "margin" "0 !important"
-                , Prop "pointer-events" "none"
-                ]
             , Class (dot classes.any)
                 [ Prop "position" "relative"
                 , Prop "border" "none"
@@ -1076,9 +1062,6 @@ rules =
                     -- Must be below the alignment rules or else it interferes
                     , Descriptor (dot classes.spaceEvenly)
                         [ Prop "justify-content" "space-between"
-                        , Child (dot classes.spacer)
-                            [ Prop "display" "none"
-                            ]
                         ]
                     ]
                 , Descriptor (dot classes.column)
@@ -1149,19 +1132,6 @@ rules =
                         -- Bottom alignment always overrides center alignment
                         [ Prop "flex-grow" "0"
                         ]
-                    , Child ".se.self-center-y:first-child ~ .teleporting-spacer"
-                        [ Prop "flex-grow" "1"
-                        , Prop "order" "-1"
-                        ]
-
-                    -- , Child ".se.nearby + .se.self-center-y ~ .teleporting-spacer"
-                    --     [ Prop "flex-grow" "1"
-                    --     , Prop "order" "-1"
-                    --     ]
-                    , Child ".stylesheet + .se.self-center-y ~ .teleporting-spacer"
-                        [ Prop "flex-grow" "1"
-                        , Prop "order" "-1"
-                        ]
                     , describeAlignment <|
                         \alignment ->
                             case alignment of
@@ -1203,9 +1173,6 @@ rules =
                         ]
                     , Descriptor (dot classes.spaceEvenly)
                         [ Prop "justify-content" "space-between"
-                        , Child (dot classes.spacer)
-                            [ Prop "display" "none"
-                            ]
                         ]
                     ]
                 , Descriptor (dot classes.grid)

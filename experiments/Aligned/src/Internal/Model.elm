@@ -52,7 +52,6 @@ type VAlign
 type Style
     = Style String (List Property)
       --       class  prop   val
-    | LineHeight Float
     | FontFamily String (List Font)
     | FontSize Int
       -- classname, prop, value
@@ -165,11 +164,8 @@ type Length
     = Px Int
     | Content
     | Fill Int
-    | FillBetween
-        { portion : Int
-        , min : Maybe Int
-        , max : Maybe Int
-        }
+    | Min Int Length
+    | Max Int Length
 
 
 type Axis
@@ -600,9 +596,6 @@ gatherAttributes attr gathered =
                 GridPosition pos ->
                     GridPosition pos
 
-                LineHeight i ->
-                    LineHeight i
-
                 FontFamily name fam ->
                     FontFamily name fam
 
@@ -679,149 +672,122 @@ gatherAttributes attr gathered =
 
         Width width ->
             if gathered.width == Nothing then
-                case width of
-                    Px px ->
-                        { gathered
-                            | width = Just width
-                            , attributes = className ("width-exact width-px-" ++ toString px) :: gathered.attributes
-                            , styles = Single (styleName <| "width-px-" ++ toString px) "width" (toString px ++ "px") :: gathered.styles
-                        }
+                let
+                    widthHelper w gath =
+                        case w of
+                            Px px ->
+                                { gath
+                                    | attributes = className ("width-exact width-px-" ++ toString px) :: gath.attributes
+                                    , styles = Single (styleName <| "width-px-" ++ toString px) "width" (toString px ++ "px") :: gath.styles
+                                }
 
-                    Content ->
-                        { gathered
-                            | width = Just width
-                            , attributes = className (.widthContent Internal.Style.classes) :: gathered.attributes
-                        }
+                            Content ->
+                                { gath
+                                    | attributes = className (.widthContent Internal.Style.classes) :: gath.attributes
+                                }
 
-                    Fill portion ->
-                        if portion == 1 then
-                            { gathered
-                                | width = Just width
-                                , attributes = className (.widthFill Internal.Style.classes) :: gathered.attributes
-                            }
-                        else
-                            { gathered
-                                | width = Just width
-                                , attributes = className ("width-fill-portion width-fill-" ++ toString portion) :: gathered.attributes
-                                , styles =
-                                    Single (".se.row > " ++ (styleName <| "width-fill-" ++ toString portion)) "flex-grow" (toString (portion * 100000)) :: gathered.styles
-                            }
+                            Fill portion ->
+                                if portion == 1 then
+                                    { gath
+                                        | attributes = className (.widthFill Internal.Style.classes) :: gath.attributes
+                                    }
+                                else
+                                    { gath
+                                        | width = Just width
+                                        , attributes = className ("width-fill-portion width-fill-" ++ toString portion) :: gath.attributes
+                                        , styles =
+                                            Single (".se.row > " ++ (styleName <| "width-fill-" ++ toString portion)) "flex-grow" (toString (portion * 100000)) :: gath.styles
+                                    }
 
-                    FillBetween fill ->
-                        let
-                            minimum =
-                                Maybe.map renderMin fill.min
+                            Min minSize len ->
+                                let
+                                    ( cls, style ) =
+                                        ( "min-width-" ++ intToString minSize, Single (".min-width-" ++ intToString minSize) "min-width" (intToString minSize ++ "px") )
 
-                            maximum =
-                                Maybe.map renderMax fill.max
+                                    newGathered =
+                                        { gath
+                                            | attributes = className cls :: gath.attributes
+                                            , styles =
+                                                style :: gath.styles
+                                        }
+                                in
+                                widthHelper len newGathered
 
-                            renderMin px =
-                                ( "min-width-" ++ intToString px, Single (".min-width-" ++ intToString px) "min-width" (intToString px ++ "px") )
+                            Max maxSize len ->
+                                let
+                                    ( cls, style ) =
+                                        ( "max-width-" ++ intToString maxSize, Single (".max-width-" ++ intToString maxSize) "max-width" (intToString maxSize ++ "px") )
 
-                            renderMax px =
-                                ( "max-width-" ++ intToString px, Single (".max-width-" ++ intToString px) "max-width" (intToString px ++ "px") )
-
-                            base =
-                                Just
-                                    ( "width-fill-between width-fill-" ++ toString fill.portion
-                                    , Single (".se.row > " ++ (styleName <| "width-fill-" ++ toString fill.portion)) "flex-grow" (toString (fill.portion * 100000))
-                                    )
-
-                            classes =
-                                String.join " " <|
-                                    List.filterMap (Maybe.map Tuple.first)
-                                        [ minimum
-                                        , maximum
-                                        , base
-                                        ]
-
-                            styles =
-                                List.filterMap (Maybe.map Tuple.second)
-                                    [ minimum
-                                    , maximum
-                                    , base
-                                    ]
-                        in
-                        { gathered
-                            | width = Just width
-                            , attributes = className classes :: gathered.attributes
-                            , styles =
-                                styles ++ gathered.styles
-                        }
+                                    newGathered =
+                                        { gath
+                                            | attributes = className cls :: gath.attributes
+                                            , styles =
+                                                style :: gath.styles
+                                        }
+                                in
+                                widthHelper len newGathered
+                in
+                widthHelper width { gathered | width = Just width }
             else
                 gathered
 
         Height height ->
             if gathered.height == Nothing then
-                case height of
-                    Px px ->
-                        { gathered
-                            | height = Just height
-                            , attributes = className ("height-px-" ++ toString px) :: gathered.attributes
-                            , styles = Single (styleName <| "height-px-" ++ toString px) "height" (toString px ++ "px") :: gathered.styles
-                        }
+                let
+                    heightHelper h gath =
+                        case h of
+                            Px px ->
+                                { gath
+                                    | attributes = className ("height-px-" ++ toString px) :: gath.attributes
+                                    , styles = Single (styleName <| "height-px-" ++ toString px) "height" (toString px ++ "px") :: gath.styles
+                                }
 
-                    Content ->
-                        { gathered
-                            | height = Just height
-                            , attributes = className (.heightContent Internal.Style.classes) :: gathered.attributes
-                        }
+                            Content ->
+                                { gath
+                                    | attributes = className (.heightContent Internal.Style.classes) :: gath.attributes
+                                }
 
-                    Fill portion ->
-                        if portion == 1 then
-                            { gathered
-                                | height = Just height
-                                , attributes = className (.heightFill Internal.Style.classes) :: gathered.attributes
-                            }
-                        else
-                            { gathered
-                                | height = Just height
-                                , attributes = className ("height-fill-portion height-fill-" ++ toString portion) :: gathered.attributes
-                                , styles =
-                                    Single (".se.column > " ++ (styleName <| "height-fill-" ++ toString portion)) "flex-grow" (toString (portion * 100000)) :: gathered.styles
-                            }
+                            Fill portion ->
+                                if portion == 1 then
+                                    { gath
+                                        | attributes = className (.heightFill Internal.Style.classes) :: gath.attributes
+                                    }
+                                else
+                                    { gath
+                                        | attributes = className ("height-fill-portion height-fill-" ++ toString portion) :: gath.attributes
+                                        , styles =
+                                            Single (".se.column > " ++ (styleName <| "height-fill-" ++ toString portion)) "flex-grow" (toString (portion * 100000)) :: gath.styles
+                                    }
 
-                    FillBetween fill ->
-                        let
-                            minimum =
-                                Maybe.map renderMin fill.min
+                            Min minSize len ->
+                                let
+                                    ( cls, style ) =
+                                        ( "min-height-" ++ intToString minSize, Single (".min-height-" ++ intToString minSize) "min-height" (intToString minSize ++ "px") )
 
-                            maximum =
-                                Maybe.map renderMax fill.max
+                                    newGathered =
+                                        { gath
+                                            | attributes = className cls :: gath.attributes
+                                            , styles =
+                                                style :: gath.styles
+                                        }
+                                in
+                                heightHelper len newGathered
 
-                            renderMin px =
-                                ( "min-height-" ++ intToString px, Single (".min-height-" ++ intToString px) "min-height" (intToString px ++ "px") )
+                            Max maxSize len ->
+                                let
+                                    ( cls, style ) =
+                                        ( "max-height-" ++ intToString maxSize, Single (".max-height-" ++ intToString maxSize) "max-height" (intToString maxSize ++ "px") )
 
-                            renderMax px =
-                                ( "max-height-" ++ intToString px, Single (".max-height-" ++ intToString px) "max-height" (intToString px ++ "px") )
-
-                            base =
-                                Just
-                                    ( "height-fill-between height-fill-" ++ toString fill.portion
-                                    , Single (".se.column > " ++ (styleName <| "height-fill-" ++ toString fill.portion)) "flex-grow" (toString (fill.portion * 100000))
-                                    )
-
-                            classes =
-                                String.join " " <|
-                                    List.filterMap (Maybe.map Tuple.first)
-                                        [ minimum
-                                        , maximum
-                                        , base
-                                        ]
-
-                            styles =
-                                List.filterMap (Maybe.map Tuple.second)
-                                    [ minimum
-                                    , maximum
-                                    , base
-                                    ]
-                        in
-                        { gathered
-                            | height = Just height
-                            , attributes = className classes :: gathered.attributes
-                            , styles =
-                                styles ++ gathered.styles
-                        }
+                                    newGathered =
+                                        { gath
+                                            | attributes = className cls :: gath.attributes
+                                            , styles =
+                                                style :: gath.styles
+                                        }
+                                in
+                                heightHelper len newGathered
+                in
+                heightHelper height { gathered | height = Just height }
             else
                 gathered
 
@@ -1480,113 +1446,6 @@ asElement embedMode children context rendered =
                 )
 
 
-
--- rowEdgeFillers : List (Element msg) -> List (Element msg)
--- rowEdgeFillers children =
---     unstyled
---         (VirtualDom.node "alignLeft"
---             [ Html.Attributes.class "se container align-container-left content-center-y spacer unfocusable" ]
---             []
---         )
---         :: children
---         ++ [ unstyled
---                 (VirtualDom.node "alignRight"
---                     [ Html.Attributes.class "se container align-container-right content-center-y spacer unfocusable" ]
---                     []
---                 )
---            ]
--- keyedRowEdgeFillers : List ( String, Element msg ) -> List ( String, Element msg )
--- keyedRowEdgeFillers children =
---     ( "left-filler-node"
---     , unstyled
---         (VirtualDom.node "alignLeft"
---             [ Html.Attributes.class "se container align-container-left content-center-y spacer unfocusable" ]
---             []
---         )
---     )
---         :: children
---         ++ [ ( "right-filler-node"
---              , unstyled
---                 (VirtualDom.node "alignRight"
---                     [ Html.Attributes.class "se container align-container-right content-center-y spacer unfocusable" ]
---                     []
---                 )
---              )
---            ]
-
-
-rowEdgeFillers : List (Element msg) -> List (Element msg)
-rowEdgeFillers children =
-    children
-        ++ [ unstyled
-                (VirtualDom.node "div"
-                    [ Html.Attributes.class "se container align-container-left teleporting-spacer unfocusable" ]
-                    []
-                )
-           , unstyled
-                (VirtualDom.node "alignRight"
-                    [ Html.Attributes.class "se container align-container-right spacer unfocusable" ]
-                    []
-                )
-           ]
-
-
-keyedRowEdgeFillers : List ( String, Element msg ) -> List ( String, Element msg )
-keyedRowEdgeFillers children =
-    children
-        ++ [ ( "teleporting-left-filler-node"
-             , unstyled
-                (VirtualDom.node "div"
-                    [ Html.Attributes.class "se container align-container-left teleporting-spacer" ]
-                    []
-                )
-             )
-           , ( "right-filler-node"
-             , unstyled
-                (VirtualDom.node "alignRight"
-                    [ Html.Attributes.class "se container align-container-right spacer" ]
-                    []
-                )
-             )
-           ]
-
-
-columnEdgeFillers : List (Element msg) -> List (Element msg)
-columnEdgeFillers children =
-    children
-        ++ [ unstyled
-                (VirtualDom.node "div"
-                    [ Html.Attributes.class "se container align-container-top teleporting-spacer unfocusable" ]
-                    []
-                )
-           , unstyled
-                (VirtualDom.node "alignBottom"
-                    [ Html.Attributes.class "se container align-container-bottom spacer unfocusable" ]
-                    []
-                )
-           ]
-
-
-keyedColumnEdgeFillers : List ( String, Element msg ) -> List ( String, Element msg )
-keyedColumnEdgeFillers children =
-    children
-        ++ [ ( "teleporting-top-filler-node"
-             , unstyled
-                (VirtualDom.node "div"
-                    [ Html.Attributes.class "se container align-container-top teleporting-spacer" ]
-                    []
-                )
-             )
-           , ( "bottom-filler-node"
-             , unstyled
-                (VirtualDom.node "alignBottom"
-                    [ Html.Attributes.class "se container align-container-bottom spacer" ]
-                    []
-                )
-             )
-           ]
-
-
 {-| TODO:
 
 This doesn't reduce equivalent attributes completely.
@@ -2122,13 +1981,6 @@ toStyleSheetString options stylesheet =
                         [ Property "font-family" (renderFont typefaces)
                         ]
 
-                LineHeight i ->
-                    renderStyle force
-                        maybePseudo
-                        (".line-height-" ++ floatClass i)
-                        [ Property "line-height" (toString i)
-                        ]
-
                 Single class prop val ->
                     renderStyle force
                         maybePseudo
@@ -2185,6 +2037,11 @@ toStyleSheetString options stylesheet =
                         , renderStyle force
                             maybePseudo
                             (class ++ paragraph)
+                            [ Property "line-height" ("calc(1em + " ++ toString y ++ "px)")
+                            ]
+                        , renderStyle force
+                            maybePseudo
+                            ("textarea" ++ class)
                             [ Property "line-height" ("calc(1em + " ++ toString y ++ "px)")
                             ]
                         , renderStyle force
@@ -2263,31 +2120,46 @@ toStyleSheetString options stylesheet =
                             toGridLength (Tuple.first template.spacing)
 
                         toGridLength x =
+                            toGridLengthHelper Nothing Nothing x
+
+                        toGridLengthHelper minimum maximum x =
                             case x of
                                 Px px ->
                                     toString px ++ "px"
 
                                 Content ->
-                                    -- "1fr"
-                                    -- "auto"
-                                    "max-content"
+                                    case ( minimum, maximum ) of
+                                        ( Nothing, Nothing ) ->
+                                            "max-content"
+
+                                        ( Just minSize, Nothing ) ->
+                                            "minmax(" ++ intToString minSize ++ "px, " ++ "max-content)"
+
+                                        ( Nothing, Just maxSize ) ->
+                                            "minmax(max-content, " ++ intToString maxSize ++ "px)"
+
+                                        ( Just minSize, Just maxSize ) ->
+                                            "minmax(" ++ intToString minSize ++ "px, " ++ intToString maxSize ++ "px)"
 
                                 Fill i ->
-                                    intToString i ++ "fr"
-
-                                FillBetween fill ->
-                                    case ( fill.min, fill.max ) of
+                                    case ( minimum, maximum ) of
                                         ( Nothing, Nothing ) ->
-                                            intToString fill.portion ++ "fr"
+                                            intToString i ++ "fr"
 
-                                        ( Just minimum, Nothing ) ->
-                                            "minmax(" ++ intToString minimum ++ "px, " ++ intToString fill.portion ++ "fr)"
+                                        ( Just minSize, Nothing ) ->
+                                            "minmax(" ++ intToString minSize ++ "px, " ++ intToString i ++ "fr" ++ "fr)"
 
-                                        ( Nothing, Just maximum ) ->
-                                            "minmax(" ++ intToString fill.portion ++ "fr, " ++ intToString maximum ++ "px)"
+                                        ( Nothing, Just maxSize ) ->
+                                            "minmax(max-content, " ++ intToString maxSize ++ "px)"
 
-                                        ( Just minimum, Just maximum ) ->
-                                            "minmax(" ++ intToString minimum ++ "px, " ++ intToString maximum ++ "px)"
+                                        ( Just minSize, Just maxSize ) ->
+                                            "minmax(" ++ intToString minSize ++ "px, " ++ intToString maxSize ++ "px)"
+
+                                Min m len ->
+                                    toGridLengthHelper (Just m) maximum len
+
+                                Max m len ->
+                                    toGridLengthHelper minimum (Just m) len
 
                         msColumns =
                             template.columns
@@ -2458,25 +2330,11 @@ lengthClassName x =
         Fill i ->
             intToString i ++ "fr"
 
-        FillBetween bounds ->
-            let
-                renderedMin =
-                    case bounds.min of
-                        Nothing ->
-                            ""
+        Min min len ->
+            "min" ++ toString min ++ lengthClassName len
 
-                        Just m ->
-                            "-" ++ intToString m
-
-                renderedMax =
-                    case bounds.max of
-                        Nothing ->
-                            ""
-
-                        Just m ->
-                            "-" ++ intToString m
-            in
-            intToString bounds.portion ++ "fr" ++ renderedMin ++ renderedMax
+        Max max len ->
+            "max" ++ toString max ++ lengthClassName len
 
 
 formatDropShadow : { d | blur : a, color : Color, offset : ( b, c ) } -> String
@@ -2660,9 +2518,6 @@ styleKey style =
         Single _ prop _ ->
             prop
 
-        LineHeight _ ->
-            "lineheight"
-
         Colored _ prop _ ->
             prop
 
@@ -2701,9 +2556,6 @@ getStyleName style =
 
         Style class _ ->
             class
-
-        LineHeight i ->
-            "line-height-" ++ floatClass i
 
         FontFamily name _ ->
             name

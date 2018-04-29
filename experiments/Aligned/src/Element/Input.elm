@@ -569,25 +569,23 @@ textHelper textInput attrs textOptions =
                 Just checkMsg ->
                     [ Internal.Attr (Html.Events.onInput checkMsg) ]
 
-        lineHeight =
-            if textInput.type_ == TextArea then
-                attrs
-                    |> List.filterMap
-                        (\x ->
-                            case x of
-                                Internal.StyleClass (Internal.LineHeight x) ->
-                                    Just x
-
-                                _ ->
-                                    Nothing
-                        )
-                    |> List.reverse
-                    |> List.head
-                    |> Maybe.withDefault 1.5
-                    |> (Internal.StyleClass << Internal.LineHeight)
-            else
-                Internal.NoAttribute
-
+        -- lineHeight =
+        --     if textInput.type_ == TextArea then
+        --         attrs
+        --             |> List.filterMap
+        --                 (\x ->
+        --                     case x of
+        --                         Internal.StyleClass (Internal.LineHeight x) ->
+        --                             Just x
+        --                         _ ->
+        --                             Nothing
+        --                 )
+        --             |> List.reverse
+        --             |> List.head
+        --             |> Maybe.withDefault 1.5
+        --             |> (Internal.StyleClass << Internal.LineHeight)
+        --     else
+        --         Internal.NoAttribute
         noNearbys =
             List.filter (not << forNearby) attributes
 
@@ -619,52 +617,55 @@ textHelper textInput attrs textOptions =
 
                 TextArea ->
                     let
-                        ( maybePadding, heightContent, maybeLineHeight, adjustedAttributes ) =
+                        ( maybePadding, heightContent, maybeSpacing, adjustedAttributes ) =
                             attributes
                                 |> List.foldr
-                                    (\attr ( pad, height, lh, newAttrs ) ->
+                                    (\attr ( pad, height, spaced, newAttrs ) ->
                                         case attr of
                                             Internal.Describe _ ->
                                                 -- Skip
-                                                ( pad, height, lh, newAttrs )
+                                                ( pad, height, spaced, newAttrs )
 
                                             Internal.Height val ->
                                                 case height of
                                                     Nothing ->
                                                         case val of
                                                             Internal.Content ->
-                                                                ( pad, Just val, lh, Internal.class classes.overflowHidden :: newAttrs )
+                                                                ( pad, Just val, spaced, Internal.class classes.overflowHidden :: newAttrs )
 
                                                             _ ->
-                                                                ( pad, Just val, lh, newAttrs )
+                                                                ( pad, Just val, spaced, newAttrs )
 
                                                     Just i ->
-                                                        ( pad, height, lh, newAttrs )
-
-                                            Internal.StyleClass (Internal.LineHeight lineHeight) ->
-                                                ( pad, height, lh, newAttrs )
+                                                        ( pad, height, spaced, newAttrs )
 
                                             Internal.StyleClass (Internal.PaddingStyle t r b l) ->
                                                 case pad of
                                                     Nothing ->
-                                                        ( Just ( t, r, b, l ), height, lh, attr :: newAttrs )
+                                                        ( Just ( t, r, b, l ), height, spaced, attr :: newAttrs )
 
                                                     _ ->
-                                                        ( pad, height, lh, newAttrs )
+                                                        ( pad, height, spaced, newAttrs )
+
+                                            Internal.StyleClass (Internal.SpacingStyle x y) ->
+                                                case spaced of
+                                                    Nothing ->
+                                                        ( pad, height, Just y, attr :: newAttrs )
+
+                                                    _ ->
+                                                        ( pad, height, spaced, newAttrs )
 
                                             _ ->
-                                                ( pad, height, lh, attr :: newAttrs )
+                                                ( pad, height, spaced, attr :: newAttrs )
                                     )
                                     ( Nothing, Nothing, Nothing, [] )
 
-                        lineHeight =
-                            Maybe.withDefault 1.5 maybeLineHeight
+                        -- NOTE: This is where default text spacing is set
+                        spacing =
+                            Maybe.withDefault 5 maybeSpacing
                     in
                     ( "textarea"
                     , [ spellcheck textInput.spellchecked
-                      , maybeLineHeight
-                            |> Maybe.map (Internal.StyleClass << Internal.LineHeight)
-                            |> Maybe.withDefault (Internal.StyleClass (Internal.LineHeight 1.5))
                       , Maybe.map autofill textInput.autofill
                             |> Maybe.withDefault Internal.NoAttribute
                       , case heightContent of
@@ -676,7 +677,6 @@ textHelper textInput attrs textOptions =
                                     newlineCount =
                                         String.lines textOptions.text
                                             |> List.length
-                                            |> toFloat
                                             |> (\x ->
                                                     if x < 1 then
                                                         1
@@ -684,7 +684,7 @@ textHelper textInput attrs textOptions =
                                                         x
                                                )
                                 in
-                                multilineContentHeight newlineCount lineHeight maybePadding
+                                multilineContentHeight newlineCount spacing maybePadding
 
                             Just x ->
                                 Internal.Height x
@@ -712,9 +712,8 @@ textHelper textInput attrs textOptions =
                         Internal.StyleClass (Internal.SpacingStyle _ _) ->
                             True
 
-                        Internal.StyleClass (Internal.LineHeight _) ->
-                            True
-
+                        -- Internal.StyleClass (Internal.LineHeight _) ->
+                        --     True
                         Internal.StyleClass (Internal.FontSize _) ->
                             True
 
@@ -786,7 +785,7 @@ textHelper textInput attrs textOptions =
                             , Font.color charcoal
                                 :: Internal.Class "text-selection" classes.noTextSelection
                                 :: defaultTextPadding
-                                :: lineHeight
+                                -- :: lineHeight
                                 :: Element.height Element.fill
                                 :: Element.width Element.fill
                                 :: (inputPadding
@@ -802,10 +801,10 @@ textHelper textInput attrs textOptions =
         inputElement
 
 
-{-| Manually calculate height for a <textarea>
+{-| Manually calculate height for a <textarea> with a manual lineHeight
 -}
-multilineContentHeight : Float -> Float -> Maybe ( number, a, number, b ) -> Attribute msg
-multilineContentHeight newlineCount lineHeight maybePadding =
+multilineContentHeightFromLineHeight : Float -> Float -> Maybe ( number, a, number, b ) -> Attribute msg
+multilineContentHeightFromLineHeight newlineCount lineHeight maybePadding =
     let
         heightValue count =
             case maybePadding of
@@ -814,6 +813,32 @@ multilineContentHeight newlineCount lineHeight maybePadding =
 
                 Just ( t, r, b, l ) ->
                     "calc(" ++ toString (count * lineHeight) ++ "em + " ++ toString (t + b) ++ "px)"
+    in
+    Internal.StyleClass
+        (Internal.Single ("textarea-height-" ++ toString newlineCount)
+            "height"
+            (heightValue newlineCount)
+        )
+
+
+{-| Manually calculate height for a <textarea> with a manual spacing
+-}
+multilineContentHeight : Int -> Int -> Maybe ( Int, Int, Int, Int ) -> Attribute msg
+multilineContentHeight newlineCount spacing maybePadding =
+    let
+        _ =
+            Debug.log "manual height" ( maybePadding, spacing, newlineCount )
+
+        _ =
+            Debug.log "spacing" ((newlineCount - 1) * spacing)
+
+        heightValue count =
+            case maybePadding of
+                Nothing ->
+                    "calc(" ++ toString count ++ "em + " ++ toString (count * spacing) ++ "px)"
+
+                Just ( t, r, b, l ) ->
+                    "calc(" ++ toString count ++ "em + " ++ toString ((t + b) + (count * spacing)) ++ "px)"
     in
     Internal.StyleClass
         (Internal.Single ("textarea-height-" ++ toString newlineCount)
@@ -1767,7 +1792,7 @@ row attrs children =
         (Element.width Element.fill
             :: attrs
         )
-        (Internal.Unkeyed <| Internal.rowEdgeFillers children)
+        (Internal.Unkeyed children)
 
 
 

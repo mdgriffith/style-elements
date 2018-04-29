@@ -34,9 +34,7 @@ module Element
         , el
         , empty
         , fill
-        , fillBetween
         , fillPortion
-        , fillPortionBetween
         , focusStyle
         , focused
         , forceHover
@@ -51,6 +49,8 @@ module Element
         , link
         , map
         , mapAttribute
+        , maximum
+        , minimum
         , modular
         , mouseDown
         , mouseOver
@@ -131,7 +131,7 @@ Text needs it's own layout primitives.
 
 @docs Attribute, transparent, alpha, pointer
 
-@docs width, height, Length, px, shrink, fill, fillPortion, fillBetween, fillPortionBetween
+@docs width, height, Length, px, shrink, fill, fillPortion, minimum, maximum
 
 
 ## Padding and Spacing
@@ -332,21 +332,32 @@ fill =
     Internal.Fill 1
 
 
-{-| Fill the available space as long as it's between the pixel bounds.
--}
-fillBetween : { min : Maybe Int, max : Maybe Int } -> Length
-fillBetween { min, max } =
-    Internal.FillBetween
-        { portion = 1
-        , min = min
-        , max = max
-        }
+{-| -}
+minimum : Int -> Length -> Length
+minimum i l =
+    Internal.Min i l
 
 
 {-| -}
-fillPortionBetween : { portion : Int, min : Maybe Int, max : Maybe Int } -> Length
-fillPortionBetween =
-    Internal.FillBetween
+maximum : Int -> Length -> Length
+maximum i l =
+    Internal.Max i l
+
+
+
+-- {-| Fill the available space as long as it's between the pixel bounds.
+-- -}
+-- fillBetween : { min : Maybe Int, max : Maybe Int } -> Length
+-- fillBetween { min, max } =
+--     Internal.FillBetween
+--         { portion = 1
+--         , min = min
+--         , max = max
+--         }
+-- {-| -}
+-- fillPortionBetween : { portion : Int, min : Maybe Int, max : Maybe Int } -> Length
+-- fillPortionBetween =
+--     Internal.FillBetween
 
 
 {-| Sometimes you may not want to split available space evenly. In this case you can use `fillPortion` to define which elements should have what portion of the available space.
@@ -513,7 +524,7 @@ row attrs children =
             :: height shrink
             :: attrs
         )
-        (Internal.Unkeyed <| Internal.rowEdgeFillers children)
+        (Internal.Unkeyed children)
 
 
 {-| -}
@@ -528,7 +539,7 @@ column attrs children =
             :: width fill
             :: attrs
         )
-        (Internal.Unkeyed <| Internal.columnEdgeFillers children)
+        (Internal.Unkeyed children)
 
 
 {-| -}
