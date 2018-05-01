@@ -478,7 +478,7 @@ place position el group =
 --                 , Element.pointer
 --                 , Element.moveRight percentage
 --                 ]
---                 Element.empty
+--                 Element.none
 --         controls =
 --             Internal.el
 --                 Nothing
@@ -1080,7 +1080,7 @@ applyLabel attrs label input =
 
 onGrid attributes elementsOnGrid input =
     let
-        emptyPositioned =
+        nonePositioned =
             { right = Nothing
             , left = Nothing
             , primary = input
@@ -1102,7 +1102,7 @@ onGrid attributes elementsOnGrid input =
     in
     Internal.Grid.relative (Just "label")
         attributes
-        (List.foldl gatherPositioned emptyPositioned elementsOnGrid)
+        (List.foldl gatherPositioned nonePositioned elementsOnGrid)
 
 
 
@@ -1284,7 +1284,7 @@ defaultRadioOption optionLabel status =
                     Selected ->
                         Color.rgb 59 153 252
             ]
-            Element.empty
+            Element.none
         , Element.el [ Element.width Element.fill, Internal.class "unfocusable" ] optionLabel
         ]
 
@@ -1661,7 +1661,7 @@ select attrs input =
                 )
                 (case prevNext of
                     Nothing ->
-                        Element.empty
+                        Element.none
 
                     Just ( prev, selected, next ) ->
                         case selected of
@@ -2090,7 +2090,7 @@ defaultCheckbox checked =
                     , right = 0
                     }
                 ]
-                Element.empty
+                Element.none
          else
-            Element.empty
+            Element.none
         )
