@@ -17,7 +17,6 @@ module Element.Font
         , justify
         , letterSpacing
         , light
-          -- , lineHeight
         , medium
         , monospace
         , regular
@@ -46,7 +45,6 @@ module Element.Font
         Element.el
             [ Font.color blue
             , Font.size 18
-            , Font.lineHeight 1.3 -- line height is given as a ratio of Font.size.
             , Font.family
                 [ Font.typeface "Open Sans"
                 , Font.sansSerif
@@ -176,17 +174,6 @@ external { url, name } =
 size : Int -> Attr decorative msg
 size size =
     Internal.StyleClass (Internal.Single ("font-size-" ++ toString size) "font-size" (toString size ++ "px"))
-
-
-
--- {-| This is the only unitless value in the library that isn't `px`.
--- It's given as a _proportion_ of the `Font.size`.
--- This means the final lineHeight in px is:
---       Font.size * Font.lineHeight == lineHeightInPx
--- -}
--- lineHeight : Float -> Attr decorative msg
--- lineHeight =
---     Internal.StyleClass << Internal.LineHeight
 
 
 {-| In `px`.
