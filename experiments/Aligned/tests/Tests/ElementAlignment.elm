@@ -24,7 +24,7 @@ box attrs =
          ]
             ++ attrs
         )
-        empty
+        none
 
 
 container : Testable.Element msg -> Testable.Element msg

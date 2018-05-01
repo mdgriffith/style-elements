@@ -38,8 +38,8 @@ column =
     Testable.Column
 
 
-empty : Testable.Element msg
-empty =
+none : Testable.Element msg
+none =
     Testable.Empty
 
 

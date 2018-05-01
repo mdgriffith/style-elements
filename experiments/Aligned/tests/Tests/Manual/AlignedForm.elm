@@ -262,7 +262,7 @@ view model =
                 ]
 
             -- , Element.row []
-            --     [ Element.el [ Element.width Element.fill ] Element.empty
+            --     [ Element.el [ Element.width Element.fill ] Element.none
             --     , Input.checkbox
             --         [ width (fillPortion 4) ]
             --         { checked = model.agreeTOS

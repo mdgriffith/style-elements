@@ -32,7 +32,6 @@ module Element
         , download
         , downloadAs
         , el
-        , empty
         , fill
         , fillPortion
         , focusStyle
@@ -61,6 +60,7 @@ module Element
         , newTabLink
         , noHover
         , noStaticStyleSheet
+        , none
         , onLeft
         , onRight
         , padding
@@ -91,7 +91,7 @@ module Element
 
 # Basic Elements
 
-@docs Element, Attribute, empty, text, el
+@docs Element, Attribute, none, text, el
 
 
 # Rows and Columns
@@ -143,9 +143,9 @@ Padding is what you'd expect, the distance between the outer edge and the conten
 So, if we have the following row, with some padding and spacing.
 
     Element.row [ padding 10, spacing 7 ]
-        [ Element.el [] empty
-        , Element.el [] empty
-        , Element.el [] empty
+        [ Element.el [] none
+        , Element.el [] none
+        , Element.el [] none
         ]
 
 Here's what we can expect.
@@ -166,10 +166,10 @@ Alignment can be used to align an `Element` within another `Element`.
 If alignment is set on elements in a layout such as `row`, then the element will push the other elements in that direction. Here's an example.
 
     Element.row []
-        [ Element.el [] Element.empty
-        , Element.el [ alignLeft ] Element.empty
-        , Element.el [ centerX ] Element.empty
-        , Element.el [ alignRight ] Element.empty
+        [ Element.el [] Element.none
+        , Element.el [ alignLeft ] Element.none
+        , Element.el [ centerX ] Element.none
+        , Element.el [ alignRight ] Element.none
         ]
 
 will result in a layout like
@@ -463,8 +463,8 @@ forceHover =
 
 {-| Nothing to see here!
 -}
-empty : Element msg
-empty =
+none : Element msg
+none =
     Internal.Empty
 
 
@@ -803,7 +803,8 @@ paragraph attrs children =
     Internal.element Internal.noStyleSheet
         Internal.asParagraph
         (Just "p")
-        (Internal.adjustParagraphSpacing attrs)
+        -- (Internal.adjustParagraphSpacing attrs)
+        attrs
         (Internal.Unkeyed children)
 
 
@@ -817,7 +818,7 @@ In the following example, we have a `textColumn` where one child has `alignLeft`
 
     Element.textColumn [ spacing 10, padding 10 ]
         [ paragraph [] [ text "lots of text ...." ]
-        , el [ alignLeft ] empty
+        , el [ alignLeft ] none
         , paragraph [] [ text "lots of text ...." ]
         ]
 

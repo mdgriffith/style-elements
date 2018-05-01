@@ -113,28 +113,28 @@ view model =
             , rowSpacing
             , tableElements
             , signInForm model
-            , el [ height (px 200) ] empty
+            , el [ height (px 200) ] none
             ]
 
 
 misc =
     column [ spacing 32 ]
-        [ text "The following should be centered, with a fillBetween width"
-        , row
-            [ width
-                (fillBetween
-                    { min = Nothing
-                    , max = Just 360
-                    }
-                )
-            , centerX
-            , padding 15
-            , Background.color Color.lightBlue
-            , Font.bold
-            ]
-            [ el [ alignLeft ] (text "Logo")
-            , el [ alignRight ] (text "Navigation")
-            ]
+        [--     text "The following should be centered, with a fillBetween width"
+         -- , row
+         --     [ width
+         --         (fillBetween
+         --             { min = Nothing
+         --             , max = Just 360
+         --             }
+         --         )
+         --     , centerX
+         --     , padding 15
+         --     , Background.color Color.lightBlue
+         --     , Font.bold
+         --     ]
+         --     [ el [ alignLeft ] (text "Logo")
+         --     , el [ alignRight ] (text "Navigation")
+         --     ]
         ]
 
 
@@ -207,40 +207,41 @@ widths =
             , box [ width (fillPortion 2) ]
             , box [ width (fillPortion 3) ]
             ]
-        , text "Width Fill Between"
-        , text "Max at 200"
-        , el [ width fill, height (px 60) ]
-            (box
-                [ width
-                    (fillBetween
-                        { min = Just 20
-                        , max = Just 200
-                        }
-                    )
-                ]
-            )
-        , text "Fill between 20 and 200"
-        , el [ width (px 150), height (px 60) ]
-            (box
-                [ width
-                    (fillBetween
-                        { min = Just 20
-                        , max = Just 200
-                        }
-                    )
-                ]
-            )
-        , text "Min at 20"
-        , el [ width (px 10), height (px 60) ]
-            (box
-                [ width
-                    (fillBetween
-                        { min = Just 20
-                        , max = Just 200
-                        }
-                    )
-                ]
-            )
+
+        -- , text "Width Fill Between"
+        -- , text "Max at 200"
+        -- , el [ width fill, height (px 60) ]
+        --     (box
+        --         [ width
+        --             (fillBetween
+        --                 { min = Just 20
+        --                 , max = Just 200
+        --                 }
+        --             )
+        --         ]
+        --     )
+        -- , text "Fill between 20 and 200"
+        -- , el [ width (px 150), height (px 60) ]
+        --     (box
+        --         [ width
+        --             (fillBetween
+        --                 { min = Just 20
+        --                 , max = Just 200
+        --                 }
+        --             )
+        --         ]
+        --     )
+        -- , text "Min at 20"
+        -- , el [ width (px 10), height (px 60) ]
+        --     (box
+        --         [ width
+        --             (fillBetween
+        --                 { min = Just 20
+        --                 , max = Just 200
+        --                 }
+        --             )
+        --         ]
+        --     )
         , text "widths for text layouts"
         , textColumn []
             [ box [ width fill ]
@@ -369,7 +370,7 @@ sentence =
 
 
 box attrs =
-    el ([ mouseOver [ Background.color red ], width (px 50), height (px 50), Background.color blue ] ++ attrs) empty
+    el ([ mouseOver [ Background.color red ], width (px 50), height (px 50), Background.color blue ] ++ attrs) none
 
 
 tinyBox attrs =
@@ -382,7 +383,7 @@ tinyBox attrs =
          ]
             ++ attrs
         )
-        empty
+        none
 
 
 container : Element msg -> Element msg
@@ -708,7 +709,7 @@ nearbyElements =
                                 , height (px 20)
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     , box
@@ -719,7 +720,18 @@ nearbyElements =
                                 , alignLeft
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
+                            )
+                        ]
+                    , box
+                        [ location
+                            (el
+                                [ width (px 20)
+                                , height (px 20)
+                                , centerX
+                                , Background.color darkCharcoal
+                                ]
+                                none
                             )
                         ]
                     , box
@@ -730,7 +742,7 @@ nearbyElements =
                                 , alignRight
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     , box
@@ -741,7 +753,7 @@ nearbyElements =
                                 , alignTop
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     , box
@@ -752,7 +764,7 @@ nearbyElements =
                                 , alignBottom
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     , box
@@ -763,7 +775,7 @@ nearbyElements =
                                 , centerY
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     ]
@@ -776,7 +788,7 @@ nearbyElements =
                                 , height fill
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     , box
@@ -786,7 +798,7 @@ nearbyElements =
                                 , height fill
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     , box
@@ -796,7 +808,7 @@ nearbyElements =
                                 , height (px 20)
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     , box
@@ -917,11 +929,11 @@ tableElements =
         , table []
             { data = data
             , columns =
-                [ { header = empty
+                [ { header = none
                   , view =
                         \row -> text row.firstName
                   }
-                , { header = empty
+                , { header = none
                   , view =
                         \row -> text row.lastName
                   }
@@ -1228,7 +1240,7 @@ signInForm model =
 
 
 -- , Element.row []
---     [ Element.el [ Element.width Element.fill ] Element.empty
+--     [ Element.el [ Element.width Element.fill ] Element.none
 --     , Input.checkbox
 --         [ width (fillPortion 4) ]
 --         { checked = model.agreeTOS

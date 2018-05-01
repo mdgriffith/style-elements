@@ -23,7 +23,7 @@ box attrs =
          ]
             ++ attrs
         )
-        empty
+        none
 
 
 container =

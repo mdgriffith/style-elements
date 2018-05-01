@@ -23,7 +23,7 @@ box attrs =
          ]
             ++ attrs
         )
-        empty
+        none
 
 
 tinyBox attrs =
@@ -36,7 +36,7 @@ tinyBox attrs =
          ]
             ++ attrs
         )
-        empty
+        none
 
 
 container =

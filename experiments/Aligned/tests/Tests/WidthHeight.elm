@@ -26,7 +26,7 @@ container attrs child =
 
 
 box attrs =
-    el (Background.color blue :: attrs) empty
+    el (Background.color blue :: attrs) none
 
 
 {-| -}
@@ -43,7 +43,7 @@ view =
                 , width fill
                 , height (px 200)
                 ]
-                empty
+                none
             )
         , el [ Font.color black ] (text "shrink")
         , el

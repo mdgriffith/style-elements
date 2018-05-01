@@ -209,7 +209,7 @@ renderElement level el =
                 (List.indexedMap (\i -> renderElement (i :: level)) children)
 
         Empty ->
-            Element.empty
+            Element.none
 
         Text str ->
             Element.text str

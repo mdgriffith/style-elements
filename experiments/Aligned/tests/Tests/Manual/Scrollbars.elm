@@ -27,7 +27,7 @@ header =
         , Background.color Color.red
         , El.width El.fill
         ]
-        El.empty
+        El.none
 
 
 content =

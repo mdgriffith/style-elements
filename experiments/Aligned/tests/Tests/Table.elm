@@ -23,7 +23,7 @@ box attrs =
          ]
             ++ attrs
         )
-        empty
+        none
 
 
 container =
@@ -60,11 +60,11 @@ view =
         , table []
             { data = data
             , columns =
-                [ { header = empty
+                [ { header = none
                   , view =
                         \row -> text row.firstName
                   }
-                , { header = empty
+                , { header = none
                   , view =
                         \row -> text row.lastName
                   }

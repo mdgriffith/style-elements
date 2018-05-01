@@ -46,7 +46,7 @@ view =
                     , width (px 50)
                     , height (px 50)
                     ]
-                    empty
+                    none
                 )
             ]
             (text "Hello!")

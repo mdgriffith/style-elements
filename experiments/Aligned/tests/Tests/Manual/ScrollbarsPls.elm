@@ -4,7 +4,6 @@ import Color
 import Element as El exposing (Element)
 import Element.Background as Background
 import Element.Border as Border
-import Element.Decoration
 import Element.Events as Events
 import Element.Font as Font
 import Html exposing (Html)
@@ -27,7 +26,7 @@ header =
         , Background.color Color.red
         , El.width El.fill
         ]
-        El.empty
+        El.none
 
 
 content =

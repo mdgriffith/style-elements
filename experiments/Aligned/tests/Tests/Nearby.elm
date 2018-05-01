@@ -20,7 +20,18 @@ box attrs =
          ]
             ++ attrs
         )
-        empty
+        none
+
+
+p attrs =
+    paragraph
+        ([ Background.color blue
+         , Font.color white
+         , padding 20
+         ]
+            ++ attrs
+        )
+        [ text "Lorem Ipsum or something or other." ]
 
 
 {-| -}
@@ -53,7 +64,7 @@ view =
                             , height (px 20)
                             , Background.color darkCharcoal
                             ]
-                            empty
+                            none
                         )
                     ]
                 , box
@@ -64,7 +75,7 @@ view =
                             , alignLeft
                             , Background.color darkCharcoal
                             ]
-                            empty
+                            none
                         )
                     ]
                 ]
@@ -78,11 +89,11 @@ view =
                  ]
                     ++ attrs
                 )
-                empty
+                none
 
         nearby location name box =
             column [ spacing 32, label "column" ]
-                [ text name
+                [ el [ padding 20, Background.color green, Font.color white ] (text name)
                 , row [ height (px 100), width fill, spacing 50 ]
                     [ box
                         [ location
@@ -92,7 +103,7 @@ view =
                                 , height (px 20)
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     , box
@@ -104,7 +115,7 @@ view =
                                 , alignLeft
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     , box
@@ -116,7 +127,7 @@ view =
                                 , centerX
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     , box
@@ -128,7 +139,7 @@ view =
                                 , alignRight
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     , box
@@ -140,7 +151,7 @@ view =
                                 , alignTop
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     , box
@@ -152,7 +163,7 @@ view =
                                 , centerY
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     , box
@@ -164,7 +175,7 @@ view =
                                 , alignBottom
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     ]
@@ -178,7 +189,7 @@ view =
                                 , height fill
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     , box
@@ -189,7 +200,7 @@ view =
                                 , height fill
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     , box
@@ -201,7 +212,7 @@ view =
                                 , height (px 20)
                                 , Background.color darkCharcoal
                                 ]
-                                empty
+                                none
                             )
                         ]
                     , box
@@ -226,6 +237,92 @@ view =
                                 , Font.color white
                                 ]
                                 (text "w-shrink")
+                            )
+                        ]
+                    ]
+                , text "on paragraph"
+                , row [ width fill, spacing 50, label "Row" ]
+                    [ p
+                        [ location
+                            (el
+                                [ label name
+                                , width (px 20)
+                                , height (px 20)
+                                , Background.color darkCharcoal
+                                ]
+                                none
+                            )
+                        ]
+                    , p
+                        [ location
+                            (el
+                                [ label name
+                                , width (px 20)
+                                , height (px 20)
+                                , alignLeft
+                                , Background.color darkCharcoal
+                                ]
+                                none
+                            )
+                        ]
+                    , p
+                        [ location
+                            (el
+                                [ label name
+                                , width (px 20)
+                                , height (px 20)
+                                , centerX
+                                , Background.color darkCharcoal
+                                ]
+                                none
+                            )
+                        ]
+                    , p
+                        [ location
+                            (el
+                                [ label name
+                                , width (px 20)
+                                , height (px 20)
+                                , alignRight
+                                , Background.color darkCharcoal
+                                ]
+                                none
+                            )
+                        ]
+                    , p
+                        [ location
+                            (el
+                                [ label name
+                                , width (px 20)
+                                , height (px 20)
+                                , alignTop
+                                , Background.color darkCharcoal
+                                ]
+                                none
+                            )
+                        ]
+                    , p
+                        [ location
+                            (el
+                                [ label name
+                                , width (px 20)
+                                , height (px 20)
+                                , centerY
+                                , Background.color darkCharcoal
+                                ]
+                                none
+                            )
+                        ]
+                    , p
+                        [ location
+                            (el
+                                [ label name
+                                , width (px 20)
+                                , height (px 20)
+                                , alignBottom
+                                , Background.color darkCharcoal
+                                ]
+                                none
                             )
                         ]
                     ]
@@ -256,15 +353,42 @@ view =
                     , inFront (little "infront-center-bottom" [ alignBottom, centerX ])
                     , inFront (little "infront-right-bottom" [ alignBottom, alignRight ])
                     ]
+
+        masterParagraph =
+            el [ padding 20 ] <|
+                p
+                    [ above (little "above-left" [ alignLeft ])
+                    , above (little "above-center" [ centerX ])
+                    , above (little "above-right" [ alignRight ])
+                    , below (little "below-left" [ alignLeft ])
+                    , below (little "below-center" [ centerX ])
+                    , below (little "below-right" [ alignRight ])
+                    , onRight (little "onRight-left" [ alignTop ])
+                    , onRight (little "onRight-center" [ centerY ])
+                    , onRight (little "onRight-right" [ alignBottom ])
+                    , onLeft (little "onLeft-left" [ alignTop ])
+                    , onLeft (little "onLeft-center" [ centerY ])
+                    , onLeft (little "onLeft-right" [ alignBottom ])
+                    , inFront (little "infront-left-top" [ alignTop, alignLeft ])
+                    , inFront (little "infront-center-top" [ alignTop, centerX ])
+                    , inFront (little "infront-right-top" [ alignTop, alignRight ])
+                    , inFront (little "infront-left-center" [ centerY, alignLeft ])
+                    , inFront (little "infront-center-center" [ centerY, centerX ])
+                    , inFront (little "infront-right-center" [ centerY, alignRight ])
+                    , inFront (little "infront-left-bottom" [ alignBottom, alignLeft ])
+                    , inFront (little "infront-center-bottom" [ alignBottom, centerX ])
+                    , inFront (little "infront-right-bottom" [ alignBottom, alignRight ])
+                    ]
     in
     column
-        [ centerX, label "Nearby Elements" ]
-        [ nearby above "above" box
+        [ centerX, label "Nearby Elements", spacing 100 ]
+        [ master
+        , masterParagraph
+        , nearby above "above" box
         , nearby below "below" box
         , nearby inFront "inFront" box
         , nearby onRight "onRight" box
         , nearby onLeft "onLeft" box
         , nearby behind "behind" transparentBox
         , text "all nearbys, all alignments"
-        , master
         ]
