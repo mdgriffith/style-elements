@@ -925,52 +925,46 @@ floorAtZero x =
         0
 
 
-{-| Paragraph's use a slightly different mode of spacing, which is that it's gives every child a margin of 1/2 of the spacing value for that axis.
 
-This means paragraph's with spacing must have padding that is at least the same size
-
--}
-adjustParagraphSpacing : List (Attribute aligned msg) -> List (Attribute aligned msg)
-adjustParagraphSpacing attrs =
-    let
-        adjust ( x, y ) attribute =
-            case attribute of
-                StyleClass (PaddingStyle top right bottom left) ->
-                    StyleClass
-                        (PaddingStyle
-                            (floorAtZero (top - (y // 2)))
-                            (floorAtZero (right - (x // 2)))
-                            (floorAtZero (bottom - (y // 2)))
-                            (floorAtZero (left - (x // 2)))
-                        )
-
-                _ ->
-                    attribute
-
-        spacing =
-            attrs
-                |> List.foldr
-                    (\x acc ->
-                        case acc of
-                            Just x ->
-                                Just x
-
-                            Nothing ->
-                                case x of
-                                    StyleClass (SpacingStyle x y) ->
-                                        Just ( x, y )
-
-                                    _ ->
-                                        Nothing
-                    )
-                    Nothing
-    in
-    case spacing of
-        Nothing ->
-            attrs
-
-        Just ( x, y ) ->
-            List.map (adjust ( x, y )) attrs
+-- {-| Paragraph's use a slightly different mode of spacing, which is that it's gives every child a margin of 1/2 of the spacing value for that axis.
+-- This means paragraph's with spacing must have padding that is at least the same size
+-- -}
+-- adjustParagraphSpacing : List (Attribute aligned msg) -> List (Attribute aligned msg)
+-- adjustParagraphSpacing attrs =
+--     let
+--         adjust ( x, y ) attribute =
+--             case attribute of
+--                 StyleClass (PaddingStyle top right bottom left) ->
+--                     StyleClass
+--                         (PaddingStyle
+--                             (floorAtZero (top - (y // 2)))
+--                             (floorAtZero (right - (x // 2)))
+--                             (floorAtZero (bottom - (y // 2)))
+--                             (floorAtZero (left - (x // 2)))
+--                         )
+--                 _ ->
+--                     attribute
+--         spacing =
+--             attrs
+--                 |> List.foldr
+--                     (\x acc ->
+--                         case acc of
+--                             Just x ->
+--                                 Just x
+--                             Nothing ->
+--                                 case x of
+--                                     StyleClass (SpacingStyle x y) ->
+--                                         Just ( x, y )
+--                                     _ ->
+--                                         Nothing
+--                     )
+--                     Nothing
+--     in
+--     case spacing of
+--         Nothing ->
+--             attrs
+--         Just ( x, y ) ->
+--             List.map (adjust ( x, y )) attrs
 
 
 initGathered : Maybe String -> Gathered msg

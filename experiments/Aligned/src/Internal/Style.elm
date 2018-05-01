@@ -1269,6 +1269,24 @@ rules =
                     , Child (dot classes.single)
                         [ Prop "display" "inline"
                         , Prop "white-space" "normal"
+                        , Descriptor (dot classes.inFront)
+                            [ Prop "display" "flex"
+                            ]
+                        , Descriptor (dot classes.behind)
+                            [ Prop "display" "flex"
+                            ]
+                        , Descriptor (dot classes.above)
+                            [ Prop "display" "flex"
+                            ]
+                        , Descriptor (dot classes.below)
+                            [ Prop "display" "flex"
+                            ]
+                        , Descriptor (dot classes.onRight)
+                            [ Prop "display" "flex"
+                            ]
+                        , Descriptor (dot classes.onLeft)
+                            [ Prop "display" "flex"
+                            ]
                         , Child (dot classes.text)
                             [ Prop "display" "inline"
                             , Prop "white-space" "normal"
@@ -1347,6 +1365,7 @@ rules =
                                     Descriptor (dot classes.below)
                                         [ Prop "position" "absolute"
                                         , Prop "bottom" "0"
+                                        , Prop "left" "0"
                                         , Prop "height" "0"
                                         , Prop "width" "100%"
                                         , Prop "z-index" "10"
@@ -1361,6 +1380,7 @@ rules =
                                     Descriptor (dot classes.onRight)
                                         [ Prop "position" "absolute"
                                         , Prop "left" "100%"
+                                        , Prop "top" "0"
                                         , Prop "height" "100%"
                                         , Prop "margin" "0 !important"
                                         , Prop "z-index" "10"
@@ -1371,6 +1391,7 @@ rules =
                                     Descriptor (dot classes.onLeft)
                                         [ Prop "position" "absolute"
                                         , Prop "right" "100%"
+                                        , Prop "top" "0"
                                         , Prop "height" "100%"
                                         , Prop "margin" "0 !important"
                                         , Prop "z-index" "10"
