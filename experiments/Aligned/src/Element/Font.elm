@@ -173,7 +173,7 @@ external { url, name } =
 -}
 size : Int -> Attr decorative msg
 size size =
-    Internal.StyleClass (Internal.Single ("font-size-" ++ toString size) "font-size" (toString size ++ "px"))
+    Internal.StyleClass (Internal.FontSize size)
 
 
 {-| In `px`.
