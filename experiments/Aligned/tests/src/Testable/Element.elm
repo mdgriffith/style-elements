@@ -376,6 +376,17 @@ alignLeft =
             \found _ ->
                 if List.member found.location [ Testable.IsNearby Testable.OnLeft, Testable.IsNearby Testable.OnRight ] then
                     Expect.true "alignLeft doesn't apply to elements that are onLeft or onRight" True
+                else if
+                    List.member found.location
+                        [ Testable.IsNearby Testable.InFront
+                        , Testable.IsNearby Testable.Behind
+                        , Testable.IsNearby Testable.Above
+                        , Testable.IsNearby Testable.Below
+                        ]
+                then
+                    Expect.equal
+                        (round found.self.bbox.left)
+                        (round found.parent.bbox.left)
                 else if List.length found.siblings == 0 then
                     Expect.equal
                         (round found.self.bbox.left)
@@ -479,6 +490,17 @@ alignRight =
             \found _ ->
                 if List.member found.location [ Testable.IsNearby Testable.OnLeft, Testable.IsNearby Testable.OnRight ] then
                     Expect.true "alignRight doesn't apply to elements that are onLeft or onRight" True
+                else if
+                    List.member found.location
+                        [ Testable.IsNearby Testable.InFront
+                        , Testable.IsNearby Testable.Behind
+                        , Testable.IsNearby Testable.Above
+                        , Testable.IsNearby Testable.Below
+                        ]
+                then
+                    Expect.equal
+                        (round found.self.bbox.right)
+                        (round found.parent.bbox.right)
                 else if List.length found.siblings == 0 then
                     Expect.equal
                         (round found.self.bbox.right)
@@ -519,6 +541,17 @@ alignTop =
             \found _ ->
                 if List.member found.location [ Testable.IsNearby Testable.Above, Testable.IsNearby Testable.Below ] then
                     Expect.true "alignTop doesn't apply to elements that are above or below" True
+                else if
+                    List.member found.location
+                        [ Testable.IsNearby Testable.InFront
+                        , Testable.IsNearby Testable.Behind
+                        , Testable.IsNearby Testable.OnRight
+                        , Testable.IsNearby Testable.OnLeft
+                        ]
+                then
+                    Expect.equal
+                        (round found.self.bbox.top)
+                        (round found.parent.bbox.top)
                 else if List.length found.siblings == 0 then
                     Expect.equal
                         (round found.self.bbox.top)
@@ -559,6 +592,17 @@ alignBottom =
             \found _ ->
                 if List.member found.location [ Testable.IsNearby Testable.Above, Testable.IsNearby Testable.Below ] then
                     Expect.true "alignBottom doesn't apply to elements that are above or below" True
+                else if
+                    List.member found.location
+                        [ Testable.IsNearby Testable.InFront
+                        , Testable.IsNearby Testable.Behind
+                        , Testable.IsNearby Testable.OnRight
+                        , Testable.IsNearby Testable.OnLeft
+                        ]
+                then
+                    Expect.equal
+                        (round found.self.bbox.bottom)
+                        (round found.parent.bbox.bottom)
                 else if List.length found.siblings == 0 then
                     Expect.equal
                         (round found.self.bbox.bottom)
