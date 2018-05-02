@@ -18,6 +18,7 @@ This means if a key is changed between renders, then the diffing step will be sk
 
 import Element exposing (Attribute, Element, fill, height, width)
 import Internal.Model as Internal
+import Internal.Style exposing (classes)
 
 
 {-| -}
@@ -28,10 +29,6 @@ el attrs child =
         Nothing
         (width Element.shrink
             :: height Element.shrink
-            -- :: centerY
-            :: Element.centerX
-            :: Internal.Class "x-content-align" "content-center-x"
-            :: Internal.Class "y-content-align" "content-center-y"
             :: attrs
         )
         (Internal.Keyed [ child ])
@@ -44,12 +41,12 @@ row attrs children =
         Internal.NoStyleSheet
         Internal.asRow
         Nothing
-        (Internal.Class "x-content-align" "content-center-x"
-            :: Internal.Class "y-content-align" "content-center-y"
+        (Internal.Class "x-content-align" classes.contentLeft
+            :: Internal.Class "y-content-align" classes.contentCenterY
             :: width fill
             :: attrs
         )
-        (Internal.Keyed <| Internal.keyedRowEdgeFillers children)
+        (Internal.Keyed children)
 
 
 {-| -}
@@ -58,10 +55,10 @@ column attrs children =
     Internal.element Internal.NoStyleSheet
         Internal.asColumn
         Nothing
-        (Internal.Class "y-content-align" "content-top"
-            :: Internal.Class "x-content-align" "content-center-x"
+        (Internal.Class "y-content-align" classes.contentTop
+            :: Internal.Class "x-content-align" classes.contentLeft
             :: height fill
             :: width fill
             :: attrs
         )
-        (Internal.Keyed <| Internal.keyedColumnEdgeFillers children)
+        (Internal.Keyed children)
