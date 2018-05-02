@@ -187,7 +187,7 @@ Let's say we want a dropdown menu. Essentially we want to say: _put this element
 
     Elemenet.row []
         [ Element.el
-            [ Element.below True (Element.text "I'm below!")
+            [ Element.below (Element.text "I'm below!")
             ]
             (Element.text "I'm normal!")
         ]
@@ -803,8 +803,14 @@ paragraph attrs children =
     Internal.element Internal.noStyleSheet
         Internal.asParagraph
         (Just "p")
-        -- (Internal.adjustParagraphSpacing attrs)
-        attrs
+        (width
+            (fill
+                |> minimum 500
+                |> maximum 750
+            )
+            :: spacing 5
+            :: attrs
+        )
         (Internal.Unkeyed children)
 
 
@@ -833,7 +839,13 @@ textColumn attrs children =
         Internal.noStyleSheet
         Internal.asTextColumn
         Nothing
-        (width (px 550) :: attrs)
+        (width
+            (fill
+                |> minimum 500
+                |> maximum 750
+            )
+            :: attrs
+        )
         (Internal.Unkeyed children)
 
 
@@ -1245,9 +1257,7 @@ pointer =
 
 {-| -}
 type alias Device =
-    { width : Int
-    , height : Int
-    , phone : Bool
+    { phone : Bool
     , tablet : Bool
     , desktop : Bool
     , bigDesktop : Bool
@@ -1259,9 +1269,7 @@ type alias Device =
 -}
 classifyDevice : { window | height : Int, width : Int } -> Device
 classifyDevice { width, height } =
-    { width = width
-    , height = height
-    , phone = width <= 600
+    { phone = width <= 600
     , tablet = width > 600 && width <= 1200
     , desktop = width > 1200 && width <= 1800
     , bigDesktop = width > 1800
