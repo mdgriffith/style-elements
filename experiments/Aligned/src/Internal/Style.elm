@@ -754,7 +754,9 @@ rules =
                 , Prop "font-size" "inherit"
                 , Prop "color" "inherit"
                 , Prop "font-family" "inherit"
-                , Prop "line-height" "inherit"
+
+                -- , Prop "line-height" "inherit"
+                , Prop "line-height" "1"
                 , Prop "font-weight" "inherit"
 
                 -- Text decoration is *mandatorily inherited* in the css spec.
