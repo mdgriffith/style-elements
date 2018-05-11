@@ -1,9 +1,9 @@
 {
     "type": "package",
     "name": "mdgriffith/style-elements",
-    "summary": "Encode and decode JSON values",
+    "summary": "A different approach to creating and managing styles.",
     "license": "BSD-3-Clause",
-    "version": "1.0.0",
+    "version": "5.0.0",
     "exposed-modules": [
         "Style",
         "Style.Border",
