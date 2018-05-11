@@ -210,7 +210,6 @@ import Html exposing (Html)
 import Html.Attributes
 import Style exposing (Style, StyleSheet)
 import Style.Internal.Model as Style
-import Window
 
 
 {-| You can think of an `Element` as `Html` with built-in layout.
@@ -286,7 +285,8 @@ numbered style attrs children =
         , style = Just style
         , layout = Style.FlexLayout Style.Down []
         , attrs = attrs
-        , children = Normal (List.map (Modify.setNode "li" << Modify.addAttr (Attr.inlineStyle [ ( "display", "list-item" ) ])) children)
+        , children =
+            Normal (List.map (Modify.setNode "li" << Modify.addAttr (Attr.inlineStyle "display" "list-item")) children)
         , absolutelyPositioned = Nothing
         }
 
@@ -300,7 +300,7 @@ bulleted style attrs children =
         , style = Just style
         , layout = Style.FlexLayout Style.Down []
         , attrs = attrs
-        , children = Normal (List.map (Modify.setNode "li" << Modify.addAttr (Attr.inlineStyle [ ( "display", "list-item" ) ])) children)
+        , children = Normal (List.map (Modify.setNode "li" << Modify.addAttr (Attr.inlineStyle "display" "list-item")) children)
         , absolutelyPositioned = Nothing
         }
 
@@ -374,9 +374,7 @@ circle radius style attrs child =
         , style = Just style
         , attrs =
             Attr
-                (Html.Attributes.style
-                    [ ( "border-radius", toString radius ++ "px" ) ]
-                )
+                (Html.Attributes.style "border-radius" (String.fromFloat radius ++ "px"))
                 :: Width (Style.Px (2 * radius))
                 :: Height (Style.Px (2 * radius))
                 :: attrs
@@ -465,7 +463,7 @@ button style attrs child =
     Element
         { node = "button"
         , style = Just style
-        , attrs = Attr.class "button-focus" :: Attr.inlineStyle [ ( "cursor", "pointer" ) ] :: Attr.toAttr (Html.Attributes.tabindex 0) :: attrs
+        , attrs = Attr.class "button-focus" :: Attr.inlineStyle "cursor" "pointer" :: Attr.toAttr (Html.Attributes.tabindex 0) :: attrs
         , child = child
         , absolutelyPositioned = Nothing
         }
@@ -677,11 +675,11 @@ table style attrs rows =
         children =
             List.concat <|
                 List.indexedMap
-                    (\row columns ->
+                    (\rowIndex columns ->
                         List.indexedMap
                             (\col content ->
                                 cell
-                                    { start = ( row, col )
+                                    { start = ( rowIndex, col )
                                     , width = 1
                                     , height = 1
                                     , content = content
@@ -734,8 +732,8 @@ type alias Grid style variation msg =
 grid : style -> List (Attribute variation msg) -> Grid style variation msg -> Element style variation msg
 grid style attrs config =
     let
-        prepare el =
-            Normal <| List.map (\(OnGrid x) -> x) el
+        prepare elem =
+            Normal <| List.map (\(OnGrid x) -> x) elem
 
         ( spacing, notSpacingAttrs ) =
             List.partition forSpacing attrs
@@ -803,8 +801,8 @@ Here's an example:
 namedGrid : style -> List (Attribute variation msg) -> NamedGrid style variation msg -> Element style variation msg
 namedGrid style attrs config =
     let
-        prepare el =
-            Normal <| List.map (\(NamedOnGrid x) -> x) el
+        prepare elem =
+            Normal <| List.map (\(NamedOnGrid x) -> x) elem
 
         ( spacing, notSpacingAttrs ) =
             List.partition forSpacing attrs
@@ -874,8 +872,8 @@ cell box =
 {-| Specify a named postion on a `namedGrid`.
 -}
 named : String -> Element style variation msg -> NamedOnGrid (Element style variation msg)
-named name el =
-    NamedOnGrid <| Modify.addAttr (GridArea name) el
+named name elem =
+    NamedOnGrid <| Modify.addAttr (GridArea name) elem
 
 
 {-| -}
@@ -906,7 +904,7 @@ Wraps an element in an `<a>` and sets the href. `rel` properties are set to `noo
 
 -}
 link : String -> Element style variation msg -> Element style variation msg
-link src el =
+link src elem =
     Element
         { node = "a"
         , style = Nothing
@@ -914,7 +912,7 @@ link src el =
             [ Attr (Html.Attributes.href src)
             , Attr (Html.Attributes.rel "noopener noreferrer")
             ]
-        , child = el
+        , child = elem
         , absolutelyPositioned = Nothing
         }
 
@@ -930,7 +928,7 @@ Same as `target "_blank"`
 
 -}
 newTab : String -> Element style variation msg -> Element style variation msg
-newTab src el =
+newTab src elem =
     Element
         { node = "a"
         , style = Nothing
@@ -939,7 +937,7 @@ newTab src el =
             , Attr (Html.Attributes.rel "noopener noreferrer")
             , Attr (Html.Attributes.target "_blank")
             ]
-        , child = el
+        , child = elem
         , absolutelyPositioned = Nothing
         }
 
@@ -951,15 +949,15 @@ newTab src el =
 
 -}
 download : String -> Element style variation msg -> Element style variation msg
-download src el =
+download src elem =
     Element
         { node = "a"
         , style = Nothing
         , attrs =
             [ Attr (Html.Attributes.href src)
-            , Attr (Html.Attributes.download True)
+            , Attr (Html.Attributes.download "")
             ]
-        , child = el
+        , child = elem
         , absolutelyPositioned = Nothing
         }
 
@@ -974,15 +972,15 @@ download src el =
 
 -}
 downloadAs : { src : String, filename : String } -> Element style variation msg -> Element style variation msg
-downloadAs { src, filename } el =
+downloadAs { src, filename } elem =
     Element
         { node = "a"
         , style = Nothing
         , attrs =
             [ Attr (Html.Attributes.href src)
-            , Attr (Html.Attributes.downloadAs filename)
+            , Attr (Html.Attributes.download filename)
             ]
-        , child = el
+        , child = elem
         , absolutelyPositioned = Nothing
         }
 
@@ -1034,8 +1032,8 @@ whenJust maybe view =
 within : List (Element style variation msg) -> Element style variation msg -> Element style variation msg
 within nearbys parent =
     let
-        position el p =
-            el
+        position elem p =
+            elem
                 |> Modify.wrapHtml
                 |> Modify.addAttr (PositionFrame (Nearby Within))
                 |> Modify.addChild p
@@ -1047,8 +1045,8 @@ within nearbys parent =
 above : List (Element style variation msg) -> Element style variation msg -> Element style variation msg
 above nearbys parent =
     let
-        position el p =
-            el
+        position elem p =
+            elem
                 |> Modify.wrapHtml
                 |> Modify.addAttr (PositionFrame (Nearby Above))
                 |> Modify.removeAttrs [ VAlign Top, VAlign Bottom ]
@@ -1061,8 +1059,8 @@ above nearbys parent =
 below : List (Element style variation msg) -> Element style variation msg -> Element style variation msg
 below nearbys parent =
     let
-        position el p =
-            el
+        position elem p =
+            elem
                 |> Modify.wrapHtml
                 |> Modify.addAttr (PositionFrame (Nearby Below))
                 |> Modify.removeAttrs [ VAlign Top, VAlign Bottom ]
@@ -1075,8 +1073,8 @@ below nearbys parent =
 onRight : List (Element style variation msg) -> Element style variation msg -> Element style variation msg
 onRight nearbys parent =
     let
-        position el p =
-            el
+        position elem p =
+            elem
                 |> Modify.wrapHtml
                 |> Modify.addAttr (PositionFrame (Nearby OnRight))
                 |> Modify.removeAttrs [ HAlign Right, HAlign Left ]
@@ -1089,8 +1087,8 @@ onRight nearbys parent =
 onLeft : List (Element style variation msg) -> Element style variation msg -> Element style variation msg
 onLeft nearbys parent =
     let
-        position el p =
-            el
+        position elem p =
+            elem
                 |> Modify.wrapHtml
                 |> Modify.addAttr (PositionFrame (Nearby OnLeft))
                 |> Modify.removeAttrs [ HAlign Right, HAlign Left ]
@@ -1107,7 +1105,7 @@ If you're trying to make a modal, check out `Element.Location.modal`
 
 -}
 screen : Element style variation msg -> Element style variation msg
-screen el =
+screen elem =
     Element
         { node = "div"
         , style = Nothing
@@ -1121,7 +1119,7 @@ screen el =
         , absolutelyPositioned = Nothing
         }
         |> within
-            [ el
+            [ elem
             ]
 
 
@@ -1142,9 +1140,9 @@ viewport =
 {-| Renders `Element`'s into `Html`, but does not embed a stylesheet.
 -}
 toHtml : StyleSheet style variation -> Element style variation msg -> Html msg
-toHtml stylesheet el =
+toHtml stylesheet elem =
     Html.div []
-        (Render.render stylesheet el)
+        (Render.render stylesheet elem)
 
 
 {-| Embed a stylesheet.
@@ -1169,7 +1167,7 @@ type alias Device =
 
 {-| Takes in a Window.Size and returns a device profile which can be used for responsiveness.
 -}
-classifyDevice : Window.Size -> Device
+classifyDevice : { window | width : Int, height : Int } -> Device
 classifyDevice { width, height } =
     { width = width
     , height = height
@@ -1259,12 +1257,12 @@ Don't leave `name` blank, even if you just put _"Main Navigation"_ in it.
 navigation : style -> List (Attribute variation msg) -> { options : List (Element style variation msg), name : String } -> Element style variation msg
 navigation style attrs { options, name } =
     let
-        wrap el =
+        wrap elem =
             Element
                 { node = "li"
                 , style = Nothing
                 , attrs = []
-                , child = el
+                , child = elem
                 , absolutelyPositioned = Nothing
                 }
     in
@@ -1292,12 +1290,12 @@ navigation style attrs { options, name } =
 navigationColumn : style -> List (Attribute variation msg) -> { options : List (Element style variation msg), name : String } -> Element style variation msg
 navigationColumn style attrs { options, name } =
     let
-        wrap el =
+        wrap elem =
             Element
                 { node = "li"
                 , style = Nothing
                 , attrs = []
-                , child = el
+                , child = elem
                 , absolutelyPositioned = Nothing
                 }
     in

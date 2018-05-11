@@ -1,4 +1,18 @@
-module Style.Internal.Selector exposing (Selector, child, formatName, free, getFindable, guard, pseudo, render, select, topName, uncapitalize, variant)
+module Style.Internal.Selector
+    exposing
+        ( Selector
+        , child
+        , formatName
+        , free
+        , getFindable
+        , guard
+        , pseudo
+        , render
+        , select
+        , topName
+        , uncapitalize
+        , variant
+        )
 
 {-| Representations of CSS selectors
 
@@ -20,13 +34,13 @@ type Selector class variation
 
 
 {-| -}
-formatName : a -> String
+formatName : String -> String
 formatName x =
-    toString x
+    x
         |> uncapitalize
-        |> Regex.replace Regex.All (Regex.regex "[^a-zA-Z0-9_-]") (\_ -> "")
-        |> Regex.replace Regex.All (Regex.regex "[A-Z0-9]+") (\{ match } -> " " ++ String.toLower match)
-        |> Regex.replace Regex.All (Regex.regex "[\\s+]") (\_ -> "-")
+        |> Regex.replace (Maybe.withDefault Regex.never <| Regex.fromString "[^a-zA-Z0-9_-]") (\_ -> "")
+        |> Regex.replace (Maybe.withDefault Regex.never <| Regex.fromString "[A-Z0-9]+") (\{ match } -> " " ++ String.toLower match)
+        |> Regex.replace (Maybe.withDefault Regex.never <| Regex.fromString "[\\s+]") (\_ -> "-")
 
 
 {-| -}
@@ -45,8 +59,8 @@ uncapitalize str =
 
 {-| -}
 topName : Selector class variation -> String
-topName selector =
-    case selector of
+topName selectorRule =
+    case selectorRule of
         Select sel _ ->
             sel
 
@@ -65,10 +79,10 @@ topName selector =
 
 {-| -}
 guard : String -> Selector class variation -> Selector class variation
-guard guard selector =
+guard guardingString selector =
     let
         addGuard str =
-            str ++ "__" ++ guard
+            str ++ "g" ++ guardingString
 
         onFindable findable =
             case findable of
@@ -85,8 +99,8 @@ guard guard selector =
                         (addGuard rendered)
                         (onFindable findable)
 
-                SelectChild child ->
-                    SelectChild (onSelector child)
+                SelectChild selectChild ->
+                    SelectChild (onSelector selectChild)
 
                 -- Free String
                 Stack selectors ->
@@ -102,7 +116,7 @@ guard guard selector =
 render : Maybe String -> Selector class variation -> String
 render maybeGuard selector =
     let
-        guard str =
+        applyGuard str =
             case maybeGuard of
                 Nothing ->
                     str
@@ -126,10 +140,10 @@ render maybeGuard selector =
     in
     case selector of
         Select single _ ->
-            ".style-elements ." ++ guard single
+            ".style-elements ." ++ applyGuard single
 
-        SelectChild child ->
-            "> " ++ render maybeGuard child
+        SelectChild selectChild ->
+            "> " ++ render maybeGuard selectChild
 
         Free single ->
             single
@@ -167,7 +181,11 @@ getFindable find =
 {-| -}
 select : class -> Selector class variation
 select class =
-    Select (formatName class) <| Findable.Style class (formatName class)
+    Select "" <| Findable.Style class ""
+
+
+
+-- Select (formatName (Debug.toString class)) <| Findable.Style class (formatName (Debug.toString class))
 
 
 {-| -}
@@ -197,8 +215,8 @@ variant sel var =
                     findable
                 )
 
-        SelectChild child ->
-            SelectChild (variant child var)
+        SelectChild selectChild ->
+            SelectChild (variant selectChild var)
 
         Free single ->
             Free single
@@ -235,8 +253,8 @@ pseudo psu sel =
         Select single findable ->
             Stack [ Select single findable, Pseudo psu ]
 
-        SelectChild child ->
-            SelectChild (pseudo psu child)
+        SelectChild selectChild ->
+            SelectChild (pseudo psu selectChild)
 
         Free single ->
             Free single

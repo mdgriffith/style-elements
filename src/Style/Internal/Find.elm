@@ -25,7 +25,7 @@ toVariation var newName element =
         Style class name ->
             Variation class var newName
 
-        Variation class variation name ->
+        Variation class _ name ->
             Variation class var newName
 
 
@@ -50,7 +50,8 @@ style class elements =
     in
     case found of
         Nothing ->
-            Debug.log ("No style present for " ++ toString class) ""
+            -- Debug.log ("No style present for " ++ toString class) ""
+            ""
 
         Just cls ->
             cls
@@ -58,12 +59,12 @@ style class elements =
 
 {-| -}
 variation : class -> variation -> Findable class variation -> String
-variation class variation elements =
+variation class vary elements =
     let
         find el =
             case el of
                 Variation cls var name ->
-                    if class == cls && var == variation then
+                    if class == cls && var == vary then
                         Just name
                     else
                         Nothing
@@ -77,7 +78,8 @@ variation class variation elements =
     in
     case found of
         Nothing ->
-            Debug.log ("No " ++ toString variation ++ " variation  present for " ++ toString class) ""
+            -- Debug.log ("No " ++ toString vary ++ " variation  present for " ++ toString class) ""
+            ""
 
         Just cls ->
             cls

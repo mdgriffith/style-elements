@@ -36,8 +36,8 @@ batch =
 toList : List (Batchable thing) -> List thing
 toList batchables =
     let
-        flatten batch =
-            case batch of
+        flatten batchToFlatten =
+            case batchToFlatten of
                 One thing ->
                     [ thing ]
 

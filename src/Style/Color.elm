@@ -6,12 +6,11 @@ Meant to be imported as
 
     import Style.Color as Color
 
-@docs text, background, border, cursor, decoration, selection, placeholder
+@docs Color, text, background, border, cursor, decoration, selection, placeholder
 
 -}
 
-import Color exposing (Color)
-import Style exposing (Property)
+import Style exposing (Color, Property)
 import Style.Internal.Model as Internal
 import Style.Internal.Render.Value as Value
 

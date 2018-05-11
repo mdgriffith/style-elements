@@ -29,7 +29,7 @@ name el =
 
 
 adjust : (Maybe Style.LayoutModel -> Element style variation msg -> ( Element style variation msg, Maybe (List (Element style variation msg)) )) -> Maybe Style.LayoutModel -> Element style variation msg -> ( Element style variation msg, Maybe (List (Element style variation msg)) )
-adjust fn parent el =
+adjust fn parent elemen =
     let
         merge el current =
             case el of
@@ -50,7 +50,7 @@ adjust fn parent el =
             else
                 Just list
     in
-    case el of
+    case elemen of
         Element ({ child, absolutelyPositioned } as elm) ->
             let
                 ( adjustedChild, childData ) =
@@ -94,7 +94,8 @@ adjust fn parent el =
             , List.foldr merge Nothing [ childData, otherChildrenData, elData ]
             )
 
-        Layout ({ layout, children, absolutelyPositioned } as elm) ->
+        -- Layout ({ layout, children, absolutelyPositioned } as elm) ->
+        Layout elm ->
             let
                 adjustAndMerge usingParent el ( adjustedAggregate, dataAggregate ) =
                     let
@@ -129,11 +130,11 @@ adjust fn parent el =
                             )
 
                 ( adjustedChildren, childrenData ) =
-                    case children of
+                    case elm.children of
                         Normal normalChildren ->
                             let
                                 ( adjusted, data ) =
-                                    List.foldr (adjustAndMerge (Just layout)) ( [], [] ) normalChildren
+                                    List.foldr (adjustAndMerge (Just elm.layout)) ( [], [] ) normalChildren
                             in
                             ( Normal adjusted
                             , maybeOnEmptyList data
@@ -142,14 +143,14 @@ adjust fn parent el =
                         Keyed keyedChildren ->
                             let
                                 ( adjusted, data ) =
-                                    List.foldr (adjustAndMergeKeyed (Just layout)) ( [], [] ) keyedChildren
+                                    List.foldr (adjustAndMergeKeyed (Just elm.layout)) ( [], [] ) keyedChildren
                             in
                             ( Keyed adjusted
                             , maybeOnEmptyList data
                             )
 
                 ( adjustedOthers, otherChildrenData ) =
-                    case absolutelyPositioned of
+                    case elm.absolutelyPositioned of
                         Nothing ->
                             ( Nothing, Nothing )
 
@@ -171,7 +172,7 @@ adjust fn parent el =
             )
 
         _ ->
-            fn Nothing el
+            fn Nothing elemen
 
 
 type Element style variation msg
@@ -214,22 +215,23 @@ mapAll onMsg onStyle onVariation el =
 
         Element ({ attrs, child, absolutelyPositioned, style } as elm) ->
             Element
-                { elm
-                    | attrs = List.map (mapAllAttr onMsg onVariation) attrs
-                    , style = Maybe.map onStyle style
-                    , child = mapAll onMsg onStyle onVariation child
-                    , absolutelyPositioned =
-                        Maybe.map (List.map (\child -> mapAll onMsg onStyle onVariation child)) absolutelyPositioned
+                { node = elm.node
+                , attrs = List.map (mapAllAttr onMsg onVariation) attrs
+                , style = Maybe.map onStyle style
+                , child = mapAll onMsg onStyle onVariation child
+                , absolutelyPositioned =
+                    Maybe.map (List.map (\childEl -> mapAll onMsg onStyle onVariation childEl)) absolutelyPositioned
                 }
 
         Layout ({ attrs, children, absolutelyPositioned, style } as elm) ->
             Layout
-                { elm
-                    | attrs = List.map (mapAllAttr onMsg onVariation) attrs
-                    , style = Maybe.map onStyle style
-                    , children = mapChildren (\child -> mapAll onMsg onStyle onVariation child) children
-                    , absolutelyPositioned =
-                        Maybe.map (List.map (\child -> mapAll onMsg onStyle onVariation child)) absolutelyPositioned
+                { node = elm.node
+                , layout = elm.layout
+                , attrs = List.map (mapAllAttr onMsg onVariation) attrs
+                , style = Maybe.map onStyle style
+                , children = mapChildren (\child -> mapAll onMsg onStyle onVariation child) children
+                , absolutelyPositioned =
+                    Maybe.map (List.map (\child -> mapAll onMsg onStyle onVariation child)) absolutelyPositioned
                 }
 
         Raw html ->
@@ -281,8 +283,8 @@ mapAllAttr fnMsg fnVar attr =
         Spacing x y ->
             Spacing x y
 
-        Margin m ->
-            Margin m
+        Margin t r b l ->
+            Margin t r b l
 
         Expand ->
             Expand
@@ -290,8 +292,8 @@ mapAllAttr fnMsg fnVar attr =
         Padding t r b l ->
             Padding t r b l
 
-        PhantomPadding x ->
-            PhantomPadding x
+        PhantomPadding t r b l ->
+            PhantomPadding t r b l
 
         GridArea str ->
             GridArea str
@@ -323,20 +325,23 @@ mapMsg fn el =
 
         Element ({ attrs, child, absolutelyPositioned } as elm) ->
             Element
-                { elm
-                    | attrs = List.map (mapAttr fn) attrs
-                    , child = mapMsg fn child
-                    , absolutelyPositioned =
-                        Maybe.map (List.map (\child -> mapMsg fn child)) absolutelyPositioned
+                { node = elm.node
+                , style = elm.style
+                , attrs = List.map (mapAttr fn) attrs
+                , child = mapMsg fn child
+                , absolutelyPositioned =
+                    Maybe.map (List.map (\childEl -> mapMsg fn childEl)) absolutelyPositioned
                 }
 
         Layout ({ attrs, children, absolutelyPositioned } as elm) ->
             Layout
-                { elm
-                    | attrs = List.map (mapAttr fn) attrs
-                    , children = mapChildren (mapMsg fn) children
-                    , absolutelyPositioned =
-                        Maybe.map (List.map (\child -> mapMsg fn child)) absolutelyPositioned
+                { node = elm.node
+                , style = elm.style
+                , layout = elm.layout
+                , attrs = List.map (mapAttr fn) attrs
+                , children = mapChildren (mapMsg fn) children
+                , absolutelyPositioned =
+                    Maybe.map (List.map (\child -> mapMsg fn child)) absolutelyPositioned
                 }
 
         Raw html ->
@@ -388,8 +393,8 @@ mapAttr fn attr =
         Spacing x y ->
             Spacing x y
 
-        Margin m ->
-            Margin m
+        Margin t r b l ->
+            Margin t r b l
 
         Expand ->
             Expand
@@ -397,8 +402,8 @@ mapAttr fn attr =
         Padding t r b l ->
             Padding t r b l
 
-        PhantomPadding x ->
-            PhantomPadding x
+        PhantomPadding t r b l ->
+            PhantomPadding t r b l
 
         GridArea str ->
             GridArea str
@@ -452,11 +457,11 @@ type Attribute variation msg
     | Hidden
     | Opacity Float
     | Spacing Float Float
-    | Margin ( Float, Float, Float, Float )
+    | Margin Float Float Float Float
     | Expand
     | Padding (Maybe Float) (Maybe Float) (Maybe Float) (Maybe Float)
       -- Phandom padding isn't rendered as padding, but is communicated for purposes as inheritance.
-    | PhantomPadding ( Float, Float, Float, Float )
+    | PhantomPadding Float Float Float Float
     | Event (Html.Attribute msg)
     | InputEvent (Html.Attribute msg)
     | Attr (Html.Attribute msg)

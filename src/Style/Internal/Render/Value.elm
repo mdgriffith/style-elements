@@ -2,23 +2,22 @@ module Style.Internal.Render.Value exposing (..)
 
 {-| -}
 
-import Color exposing (Color)
 import Style.Internal.Model as Internal exposing (..)
 
 
-box : ( Float, Float, Float, Float ) -> String
-box ( a, b, c, d ) =
-    toString a ++ "px " ++ toString b ++ "px " ++ toString c ++ "px " ++ toString d ++ "px"
+box : Box Float -> String
+box (Box a b c d) =
+    String.fromFloat a ++ "px " ++ String.fromFloat b ++ "px " ++ String.fromFloat c ++ "px " ++ String.fromFloat d ++ "px"
 
 
 length : Length -> String
 length l =
     case l of
         Px x ->
-            toString x ++ "px"
+            String.fromFloat x ++ "px"
 
         Percent x ->
-            toString x ++ "%"
+            String.fromFloat x ++ "%"
 
         Auto ->
             "auto"
@@ -27,54 +26,50 @@ length l =
             "100%"
 
         Calc perc px ->
-            "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)"
+            "calc(" ++ String.fromFloat perc ++ "% + " ++ String.fromFloat px ++ "px)"
 
 
 parentAdjustedLength : Length -> Float -> String
 parentAdjustedLength len adjustment =
     case len of
         Px x ->
-            toString x ++ "px"
+            String.fromFloat x ++ "px"
 
         Percent x ->
-            "calc(" ++ toString x ++ "% - " ++ toString adjustment ++ "px)"
+            "calc(" ++ String.fromFloat x ++ "% - " ++ String.fromFloat adjustment ++ "px)"
 
         Auto ->
             "auto"
 
         Fill i ->
-            "calc(100% - " ++ toString adjustment ++ "px)"
+            "calc(100% - " ++ String.fromFloat adjustment ++ "px)"
 
         Calc perc px ->
-            "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)"
+            "calc(" ++ String.fromFloat perc ++ "% + " ++ String.fromFloat px ++ "px)"
 
 
 color : Color -> String
-color color =
-    let
-        { red, green, blue, alpha } =
-            Color.toRgb color
-    in
-    ("rgba(" ++ toString red)
-        ++ ("," ++ toString green)
-        ++ ("," ++ toString blue)
-        ++ ("," ++ toString alpha ++ ")")
+color (RGBA red green blue alpha) =
+    ("rgba(" ++ String.fromInt (round (red * 255)))
+        ++ ("," ++ String.fromInt (round (green * 255)))
+        ++ ("," ++ String.fromInt (round (blue * 255)))
+        ++ ("," ++ String.fromFloat alpha ++ ")")
 
 
 shadow : ShadowModel -> String
-shadow (ShadowModel shadow) =
-    [ if shadow.kind == "inset" then
+shadow (ShadowModel shadowModel) =
+    [ if shadowModel.kind == "inset" then
         Just "inset"
       else
         Nothing
-    , Just <| toString (Tuple.first shadow.offset) ++ "px"
-    , Just <| toString (Tuple.second shadow.offset) ++ "px"
-    , Just <| toString shadow.blur ++ "px"
-    , if shadow.kind == "text" || shadow.kind == "drop" then
+    , Just <| String.fromFloat (Tuple.first shadowModel.offset) ++ "px"
+    , Just <| String.fromFloat (Tuple.second shadowModel.offset) ++ "px"
+    , Just <| String.fromFloat shadowModel.blur ++ "px"
+    , if shadowModel.kind == "text" || shadowModel.kind == "drop" then
         Nothing
       else
-        Just <| toString shadow.size ++ "px"
-    , Just <| color shadow.color
+        Just <| String.fromFloat shadowModel.size ++ "px"
+    , Just <| color shadowModel.color
     ]
         |> List.filterMap identity
         |> String.join " "
@@ -97,10 +92,10 @@ gridPosition (GridPosition { start, width, height }) =
     else
         Just <|
             String.join " / "
-                [ toString rowStart
-                , toString colStart
-                , toString rowEnd
-                , toString colEnd
+                [ String.fromInt rowStart
+                , String.fromInt colStart
+                , String.fromInt rowEnd
+                , String.fromInt colEnd
                 ]
 
 

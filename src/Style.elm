@@ -1,6 +1,7 @@
 module Style
     exposing
-        ( Font
+        ( Color
+        , Font
         , Option
         , Property
         , Style
@@ -16,6 +17,8 @@ module Style
         , origin
         , prop
         , pseudo
+        , rgb
+        , rgba
         , rotate
         , rotateAround
         , scale
@@ -23,7 +26,7 @@ module Style
         , styleSheet
         , styleSheetWith
         , translate
-        , unguarded
+          -- , unguarded
         , variation
         )
 
@@ -131,7 +134,7 @@ The main difference between these two is that `variations` can combine with othe
 
 ## Properties
 
-@docs Property, prop, opacity, cursor, Font
+@docs Property, prop, opacity, cursor, Font, Color, rgb, rgba
 
 
 ## Transformations
@@ -148,7 +151,7 @@ Psuedo classes can be nested.
 
 ## Render into a Style Sheet
 
-@docs StyleSheet, styleSheet, styleSheetWith, Option, unguarded, importUrl, importCss
+@docs StyleSheet, styleSheet, styleSheetWith, Option, importUrl, importCss
 
 -}
 
@@ -157,6 +160,23 @@ import Style.Internal.Find as Find
 import Style.Internal.Intermediate as Intermediate exposing (Rendered(..))
 import Style.Internal.Model as Internal
 import Style.Internal.Render as Render
+
+
+{-| -}
+type alias Color =
+    Internal.Color
+
+
+{-| -}
+rgb : Float -> Float -> Float -> Color
+rgb r g b =
+    Internal.RGBA r g b 1
+
+
+{-| -}
+rgba : Float -> Float -> Float -> Float -> Color
+rgba =
+    Internal.RGBA
 
 
 {-| -}
@@ -204,8 +224,8 @@ style cls props =
 
 {-| -}
 variation : variation -> List (Property class Never) -> Property class variation
-variation variation props =
-    Internal.Variation variation props
+variation v variationProps =
+    Internal.Variation v variationProps
 
 
 {-| -}
@@ -217,7 +237,7 @@ prop name val =
 {-| -}
 opacity : Float -> Property class variation
 opacity o =
-    Internal.Exact "opacity" (toString o)
+    Internal.Exact "opacity" (String.fromFloat o)
 
 
 {-| -}
@@ -230,7 +250,7 @@ cursor name =
 -}
 origin : Float -> Float -> Float -> Property class variation
 origin x y z =
-    Internal.Exact "transform-origin" (toString x ++ "px  " ++ toString y ++ "px " ++ toString z ++ "px")
+    Internal.Exact "transform-origin" (String.fromFloat x ++ "px  " ++ String.fromFloat y ++ "px " ++ String.fromFloat z ++ "px")
 
 
 {-| Units always rendered as `radians`.
@@ -316,11 +336,12 @@ type Option
     = Unguarded
 
 
-{-| Remove style hash guards from style classes.
--}
-unguarded : Option
-unguarded =
-    Unguarded
+
+-- {-| Remove style hash guards from style classes.
+-- -}
+-- unguarded : Option
+-- unguarded =
+--     Unguarded
 
 
 {-| -}
@@ -333,10 +354,10 @@ styleSheet styles =
 styleSheetWith : List Option -> List (Style elem variation) -> StyleSheet elem variation
 styleSheetWith options styles =
     let
-        unguarded =
+        unguard =
             List.any ((==) Unguarded) options
     in
-    prepareSheet (Render.stylesheet "" (not <| unguarded) styles)
+    prepareSheet (Render.stylesheet "" (not <| unguard) styles)
 
 
 {-| -}

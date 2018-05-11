@@ -8,7 +8,10 @@ module Style.Transition exposing (Transition, all, performant, transitions)
 
 import Style exposing (Property)
 import Style.Internal.Model as Internal
-import Time exposing (Time)
+
+
+type alias Time =
+    Float
 
 
 {-| -}
@@ -33,7 +36,7 @@ all =
     Internal.Transitions
         [ Internal.Transition
             { delay = 0
-            , duration = 130 * Time.millisecond
+            , duration = 130 -- in milliseconds
             , easing = "ease"
             , props = [ "all" ]
             }
@@ -53,7 +56,7 @@ performant =
     Internal.Transitions
         [ Internal.Transition
             { delay = 0
-            , duration = 130 * Time.millisecond
+            , duration = 130 -- in milliseconds
             , easing = "ease"
             , props = [ "transform", "filter", "opacity" ]
             }

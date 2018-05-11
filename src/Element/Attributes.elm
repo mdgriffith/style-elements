@@ -236,25 +236,25 @@ width =
 {-| -}
 minWidth : Length -> Attribute variation msg
 minWidth len =
-    Attr (Html.Attributes.style [ ( "min-width", StyleValue.length len ) ])
+    Attr (Html.Attributes.style "min-width" (StyleValue.length len))
 
 
 {-| -}
 maxWidth : Length -> Attribute variation msg
 maxWidth len =
-    Attr (Html.Attributes.style [ ( "max-width", StyleValue.length len ) ])
+    Attr (Html.Attributes.style "max-width" (StyleValue.length len))
 
 
 {-| -}
 minHeight : Length -> Attribute variation msg
 minHeight len =
-    Attr (Html.Attributes.style [ ( "min-height", StyleValue.length len ) ])
+    Attr (Html.Attributes.style "min-height" (StyleValue.length len))
 
 
 {-| -}
 maxHeight : Length -> Attribute variation msg
 maxHeight len =
-    Attr (Html.Attributes.style [ ( "max-height", StyleValue.length len ) ])
+    Attr (Html.Attributes.style "max-height" (StyleValue.length len))
 
 
 {-| -}
@@ -389,19 +389,19 @@ xScrollbar =
 -}
 clip : Attribute variation msg
 clip =
-    Attr <| VirtualDom.style [ ( "overflow", "hidden" ) ]
+    Attr <| VirtualDom.style "overflow" "hidden"
 
 
 {-| -}
 clipX : Attribute variation msg
 clipX =
-    Attr <| VirtualDom.style [ ( "overflow-x", "hidden" ) ]
+    Attr <| VirtualDom.style "overflow-x" "hidden"
 
 
 {-| -}
 clipY : Attribute variation msg
 clipY =
-    Attr <| VirtualDom.style [ ( "overflow-y", "hidden" ) ]
+    Attr <| VirtualDom.style "overflow-y" "hidden"
 
 
 {-| This function makes it easier to build a space-separated class attribute.
@@ -442,9 +442,9 @@ classList =
 Use it if you need to, though it's obviously recommended to use the `Style` module instead.
 
 -}
-inlineStyle : List ( String, String ) -> Attribute variation msg
-inlineStyle =
-    Attr << VirtualDom.style
+inlineStyle : String -> String -> Attribute variation msg
+inlineStyle name val =
+    Attr <| VirtualDom.style name val
 
 
 
@@ -522,11 +522,11 @@ map fn attr =
         Padding w x y z ->
             Padding w x y z
 
-        PhantomPadding x ->
-            PhantomPadding x
+        PhantomPadding t r b l ->
+            PhantomPadding t r b l
 
-        Margin x ->
-            Margin x
+        Margin t r b l ->
+            Margin t r b l
 
         GridArea x ->
             GridArea x

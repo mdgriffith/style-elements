@@ -222,7 +222,7 @@ positionNearby parent elm =
                                             )
                                         , Position Nothing (Just 0) Nothing
                                         , VAlign Bottom
-                                        , Attr <| Html.Attributes.style [ ( "z-index", "10" ) ]
+                                        , Attr <| Html.Attributes.style "z-index" "10"
                                         ]
                                 , child =
                                     el
@@ -266,7 +266,7 @@ positionNearby parent elm =
                                         , PositionFrame Relative
                                         , Position (Just 0) (Just 0) Nothing
                                         , Padding (Just 0) (Just 0) (Just 0) (Just 0)
-                                        , Attr <| Html.Attributes.style [ ( "z-index", "10" ) ]
+                                        , Attr <| Html.Attributes.style "z-index" "10"
                                         , tag "nearby-intermediate"
                                         ]
                                 , child =
@@ -410,11 +410,30 @@ counterSpacing elm =
                         |> List.reverse
                         |> List.head
 
-                padding =
-                    List.filterMap forPadding attrs
+                forSpacing posAttr =
+                    case posAttr of
+                        Spacing x y ->
+                            Just ( x, y )
+
+                        _ ->
+                            Nothing
+
+                -- padding =
+                --     List.filterMap forPadding attrs
+                --         |> List.reverse
+                --         |> List.head
+                -- phantomPadding =
+                --                 PhantomPadding
+                --                     (Maybe.withDefault ( 0, 0, 0, 0 ) padding)
+                phantomPadding =
+                    List.filterMap forPhantomPadding attrs
                         |> List.reverse
                         |> List.head
+                        |> Maybe.withDefault (PhantomPadding 0 0 0 0)
 
+                -- phantomPadding =
+                --                 PhantomPadding
+                --                     (Maybe.withDefault ( 0, 0, 0, 0 ) padding)
                 hasSpacing =
                     case spacing of
                         Nothing ->
@@ -423,18 +442,15 @@ counterSpacing elm =
                         _ ->
                             True
 
-                forSpacing posAttr =
-                    case posAttr of
-                        Spacing x y ->
-                            Just ( y, x, y, x )
-
-                        _ ->
-                            Nothing
-
-                forPadding posAttr =
+                forPhantomPadding posAttr =
                     case posAttr of
                         Padding t r b l ->
-                            Just <| defaultPadding ( t, r, b, l ) ( 0, 0, 0, 0 )
+                            Just <|
+                                PhantomPadding
+                                    (Maybe.withDefault 0 t)
+                                    (Maybe.withDefault 0 r)
+                                    (Maybe.withDefault 0 b)
+                                    (Maybe.withDefault 0 l)
 
                         _ ->
                             Nothing
@@ -463,20 +479,16 @@ counterSpacing elm =
                             ( negativeMargin, spacingAttr, totalHSpacing ) =
                                 case spacing of
                                     Nothing ->
-                                        ( ( 0, 0, 0, 0 )
+                                        ( Margin 0 0 0 0
                                         , Spacing 0 0
                                         , 0
                                         )
 
-                                    Just ( top, right, bottom, left ) ->
-                                        ( ( -1 * top, -1 * right, -1 * bottom, -1 * left )
-                                        , Spacing right bottom
-                                        , (right + left) / 2
+                                    Just ( x, y ) ->
+                                        ( Margin (-1 * y) (-1 * x) (-1 * y) (-1 * x)
+                                        , Spacing x y
+                                        , x
                                         )
-
-                            phantomPadding =
-                                PhantomPadding
-                                    (Maybe.withDefault ( 0, 0, 0, 0 ) padding)
                         in
                         Layout
                             { node = node
@@ -493,7 +505,7 @@ counterSpacing elm =
                                             tag "counter-spacing"
                                                 :: PointerEvents False
                                                 :: phantomPadding
-                                                :: Margin negativeMargin
+                                                :: negativeMargin
                                                 :: spacingAttr
                                                 :: Width (Internal.Calc 100 totalHSpacing)
                                                 :: Shrink 1
@@ -578,24 +590,15 @@ hoistFixedScreenElements el =
             ( el, Nothing )
 
 
-defaultPadding : ( Maybe Float, Maybe Float, Maybe Float, Maybe Float ) -> ( Float, Float, Float, Float ) -> ( Float, Float, Float, Float )
-defaultPadding ( mW, mX, mY, mZ ) ( w, x, y, z ) =
-    ( Maybe.withDefault w mW
-    , Maybe.withDefault x mX
-    , Maybe.withDefault y mY
-    , Maybe.withDefault z mZ
-    )
-
-
 spacingToMargin : List (Attribute variation msg) -> List (Attribute variation msg)
 spacingToMargin attrs =
     let
         spaceToMarg a =
             case a of
                 Spacing x y ->
-                    Margin ( y, x, y, x )
+                    Margin y x y x
 
-                a ->
-                    a
+                other ->
+                    other
     in
     List.map spaceToMarg attrs

@@ -1,4 +1,10 @@
-module Style.Internal.Render exposing (class, spacing, stylesheet, unbatchedStylesheet)
+module Style.Internal.Render
+    exposing
+        ( class
+        , spacing
+        , stylesheet
+          -- , unbatchedStylesheet
+        )
 
 {-| -}
 
@@ -12,9 +18,9 @@ import Style.Internal.Render.Value as Value
 import Style.Internal.Selector as Selector exposing (Selector)
 
 
-single : Bool -> Internal.Style class variation -> ( String, String )
-single guard style =
-    Intermediate.raw << renderStyle guard << preprocess <| style
+-- single : Bool -> Internal.Style class variation -> ( String, String )
+-- single guard style =
+--     Intermediate.raw << renderStyle guard << preprocess <| style
 
 
 class : String -> List ( String, String ) -> String
@@ -28,13 +34,13 @@ class name props =
     "." ++ name ++ Css.brace 0 renderedProps
 
 
-spacing : ( Float, Float, Float, Float ) -> ( String, String )
+spacing : Internal.Box Float -> ( String, String )
 spacing box =
     let
         name =
             case box of
-                ( a, b, c, d ) ->
-                    "spacing-" ++ toString a ++ "-" ++ toString b ++ "-" ++ toString c ++ "-" ++ toString d ++ " > *:not(.nospacing)"
+                Internal.Box a b c d ->
+                    "spacing-" ++ String.fromFloat a ++ "-" ++ String.fromFloat b ++ "-" ++ String.fromFloat c ++ "-" ++ String.fromFloat d ++ " > *:not(.nospacing)"
     in
     Css.prop 2 ( "margin", Value.box box )
         |> Css.brace 0
@@ -85,13 +91,13 @@ reorderImportAddReset reset styles =
                 |> (Set.toList << Set.fromList)
                 |> List.map (\uri -> Import ("url('" ++ uri ++ "')"))
 
-        reorder style ( imports, remainingStyles ) =
+        reorder style ( importStatements, remainingStyles ) =
             case style of
                 Import _ ->
-                    ( style :: imports, remainingStyles )
+                    ( style :: importStatements, remainingStyles )
 
                 x ->
-                    ( imports, style :: remainingStyles )
+                    ( importStatements, style :: remainingStyles )
 
         ( imports, allStyles ) =
             List.foldr reorder ( [], [] ) styles
@@ -99,11 +105,12 @@ reorderImportAddReset reset styles =
     imports ++ importedFonts ++ [ Reset reset ] ++ allStyles
 
 
-unbatchedStylesheet : Bool -> List (Internal.Style class variation) -> Intermediate.Rendered class variation
-unbatchedStylesheet guard styles =
-    styles
-        |> List.map (renderStyle guard << preprocess)
-        |> Intermediate.finalize
+
+-- unbatchedStylesheet : Bool -> List (Internal.Style class variation) -> Intermediate.Rendered class variation
+-- unbatchedStylesheet guard styles =
+--     styles
+--         |> List.map (renderStyle guard << preprocess)
+--         |> Intermediate.finalize
 
 
 {-| This handles rearranging some properties before they're rendered.
@@ -118,7 +125,7 @@ Such as:
 preprocess : Style class variation -> Style class variation
 preprocess style =
     case style of
-        Internal.Style class props ->
+        Internal.Style className styleProps ->
             let
                 visible prop =
                     case prop of
@@ -136,14 +143,14 @@ preprocess style =
                         _ ->
                             False
 
-                prioritize isPriority props =
+                prioritize isPriority priorityProps =
                     let
                         ( high, low ) =
-                            List.partition isPriority props
+                            List.partition isPriority priorityProps
                     in
                     low ++ high
 
-                overridePrevious overridable props =
+                overridePrevious overridable overrideProps =
                     let
                         eliminatePrevious prop ( existing, overridden ) =
                             if overridable prop && overridden then
@@ -153,13 +160,13 @@ preprocess style =
                             else
                                 ( prop :: existing, overridden )
                     in
-                    List.foldr eliminatePrevious ( [], False ) props
+                    List.foldr eliminatePrevious ( [], False ) overrideProps
                         |> Tuple.first
 
                 dropShadow (ShadowModel shade) =
                     shade.kind == "drop"
 
-                mergeTransforms props =
+                mergeTransforms mergeableProps =
                     let
                         setIfNothing x maybeX =
                             case maybeX of
@@ -209,7 +216,7 @@ preprocess style =
                             else
                                 Transform transformations :: gathered
                     in
-                    props
+                    mergeableProps
                         |> List.foldr gatherTransforms
                             ( { rotate = Nothing
                               , scale = Nothing
@@ -219,7 +226,7 @@ preprocess style =
                             )
                         |> applyTransforms
 
-                mergeShadowsAndFilters props =
+                mergeShadowsAndFilters shadowsAndFilters =
                     let
                         gather prop existing =
                             case prop of
@@ -232,10 +239,10 @@ preprocess style =
                                 _ ->
                                     { existing | others = prop :: existing.others }
 
-                        combine { filters, shadows, others } =
-                            Filters filters :: Shadows shadows :: others
+                        combine combineable =
+                            Filters combineable.filters :: Shadows combineable.shadows :: combineable.others
                     in
-                    props
+                    shadowsAndFilters
                         |> List.foldr gather
                             { filters = []
                             , shadows = []
@@ -244,7 +251,7 @@ preprocess style =
                         |> combine
 
                 processed =
-                    props
+                    styleProps
                         |> prioritize visible
                         |> overridePrevious visible
                         |> prioritize shadows
@@ -252,7 +259,7 @@ preprocess style =
                         |> mergeShadowsAndFilters
                         |> mergeTransforms
             in
-            Internal.Style class processed
+            Internal.Style className processed
 
         _ ->
             style
@@ -267,18 +274,18 @@ renderStyle guarded style =
         Internal.Import str ->
             Intermediate.Free <| "@import " ++ str ++ ";"
 
-        Internal.RawStyle cls props ->
-            Intermediate.Free <| class cls props
+        Internal.RawStyle cls styleProps ->
+            Intermediate.Free <| class cls styleProps
 
-        Internal.Style class props ->
+        Internal.Style cls styleProps ->
             let
                 selector =
-                    Selector.select class
+                    Selector.select cls
 
                 inter =
                     Intermediate.Class
                         { selector = selector
-                        , props = List.map (renderProp selector) props
+                        , props = List.map (renderProp selector) styleProps
                         }
 
                 guard i =
@@ -294,34 +301,34 @@ renderStyle guarded style =
 renderProp : Selector class variation -> Property class variation -> Intermediate.Prop class variation
 renderProp parentClass prop =
     case prop of
-        Child class props ->
+        Child cls styleProps ->
             (Intermediate.SubClass << Intermediate.Class)
-                { selector = Selector.child parentClass (Selector.select class)
-                , props = List.map (renderProp parentClass) props
+                { selector = Selector.child parentClass (Selector.select cls)
+                , props = List.map (renderProp parentClass) styleProps
                 }
 
-        Variation var props ->
+        Variation var styleProps ->
             let
                 selectVariation =
                     Selector.variant parentClass var
             in
             (Intermediate.SubClass << Intermediate.Class)
                 { selector = selectVariation
-                , props = List.filterMap (renderVariationProp selectVariation) props
+                , props = List.filterMap (renderVariationProp selectVariation) styleProps
                 }
 
-        PseudoElement class props ->
+        PseudoElement cls styleProps ->
             (Intermediate.SubClass << Intermediate.Class)
-                { selector = Selector.pseudo class parentClass
-                , props = List.map (renderProp parentClass) props
+                { selector = Selector.pseudo cls parentClass
+                , props = List.map (renderProp parentClass) styleProps
                 }
 
-        MediaQuery query props ->
+        MediaQuery query styleProps ->
             (Intermediate.SubClass << Intermediate.Media)
                 { query = "@media " ++ query
                 , selector = parentClass
                 , props =
-                    props
+                    styleProps
                         |> List.map (renderProp parentClass)
                         |> List.map (Intermediate.asMediaQuery query)
                 }
@@ -382,24 +389,24 @@ renderProp parentClass prop =
 renderVariationProp : Selector class variation -> Property class Never -> Maybe (Intermediate.Prop class variation)
 renderVariationProp parentClass prop =
     case prop of
-        Child class props ->
+        Child _ _ ->
             Nothing
 
-        Variation var props ->
+        Variation _ _ ->
             Nothing
 
-        PseudoElement class props ->
+        PseudoElement cls styleProps ->
             (Just << Intermediate.SubClass << Intermediate.Class)
-                { selector = Selector.pseudo class parentClass
-                , props = List.filterMap (renderVariationProp parentClass) props
+                { selector = Selector.pseudo cls parentClass
+                , props = List.filterMap (renderVariationProp parentClass) styleProps
                 }
 
-        MediaQuery query props ->
+        MediaQuery query styleProps ->
             (Just << Intermediate.SubClass << Intermediate.Media)
                 { query = "@media " ++ query
                 , selector = parentClass
                 , props =
-                    props
+                    styleProps
                         |> List.filterMap (renderVariationProp parentClass)
                         |> List.map (Intermediate.asMediaQuery query)
                 }

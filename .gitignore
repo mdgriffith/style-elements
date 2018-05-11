@@ -14,3 +14,5 @@ ohno.png
 *.notes
 
 elm.js
+elm
+*.html

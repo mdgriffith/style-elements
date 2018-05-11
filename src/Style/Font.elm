@@ -106,8 +106,8 @@ importUrl { url, name } =
 {-| Font size as `px`
 -}
 size : Float -> Property class variation
-size size =
-    Internal.Font "font-size" (toString size ++ "px")
+size i =
+    Internal.Font "font-size" (String.fromFloat i ++ "px")
 
 
 {-| This is the only unitless value in the library that isn't `px`.
@@ -121,21 +121,21 @@ This means the final lineHeight in px is:
 -}
 lineHeight : Float -> Property class variation
 lineHeight height =
-    Internal.Font "line-height" (toString height)
+    Internal.Font "line-height" (String.fromFloat height)
 
 
 {-| In `px`.
 -}
 letterSpacing : Float -> Property class variation
 letterSpacing offset =
-    Internal.Font "letter-spacing" (toString offset ++ "px")
+    Internal.Font "letter-spacing" (String.fromFloat offset ++ "px")
 
 
 {-| In `px`.
 -}
 wordSpacing : Float -> Property class variation
 wordSpacing offset =
-    Internal.Font "word-spacing" (toString offset ++ "px")
+    Internal.Font "word-spacing" (String.fromFloat offset ++ "px")
 
 
 {-| Align the font to the left.
@@ -204,7 +204,7 @@ light =
 {-| -}
 weight : Int -> Property class variation
 weight fontWeight =
-    Internal.Font "font-weight" (toString fontWeight)
+    Internal.Font "font-weight" (String.fromInt fontWeight)
 
 
 {-| -}

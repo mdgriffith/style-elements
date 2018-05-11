@@ -1,0 +1,33 @@
+{
+    "type": "package",
+    "name": "mdgriffith/style-elements",
+    "summary": "Encode and decode JSON values",
+    "license": "BSD-3-Clause",
+    "version": "1.0.0",
+    "exposed-modules": [
+        "Style",
+        "Style.Border",
+        "Style.Background",
+        "Style.Font",
+        "Style.Color",
+        "Style.Filter",
+        "Style.Shadow",
+        "Style.Transition",
+        "Style.Scale",
+        "Style.Sheet",
+        "Element",
+        "Element.Attributes",
+        "Element.Events",
+        "Element.Keyed",
+        "Element.Input"
+    ],
+    "elm-version": "0.19.0 <= v < 0.20.0",
+    "dependencies": {
+        "elm-lang/core": "6.0.0 <= v < 7.0.0",
+        "elm-lang/html": "3.0.0 <= v < 4.0.0",
+        "elm-lang/virtual-dom": "3.0.0 <= v < 4.0.0",
+        "Skinney/murmur3": "2.0.7 <= v < 3.0.0",
+        "elm-lang/window": "1.0.0 <= v < 2.0.0"
+    },
+    "test-dependencies": {}
+}

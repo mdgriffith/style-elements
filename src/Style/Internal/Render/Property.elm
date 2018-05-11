@@ -4,7 +4,6 @@ module Style.Internal.Render.Property exposing (..)
 
 import Style.Internal.Model exposing (..)
 import Style.Internal.Render.Value as Value
-import Time
 
 
 visibility : Visible -> List ( String, String )
@@ -17,49 +16,49 @@ visibility vis =
             [ ( "visibility", "hidden" ) ]
 
         Opacity x ->
-            [ ( "opacity", toString x ) ]
+            [ ( "opacity", String.fromFloat x ) ]
 
 
 flexWidth : Length -> Float -> List ( String, String )
 flexWidth len adjustment =
     case len of
         Px x ->
-            [ ( "width", toString x ++ "px" ) ]
+            [ ( "width", String.fromFloat x ++ "px" ) ]
 
         Percent x ->
-            [ ( "width", "calc(" ++ toString x ++ "% - " ++ toString adjustment ++ "px)" ) ]
+            [ ( "width", "calc(" ++ String.fromFloat x ++ "% - " ++ String.fromFloat adjustment ++ "px)" ) ]
 
         Auto ->
             [ ( "width", "auto" ) ]
 
         Fill i ->
-            [ ( "flex-grow", toString i ), ( "flex-basis", "0" ) ]
+            [ ( "flex-grow", String.fromFloat i ), ( "flex-basis", "0" ) ]
 
         Calc perc px ->
-            [ ( "width", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" ) ]
+            [ ( "width", "calc(" ++ String.fromFloat perc ++ "% + " ++ String.fromFloat px ++ "px)" ) ]
 
 
 flexHeight : Length -> List ( String, String )
 flexHeight l =
     case l of
         Px x ->
-            [ ( "height", toString x ++ "px" ) ]
+            [ ( "height", String.fromFloat x ++ "px" ) ]
 
         Percent x ->
-            [ ( "height", toString x ++ "%" ) ]
+            [ ( "height", String.fromFloat x ++ "%" ) ]
 
         Auto ->
             [ ( "height", "auto" ) ]
 
         Fill i ->
-            [ ( "flex-grow", toString i ), ( "flex-basis", "0" ) ]
+            [ ( "flex-grow", String.fromFloat i ), ( "flex-basis", "0" ) ]
 
         Calc perc px ->
-            [ ( "height", "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)" ) ]
+            [ ( "height", "calc(" ++ String.fromFloat perc ++ "% + " ++ String.fromFloat px ++ "px)" ) ]
 
 
 filters : List Filter -> List ( String, String )
-filters filters =
+filters myFilters =
     let
         filterName filtr =
             case filtr of
@@ -67,50 +66,50 @@ filters filters =
                     "url(" ++ url ++ ")"
 
                 Blur x ->
-                    "blur(" ++ toString x ++ "px)"
+                    "blur(" ++ String.fromFloat x ++ "px)"
 
                 Brightness x ->
-                    "brightness(" ++ toString x ++ "%)"
+                    "brightness(" ++ String.fromFloat x ++ "%)"
 
                 Contrast x ->
-                    "contrast(" ++ toString x ++ "%)"
+                    "contrast(" ++ String.fromFloat x ++ "%)"
 
                 Grayscale x ->
-                    "grayscale(" ++ toString x ++ "%)"
+                    "grayscale(" ++ String.fromFloat x ++ "%)"
 
                 HueRotate x ->
-                    "hueRotate(" ++ toString x ++ "deg)"
+                    "hueRotate(" ++ String.fromFloat x ++ "deg)"
 
                 Invert x ->
-                    "invert(" ++ toString x ++ "%)"
+                    "invert(" ++ String.fromFloat x ++ "%)"
 
                 OpacityFilter x ->
-                    "opacity(" ++ toString x ++ "%)"
+                    "opacity(" ++ String.fromFloat x ++ "%)"
 
                 Saturate x ->
-                    "saturate(" ++ toString x ++ "%)"
+                    "saturate(" ++ String.fromFloat x ++ "%)"
 
                 Sepia x ->
-                    "sepia(" ++ toString x ++ "%)"
+                    "sepia(" ++ String.fromFloat x ++ "%)"
 
-                DropShadow shadow ->
+                DropShadow dropShadow ->
                     let
                         shadowModel =
                             ShadowModel
                                 { kind = "drop"
-                                , offset = shadow.offset
-                                , size = shadow.size
-                                , blur = shadow.blur
-                                , color = shadow.color
+                                , offset = dropShadow.offset
+                                , size = dropShadow.size
+                                , blur = dropShadow.blur
+                                , color = dropShadow.color
                                 }
                     in
                     "drop-shadow(" ++ Value.shadow shadowModel ++ ")"
     in
-    if List.length filters == 0 then
+    if List.length myFilters == 0 then
         []
     else
         [ ( "filter"
-          , String.join " " <| List.map filterName filters
+          , String.join " " <| List.map filterName myFilters
           )
         ]
 
@@ -118,11 +117,11 @@ filters filters =
 shadow : List ShadowModel -> List ( String, String )
 shadow shadows =
     let
-        ( text, box ) =
+        ( text, boxShadow ) =
             List.partition (\(ShadowModel s) -> s.kind == "text") shadows
 
         renderedBox =
-            String.join ", " (List.map Value.shadow box)
+            String.join ", " (List.map Value.shadow boxShadow)
 
         renderedText =
             String.join ", " (List.map Value.shadow text)
@@ -150,16 +149,16 @@ transformations transforms =
         transformToString transform =
             case transform of
                 Translate x y z ->
-                    "translate3d(" ++ toString x ++ "px, " ++ toString y ++ "px, " ++ toString z ++ "px)"
+                    "translate3d(" ++ String.fromFloat x ++ "px, " ++ String.fromFloat y ++ "px, " ++ String.fromFloat z ++ "px)"
 
                 RotateAround x y z angle ->
-                    "rotate3d(" ++ toString x ++ "," ++ toString y ++ "," ++ toString z ++ "," ++ toString angle ++ "rad)"
+                    "rotate3d(" ++ String.fromFloat x ++ "," ++ String.fromFloat y ++ "," ++ String.fromFloat z ++ "," ++ String.fromFloat angle ++ "rad)"
 
                 Rotate x ->
-                    "rotate(" ++ toString x ++ "rad)"
+                    "rotate(" ++ String.fromFloat x ++ "rad)"
 
                 Scale x y z ->
-                    "scale3d(" ++ toString x ++ ", " ++ toString y ++ ", " ++ toString z ++ ")"
+                    "scale3d(" ++ String.fromFloat x ++ ", " ++ String.fromFloat y ++ ", " ++ String.fromFloat z ++ ")"
 
         transformString =
             String.join " " (List.map transformToString transforms)
@@ -191,19 +190,19 @@ position posEls =
                     ( "position", "relative" )
 
                 PosLeft x ->
-                    ( "left", toString x ++ "px" )
+                    ( "left", String.fromFloat x ++ "px" )
 
                 PosRight x ->
-                    ( "right", toString x ++ "px" )
+                    ( "right", String.fromFloat x ++ "px" )
 
                 PosTop x ->
-                    ( "top", toString x ++ "px" )
+                    ( "top", String.fromFloat x ++ "px" )
 
                 PosBottom x ->
-                    ( "bottom", toString x ++ "px" )
+                    ( "bottom", String.fromFloat x ++ "px" )
 
                 ZIndex i ->
-                    ( "z-index", toString i )
+                    ( "z-index", String.fromInt i )
 
                 Inline ->
                     ( "display", "inline-block" )
@@ -253,7 +252,7 @@ background prop =
                     "to bottom left"
 
                 ToAngle angle ->
-                    toString angle ++ "rad"
+                    String.fromFloat angle ++ "rad"
 
         renderStep step =
             case step of
@@ -261,20 +260,20 @@ background prop =
                     Value.color color
 
                 PercentStep color percent ->
-                    Value.color color ++ " " ++ toString percent ++ "%"
+                    Value.color color ++ " " ++ String.fromFloat percent ++ "%"
 
                 PxStep color percent ->
-                    Value.color color ++ " " ++ toString percent ++ "px"
+                    Value.color color ++ " " ++ String.fromFloat percent ++ "px"
     in
     case prop of
         BackgroundElement name val ->
             [ ( name, val ) ]
 
-        BackgroundImage { src, position, repeat, size } ->
-            [ ( "background-image", "url(" ++ src ++ ")" )
-            , ( "background-position", toString (Tuple.first position) ++ "px " ++ toString (Tuple.second position) ++ "px" )
+        BackgroundImage image ->
+            [ ( "background-image", "url(" ++ image.src ++ ")" )
+            , ( "background-position", String.fromFloat (Tuple.first image.position) ++ "px " ++ String.fromFloat (Tuple.second image.position) ++ "px" )
             , ( "background-repeat"
-              , case repeat of
+              , case image.repeat of
                     RepeatX ->
                         "repeat-x"
 
@@ -294,7 +293,7 @@ background prop =
                         "no-repeat"
               )
             , ( "background-size"
-              , case size of
+              , case image.size of
                     Contain ->
                         "contain"
 
@@ -350,19 +349,19 @@ layout inline lay =
                 renderLen len =
                     case len of
                         Px x ->
-                            toString x ++ "px"
+                            String.fromFloat x ++ "px"
 
                         Percent x ->
-                            toString x ++ "%"
+                            String.fromFloat x ++ "%"
 
                         Auto ->
                             "auto"
 
                         Fill i ->
-                            toString i ++ "fr"
+                            String.fromFloat i ++ "fr"
 
                         Calc perc px ->
-                            "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)"
+                            "calc(" ++ String.fromFloat perc ++ "% + " ++ String.fromFloat px ++ "px)"
 
                 alignment =
                     List.map gridAlignment options
@@ -395,7 +394,7 @@ layout inline lay =
                     if List.length areaStrs > List.length columns then
                         let
                             _ =
-                                Debug.log "style-elements" "Named grid row (" ++ toString areas ++ ") is too big for this grid!"
+                                Debug.log "style-elements" "Named grid row is too big for this grid!"
                         in
                         areaStrs
                             |> String.join " "
@@ -403,7 +402,7 @@ layout inline lay =
                     else if List.length areaStrs < List.length columns then
                         let
                             _ =
-                                Debug.log "style-elements" "Named grid row (" ++ toString areas ++ ") doesn't have enough names to fit this grid!"
+                                Debug.log "style-elements" "Named grid row doesn't have enough names to fit this grid!"
                         in
                         areaStrs
                             |> String.join " "
@@ -436,19 +435,19 @@ layout inline lay =
                 renderLen len =
                     case len of
                         Px x ->
-                            toString x ++ "px"
+                            String.fromFloat x ++ "px"
 
                         Percent x ->
-                            toString x ++ "%"
+                            String.fromFloat x ++ "%"
 
                         Auto ->
                             "auto"
 
                         Fill i ->
-                            toString i ++ "fr"
+                            String.fromFloat i ++ "fr"
 
                         Calc perc px ->
-                            "calc(" ++ toString perc ++ "% + " ++ toString px ++ "px)"
+                            "calc(" ++ String.fromFloat perc ++ "% + " ++ String.fromFloat px ++ "px)"
 
                 alignment =
                     List.map gridAlignment options
@@ -467,7 +466,7 @@ gridAlignment : GridAlignment -> ( String, String )
 gridAlignment align =
     case align of
         GridGap row column ->
-            ( "grid-gap", toString row ++ "px " ++ toString column ++ "px" )
+            ( "grid-gap", String.fromFloat row ++ "px " ++ String.fromFloat column ++ "px" )
 
         GridH horizontal ->
             case horizontal of
@@ -525,7 +524,7 @@ transition (Transition { delay, duration, easing, props }) =
     let
         formatTrans prop =
             String.join " "
-                [ prop, toString (duration * Time.millisecond) ++ "ms", easing, toString (delay * Time.millisecond) ++ "ms" ]
+                [ prop, String.fromFloat duration ++ "ms", easing, String.fromFloat delay ++ "ms" ]
     in
     props
         |> List.map formatTrans

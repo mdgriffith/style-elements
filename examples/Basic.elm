@@ -1,20 +1,16 @@
 module Main exposing (..)
 
+-- import Html
+
+import Browser
 import Color
 import Element exposing (..)
 import Element.Attributes exposing (..)
-import Html
 import Style exposing (..)
 import Style.Border as Border
 import Style.Color as Color
 import Style.Font as Font
 import Style.Transition as Transition
-
-
-{-| 1 => 2 == (1, 2)
--}
-(=>) =
-    (,)
 
 
 {-| The type we use for identifiers for our styles.
@@ -100,11 +96,7 @@ stylesheet =
 
 
 main =
-    Html.beginnerProgram
-        { model = 0
-        , update = (\x -> x)
-        , view = view
-        }
+    Browser.staticPage view
 
 
 {-| Our view is made up of `Element`s,
@@ -112,7 +104,7 @@ main =
 which you can think of as Html with layout, positioning, and spacing built in.
 
 -}
-view _ =
+view =
     Element.layout stylesheet <|
         column None
             []
@@ -240,25 +232,25 @@ viewGridLayout =
                 { start = ( 0, 0 )
                 , width = 1
                 , height = 1
-                , content = (el Box [] (text "box"))
+                , content = el Box [] (text "box")
                 }
             , cell
                 { start = ( 1, 1 )
                 , width = 1
                 , height = 2
-                , content = (el Box [ spacing 100 ] (text "box"))
+                , content = el Box [ spacing 100 ] (text "box")
                 }
             , cell
                 { start = ( 2, 1 )
                 , width = 2
                 , height = 2
-                , content = (el Box [] (text "box"))
+                , content = el Box [] (text "box")
                 }
             , cell
                 { start = ( 1, 0 )
                 , width = 1
                 , height = 1
-                , content = (el Box [] (text "box"))
+                , content = el Box [] (text "box")
                 }
             ]
         }
@@ -271,10 +263,10 @@ viewNamedGridLayout =
         []
         { columns = [ px 200, px 200, px 200, fill ]
         , rows =
-            [ px 200 => [ spanAll "header" ]
-            , px 200 => [ span 3 "content", span 1 "sidebar" ]
-            , px 200 => [ span 3 "content", span 1 "sidebar" ]
-            , px 200 => [ spanAll "footer" ]
+            [ Tuple.pair (px 200) [ spanAll "header" ]
+            , Tuple.pair (px 200) [ span 3 "content", span 1 "sidebar" ]
+            , Tuple.pair (px 200) [ span 3 "content", span 1 "sidebar" ]
+            , Tuple.pair (px 200) [ spanAll "footer" ]
             ]
         , cells =
             [ named "header"

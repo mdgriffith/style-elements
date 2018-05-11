@@ -112,12 +112,12 @@ calculateGuard class =
                     ""
     in
     case class of
-        Class { props } ->
-            List.map asString props
+        Class classRule ->
+            List.map asString classRule.props
                 |> String.concat
 
-        Media { props } ->
-            List.map asString props
+        Media mediaRule ->
+            List.map asString mediaRule.props
                 |> String.concat
 
         _ ->
@@ -125,12 +125,12 @@ calculateGuard class =
 
 
 applyGuard : String -> Class class variation -> Class class variation
-applyGuard guard class =
+applyGuard guardString class =
     let
         guardProp prop =
             case prop of
                 SubClass sc ->
-                    SubClass <| applyGuard guard sc
+                    SubClass <| applyGuard guardString sc
 
                 x ->
                     x
@@ -138,14 +138,14 @@ applyGuard guard class =
     case class of
         Class cls ->
             Class
-                { selector = Selector.guard guard cls.selector
+                { selector = Selector.guard guardString cls.selector
                 , props = List.map guardProp cls.props
                 }
 
         Media media ->
             Media
                 { query = media.query
-                , selector = Selector.guard guard media.selector
+                , selector = Selector.guard guardString media.selector
                 , props = List.map guardProp media.props
                 }
 
@@ -158,11 +158,11 @@ asMediaQuery query prop =
     let
         classAsMediaQuery cls =
             case cls of
-                Class { selector, props } ->
+                Class classRule ->
                     Media
                         { query = query
-                        , selector = selector
-                        , props = props
+                        , selector = classRule.selector
+                        , props = classRule.props
                         }
 
                 x ->
@@ -183,18 +183,18 @@ asMediaQuery query prop =
 hash : String -> String
 hash value =
     Murmur3.hashString 8675309 value
-        |> toString
+        |> String.fromInt
 
 
 {-| -}
 render : Renderable -> String
 render renderable =
     case renderable of
-        RenderableClass selector props ->
-            selector ++ Css.brace 0 (String.join "\n" <| List.map (Css.prop 2) props) ++ "\n"
+        RenderableClass selector styleProps ->
+            selector ++ Css.brace 0 (String.join "\n" <| List.map (Css.prop 2) styleProps) ++ "\n"
 
-        RenderableMedia query selector props ->
-            query ++ Css.brace 0 ("  " ++ selector ++ Css.brace 2 (String.join "\n" <| List.map (Css.prop 4) props))
+        RenderableMedia query selector styleProps ->
+            query ++ Css.brace 0 ("  " ++ selector ++ Css.brace 2 (String.join "\n" <| List.map (Css.prop 4) styleProps))
 
         RenderableFree str ->
             str
@@ -224,19 +224,19 @@ makeRenderable cls =
                     ( rendered, subEls )
     in
     case cls of
-        Class { selector, props } ->
+        Class classRule ->
             let
                 ( rendered, subelements ) =
-                    List.foldl renderableProps ( [], [] ) props
+                    List.foldl renderableProps ( [], [] ) classRule.props
             in
-            RenderableClass (Selector.render Nothing selector) rendered :: subelements
+            RenderableClass (Selector.render Nothing classRule.selector) rendered :: subelements
 
-        Media { query, selector, props } ->
+        Media mediaRule ->
             let
                 ( rendered, subelements ) =
-                    List.foldl renderableProps ( [], [] ) props
+                    List.foldl renderableProps ( [], [] ) mediaRule.props
             in
-            RenderableMedia query (Selector.render Nothing selector) rendered :: subelements
+            RenderableMedia mediaRule.query (Selector.render Nothing mediaRule.selector) rendered :: subelements
 
         Free str ->
             [ RenderableFree str ]
@@ -258,8 +258,8 @@ asFindable intermediate =
                     []
     in
     case intermediate of
-        Class { selector, props } ->
-            Selector.getFindable selector ++ List.concatMap findableProp props
+        Class classRule ->
+            Selector.getFindable classRule.selector ++ List.concatMap findableProp classRule.props
 
         _ ->
             []

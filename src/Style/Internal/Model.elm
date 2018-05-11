@@ -2,8 +2,17 @@ module Style.Internal.Model exposing (..)
 
 {-| -}
 
-import Color exposing (Color)
-import Time exposing (Time)
+
+type alias Time =
+    Float
+
+
+type Box item
+    = Box item item item item
+
+
+type Color
+    = RGBA Float Float Float Float
 
 
 {-| The stylesheet contains the rendered css as a string, and two functions to lookup
