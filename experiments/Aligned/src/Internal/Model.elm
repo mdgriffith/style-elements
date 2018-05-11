@@ -1572,7 +1572,7 @@ textElement str =
         [ VirtualDom.property "className"
             (Json.string "se text width-content height-content")
         ]
-        [ VirtualDom.text (Debug.log "text element" str) ]
+        [ VirtualDom.text str ]
 
 
 textElementFill : String -> VirtualDom.Node msg
@@ -1581,7 +1581,7 @@ textElementFill str =
         [ VirtualDom.property "className"
             (Json.string "se text width-fill height-fill")
         ]
-        [ VirtualDom.text (Debug.log "filled element" str) ]
+        [ VirtualDom.text str ]
 
 
 type Children x
@@ -1965,7 +1965,7 @@ toStyleSheetString options stylesheet =
                     renderStyle force
                         maybePseudo
                         (".font-size-" ++ intToString i)
-                        [ Property "font-size" (intToString i)
+                        [ Property "font-size" (intToString i ++ "px")
                         ]
 
                 FontFamily name typefaces ->

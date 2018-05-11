@@ -25,3 +25,24 @@ color clr =
                 Expect.true ("Color Match - " ++ (Testable.formatColor clr ++ " vs " ++ selfFontColor))
                     (Testable.compareFormattedColor clr selfFontColor)
         }
+
+
+size : Int -> Testable.Attr msg
+size i =
+    Testable.LabeledTest
+        { label = "font size-" ++ toString i
+        , attr = Font.size i
+        , test =
+            \context _ ->
+                let
+                    selfFontSize =
+                        context.self.style
+                            |> Dict.get "fontsize"
+                            |> Maybe.withDefault "notfound"
+
+                    formattedInt =
+                        toString i
+                in
+                Expect.true ("Size Match - " ++ (formattedInt ++ " vs " ++ selfFontSize))
+                    (formattedInt == selfFontSize)
+        }

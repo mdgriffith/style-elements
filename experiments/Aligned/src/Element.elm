@@ -503,8 +503,6 @@ el attrs child =
         Nothing
         (width shrink
             :: height shrink
-            -- :: Internal.Class "x-content-align" "content-center-x"
-            -- :: Internal.Class "y-content-align" "content-center-y"
             :: attrs
         )
         (Internal.Unkeyed [ child ])

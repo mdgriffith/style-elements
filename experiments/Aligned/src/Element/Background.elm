@@ -1,12 +1,12 @@
 module Element.Background
     exposing
         ( color
-        , fitted
         , gradient
         , image
         , tiled
         , tiledX
         , tiledY
+        , uncropped
         )
 
 {-|
@@ -16,7 +16,7 @@ module Element.Background
 
 # Images
 
-@docs image, fitted, tiled, tiledX, tiledY
+@docs image, uncropped, tiled, tiledX, tiledY
 
 **Note** if you want more control over a background image than is provided here, you should try just using a normal `Element.image` with something like `Element.behind`.
 
@@ -42,8 +42,8 @@ image src =
 
 {-| A centered background image that keeps it's natural propostions, but scales to fit the space.
 -}
-fitted : String -> Attribute msg
-fitted src =
+uncropped : String -> Attribute msg
+uncropped src =
     Internal.StyleClass (Internal.Single ("bg-fitted-image-" ++ Internal.className src) "background" ("url(\"" ++ src ++ "\") center / contain no-repeat"))
 
 
