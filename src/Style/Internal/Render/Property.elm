@@ -392,18 +392,18 @@ layout inline lay =
                             List.concatMap areaSpan areas
                     in
                     if List.length areaStrs > List.length columns then
-                        let
-                            _ =
-                                Debug.log "style-elements" "Named grid row is too big for this grid!"
-                        in
+                        -- let
+                        --     _ =
+                        --         Debug.log "style-elements" "Named grid row is too big for this grid!"
+                        -- in
                         areaStrs
                             |> String.join " "
                             |> quote
                     else if List.length areaStrs < List.length columns then
-                        let
-                            _ =
-                                Debug.log "style-elements" "Named grid row doesn't have enough names to fit this grid!"
-                        in
+                        -- let
+                        --     _ =
+                        --         Debug.log "style-elements" "Named grid row doesn't have enough names to fit this grid!"
+                        -- in
                         areaStrs
                             |> String.join " "
                             |> quote

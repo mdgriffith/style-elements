@@ -53,8 +53,7 @@ module Style.Background
 
 -}
 
-import Color exposing (Color)
-import Style exposing (Property)
+import Style exposing (Color, Property)
 import Style.Internal.Model as Internal
 
 

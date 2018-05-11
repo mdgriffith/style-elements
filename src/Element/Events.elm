@@ -1,7 +1,6 @@
 module Element.Events
     exposing
-        ( Options
-        , defaultOptions
+        ( custom
         , keyCode
         , on
         , onBlur
@@ -17,7 +16,8 @@ module Element.Events
         , onMouseOver
         , onMouseUp
         , onSubmit
-        , onWithOptions
+        , preventDefaultOn
+        , stopPropagationOn
         , targetChecked
         , targetValue
         )
@@ -44,7 +44,7 @@ The only difference is that the HTML.Events are turned into Element.Events
 
 # Custom Event Handlers
 
-@docs on, onWithOptions, Options, defaultOptions
+@docs on, stopPropagationOn, preventDefaultOn, custom
 
 
 # Custom Decoders
@@ -198,47 +198,38 @@ It really does help!
 
 -}
 on : String -> Json.Decoder msg -> Attribute variation msg
-on event decode =
-    Event <| Html.Events.on event decode
+on ev decode =
+    Event <| Html.Events.on ev decode
 
 
-{-| Same as `on` but you can set a few options.
--}
-onWithOptions : String -> Html.Events.Options -> Json.Decoder msg -> Attribute variation msg
-onWithOptions event options decode =
-    Event <| Html.Events.onWithOptions event options decode
+{-| -}
+stopPropagationOn : String -> Json.Decoder ( msg, Bool ) -> Attribute variation msg
+stopPropagationOn ev decode =
+    Event <| Html.Events.stopPropagationOn ev decode
+
+
+{-| -}
+preventDefaultOn : String -> Json.Decoder ( msg, Bool ) -> Attribute variation msg
+preventDefaultOn ev decode =
+    Event <| Html.Events.preventDefaultOn ev decode
+
+
+{-| -}
+custom :
+    String
+    ->
+        Json.Decoder
+            { message : msg
+            , stopPropagation : Bool
+            , preventDefault : Bool
+            }
+    -> Attribute variation msg
+custom ev decode =
+    Event <| Html.Events.custom ev decode
 
 
 
 -- COMMON DECODERS
-
-
-{-| Options for an event listener. If `stopPropagation` is true, it means the
-event stops traveling through the DOM so it will not trigger any other event
-listeners. If `preventDefault` is true, any built-in browser behavior related
-to the event is prevented. For example, this is used with touch events when you
-want to treat them as gestures of your own, not as scrolls.
--}
-type alias Options =
-    { stopPropagation : Bool
-    , preventDefault : Bool
-    }
-
-
-{-| Everything is `False` by default.
-
-    defaultOptions =
-        { stopPropagation = False
-        , preventDefault = False
-        }
-
--}
-defaultOptions : Options
-defaultOptions =
-    VirtualDom.defaultOptions
-
-
-
 -- COMMON DECODERS
 
 

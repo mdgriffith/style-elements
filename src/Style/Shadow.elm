@@ -42,8 +42,7 @@ You can also have more control over the paraters of the shadow, such as the `Sha
 
 -}
 
-import Color exposing (Color)
-import Style exposing (Property)
+import Style exposing (Color, Property)
 import Style.Internal.Model as Internal
 
 
@@ -96,13 +95,13 @@ simple : Property class variation
 simple =
     Internal.Shadows
         [ boxHelper
-            { color = Color.rgba 0 0 0 0.5
+            { color = Internal.RGBA 0 0 0 0.5
             , offset = ( 0, 29 )
             , blur = 32
             , size = -20
             }
         , boxHelper
-            { color = Color.rgba 0 0 0 0.25
+            { color = Internal.RGBA 0 0 0 0.25
             , offset = ( 0, 4 )
             , blur = 11
             , size = -3
@@ -115,7 +114,7 @@ simple =
 deep : Property class variation
 deep =
     box
-        { color = Color.rgba 0 0 0 0.2
+        { color = Internal.RGBA 0 0 0 0.2
         , offset = ( 0, 14 )
         , blur = 20
         , size = -12

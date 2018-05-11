@@ -103,7 +103,7 @@ import Style.Internal.Selector
 
 pointer : Internal.Attribute variation msg
 pointer =
-    Attr.inlineStyle [ ( "cursor", "pointer" ) ]
+    Attr.inlineStyle "cursor" "pointer"
 
 
 type_ : String -> Internal.Attribute variation msg
@@ -168,33 +168,37 @@ autofocusAttr =
 
 hidden : Attribute variation msg
 hidden =
-    Attr.inlineStyle [ ( "position", "absolute" ), ( "opacity", "0" ) ]
+    -- Attr.inlineStyle
+    --     [ ( "position", "absolute" )
+    --     , ( "opacity", "0" )
+    --     ]
+    Attr.inlineStyle "opacity" "0"
 
 
 addOptionsAsAttrs : List (Option style variation msg) -> List (Attribute variation1 msg1) -> List (Attribute variation1 msg1)
-addOptionsAsAttrs options attrs =
+addOptionsAsAttrs options optionalAttrs =
     let
-        renderOption option attrs =
+        renderOption option attribtues =
             case option of
                 Key str ->
-                    attrs
+                    attribtues
 
                 FocusOnLoad ->
-                    autofocusAttr True :: attrs
+                    autofocusAttr True :: attribtues
 
                 SpellCheck ->
-                    spellcheckAttr True :: attrs
+                    spellcheckAttr True :: attribtues
 
                 AutoFill fill ->
-                    autofillAttr fill :: attrs
+                    autofillAttr fill :: attribtues
 
                 Disabled ->
-                    attrs
+                    attribtues
 
                 ErrorOpt _ ->
-                    attrs
+                    attribtues
     in
-    List.foldr renderOption attrs options
+    List.foldr renderOption optionalAttrs options
 
 
 {-| -}
@@ -218,7 +222,7 @@ type alias Checkbox style variation msg =
 
 -}
 checkbox : style -> List (Attribute variation msg) -> Checkbox style variation msg -> Element style variation msg
-checkbox style attrs input =
+checkbox style attributes input =
     let
         withDisabled attrs =
             if isDisabled then
@@ -261,7 +265,7 @@ checkbox style attrs input =
                 }
             ]
     in
-    applyLabel Nothing Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attrs) (LabelOnRight input.label) errs isDisabled True inputElem
+    applyLabel Nothing Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attributes) (LabelOnRight input.label) errs isDisabled True inputElem
 
 
 {-| -}
@@ -298,7 +302,7 @@ type alias StyledCheckbox style variation msg =
 
 -}
 styledCheckbox : style -> List (Attribute variation msg) -> StyledCheckbox style variation msg -> Element style variation msg
-styledCheckbox style attrs input =
+styledCheckbox style attributes input =
     let
         withDisabled attrs =
             if isDisabled then
@@ -345,7 +349,7 @@ styledCheckbox style attrs input =
                 |> Modify.addAttr (Attr.toAttr <| Html.Attributes.class "alt-icon")
             ]
     in
-    applyLabel Nothing Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attrs) (LabelOnRight input.label) errs isDisabled True inputElem
+    applyLabel Nothing Nothing (Attr.spacing 5 :: Attr.verticalCenter :: attributes) (LabelOnRight input.label) errs isDisabled True inputElem
 
 
 
@@ -412,7 +416,7 @@ multiline =
 
 {-| -}
 textHelper : TextKind -> List (Option style variation msg) -> style -> List (Attribute variation msg) -> Text style variation msg -> Element style variation msg
-textHelper kind addedOptions style attrs input =
+textHelper kind addedOptions style attributes input =
     let
         options =
             List.foldr combineFill ( [], Nothing ) (addedOptions ++ input.options)
@@ -447,7 +451,7 @@ textHelper kind addedOptions style attrs input =
                     Nothing
 
         spacing =
-            attrs
+            attributes
                 |> List.filterMap forSpacing
                 |> List.reverse
                 |> List.head
@@ -456,8 +460,8 @@ textHelper kind addedOptions style attrs input =
 
         withPlaceholder attrs =
             case input.label of
-                PlaceHolder placeholder label ->
-                    (Attr.toAttr <| Html.Attributes.placeholder placeholder) :: attrs
+                PlaceHolder placeholderEl _ ->
+                    (Attr.toAttr <| Html.Attributes.placeholder placeholderEl) :: attrs
 
                 _ ->
                     attrs
@@ -542,7 +546,7 @@ textHelper kind addedOptions style attrs input =
                         { node = "textarea"
                         , style = Just style
                         , attrs =
-                            (Internal.Width (Style.Fill 1) :: Attr.inlineStyle [ ( "resize", "none" ) ] :: Events.onInput input.onChange :: textValueAttr input.value :: attrs)
+                            (Internal.Width (Style.Fill 1) :: Attr.inlineStyle "resize" "none" :: Events.onInput input.onChange :: textValueAttr input.value :: attributes)
                                 |> (withPlaceholder >> withReadonly >> withError >> withSpellCheck >> addOptionsAsAttrs options)
                         , child =
                             Internal.Text
@@ -558,7 +562,7 @@ textHelper kind addedOptions style attrs input =
                         { node = "input"
                         , style = Just style
                         , attrs =
-                            (Internal.Width (Style.Fill 1) :: type_ kindAsText :: Events.onInput input.onChange :: textValueAttr input.value :: attrs)
+                            (Internal.Width (Style.Fill 1) :: type_ kindAsText :: Events.onInput input.onChange :: textValueAttr input.value :: attributes)
                                 |> (withPlaceholder >> withDisabled >> withError >> addOptionsAsAttrs options)
                         , child = Internal.Empty
                         , absolutelyPositioned = Nothing
@@ -672,8 +676,8 @@ type Label style variation msg
 
 
 getLabelText : Label style variation msg -> String
-getLabelText label =
-    case label of
+getLabelText myLabel =
+    case myLabel of
         LabelBelow el ->
             Modify.getText el
 
@@ -689,19 +693,19 @@ getLabelText label =
         HiddenLabel str ->
             str
 
-        PlaceHolder str label ->
-            getLabelText label
+        PlaceHolder str placeholderLabel ->
+            getLabelText placeholderLabel
 
 
 {-| -}
 placeholder : { text : String, label : Label style variation msg } -> Label style variation msg
-placeholder { text, label } =
-    case label of
+placeholder place =
+    case place.label of
         PlaceHolder _ existingLabel ->
-            PlaceHolder text existingLabel
+            PlaceHolder place.text existingLabel
 
         x ->
-            PlaceHolder text x
+            PlaceHolder place.text x
 
 
 {-| -}
@@ -819,7 +823,7 @@ applyLabel maybeKey style attrs label errors isDisabled hasPointer input =
                                 Internal.Width (Style.Fill 1) :: pointer :: attrs
                             else
                                 Internal.Width (Style.Fill 1) :: attrs
-                        , children = Internal.Keyed (List.indexedMap (\i child -> ( key ++ "-" ++ toString i, child )) children)
+                        , children = Internal.Keyed (List.indexedMap (\i child -> ( key ++ "-" ++ String.fromInt i, child )) children)
                         , absolutelyPositioned = Nothing
                         }
 
@@ -881,7 +885,7 @@ applyLabel maybeKey style attrs label errors isDisabled hasPointer input =
                 }
     in
     case label of
-        PlaceHolder placeholder newLabel ->
+        PlaceHolder _ newLabel ->
             -- placeholder is set in a previous function
             applyLabel maybeKey style attrs newLabel errors isDisabled hasPointer input
 
@@ -988,21 +992,21 @@ choice =
 
 {-| -}
 styledChoice : value -> (Bool -> Element style variation msg) -> Choice value style variation msg
-styledChoice value selected =
+styledChoice value makeSelection =
     let
         choose state =
             case state of
                 Focused ->
-                    selected False
+                    makeSelection False
 
                 Selected ->
-                    selected True
+                    makeSelection True
 
                 SelectedInBox ->
-                    selected True
+                    makeSelection True
 
                 Idle ->
-                    selected False
+                    makeSelection False
     in
     ChoiceWith value choose
 
@@ -1080,8 +1084,8 @@ radio style attrs input =
 
         forKeys opt =
             case opt of
-                Key key ->
-                    Just key
+                Key k ->
+                    Just k
 
                 _ ->
                     Nothing
@@ -1135,8 +1139,8 @@ radioRow style attrs config =
 
         forKeys opt =
             case opt of
-                Key key ->
-                    Just key
+                Key k ->
+                    Just k
 
                 _ ->
                     Nothing
@@ -1251,7 +1255,7 @@ type Orientation msg
 
 
 radioHelper : Orientation msg -> style -> List (Attribute variation msg) -> MasterRadio option style variation msg -> Element style variation msg
-radioHelper orientation style attrs config =
+radioHelper orientation style attributes config =
     let
         group =
             case config.key of
@@ -1282,10 +1286,10 @@ radioHelper orientation style attrs config =
             case config.selection of
                 Single single ->
                     let
-                        isSelected =
+                        singleIsSelected =
                             Just val == single.selected
                     in
-                    if isSelected then
+                    if singleIsSelected then
                         [ checked True
                         ]
                     else
@@ -1295,11 +1299,11 @@ radioHelper orientation style attrs config =
 
                 Multi multi ->
                     let
-                        isSelected =
+                        multiIsSelected =
                             List.member val multi.selected
                     in
-                    [ checked isSelected
-                    , if isSelected then
+                    [ checked multiIsSelected
+                    , if multiIsSelected then
                         Events.onCheck (\_ -> multi.onChange (List.filter (\item -> item /= val) multi.selected))
                       else
                         Events.onCheck (\_ -> multi.onChange (val :: multi.selected))
@@ -1405,10 +1409,10 @@ radioHelper orientation style attrs config =
     in
     case orientation of
         Horizontal ->
-            row style (Attr.spacing 10 :: attrs) (List.map renderOption config.choices)
+            row style (Attr.spacing 10 :: attributes) (List.map renderOption config.choices)
 
         Vertical ->
-            column style (Attr.spacing 10 :: attrs) (List.map renderOption config.choices)
+            column style (Attr.spacing 10 :: attributes) (List.map renderOption config.choices)
 
 
 arrows : Element a variation msg
@@ -1496,16 +1500,16 @@ select style attrs input =
                 , focus = auto.focus
                 }
 
-        SelectMenu menu ->
+        SelectMenu selectMenuConfig ->
             selectMenu style
                 attrs
                 { max = input.max
                 , menu = input.menu
                 , label = input.label
                 , options = input.options
-                , onUpdate = menu.onUpdate
-                , isOpen = menu.isOpen
-                , selected = menu.selected
+                , onUpdate = selectMenuConfig.onUpdate
+                , isOpen = selectMenuConfig.isOpen
+                , selected = selectMenuConfig.selected
                 }
 
 
@@ -1568,24 +1572,32 @@ type alias SearchMenu option style variation msg =
 selectMenu : style -> List (Attribute variation msg) -> SelectMenuValues option style variation msg -> Element style variation msg
 selectMenu style attrs input =
     let
-        ( menuAbove, menuStyle, menuAttrs, choices ) =
+        { isMenuAbove, menuStyle, menuAttrs, choices } =
             case input.menu of
-                MenuUp menuStyle menuAttrs menuOptions ->
-                    ( True, menuStyle, menuAttrs, menuOptions )
+                MenuUp menuStyles menuAttributes menuOptions ->
+                    { isMenuAbove = True
+                    , menuStyle = menuStyles
+                    , menuAttrs = menuAttributes
+                    , choices = menuOptions
+                    }
 
-                MenuDown menuStyle menuAttrs menuOptions ->
-                    ( False, menuStyle, menuAttrs, menuOptions )
+                MenuDown menuStyles menuAttributes menuOptions ->
+                    { isMenuAbove = False
+                    , menuStyle = menuStyles
+                    , menuAttrs = menuAttributes
+                    , choices = menuOptions
+                    }
 
         placeholderText =
             case input.label of
-                PlaceHolder text _ ->
-                    Element.text text
+                PlaceHolder txt _ ->
+                    Element.text txt
 
                 _ ->
                     Element.text " - "
 
-        getSelectedLabel selected option =
-            if getOptionValue option == selected then
+        getSelectedLabel sel option =
+            if getOptionValue option == sel then
                 case option of
                     Choice _ el ->
                         Just el
@@ -1600,9 +1612,9 @@ selectMenu style attrs input =
                 Nothing ->
                     placeholderText
 
-                Just selected ->
+                Just sel ->
                     choices
-                        |> List.filterMap (getSelectedLabel selected)
+                        |> List.filterMap (getSelectedLabel sel)
                         |> List.head
                         |> Maybe.withDefault placeholderText
 
@@ -1685,13 +1697,13 @@ selectMenu style attrs input =
             List.foldl
                 (\option cache ->
                     let
-                        next =
+                        nextEl =
                             if cache.found && cache.next == Nothing then
                                 Just <| getOptionValue option
                             else
                                 cache.next
 
-                        prev =
+                        prevEl =
                             if currentIsSelected && cache.prev == Nothing then
                                 cache.last
                             else
@@ -1723,9 +1735,9 @@ selectMenu style attrs input =
                             Just <| getOptionValue option
                     in
                     { cache
-                        | next = next
+                        | next = nextEl
                         , found = found
-                        , prev = prev
+                        , prev = prevEl
                         , first = first
                         , last = last
                     }
@@ -1762,7 +1774,7 @@ selectMenu style attrs input =
                         isSelected =
                             if Just val == input.selected then
                                 [ Attr.attribute "aria-selected" "true"
-                                , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.03)" ) ]
+                                , Attr.inlineStyle "background-color" "rgba(0,0,0,0.03)"
                                 ]
                                     ++ parentPadding
                             else
@@ -1824,7 +1836,7 @@ selectMenu style attrs input =
                                 (tabindex 0)
                           else
                             Nothing
-                        , Just (Attr.inlineStyle [ ( "z-index", "20" ) ])
+                        , Just (Attr.inlineStyle "z-index" "20")
                         , if isDisabled then
                             Nothing
                           else
@@ -1877,14 +1889,15 @@ selectMenu style attrs input =
                 , child = bar
                 , absolutelyPositioned = Nothing
                 }
-                |> (if menuAbove then
+                |> (if isMenuAbove then
                         Element.above
                     else
                         Element.below
                    )
                     (if input.isOpen && not isDisabled then
                         [ column menuStyle
-                            (Attr.inlineStyle [ ( "z-index", "20" ), ( "background-color", "white" ) ]
+                            (Attr.inlineStyle "z-index" "20"
+                                :: Attr.inlineStyle "background-color" "white"
                                 :: pointer
                                 -- :: Events.onClick (input.onUpdate CloseMenu)
                                 :: Attr.width Attr.fill
@@ -1935,11 +1948,11 @@ Once you have this in your model, you can extract the current selected value fro
 
 -}
 autocomplete : Maybe option -> (SelectMsg option -> msg) -> SelectWith option msg
-autocomplete selected onUpdate =
+autocomplete sel onUpdate =
     Autocomplete
         { query = ""
-        , selected = selected
-        , focus = selected
+        , selected = sel
+        , focus = sel
         , onUpdate = onUpdate
         , isOpen = False
         }
@@ -1953,9 +1966,9 @@ Once you have this in your model, you can extract the current selected value fro
 
 -}
 dropMenu : Maybe option -> (SelectMsg option -> msg) -> SelectWith option msg
-dropMenu selected onUpdate =
+dropMenu sel onUpdate =
     SelectMenu
-        { selected = selected
+        { selected = sel
         , onUpdate = onUpdate
         , isOpen = False
         }
@@ -1964,13 +1977,13 @@ dropMenu selected onUpdate =
 {-| Get the selected value from an `autocomplete` or a `dropMenu` type that is used for your `Input.select` element.
 -}
 selected : SelectWith option msg -> Maybe option
-selected select =
-    case select of
+selected sel =
+    case sel of
         Autocomplete auto ->
             auto.selected
 
-        SelectMenu menu ->
-            menu.selected
+        SelectMenu menuConfig ->
+            menuConfig.selected
 
 
 {-| -}
@@ -1988,8 +2001,8 @@ type SelectMsg opt
 {-| Clear a selection.
 -}
 clear : SelectWith option msg -> SelectWith option msg
-clear select =
-    case select of
+clear sel =
+    case sel of
         Autocomplete auto ->
             Autocomplete
                 { query = ""
@@ -1999,20 +2012,20 @@ clear select =
                 , isOpen = False
                 }
 
-        SelectMenu menu ->
+        SelectMenu menuConfig ->
             SelectMenu
                 { selected = Nothing
-                , onUpdate = menu.onUpdate
+                , onUpdate = menuConfig.onUpdate
                 , isOpen = False
                 }
 
 
 {-| -}
 updateSelection : SelectMsg option -> SelectWith option msg -> SelectWith option msg
-updateSelection msg select =
+updateSelection msg sel =
     case msg of
         OpenMenu ->
-            case select of
+            case sel of
                 Autocomplete auto ->
                     Autocomplete
                         { auto | isOpen = True }
@@ -2022,7 +2035,7 @@ updateSelection msg select =
                         { auto | isOpen = True }
 
         CloseMenu ->
-            case select of
+            case sel of
                 Autocomplete auto ->
                     Autocomplete
                         { auto | isOpen = False }
@@ -2032,7 +2045,7 @@ updateSelection msg select =
                         { auto | isOpen = False }
 
         SetQuery query ->
-            case select of
+            case sel of
                 Autocomplete auto ->
                     Autocomplete
                         { auto
@@ -2050,7 +2063,7 @@ updateSelection msg select =
                         auto
 
         SetFocus val ->
-            case select of
+            case sel of
                 Autocomplete auto ->
                     Autocomplete
                         { auto
@@ -2062,7 +2075,7 @@ updateSelection msg select =
                         auto
 
         SelectValue val ->
-            case select of
+            case sel of
                 Autocomplete auto ->
                     Autocomplete
                         { auto
@@ -2077,7 +2090,7 @@ updateSelection msg select =
                         }
 
         SelectFocused ->
-            case select of
+            case sel of
                 Autocomplete auto ->
                     Autocomplete
                         { auto
@@ -2090,7 +2103,7 @@ updateSelection msg select =
                         auto
 
         Clear ->
-            case select of
+            case sel of
                 Autocomplete auto ->
                     Autocomplete
                         { auto
@@ -2105,16 +2118,16 @@ updateSelection msg select =
                         { auto | selected = Nothing }
 
         Batch msgs ->
-            List.foldl updateSelection select msgs
+            List.foldl updateSelection sel msgs
 
 
-defaultPadding : ( Maybe Float, Maybe Float, Maybe Float, Maybe Float ) -> ( Float, Float, Float, Float ) -> ( Float, Float, Float, Float )
-defaultPadding ( mW, mX, mY, mZ ) ( w, x, y, z ) =
-    ( Maybe.withDefault w mW
-    , Maybe.withDefault x mX
-    , Maybe.withDefault y mY
-    , Maybe.withDefault z mZ
-    )
+defaultPadding : Style.Box (Maybe Float) -> Style.Box Float -> Style.Box Float
+defaultPadding (Style.Box mW mX mY mZ) (Style.Box w x y z) =
+    Style.Box
+        (Maybe.withDefault w mW)
+        (Maybe.withDefault x mX)
+        (Maybe.withDefault y mY)
+        (Maybe.withDefault z mZ)
 
 
 {-|
@@ -2155,20 +2168,20 @@ searchSelect style attrs input =
         isDisabled =
             List.any ((==) Disabled) input.options
 
-        ( menuAbove, menuStyle, menuAttrs, choices ) =
+        { isMenuAbove, menuStyle, menuAttrs, choices } =
             case input.menu of
-                MenuUp menuStyle menuAttrs menuOptions ->
-                    ( True, menuStyle, menuAttrs, menuOptions )
+                MenuUp menuStyles menuAttributes menuOptions ->
+                    { isMenuAbove = True, menuStyle = menuStyles, menuAttrs = menuAttributes, choices = menuOptions }
 
-                MenuDown menuStyle menuAttrs menuOptions ->
-                    ( False, menuStyle, menuAttrs, menuOptions )
+                MenuDown menuStyles menuAttributes menuOptions ->
+                    { isMenuAbove = False, menuStyle = menuStyles, menuAttrs = menuAttributes, choices = menuOptions }
 
         placeholderText =
             case input.selected of
                 Nothing ->
                     case input.label of
-                        PlaceHolder text _ ->
-                            text
+                        PlaceHolder txt _ ->
+                            txt
 
                         _ ->
                             "Search..."
@@ -2190,7 +2203,7 @@ searchSelect style attrs input =
         forPadding attr =
             case attr of
                 Internal.Padding t r b l ->
-                    Just ( t, r, b, l )
+                    Just (Style.Box t r b l)
 
                 _ ->
                     Nothing
@@ -2209,12 +2222,12 @@ searchSelect style attrs input =
                 |> List.head
                 |> Maybe.withDefault ( 0, 0 )
 
-        ( ppTop, ppRight, ppBottom, ppLeft ) =
+        (Style.Box ppTop ppRight ppBottom ppLeft) =
             attrs
                 |> List.filterMap forPadding
                 |> List.head
-                |> Maybe.map (flip defaultPadding ( 0, 0, 0, 0 ))
-                |> Maybe.withDefault ( 0, 0, 0, 0 )
+                |> Maybe.map (\x -> defaultPadding x (Style.Box 0 0 0 0))
+                |> Maybe.withDefault (Style.Box 0 0 0 0)
 
         parentPadding =
             Internal.Padding (Just ppTop) (Just ppRight) (Just ppBottom) (Just ppLeft)
@@ -2223,13 +2236,13 @@ searchSelect style attrs input =
             List.foldl
                 (\option cache ->
                     let
-                        next =
+                        nextEl =
                             if cache.found && cache.next == Nothing then
                                 Just <| getOptionValue option
                             else
                                 cache.next
 
-                        prev =
+                        prevEl =
                             if currentIsSelected && cache.prev == Nothing then
                                 cache.last
                             else
@@ -2261,9 +2274,9 @@ searchSelect style attrs input =
                             Just <| getOptionValue option
                     in
                     { cache
-                        | next = next
+                        | next = nextEl
                         , found = found
-                        , prev = prev
+                        , prev = prevEl
                         , first = first
                         , last = last
                     }
@@ -2293,8 +2306,8 @@ searchSelect style attrs input =
                 , prev = cursor.prev
                 }
 
-        choiceText choice =
-            case choice of
+        choiceText myChoice =
+            case myChoice of
                 Choice _ el ->
                     Modify.getTextList el
 
@@ -2322,12 +2335,12 @@ searchSelect style attrs input =
                         isSelected =
                             if Just val == input.selected then
                                 [ Attr.attribute "aria-selected" "true"
-                                , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.05)" ) ]
+                                , Attr.inlineStyle "background-color" "rgba(0,0,0,0.05)"
                                 , parentPadding
                                 ]
                             else if Just val == input.focus then
                                 [ Attr.attribute "aria-selected" "false"
-                                , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.03)" ) ]
+                                , Attr.inlineStyle "background-color" "rgba(0,0,0,0.03)"
                                 , parentPadding
                                 ]
                             else
@@ -2353,12 +2366,12 @@ searchSelect style attrs input =
                         isSelected =
                             if Just val == input.selected then
                                 [ Attr.attribute "aria-selected" "true"
-                                , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.05)" ) ]
+                                , Attr.inlineStyle "background-color" "rgba(0,0,0,0.05)"
                                 , parentPadding
                                 ]
                             else if Just val == input.focus then
                                 [ Attr.attribute "aria-selected" "false"
-                                , Attr.inlineStyle [ ( "background-color", "rgba(0,0,0,0.03)" ) ]
+                                , Attr.inlineStyle "background-color" "rgba(0,0,0,0.03)"
                                 , parentPadding
                                 ]
                             else
@@ -2390,7 +2403,7 @@ searchSelect style attrs input =
         matches =
             choices
                 |> List.filter (matchesQuery input.query)
-                |> List.take input.max
+                |> List.keep input.max
                 |> List.map renderOption
 
         fullElement =
@@ -2400,7 +2413,7 @@ searchSelect style attrs input =
                 , attrs =
                     List.filterMap identity
                         [ Just (Attr.width Attr.fill)
-                        , Just (Attr.inlineStyle [ ( "z-index", "20" ) ])
+                        , Just (Attr.inlineStyle "z-index" "20")
                         , if isDisabled then
                             Nothing
                           else
@@ -2437,7 +2450,7 @@ searchSelect style attrs input =
                         , style = Nothing
                         , layout = Style.FlexLayout Style.GoRight []
                         , attrs =
-                            Attr.inlineStyle [ ( "cursor", "text" ) ]
+                            Attr.inlineStyle "cursor" "text"
                                 :: attrsWithoutSpacing
                         , children =
                             Internal.Normal
@@ -2513,12 +2526,10 @@ searchSelect style attrs input =
                                     , attrs =
                                         Attr.width (Style.Calc 100 0)
                                             :: Attr.toAttr (Html.Attributes.class "alt-icon")
-                                            :: Attr.inlineStyle
-                                                [ ( "height", "100%" )
-                                                , ( "position", "absolute" )
-                                                , ( "top", "0" )
-                                                , ( "left", "0" )
-                                                ]
+                                            :: Attr.inlineStyle "height" "100%"
+                                            :: Attr.inlineStyle "position" "absolute"
+                                            :: Attr.inlineStyle "top" "0"
+                                            :: Attr.inlineStyle "left" "0"
                                             :: []
                                     , child = Internal.Empty
                                     , absolutelyPositioned = Nothing
@@ -2528,14 +2539,15 @@ searchSelect style attrs input =
                         }
                 , absolutelyPositioned = Nothing
                 }
-                |> (if menuAbove then
+                |> (if isMenuAbove then
                         Element.above
                     else
                         Element.below
                    )
                     (if input.isOpen && not (List.isEmpty matches) && not isDisabled && (input.selected == Nothing) then
                         [ column menuStyle
-                            (Attr.inlineStyle [ ( "z-index", "20" ), ( "background-color", "white" ) ]
+                            (Attr.inlineStyle "z-index" "20"
+                                :: Attr.inlineStyle "background-color" "white"
                                 :: pointer
                                 :: Attr.width Attr.fill
                                 :: menuAttrs
@@ -2546,7 +2558,7 @@ searchSelect style attrs input =
                         []
                     )
     in
-    applyLabel Nothing Nothing ([ Attr.inlineStyle [ ( "cursor", "auto" ) ] ] ++ attrsWithSpacing) input.label errors isDisabled False [ fullElement ]
+    applyLabel Nothing Nothing ([ Attr.inlineStyle "cursor" "auto" ] ++ attrsWithSpacing) input.label errors isDisabled False [ fullElement ]
 
 
 {-| -}

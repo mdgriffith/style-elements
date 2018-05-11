@@ -6,7 +6,7 @@ Meant to be imported as
 
     import Style.Color as Color
 
-@docs Color, text, background, border, cursor, decoration, selection, placeholder
+@docs text, background, border, cursor, decoration, selection, placeholder
 
 -}
 
