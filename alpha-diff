@@ -1,0 +1,64 @@
+This is a MAJOR change.
+
+---- Element - MAJOR ----
+
+    Changed:
+      - classifyDevice : Size -> Device
+      + classifyDevice :
+            { window | width : Basics.Int, height : Basics.Int }
+            -> Element.Device
+
+
+
+---- Element.Attributes - MAJOR ----
+
+    Changed:
+      - inlineStyle : List ( String, String ) -> Attribute variation msg
+      + inlineStyle :
+            String.String
+            -> String.String
+            -> Element.Internal.Model.Attribute variation msg
+
+
+
+---- Element.Events - MAJOR ----
+
+    Added:
+        custom :
+            String.String
+            -> Json.Decode.Decoder
+                   { message : msg
+                   , stopPropagation : Basics.Bool
+                   , preventDefault : Basics.Bool
+                   }
+            -> Element.Internal.Model.Attribute variation msg
+        preventDefaultOn :
+            String.String
+            -> Json.Decode.Decoder ( msg, Basics.Bool )
+            -> Element.Internal.Model.Attribute variation msg
+        stopPropagationOn :
+            String.String
+            -> Json.Decode.Decoder ( msg, Basics.Bool )
+            -> Element.Internal.Model.Attribute variation msg
+
+    Removed:
+        type alias Options = { stopPropagation : Bool, preventDefault : Bool }
+        defaultOptions : Options
+        onWithOptions :
+            String -> Options -> Decoder msg -> Attribute variation msg
+
+
+---- Style - MAJOR ----
+
+    Added:
+        type alias Color = Style.Internal.Model.Color
+        rgb : Basics.Float -> Basics.Float -> Basics.Float -> Style.Color
+        rgba :
+            Basics.Float
+            -> Basics.Float
+            -> Basics.Float
+            -> Basics.Float
+            -> Style.Color
+
+    Removed:
+        unguarded : Option
