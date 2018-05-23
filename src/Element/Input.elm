@@ -2403,7 +2403,7 @@ searchSelect style attrs input =
         matches =
             choices
                 |> List.filter (matchesQuery input.query)
-                |> List.keep input.max
+                |> List.take input.max
                 |> List.map renderOption
 
         fullElement =
