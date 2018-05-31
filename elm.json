@@ -3,7 +3,7 @@
     "name": "mdgriffith/style-elements",
     "summary": "A different approach to creating and managing styles.",
     "license": "BSD-3-Clause",
-    "version": "5.0.1",
+    "version": "5.0.0",
     "exposed-modules": [
         "Style",
         "Style.Border",
@@ -24,11 +24,11 @@
     "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {
         "Skinney/murmur3": "2.0.7 <= v < 3.0.0",
-        "elm-lang/core": "6.0.0 <= v < 7.0.0",
-        "elm-lang/html": "3.0.0 <= v < 4.0.0",
-        "elm-lang/json": "1.0.0 <= v < 2.0.0",
-        "elm-lang/regex": "1.0.0 <= v < 2.0.0",
-        "elm-lang/virtual-dom": "3.0.0 <= v < 4.0.0"
+        "elm/core": "1.0.0 <= v < 2.0.0",
+        "elm/html": "1.0.0 <= v < 2.0.0",
+        "elm/json": "1.0.0 <= v < 2.0.0",
+        "elm/regex": "1.0.0 <= v < 2.0.0",
+        "elm/virtual-dom": "1.0.0 <= v < 2.0.0"
     },
     "test-dependencies": {}
 }

@@ -46,7 +46,7 @@ module Element.Input
         , styledChoice
         , styledSelectChoice
         , text
-        , textKey
+          -- , textKey
         , updateSelection
         , username
         )
@@ -63,8 +63,6 @@ module Element.Input
 The following text inputs give hints to the browser so they can be autofilled.
 
 @docs username, newPassword, currentPassword
-
-@docs textKey
 
 
 ## 'Choose One' Inputs
@@ -133,7 +131,7 @@ valueAttr =
 
 textValueAttr : String -> Internal.Attribute variation msg
 textValueAttr =
-    Attr.toAttr << Html.Attributes.defaultValue
+    Attr.toAttr << Html.Attributes.value
 
 
 tabindex : Int -> Internal.Attribute variation msg
@@ -625,22 +623,17 @@ disabled =
     Disabled
 
 
-{-| This key is needed because of the fix that is used to address [the cursor jumping bug](https://github.com/mdgriffith/style-elements/issues/91).
 
-Style Elements renders a text input using `defaultValue`, but if the value changes in your model, but not as a result of the input `onChange` event, then your input and model will get out of sync.
-
-So, if you manually change the value of a text input in your model, you need to ensure this key changes.
-
-A common way to do this is to maintain increment a counter whenever you manually change the text.
-
-**This option will be removed as soon as this bug is addressed farther upstream.**
-
-So if it feels awkward and like a hack, it's because it is.
-
--}
-textKey : String -> Option style variation msg
-textKey =
-    Key
+-- {-| This key is needed because of the fix that is used to address [the cursor jumping bug](https://github.com/mdgriffith/style-elements/issues/91).
+-- Style Elements renders a text input using `defaultValue`, but if the value changes in your model, but not as a result of the input `onChange` event, then your input and model will get out of sync.
+-- So, if you manually change the value of a text input in your model, you need to ensure this key changes.
+-- A common way to do this is to maintain increment a counter whenever you manually change the text.
+-- **This option will be removed as soon as this bug is addressed farther upstream.**
+-- So if it feels awkward and like a hack, it's because it is.
+-- -}
+-- textKey : String -> Option style variation msg
+-- textKey =
+--     Key
 
 
 {-| Add a key string to a radio option.
