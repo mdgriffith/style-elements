@@ -201,22 +201,24 @@ free str =
 
 
 {-| -}
-variant : Selector class variation -> variation -> Selector class variation
-variant sel var =
+variant : Selector class variation -> variation -> String -> Selector class variation
+variant sel var name =
     case sel of
         Pseudo psu ->
             Pseudo psu
 
         Select single findable ->
-            Select (single ++ "-" ++ formatName var)
+            -- Select (single ++ "-" ++ formatName var)
+            Select (single ++ "-" ++ formatName name)
                 (Findable.toVariation
                     var
-                    (single ++ "-" ++ formatName var)
+                    -- (single ++ "-" ++ formatName var)
+                    (single ++ "-" ++ formatName name)
                     findable
                 )
 
         SelectChild selectChild ->
-            SelectChild (variant selectChild var)
+            SelectChild (variant selectChild var name)
 
         Free single ->
             Free single
@@ -239,7 +241,7 @@ variant sel var =
                     Stack sels
 
                 Just last ->
-                    Stack (init ++ [ variant last var ])
+                    Stack (init ++ [ variant last var name ])
 
 
 {-| Pseudo-classes are allowed anywhere in selectors while pseudo-elements may only be appended after the last simple selector of the selector.

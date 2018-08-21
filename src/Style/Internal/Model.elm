@@ -109,7 +109,7 @@ mapPropClass fn prop =
             Child (fn class) (List.map (mapPropClass fn) props)
 
         Variation var props ->
-            Variation var (List.map (mapPropClass fn) props)
+            Variation var (List.map (mapPropClassAndVar fn identity) props)
 
         Exact name val ->
             Exact name val

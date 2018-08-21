@@ -28,6 +28,25 @@ type Prop class variation
     | Animation
 
 
+getProps : Prop class variation -> List ( String, String )
+getProps prop =
+    case prop of
+        Props rendered ->
+            rendered
+
+        SubClass (Class myClass) ->
+            List.concatMap getProps myClass.props
+
+        PropsAndSub rendered (Class myClass) ->
+            rendered ++ List.concatMap getProps myClass.props
+
+        Animation ->
+            []
+
+        _ ->
+            []
+
+
 type Renderable
     = RenderableClass String (List ( String, String ))
     | RenderableMedia String String (List ( String, String ))
@@ -89,6 +108,10 @@ finalize intermediates =
 guard : Class class variation -> Class class variation
 guard class =
     applyGuard (hash <| calculateGuard class) class
+
+
+
+-- propertyHash :
 
 
 calculateGuard : Class class variation -> String

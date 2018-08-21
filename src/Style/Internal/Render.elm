@@ -310,7 +310,17 @@ renderProp parentClass prop =
         Variation var styleProps ->
             let
                 selectVariation =
-                    Selector.variant parentClass var
+                    Selector.variant parentClass var variationName
+
+                variationName =
+                    case List.filterMap (renderVariationProp parentClass) styleProps of
+                        [] ->
+                            "v"
+
+                        intermediates ->
+                            List.concatMap Intermediate.getProps intermediates
+                                |> List.map (\( x, y ) -> x ++ y)
+                                |> String.concat
             in
             (Intermediate.SubClass << Intermediate.Class)
                 { selector = selectVariation
