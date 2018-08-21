@@ -1,7 +1,7 @@
 {
     "type": "package",
     "name": "mdgriffith/style-elements",
-    "summary": "A different approach to creating and managing styles.",
+    "summary": "Style and Layout that doesn't mysteriously break.",
     "license": "BSD-3-Clause",
     "version": "5.0.0",
     "exposed-modules": [
