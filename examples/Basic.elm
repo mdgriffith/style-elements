@@ -1,7 +1,5 @@
 module Main exposing (..)
 
--- import Html
-
 import Browser
 import Color
 import Element exposing (..)
@@ -26,6 +24,10 @@ type Styles
     | Label
 
 
+type Variation
+    = Disabled
+
+
 sansSerif =
     [ Font.font "helvetica"
     , Font.font "arial"
@@ -42,7 +44,7 @@ Generally all properties only have one allowed unit, which is usually px.
 If you want to use something like em, you should check out the `Style.Scale` module, which will show how to make something similar to `em`.
 
 -}
-stylesheet : StyleSheet Styles variation
+stylesheet : StyleSheet Styles Variation
 stylesheet =
     Style.styleSheet
         [ style None [] -- It's handy to have a blank style
@@ -80,6 +82,9 @@ stylesheet =
             , Color.background Color.blue
             , Color.border Color.blue
             , Border.rounded 3 -- round all borders to 3px
+            , variation Disabled
+                [ Color.background Color.red
+                ]
             , hover
                 [ Color.text Color.white
                 , Color.background Color.red
@@ -96,7 +101,7 @@ stylesheet =
 
 
 main =
-    Browser.staticPage view
+    view
 
 
 {-| Our view is made up of `Element`s,
@@ -173,6 +178,7 @@ viewTextLayout =
             , height (px 300)
             , alignRight
             , spacing 100
+            , vary Disabled True
             ]
             empty
         , paragraph None
