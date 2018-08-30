@@ -429,11 +429,7 @@ classList =
 
     myStyle : Attribute msg
     myStyle =
-        inlineStyle
-            [ ( "backgroundColor", "red" )
-            , ( "height", "90px" )
-            , ( "width", "100%" )
-            ]
+        inlineStyle "backgroundColor" "red"
 
     greeting : Html msg
     greeting =
