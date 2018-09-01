@@ -1,5 +1,8 @@
 # The Style Elements Library!
 
+**Note** This project had a major rewrite and continues as [Elm UI](https://github.com/mdgriffith/elm-ui).  Go check it out :)
+
+
 #### Resources to get you started
 
 Check out the [intro guide to style-elements!](https://mdgriffith.gitbooks.io/style-elements/content/)

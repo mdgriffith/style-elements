@@ -1,7 +1,7 @@
 {
     "type": "package",
     "name": "mdgriffith/style-elements",
-    "summary": "Style and Layout that doesn't mysteriously break.",
+    "summary": "This project had a major rewrite and continues as mdgriffith/elm-ui",
     "license": "BSD-3-Clause",
     "version": "5.0.0",
     "exposed-modules": [
