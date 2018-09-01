@@ -167,13 +167,17 @@ type alias Color =
     Internal.Color
 
 
-{-| -}
+{-|
+Takes values from 0 to 1 to make a nontransparent color in the rgb space.
+-}
 rgb : Float -> Float -> Float -> Color
 rgb r g b =
     Internal.RGBA r g b 1
 
 
-{-| -}
+{-|
+Takes values from 0 to 1 to make a transparent color in the rgb space.
+-}
 rgba : Float -> Float -> Float -> Float -> Color
 rgba =
     Internal.RGBA
