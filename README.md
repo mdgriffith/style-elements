@@ -36,5 +36,10 @@ The `Element` module contains all the components that go in your view.
 
 The `Style` module is the base for creating your stylesheet.
 
+### Examples
 
+Check out the `examples` directory or these hosted examples:
 
+* [Basic](https://ellie-app.com/44kytqVfZ7Ha1/1)
+* [Chat](https://ellie-app.com/44kF6WX2nr2a1/0)
+* [Style Animation](https://ellie-app.com/44kGyLMNFMba1/0)
