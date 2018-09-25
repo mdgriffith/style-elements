@@ -11,16 +11,21 @@ Then, when setting font sizes you can use:
 
     Font.size (scaled 1) -- results in 16
 
-    Font.size (scaled 2) -- 16 * (1.618 ^ 2) results in 25.8
+    Font.size (scaled 2) -- 16 * 1.618 results in 25.8
+
+    Font.size (scaled 4) -- 16 * 1.618 ^ (4 - 1) results in 67.8
 
 We can also provide negative numbers to scale below 16px.
+
+    Font.size (scaled -1) -- 16 * 1.618 ^ (-1) results in 9.9
 
 @docs modular, roundedModular
 
 -}
 
 
-{-| -}
+{-| Given a normal size and a ratio, returns a function which takes a scale parameter and returns a new size
+-}
 modular : Float -> Float -> Int -> Float
 modular normal ratio fontScale =
     resize normal ratio fontScale
@@ -38,25 +43,9 @@ roundedModular normal ratio =
 
 resize : Float -> Float -> Int -> Float
 resize normal ratio scale =
-    if scale == 0 || scale == 1 then
+    if scale == 0 then
         normal
     else if scale < 0 then
-        shrink ratio (scale * -1) normal
+        normal * ratio ^ (toFloat scale)
     else
-        grow ratio (scale - 1) normal
-
-
-grow : Float -> Int -> Float -> Float
-grow ratio i size =
-    if i <= 0 then
-        size
-    else
-        grow ratio (i - 1) (size * ratio)
-
-
-shrink : Float -> Int -> Float -> Float
-shrink ratio i size =
-    if i <= 0 then
-        size
-    else
-        shrink ratio (i - 1) (size / ratio)
+        normal * ratio ^ (toFloat scale - 1)
