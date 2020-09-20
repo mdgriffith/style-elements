@@ -1,34 +1,34 @@
 {
-    "type": "package",
-    "name": "mdgriffith/style-elements",
-    "summary": "This project had a major rewrite and continues as mdgriffith/elm-ui",
-    "license": "BSD-3-Clause",
-    "version": "5.0.1",
-    "exposed-modules": [
-        "Style",
-        "Style.Border",
-        "Style.Background",
-        "Style.Font",
-        "Style.Color",
-        "Style.Filter",
-        "Style.Shadow",
-        "Style.Transition",
-        "Style.Scale",
-        "Style.Sheet",
-        "Element",
-        "Element.Attributes",
-        "Element.Events",
-        "Element.Keyed",
-        "Element.Input"
-    ],
-    "elm-version": "0.19.0 <= v < 0.20.0",
-    "dependencies": {
-        "robinheghan/murmur3": "2.0.7 <= v < 3.0.0",
-        "elm/core": "1.0.0 <= v < 2.0.0",
-        "elm/html": "1.0.0 <= v < 2.0.0",
-        "elm/json": "1.0.0 <= v < 2.0.0",
-        "elm/regex": "1.0.0 <= v < 2.0.0",
-        "elm/virtual-dom": "1.0.0 <= v < 2.0.0"
-    },
-    "test-dependencies": {}
+  "type": "package",
+  "name": "mdgriffith/style-elements",
+  "summary": "This project had a major rewrite and continues as mdgriffith/elm-ui",
+  "license": "BSD-3-Clause",
+  "version": "5.0.2",
+  "exposed-modules": [
+    "Style",
+    "Style.Border",
+    "Style.Background",
+    "Style.Font",
+    "Style.Color",
+    "Style.Filter",
+    "Style.Shadow",
+    "Style.Transition",
+    "Style.Scale",
+    "Style.Sheet",
+    "Element",
+    "Element.Attributes",
+    "Element.Events",
+    "Element.Keyed",
+    "Element.Input"
+  ],
+  "elm-version": "0.19.0 <= v < 0.20.0",
+  "dependencies": {
+    "robinheghan/murmur3": "2.0.7 <= v < 3.0.0",
+    "elm/core": "1.0.0 <= v < 2.0.0",
+    "elm/html": "1.0.0 <= v < 2.0.0",
+    "elm/json": "1.0.0 <= v < 2.0.0",
+    "elm/regex": "1.0.0 <= v < 2.0.0",
+    "elm/virtual-dom": "1.0.0 <= v < 2.0.0"
+  },
+  "test-dependencies": {}
 }
