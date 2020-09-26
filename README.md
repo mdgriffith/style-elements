@@ -36,5 +36,9 @@ The `Element` module contains all the components that go in your view.
 
 The `Style` module is the base for creating your stylesheet.
 
+### Upgrading to Elm 0.19
+
+`Color.Color` is replaced by `Style.Color`, and `Color.rgba` is replaced by `Style.rgba`. The new `Style.rgba` function expects to receive values between 0 and 1 to specify the color, whereas the old function expected values between 0 and 255, so if all your colors are white, this is probably why.
+
 
 
