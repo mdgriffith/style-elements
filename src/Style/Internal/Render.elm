@@ -255,7 +255,6 @@ preprocess style =
                         |> prioritize visible
                         |> overridePrevious visible
                         |> prioritize shadows
-                        |> overridePrevious shadows
                         |> mergeShadowsAndFilters
                         |> mergeTransforms
             in
